@@ -1,0 +1,338 @@
+.settings-container {                 /* กล่องหลักครอบทั้งหมด */
+  max-width: 800px;                   /* กำหนดความกว้างสูงสุด */
+  margin: 2rem auto;                  /* จัดให้อยู่กลางหน้าด้วย margin */
+  padding: 1rem;                      /* ระยะห่างด้านใน */
+  font-family: 'Inter', system-ui, sans-serif; /* ฟอนต์หลัก */
+  animation: fadeInUp 0.5s ease; 
+  border-radius: 12px !important;     /* โหลดเข้ามาพร้อมแอนิเมชัน */
+}
+
+h2 {                                  /* หัวข้อหลัก */
+  padding: 1rem;                      /* เว้นรอบตัวอักษร */
+  font-size: 1.4rem;                  /* ขนาดฟอนต์ */
+  font-weight: 600;                   /* หนากำลังดี */
+  color: #2563eb;                       /* สีเทาเข้ม */
+  display: flex;                      /* ใช้ flex จัด layout */
+  align-items: center;                /* จัดกึ่งกลางแนวตั้ง */
+  gap: .5rem;                         /* เว้นช่องระหว่างไอคอนกับข้อความ */
+}
+
+.card {                               /* กล่องย่อยแต่ละส่วน */
+  background: #fff;                   /* พื้นหลังขาว */
+  border-radius: 16px;                /* มุมโค้งมน */
+  padding: 1.2rem;                    /* ระยะห่างด้านใน */
+  margin-bottom: 1rem;                /* เว้นด้านล่าง */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* เงาบาง ๆ */
+  transition: transform .25s ease, box-shadow .25s ease; /* transition เวลา hover */
+}
+.card:hover {                         /* ตอนเอาเมาส์ไปวางบน card */
+  transform: translateY(-2px);        /* ยกขึ้นเล็กน้อย */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08); /* เงาเข้มขึ้น */
+}
+
+.card h4 {                            /* หัวข้อย่อยใน card */
+  margin-bottom: 0.8rem;              /* เว้นบรรทัดด้านล่าง */
+  font-size: 1rem;                    /* ขนาดฟอนต์ */
+  font-weight: 600;                   /* น้ำหนักฟอนต์ */
+  color: #334155;                     /* สีเทาเข้ม */
+}
+
+/* ================= Toggle Switch ================= */
+.switch-row {                         /* แถวของสวิตช์ */
+  display: flex;                      /* ใช้ flex */
+  justify-content: space-between;     /* ข้อความอยู่ซ้าย สวิตช์อยู่ขวา */
+  align-items: center;                /* จัดกึ่งกลางแนวตั้ง */
+  margin-bottom: .6rem;               /* เว้นบรรทัด */
+}
+
+.switch {                             /* กล่องสวิตช์ */
+  position: relative;                 /* เพื่อใช้ absolute กับลูก */
+  display: inline-block;
+  width: 46px;                        /* ความกว้าง toggle */
+  height: 26px;                       /* ความสูง toggle */
+}
+.switch input {                       /* input จริง ๆ ซ่อนออกไป */
+  display: none;
+}
+.slider {                             /* พื้นหลังสวิตช์ */
+  position: absolute;
+  cursor: pointer;                    /* แสดง pointer เมื่อ hover */
+  top: 0; left: 0; right: 0; bottom: 0; /* ครอบเต็มพื้นที่ */
+  background: #e2e8f0;                /* สีตอนปิด */
+  border-radius: 26px;                /* มุมโค้งกลม */
+  transition: background .3s ease;    /* smooth เวลาสีเปลี่ยน */
+}
+.slider:before {                      /* วงกลมภายใน toggle */
+  content: "";                        /* ไม่มีข้อความ ใช้เป็น ball */
+  position: absolute;
+  height: 20px; width: 20px;          /* ขนาดวงกลม */
+  left: 3px; bottom: 3px;             /* ระยะจากขอบ */
+  background: #fff;                   /* สีขาว */
+  border-radius: 50%;                 /* กลม */
+  transition: transform .3s cubic-bezier(.4,0,.2,1); /* การเลื่อนแบบนุ่ม */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* เงาของ ball */
+}
+.switch input:checked + .slider {     /* เมื่อเปิด toggle */
+  background: linear-gradient(135deg,#2b8aef,#4f9dfc); /* ไล่เฉดฟ้า */
+}
+.switch input:checked + .slider:before {
+  transform: translateX(20px);        /* เลื่อนวงกลมไปขวา */
+  animation: bounce .3s ease;         /* เพิ่มแอนิเมชันเด้ง */
+}
+
+@keyframes bounce {                   /* แอนิเมชันเด้ง */
+  0% { transform: translateX(20px) scale(1); }
+  50% { transform: translateX(20px) scale(1.1); }
+  100% { transform: translateX(20px) scale(1); }
+}
+
+/* ================= Select (Dropdown) ================= */
+select.form-control {
+  width: 100%;                        /* กว้างเต็ม */
+  padding: .6rem;                     /* ระยะห่างด้านใน */
+  border-radius: 10px;                /* มุมโค้ง */
+  border: 1px solid #e2e8f0;          /* เส้นขอบสีเทา */
+  font-size: .95rem;
+  transition: border .2s ease, box-shadow .2s ease, transform .2s ease; /* smooth */
+}
+select.form-control:focus {           /* ตอนโฟกัส */
+  border-color: #2b8aef;              /* เปลี่ยนเป็นฟ้า */
+  box-shadow: 0 0 0 3px rgba(43,138,239,0.2); /* glow ฟ้า */
+  outline: none;                      /* เอาเส้น default ออก */
+  transform: scale(1.01);             /* ขยายเล็กน้อย */
+}
+
+/* ================= Buttons ================= */
+.actions {                            /* กล่องปุ่ม */
+  display: flex;
+  gap: .8rem;                         /* เว้นระหว่างปุ่ม */
+  margin-top: 1.2rem;
+}
+.btn {                                /* ปุ่มทั่วไป */
+  border: none;
+  border-radius: 10px;                /* มุมโค้ง */
+  padding: .6rem 1.2rem;              /* ระยะในปุ่ม */
+  cursor: pointer;                    /* cursor pointer */
+  font-size: .95rem;
+  transition: transform .2s ease, box-shadow .2s ease, background .3s ease; /* smooth effect */
+  position: relative;                 /* สำหรับ pseudo element */
+  overflow: hidden;                   /* กันเอฟเฟกต์ล้น */
+}
+.btn.primary {                        /* ปุ่มหลัก (save) */
+  background: linear-gradient(135deg,#32da70); 
+  color: #fff;                        /* ตัวอักษรขาว */
+}
+.btn.primary:hover {
+  transform: translateY(-1px);        /* ยกขึ้น */
+  box-shadow: 0 4px 10px rgba(43,138,239,0.3); /* เงาฟ้า */
+}
+.btn.primary:active {
+  transform: scale(0.97);             /* ย่อเล็กลงเวลา click */
+}
+.btn.secondary {                      /* ปุ่มรอง (reset) */
+  background: #f8fafc;                /* เทาอ่อน */
+  color: #334155;                     /* ตัวอักษรเทาเข้ม */
+}
+.btn.secondary:hover {
+  background: #e2e8f0;                /* เข้มขึ้นเล็กน้อย */
+}
+
+/* ปุ่ม state: loading */
+.btn.loading::after {
+  content: "";                        /* สร้าง spinner */
+  position: absolute;
+  width: 16px; height: 16px;
+  border: 2px solid #fff;
+  border-top-color: transparent;      /* โปร่งบางส่วน */
+  border-radius: 50%;                 /* วงกลม */
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  animation: spin 0.6s linear infinite; /* หมุน */
+}
+@keyframes spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* ปุ่ม state: success */
+.btn.success {
+  background: linear-gradient(135deg,#16a34a,#22c55e); /* เขียว */
+}
+.btn.success::after {
+  content: "✔";                       /* แสดงเครื่องหมายติ๊ก */
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  animation: fadeInScale .4s ease;    /* effect เด้ง */
+}
+@keyframes fadeInScale {
+  from { opacity: 0; transform: translateY(-50%) scale(0.8); }
+  to   { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+/* ================= Page Animation ================= */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* ===============================
+   Dark Mode Overrides
+   =============================== */
+   :host-context(.dark-mode) .settings-container {
+    background: #111827;                /* พื้นหลังหลักเข้ม */
+    color: #f3f4f6;                     /* ตัวอักษรอ่อน */
+  }
+  
+  /* หัวข้อ */
+  :host-context(.dark-mode) h2 {
+    color: #e5e7eb;                     /* เทาอ่อน */
+  }
+  :host-context(.dark-mode) .card h4 {
+    color: #f9fafb;                     /* ขาว */
+  }
+  
+  /* Card */
+  :host-context(.dark-mode) .card {
+    background: #1f2937 !important;     /* เทาเข้ม */
+    color: #f3f4f6 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
+  }
+  :host-context(.dark-mode) .card:hover {
+    background: #2d3748 !important;     /* เทา hover */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.7) !important;
+  }
+  
+  /* Toggle Switch */
+  :host-context(.dark-mode) .slider {
+    background: #374151;                /* ปิด = เทาเข้ม */
+  }
+  :host-context(.dark-mode) .switch input:checked + .slider {
+    background: linear-gradient(135deg,#3b82f6,#60a5fa); /* เปิด = น้ำเงิน */
+  }
+  :host-context(.dark-mode) .slider:before {
+    background: #f9fafb;                /* วงกลมสีอ่อน */
+  }
+  
+  /* Select Dropdown */
+  :host-context(.dark-mode) select.form-control {
+    background-color: #111827 !important;
+    border: 1px solid #374151 !important;
+    color: #f9fafb !important;
+  }
+  :host-context(.dark-mode) select.form-control option {
+    background-color: #1f2937;          /* dropdown list */
+    color: #f3f4f6;
+  }
+  :host-context(.dark-mode) select.form-control:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.3) !important;
+  }
+  
+  /* Buttons */
+  :host-context(.dark-mode) .btn.primary {
+    background: linear-gradient(135deg,#16a34a,#22c55e); /* เขียว */
+    color: #fff;
+  }
+  :host-context(.dark-mode) .btn.primary:hover {
+    box-shadow: 0 4px 12px rgba(22,163,74,0.4);
+  }
+  
+  :host-context(.dark-mode) .btn.secondary {
+    background: #374151;                /* เทาเข้ม */
+    color: #f9fafb;
+  }
+  :host-context(.dark-mode) .btn.secondary:hover {
+    background: #4b5563;
+  }
+  
+/* ===============================
+   Fix Toggle Alignment & Spacing
+   =============================== */
+
+/* กล่องหลักของแต่ละแถว toggle */
+.switch-row {
+  display: flex;
+  justify-content: space-between;  /* ข้อความซ้าย toggle ขวา */
+  align-items: center;             /* จัดให้อยู่กึ่งกลางแนวตั้ง */
+  gap: 1rem;                       /* เว้นระยะระหว่างข้อความกับ toggle */
+  padding: 0.4rem 0.2rem;          /* เพิ่ม padding ด้านบนล่าง */
+  border-bottom: 1px dashed #e5e7eb; /* เส้นคั่นบางๆ (ถ้าอยากให้มี) */
+}
+
+/* เอาเส้นคั่นออกในแถวสุดท้าย */
+.switch-row:last-child {
+  border-bottom: none;
+}
+
+/* สวิตช์ */
+.switch {
+  position: relative;
+  display: inline-flex;
+  justify-content: flex-end;
+  width: 52px;     /* ขยายให้ได้สัดส่วนสวย */
+  height: 28px;
+  flex-shrink: 0;  /* ไม่ให้บีบตัว */
+}
+
+/* พื้นหลัง toggle */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #e2e8f0;
+  border-radius: 28px;
+  transition: background 0.3s ease;
+}
+
+/* วงกลมใน toggle */
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 22px; width: 22px;
+  left: 3px; bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* เปิด toggle */
+.switch input:checked + .slider {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* เพิ่มความสวยเมื่อ hover */
+.switch-row:hover .slider {
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+/* ===============================
+   Responsive (mobile)
+   =============================== */
+@media (max-width: 768px) {
+  .switch-row {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .switch {
+    width: 48px;
+    height: 26px;
+  }
+
+  .slider:before {
+    height: 20px;
+    width: 20px;
+    transform: none;
+  }
+
+  .switch input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+}

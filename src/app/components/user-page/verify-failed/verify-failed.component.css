@@ -1,0 +1,172 @@
+/* ==========================================================
+   FAILED PAGE — Minimal Smooth Theme
+   (Matching Success & Login Pages)
+========================================================== */
+
+.failed-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffe0e0, #ffc6c6);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #1e293b;
+  text-align: center;
+  padding: 2rem;
+  overflow: hidden;
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card box */
+.failed-box {
+  background: #fff;
+  padding: 3rem 3.5rem;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 100%;
+  animation: popUp 0.6s ease forwards;
+  transition: all 0.4s ease;
+}
+
+@keyframes popUp {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.failed-box h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #dc2626; /* 🔹 สีแดงหลักของ failure */
+  margin-bottom: 1rem;
+}
+
+.failed-box p {
+  font-size: 1.05rem;
+  color: #475569;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Red glowing icon */
+.failed-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #ef4444 0%, #dc2626 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 0 35px rgba(239, 68, 68, 0.4);
+  animation: pulseGlow 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+
+/* Button (same as success, blue accent) */
+.dashboard-btn {
+  background-color: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 0.9rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+}
+
+.dashboard-btn:hover {
+  background-color: #1665c1;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(26, 115, 232, 0.35);
+}
+
+.dashboard-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(26, 115, 232, 0.25);
+}
+
+/* ==========================================================
+   DARK MODE
+========================================================== */
+:host-context(.dark-mode) .failed-container {
+  background: linear-gradient(135deg, #1e1b1b, #2d1f1f);
+  color: #f9fafb;
+}
+
+:host-context(.dark-mode) .failed-box {
+  background: #111827;
+  color: #f3f4f6;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+:host-context(.dark-mode) .failed-box p {
+  color: #9ca3af;
+}
+
+:host-context(.dark-mode) .failed-icon {
+  background: radial-gradient(circle at center, #dc2626 0%, #991b1b 90%);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+}
+
+:host-context(.dark-mode) .dashboard-btn {
+  background-color: #2563eb;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+:host-context(.dark-mode) .dashboard-btn:hover {
+  background-color: #1e40af;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.5);
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+@media (max-width: 768px) {
+  .failed-box {
+    padding: 2.2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .failed-box h1 {
+    font-size: 1.6rem;
+  }
+
+  .failed-box p {
+    font-size: 0.95rem;
+  }
+
+  .failed-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1.2rem;
+  }
+
+  .dashboard-btn {
+    font-size: 0.95rem;
+    padding: 0.8rem 1.5rem;
+  }
+}
+
+.failed-icon i {
+  animation: crossPop 0.6s ease forwards;
+}
+
+@keyframes crossPop {
+  0%   { transform: scale(0); opacity: 0; }
+  80%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+

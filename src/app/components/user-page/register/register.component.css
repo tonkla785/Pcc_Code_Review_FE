@@ -1,0 +1,477 @@
+/* ==========================================================
+   REGISTER PAGE — LAYOUT & STRUCTURE
+========================================================== */
+
+/* Container ทั้งหน้า */
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #cce7ff, #99d1ff);
+  font-family: Arial, sans-serif;
+}
+
+/* Wrapper — รวมฝั่ง Welcome และ Register Form */
+.register-wrapper {
+  display: flex;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  max-width: 1000px;
+  width: 100%;
+}
+
+/* ==========================================================
+   LEFT COLUMN — WELCOME SECTION
+========================================================== */
+.welcome-section {
+  flex: 1;
+  background: #1a73e8;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem;
+}
+
+.welcome-section .logo {
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+}
+
+.welcome-section p {
+  opacity: 0.95;
+  margin: 0;
+}
+
+/* ==========================================================
+   RIGHT COLUMN — REGISTER BOX / FORM
+========================================================== */
+.register-box {
+  position: relative;
+  flex: 1;
+  padding: 3rem 3.5rem;
+  width: auto;
+  background-color: #fff;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ใช้ .register-box เดี่ยว ๆ ได้ (นอก wrapper) */
+.register-container > .register-box {
+  max-width: 650px;
+  min-height: 480px;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  margin: auto;
+}
+
+/* ==========================================================
+   HEADER
+========================================================== */
+.register-header {
+  text-align: center;
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.register-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.8rem;
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.back-btn:hover {
+  color: #0056b3;
+}
+
+/* ==========================================================
+   INPUTS / VALIDATION
+========================================================== */
+.input-group {
+  margin-bottom: 1.2rem;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #333;
+  font-size: 1rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 16px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+  outline: none;
+}
+
+.input-group input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.8rem;
+}
+
+/* ==========================================================
+   BUTTONS & LINKS
+========================================================== */
+button {
+  width: 100%;
+  padding: 1rem;
+  background-color: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-top: 1.2rem;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #1665c1;
+}
+
+.extra-links {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.extra-links a {
+  color: #1a73e8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.extra-links a:hover {
+  text-decoration: underline;
+}
+/* ==========================================================
+   RESPONSIVE — REGISTER PAGE (≤768px)
+========================================================== */
+@media (max-width: 768px) {
+  .register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #cce7ff, #99d1ff);
+    padding: 1.5rem;
+  }
+
+  .register-wrapper {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 380px; /* ✅ ขนาดกล่องไม่เต็มจอ */
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .welcome-section {
+    align-items: center;
+    text-align: center;
+    background: #1a73e8;
+    color: #fff;
+    padding: 2.5rem 1rem 2rem;
+    width: 100%;
+  }
+
+  .welcome-section h1 {
+    font-size: 1.8rem;
+    line-height: 1.3;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcome-section p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+
+  .register-box {
+    width: 100%;
+    padding: 2rem 1.5rem;
+    background: #fff;
+  }
+
+  .register-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .register-header h2 {
+    font-size: 1.5rem;
+    color: #1a73e8;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .register-header .back-btn {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #1a73e8;
+    font-size: 1.4rem;
+  }
+
+  .input-group {
+    margin-bottom: 1rem;
+  }
+
+  .input-group label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 0.95rem;
+  }
+
+  button[type="submit"] {
+    width: 100%;
+    background: #1a73e8;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    padding: 0.9rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.3s, transform 0.2s;
+  }
+
+  button[type="submit"]:hover {
+    background: #1667cf;
+    transform: translateY(-2px);
+  }
+
+  .extra-links {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .extra-links a {
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .extra-links a:hover {
+    text-decoration: underline;
+  }
+}
+
+
+/* Tablet (768px–1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .register-wrapper {
+    max-width: 700px;
+    border-radius: 20px;
+  }
+
+  .welcome-section {
+    padding: 2rem;
+  }
+
+  .welcome-section h1 {
+    font-size: 1.8rem;
+  }
+
+  .register-box {
+    padding: 2rem;
+  }
+
+  .register-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .input-group input {
+    padding: 0.7rem;
+    font-size: 0.95rem;
+  }
+
+  button {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+}
+
+/* ==========================================================
+   DARK MODE
+========================================================== */
+
+/* Container */
+:host-context(.dark-mode) .register-container {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f9fafb;
+}
+
+/* Wrapper */
+:host-context(.dark-mode) .register-wrapper {
+  background: #1f2937;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* Welcome Section */
+:host-context(.dark-mode) .welcome-section {
+  background: #2563eb;
+  color: #fff;
+}
+
+:host-context(.dark-mode) .welcome-section h1,
+:host-context(.dark-mode) .welcome-section p {
+  color: #f9fafb;
+}
+
+/* Register Box */
+:host-context(.dark-mode) .register-box {
+  background: #111827;
+  color: #f3f4f6;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+}
+
+/* Header */
+:host-context(.dark-mode) .register-header h2 {
+  color: #3b82f6;
+}
+
+:host-context(.dark-mode) .back-btn {
+  color: #60a5fa;
+}
+
+:host-context(.dark-mode) .back-btn:hover {
+  color: #93c5fd;
+}
+
+/* Inputs */
+:host-context(.dark-mode) .input-group label {
+  color: #e5e7eb;
+}
+
+:host-context(.dark-mode) .input-group input {
+  background: #1f2937 !important;
+  border: 1px solid #1f2937 !important;
+  color: #f9fafb !important;
+  outline: none !important;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+:host-context(.dark-mode) .input-group input:focus {
+  border: 1px solid #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+:host-context(.dark-mode) .input-group input::placeholder {
+  color: #9ca3af;
+}
+
+/* Error */
+:host-context(.dark-mode) .error-message {
+  color: #f87171;
+}
+
+/* Buttons */
+:host-context(.dark-mode) button {
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+:host-context(.dark-mode) button:hover {
+  background-color: #1e40af;
+}
+
+/* Links */
+:host-context(.dark-mode) .extra-links a {
+  color: #60a5fa;
+}
+
+:host-context(.dark-mode) .extra-links a:hover {
+  color: #93c5fd;
+}
+
+/* ==========================================================
+   ::ng-deep OVERRIDES (Force Input Styling)
+========================================================== */
+::ng-deep .register-box .input-group input {
+  border-radius: 16px !important;
+  border: 1px solid #ccc !important;
+  padding: 0.8rem 1rem !important;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+::ng-deep .register-box .input-group input:focus {
+  border-color: #1a73e8 !important;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+
+::ng-deep .register-box .input-group input::placeholder {
+  color: #999;
+}
+
+/* Force Override — Dark Mode */
+:host-context(.dark-mode) ::ng-deep .register-box .input-group input {
+  background: #1f2937 !important;
+  border: 1px solid #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .register-box .input-group input:focus {
+  border: 1px solid #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  outline: none !important;
+}

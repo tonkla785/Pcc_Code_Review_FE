@@ -1,0 +1,205 @@
+/* ==========================================================
+   SUCCESS PAGE — Minimal Smooth Theme
+   (Matching Login Page Aesthetic)
+========================================================== */
+
+.success-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #cce7ff, #99d1ff);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #1e293b;
+  text-align: center;
+  padding: 2rem;
+  overflow: hidden;
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* Smooth fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Success Box Card */
+.success-box {
+  background: #fff;
+  padding: 3rem 3.5rem;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 100%;
+  animation: popUp 0.6s ease forwards;
+  transition: all 0.4s ease;
+}
+
+@keyframes popUp {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-box h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #22c55e;
+  margin-bottom: 1rem;
+  letter-spacing: 0.5px;
+}
+
+.success-box p {
+  font-size: 1.05rem;
+  color: #475569;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Subtle glow success icon */
+.success-icon {
+  width: 64px;                /* 🔹 ขนาดเล็กลงตามที่ขอ */
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #22c55e 0%, #16a34a 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 0 35px rgba(34, 197, 94, 0.4);
+  animation: iconPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+
+/* Button with smooth hover */
+.dashboard-btn {
+  background-color: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 0.9rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+}
+
+.dashboard-btn:hover {
+  background-color: #1665c1;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(75, 83, 94, 0.35);
+}
+
+.dashboard-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(26, 115, 232, 0.25);
+}
+
+/* ==========================================================
+   DARK MODE
+========================================================== */
+:host-context(.dark-mode) .success-container {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f9fafb;
+}
+
+:host-context(.dark-mode) .success-box {
+  background: #111827;
+  color: #f3f4f6;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+:host-context(.dark-mode) .success-box p {
+  color: #9ca3af;
+}
+
+:host-context(.dark-mode) .success-icon {
+  background: radial-gradient(circle at center, #22c55e 0%, #15803d 90%);
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+}
+
+:host-context(.dark-mode) .dashboard-btn {
+  background-color: #2563eb;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+:host-context(.dark-mode) .dashboard-btn:hover {
+  background-color: #1e40af;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.5);
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+@media (max-width: 768px) {
+  .success-box {
+    padding: 2.2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .success-box h1 {
+    font-size: 1.6rem;
+  }
+
+  .success-box p {
+    font-size: 0.95rem;
+  }
+
+  .success-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1.2rem;
+  }
+
+  .dashboard-btn {
+    font-size: 0.95rem;
+    padding: 0.8rem 1.5rem;
+  }
+}
+
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #22c55e 0%, #16a34a 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 0 35px rgba(34, 197, 94, 0.4);
+  animation: iconPulse 1.8s ease-in-out infinite;
+}
+
+.success-icon .checkmark {
+  color: #fff;
+  font-size: 32px;
+  animation: checkPop 0.6s ease forwards;
+}
+
+@keyframes checkPop {
+  0%   { transform: scale(0); opacity: 0; }
+  80%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes spinBeforeCheck {
+  0% { transform: rotate(0deg); opacity: 0.3; }
+  100% { transform: rotate(360deg); opacity: 1; }
+}
+
+.success-icon::before {
+  content: "";
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.3);
+  animation: spinBeforeCheck 1s ease;
+}
+

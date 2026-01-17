@@ -1,0 +1,70 @@
+<div class="container mt-4 analytics-container">
+  <!-- Header -->
+  <div class="analytics-header d-flex justify-content-between align-items-center">
+    <h3 class="text-primary m-0">
+      <i class="bi bi-bar-chart-line"></i> Analytics Overview
+    </h3>
+  </div>
+
+  <!-- Top Summary Cards -->
+  <div class="container mt-4">
+    <div class="row justify-content-center">
+      <div 
+        class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4 d-flex justify-content-center"
+        *ngFor="let card of summaryCards"
+      >
+        <div class="card text-center summary-card shadow-sm w-100">
+          <div class="card-body">
+            <h5 class="card-title text-info">
+              <i class="{{card.icon}}"></i> {{card.title}}
+            </h5>
+            <p class="display-6 text-primary">{{card.value}}</p>
+            <button *ngIf="card.action" class="btn btn-sm btn-outline-info" (click)="card.action()">
+              View Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Security Issues & Technical Debt -->
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h5 class="text-primary"><i class="bi bi-shield-lock"></i> Top Security Issues</h5>
+      <ul class="list-group list-group-flush shadow-sm">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let issue of topSecurityIssues">
+          {{issue.name}} ({{issue.count}})
+          <span [ngClass]="issue.color" class="badge rounded-pill">{{issue.priority}}</span>
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h5 class="text-primary"><i class="bi bi-cash-stack"></i> Top Technical Debt</h5>
+      <ul class="list-group list-group-flush shadow-sm">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let debt of topDebtItems">
+          {{debt.item}} - {{debt.time}} - {{debt.cost | currency:'THB':'symbol':'1.0-0'}}
+          <span [ngClass]="debt.color" class="badge rounded-pill">{{debt.priority}}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Quality Overview -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <h5 class="text-primary"><i class="bi bi-check2-circle"></i> Quality Overview</h5>
+      <ul class="list-group list-group-flush shadow-sm">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          Code Coverage: {{codeCoverage}}% <i class="bi bi-beaker text-info"></i>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          Linting Issues: {{lintingIssues}} <i class="bi bi-exclamation-triangle text-warning"></i>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          Test Coverage: {{testCoverage}}% <i class="bi bi-beaker text-info"></i>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

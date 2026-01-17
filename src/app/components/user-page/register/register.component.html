@@ -1,0 +1,139 @@
+<div class="register-container">
+  <div class="register-wrapper">
+    <!-- NEW: ครอบสองฝั่ง -->
+
+    <!-- LEFT: Welcome -->
+    <div class="welcome-section">
+      <h1>Welcome to the community !</h1>
+      <p>Register now to access greater benefits and improve the effectiveness of code review in our organization.</p>
+    </div>
+
+    <!-- RIGHT: Register (ของเดิม) -->
+    <div class="register-box">
+
+      <div class="register-header">
+        <a routerLink="/" class="back-btn">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2>Register</h2>
+
+      </div>
+
+      <form (ngSubmit)="onSubmit(form)" #form="ngForm" novalidate>
+
+       <!-- Username -->
+<div class="input-group">
+  <label for="username">Username</label>
+  <input 
+    type="text" 
+    name="username" 
+    [(ngModel)]="username" 
+    required 
+    minlength="8"
+    placeholder="Enter your username"
+    #usernameRef="ngModel" 
+    [class.is-invalid]="(usernameRef.invalid && (usernameRef.touched || submitted)) || usernameRef.errors?.['duplicate']"
+  />
+  <div *ngIf="usernameRef.touched || usernameRef.dirty || submitted">
+    <small *ngIf="usernameRef.errors?.['required']" class="error-message">Username is required</small>
+    <small *ngIf="usernameRef.errors?.['minlength']" class="error-message">Username must be at least 8 characters</small>
+    <small *ngIf="checkUsername(usernameRef)" class="error-message">Username already exists</small>
+  </div>
+</div>
+
+<!-- Email -->
+<div class="input-group">
+  <label for="email">Email</label>
+  <input 
+    type="email" 
+    name="email" 
+    [(ngModel)]="email" 
+    required 
+    email 
+    pattern="^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$"
+    placeholder="Enter your email"
+    #emailRef="ngModel" 
+    [class.is-invalid]="(emailRef.invalid && (emailRef.touched || submitted)) || emailRef.errors?.['duplicate']"
+  />
+  <div *ngIf="emailRef.touched || emailRef.dirty || submitted">
+    <small *ngIf="emailRef.errors?.['required']" class="error-message">Email is required</small>
+    <small *ngIf="emailRef.errors?.['email']" class="error-message">Enter a valid email</small>
+    <small *ngIf="emailRef.errors?.['pattern']" class="error-message">Email must have at least 2 characters after "."</small>
+    <small *ngIf="checkEmail(emailRef)" class="error-message">This email is already taken</small>
+  </div>
+</div>
+
+<!-- Phone Number -->
+<div class="input-group">
+  <label for="phoneNumber">Phone Number</label>
+  <input 
+    type="tel" 
+    name="phoneNumber" 
+    [(ngModel)]="phoneNumber" 
+    required 
+    pattern="^0\d{9}$" 
+    maxlength="10"
+    placeholder="Enter your phone number"
+    #telRef="ngModel" 
+    [class.is-invalid]="(telRef.invalid && (telRef.touched || submitted)) || telRef.errors?.['duplicate']"
+  />
+  <div *ngIf="telRef.touched || telRef.dirty || submitted">
+    <small *ngIf="telRef.errors?.['required']" class="error-message">Phone Number is required</small>
+    <small *ngIf="telRef.errors?.['pattern']" class="error-message">Phone Number must start with 0 and be 10 digits</small>
+    <small *ngIf="checkPhoneNumber(telRef)" class="error-message">This phone number is already taken</small>
+  </div>
+</div>
+
+<!-- Password -->
+<div class="input-group">
+  <label for="password">Password</label>
+  <input 
+    type="password" 
+    name="password" 
+    [(ngModel)]="password" 
+    required 
+    minlength="8"
+    placeholder="Enter your password"
+    #pwdRef="ngModel"
+  />
+  <div *ngIf="pwdRef.touched || pwdRef.dirty || submitted">
+    <small *ngIf="pwdRef.errors?.['required']" class="error-message">Password is required</small>
+    <small *ngIf="pwdRef.errors?.['minlength']" class="error-message">Password must be at least 8 characters</small>
+    <small *ngIf="passwordError" class="error-message">{{ passwordError }}</small>
+  </div>
+</div>
+
+<!-- Confirm Password -->
+<div class="input-group">
+  <label for="confirmPassword">Confirm Password</label>
+  <input 
+    type="password" 
+    name="confirmPassword" 
+    [(ngModel)]="confirmPassword" 
+    required 
+    minlength="8"
+    placeholder="Confirm your password"
+    #confirmRef="ngModel"
+  />
+  <div *ngIf="confirmRef.touched || confirmRef.dirty || submitted">
+    <small *ngIf="confirmRef.errors?.['required']" class="error-message">Confirm password is required</small>
+    <small *ngIf="passwordsMismatch" class="error-message">Passwords do not match</small>
+  </div>
+</div>
+
+
+        <button type="submit">Register</button>
+
+      </form>
+
+      
+      <div class="extra-links">
+        <p>
+          Already have an account?
+          <a [routerLink]="['/login']">Login</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+ 

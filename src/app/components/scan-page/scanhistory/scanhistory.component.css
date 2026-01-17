@@ -1,0 +1,848 @@
+
+/* ===============================
+   Container
+   =============================== */
+   .scan-history-container {
+    background-color: transparent;  
+    border: none;                   
+    border-radius: 0;               
+    box-shadow: none;               
+    padding: 16px 20px;
+    transition: background-color 0.35s ease,
+                border-color 0.35s ease,
+                box-shadow 0.35s ease,
+                color 0.35s ease;
+  }
+  
+  .scan-history-container:hover {
+    box-shadow: none; 
+  }
+  
+  .scan-history-container h2 {
+    border: 1px solid var(--card-border);  
+    padding: 12px 16px;                    
+    border-radius: 10px;                   
+    background-color: var(--bg-panel);     
+    display: block;                        
+    width: 100%;                           
+    font-weight: 600; 
+    color: var(--dashboard-title-color);   
+  }
+  
+  
+  /* Table – เอากรอบรอบนอกออก เหลือเส้นคั่นด้านล่าง */
+  .table-bordered {
+    border: none !important; 
+  }
+  
+  .table-bordered > :not(caption) > * > * {
+    border-width: 0 0 1px 0;
+  }
+  
+  
+    
+    /* ===============================
+       Filter Input
+       =============================== */
+    .filter-row input {
+      max-width: 150px; /* จำกัดความกว้าง */
+      border: 1px solid var(--card-border); /* เส้นขอบ */
+      border-radius: 6px; /* มุมโค้ง */
+      padding: 6px 10px; /* ระยะห่างด้านใน */
+      background-color: var(--bg-panel); /* พื้นหลังช่อง */
+      color: var(--text-main); /* สีตัวอักษร */
+      transition: border-color 0.25s ease,
+                  box-shadow 0.25s ease,
+                  background-color 0.35s ease,
+                  color 0.35s ease;
+    }
+    .filter-row input:focus {
+      outline: none; /* ไม่แสดงเส้นขอบค่า default */
+      border-color: var(--btn-primary-bg-hover); /* เปลี่ยนสีเส้นขอบ */
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25); /* เพิ่มเงารอบ */
+    }
+    
+    
+    /* ===============================
+       Date Wrapper (Custom icon)
+       =============================== */
+    .date-wrapper {
+      position: relative; /* ให้ไอคอนอยู่ใน container */
+      display: inline-block;
+    }
+    .date-wrapper input[type="date"] {
+      padding-right: 36px; /* เว้นด้านขวาให้ไอคอน */
+      position: relative;
+      z-index: 1;
+      background-color: var(--bg-panel);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+    }
+    /* ซ่อน icon เดิมแต่ยังให้กดได้ */
+    .date-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0; /* โปร่งใส */
+      position: absolute;
+      right: 10px;
+      width: 18px; height: 18px;
+      cursor: pointer;
+      z-index: 2;
+    }
+    /* custom icon (ใช้ filter จากตัวแปร) */
+    .date-wrapper .calendar-icon {
+      position: absolute;
+      top: 50%; right: 10px;
+      width: 18px; height: 18px;
+      transform: translateY(-50%); /* จัดกึ่งกลางแนวตั้ง */
+      pointer-events: none; /* ไม่บังการคลิก */
+      background-size: contain;
+      background-repeat: no-repeat;
+      z-index: 3;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='%23000' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z'/></svg>");
+      filter: var(--calendar-icon-filter); /* ใช้สี filter จาก theme */
+    }
+    
+    
+    /* ===============================
+       Table
+       =============================== */
+    .table th {
+      background-color: var(--table-header-bg); /* พื้นหลังหัวตาราง */
+      font-weight: 600;
+      color: var(--table-header-text); /* สีข้อความหัว */
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+    .table td,
+    .table th {
+      vertical-align: middle; /* จัดกึ่งกลางแนวตั้ง */
+      padding: 12px; /* ระยะห่างด้านใน */
+      border-bottom: 1px solid var(--table-border); /* เส้นคั่น */
+      transition: background-color 0.35s ease,
+                  color 0.35s ease,
+                  border-color 0.35s ease;
+    }
+    .table tbody tr:hover {
+      background-color: var(--table-header-bg2); /* hover = แถวสว่างขึ้น */
+    }
+    
+    
+    /* ===============================
+       Actions Buttons
+       =============================== */
+       .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 14px;
+        margin-top: 20px;
+      }
+  
+    .actions .btn {
+       min-width: 180px;   /* ปุ่มกว้าง */
+    min-height: 46px;   /* ปุ่มสูง */
+    font-size: 15px;    /* ข้อความใหญ่พออ่าน */
+    padding: 10px 16px; /* ระยะห่างด้านใน */
+    border-radius: 8px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* ระยะห่าง icon-text */
+      cursor: pointer;
+      transition: transform 0.25s ease,
+                  box-shadow 0.25s ease,
+                  background-color 0.35s ease,
+                  color 0.35s ease;
+    }
+    .actions .btn:hover {
+      transform: translateY(-2px); /* ยกขึ้น */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12); /* เงา */
+    }
+    .actions .btn:active {
+      transform: translateY(0); /* กลับลงมา */
+      box-shadow: none;
+    }
+    /* Success */
+    .actions .btn-success {
+      background-color: var(--status-passed-text); /* เขียวเข้ม */
+      border: none;
+      color: #fff;
+    }
+    .actions .btn-success:hover {
+      background-color: #065f46; /* hover */
+    }
+    /* Info */
+    .actions .btn-info {
+      background-color: var(--metric-code-smells); /* ฟ้า */
+      border: none;
+      color: #fff;
+    }
+    .actions .btn-info:hover {
+      background-color: #0284c7;
+      
+    }
+    /* Danger */
+    .actions .btn-danger {
+      background-color: var(--btn-stop); /* แดง */
+      border: none;
+      color: #fff;
+    }
+    .actions .btn-danger:hover {
+      background-color: var(--btn-stop-hover); /* hover แดงเข้ม */
+    }
+    
+    
+    /* ===============================
+       Log Button
+       =============================== */
+    .btn-log {
+      background-color: var(--table-header-bg); /* พื้นหลัง */
+      border: 1px solid var(--card-border); /* กรอบ */
+      color: var(--text-main); /* ตัวอักษร */
+      transition: background-color 0.35s ease,
+                  border-color 0.35s ease,
+                  color 0.35s ease,
+                  box-shadow 0.25s ease,
+                  transform 0.25s ease;
+    }
+    .btn-log:hover {
+      background-color: var(--table-header-bg2); /* hover */
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* เงา */
+    }
+    
+    
+    /* ===============================
+       Status (Badge style)
+       =============================== */
+    .status-success,
+    .status-warning,
+    .status-failed {
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px; /* pill shape */
+      font-size: 13px;
+      display: inline-block;
+      transition: background-color 0.35s ease,
+                  color 0.35s ease,
+                  transform 0.25s ease;
+    }
+    .status-success {
+      color: var(--status-passed-text);
+      background-color: var(--status-passed-bg);
+    }
+    .status-warning {
+      color: var(--status-warning-text);
+      background-color: var(--status-warning-bg);
+    }
+    .status-failed {
+      color: var(--status-failed-text);
+      background-color: var(--status-failed-bg);
+    }
+    .status-success:hover,
+    .status-warning:hover,
+    .status-failed:hover {
+      transform: scale(1.03); /* ขยายเล็กน้อย */
+    }
+    
+    
+    /* ===============================
+       Table Row Fade-in Animation
+       =============================== */
+    .table tbody tr {
+      opacity: 0;
+      transform: translateY(4px);
+      animation: fadeInRow 0.4s ease forwards; /* แอนิเมชันแถว */
+    }
+    .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+    .table tbody tr:nth-child(2) { animation-delay: 0.10s; }
+    .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+    .table tbody tr:nth-child(4) { animation-delay: 0.20s; }
+    .table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+    
+    @keyframes fadeInRow {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  
+    /* ===============================
+     Tablet Responsive (เฉพาะ 768px–1024px)
+     =============================== */
+  @media (max-width: 1024px) and (min-width: 768px) {
+    .scan-history-container {
+      padding: 12px 14px; /* ลด padding ของ container */
+    }
+  
+    .filter-row input {
+      max-width: 120px; /* ช่อง date + search ไม่กินพื้นที่เยอะ */
+      padding: 5px 8px;
+      font-size: 14px;
+    }
+  
+    .table th,
+    .table td {
+      padding: 8px;  /* ลดระยะห่างใน cell */
+      font-size: 14px; /* ตัวอักษรเล็กลงนิดนึง */
+    }
+  
+    .actions .btn {
+      min-width: 120px; /* ปุ่มไม่กว้างเกิน */
+      font-size: 14px;
+      padding: 6px 10px;
+    }
+  
+    .btn-log,
+    .btn-primary,
+    .btn-success,
+    .btn-danger,
+    .btn-info {
+      font-size: 13px; /* ปุ่มเล็กลงเล็กน้อย */
+      padding: 5px 8px;
+    }
+  
+    /* ปรับ pagination ให้อยู่กลางและไม่เบียด */
+    .pagination .page-link {
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+  }
+  /* ===============================
+     Mobile Responsive (Table Only)
+     =============================== */
+     @media (max-width: 576px) {
+      .scan-history-container .table {
+        display: block;
+        overflow-x: auto;   /* เลื่อนแนวนอนได้ */
+        white-space: nowrap; /* กันตัดบรรทัด */
+        font-size: 13px;     /* ย่อขนาดฟอนต์ */
+      }
+    
+      .scan-history-container .table th,
+      .scan-history-container .table td {
+        padding: 6px 8px;  /* ลด padding */
+        font-size: 13px;
+      }
+    
+      /* Badge ให้เล็กลง */
+      .status-success,
+      .status-warning,
+      .status-failed {
+        font-size: 12px;
+        padding: 3px 8px;
+      }
+    }
+    
+  
+    
+  
+  
+    /* ===============================
+     Pagination
+     =============================== */
+  .pagination {
+    margin: 0;
+    gap: 6px; /* ระยะห่างระหว่างปุ่ม */
+    flex-wrap: wrap; /* เวลา mobile จะแบ่งบรรทัดได้ */
+  }
+  
+  .page-item .page-link {
+    min-width: 42px;   /* ขนาดขั้นต่ำ (กว้าง) */
+    min-height: 42px;  /* ขนาดขั้นต่ำ (สูง) */
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    background-color: var(--bg-panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+  }
+  
+  .page-item .page-link:hover {
+    background-color: var(--table-header-bg2);
+    color: var(--btn-primary-bg-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
+  
+  .page-item.active .page-link {
+    background-color: var(--btn-primary-bg-hover);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  }
+  
+  .page-item.disabled .page-link {
+    color: var(--text-muted);
+    pointer-events: none;
+    opacity: 0.6;
+    background-color: var(--bg-panel);
+  }
+  
+  /* Responsive ปรับปุ่มให้เต็มบรรทัดบน mobile */
+  @media (max-width: 576px) {
+    .actions .btn {
+      flex: 1 1 100%;
+      min-width: unset;
+    }
+  }
+  
+  /* ===============================
+     Modal Backdrop & Container
+     =============================== */
+     .modal-backdrop-custom {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1050;
+      backdrop-filter: blur(3px); /* ทำให้พื้นหลังเบลอ */
+    }
+    
+    .modal-content-custom {
+      background: var(--bg-card);
+      border-radius: 12px;
+      max-height: 80vh;
+      overflow-y: auto;
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      border: 1px solid var(--card-border);
+      padding: 1rem 1.5rem;
+      animation: modalFadeIn 0.35s ease forwards;
+    }
+    
+    /* ===============================
+       Modal Animation
+       =============================== */
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    /* ===============================
+       Modal Header
+       =============================== */
+    .modal-header-custom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    
+    .modal-header-custom h5 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    
+    .modal-header-custom button {
+      background: var(--btn-secondary-bg, #6c757d);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+    
+    .modal-header-custom button:hover {
+      background: var(--btn-secondary-bg-hover, #5a6268);
+      transform: translateY(-1px);
+    }
+    
+    /* ===============================
+       Modal Body & Table
+       =============================== */
+    .modal-body-custom {
+      padding: 0.5rem 0;
+      overflow-x: auto;
+    }
+    
+    .modal-body-custom table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 500px; /* scroll horizontal บน mobile */
+      font-size: 0.9rem;
+    }
+    
+    .modal-body-custom thead th {
+      background-color: var(--table-header-bg);
+      color: var(--table-header-text);
+      font-weight: 600;
+      text-align: center;
+      padding: 10px;
+      border-bottom: 2px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    
+    .modal-body-custom tbody td {
+      text-align: center;
+      padding: 8px;
+      border-bottom: 1px solid var(--table-border);
+      vertical-align: middle;
+    }
+    
+    .modal-body-custom tbody tr:nth-child(even) {
+      background-color: var(--table-row-alt-bg, #f9f9f9);
+    }
+    
+    .modal-body-custom tbody tr:hover {
+      background-color: var(--table-row-hover-bg, #e1f0ff);
+      transform: scale(1.02);
+      transition: all 0.2s ease;
+    }
+    
+    /* ===============================
+       Modal Footer
+       =============================== */
+    .modal-footer-custom {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--card-border);
+      gap: 0.5rem;
+    }
+    
+    .modal-footer-custom button {
+      background-color: var(--btn-secondary-bg, #6c757d);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.25s ease, transform 0.2s ease;
+    }
+    
+    .modal-footer-custom button:hover {
+      background-color: var(--btn-secondary-bg-hover, #5a6268);
+      transform: translateY(-1px);
+    }
+    
+    /* ===============================
+       Responsive
+       =============================== */
+    @media (max-width: 576px) {
+      .modal-content-custom {
+        max-width: 95%;
+        padding: 0.75rem 1rem;
+      }
+    
+      .modal-body-custom table {
+        font-size: 0.8rem;
+      }
+    
+      .modal-header-custom h5 {
+        font-size: 1rem;
+      }
+    
+      .modal-footer-custom button {
+        flex: 1 1 100%;
+      }
+    }
+    
+  
+  
+    /* ===============================
+     Pagination (Custom)
+     =============================== */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 16px 0;
+  }
+  
+  /* ปุ่ม (default) */
+  .page-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid #2563eb;   /* เส้นขอบฟ้า */
+    background-color: #fff;      /* พื้นหลังขาว */
+    color: #2563eb;              /* ไอคอนฟ้า */
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  
+  /* Hover + Active */
+  .page-btn:hover,
+  .page-btn.active {
+    background-color: #2563eb;   /* น้ำเงิน */
+    color: #fff;                 /* ไอคอนขาว */
+    border-color: #2563eb;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+  
+  /* Disabled */
+  .page-btn.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  
+  /* Label ตรงกลาง */
+  .page-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+  }
+  
+  
+  /* ===== Mobile-only sticky for Log + Result (Compact & Clean Final) ===== */
+  @media (max-width: 768px) {
+  
+    /* Scroll container */
+    .scan-history-container .table-responsive {
+      overflow-x: auto;
+      position: relative;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 0;
+      margin-right: 0;
+      scrollbar-gutter: stable;
+      scroll-behavior: smooth;
+    }
+  
+    /* Table base */
+    .scan-history-table {
+      min-width: 660px; /* ย่อรวมทั้งตาราง */
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 11.8px; /* ย่อฟอนต์อีกเล็กน้อย */
+    }
+  
+    .scan-history-table th,
+    .scan-history-table td {
+      background-clip: padding-box;
+      padding: 5px 6px; /* ลด padding */
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+  
+    /* คอลัมน์ Log / Result */
+    .scan-history-table th.log-col,
+    .scan-history-table td.log-col { width: 78px; }
+  
+    .scan-history-table th.result-col,
+    .scan-history-table td.result-col { width: 78px; }
+  
+    /* Sticky col */
+    .scan-history-table .sticky-col {
+      position: sticky;
+      z-index: 3;
+      background: var(--bg-panel);
+      contain: paint;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      border-left: none !important;
+    }
+  
+    /* จัดตำแหน่งพอดีไม่มีช่อง */
+    .scan-history-table .result-col {
+      right: 0 !important;
+    }
+  
+    .scan-history-table .log-col {
+      right: 78px !important; /* เท่ากับความกว้าง result */
+    }
+  
+    /* ใช้เส้นแบ่งจางๆ ระหว่าง Log กับ Result แทนช่อง */
+    .scan-history-table .log-col::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 1px;
+      background: var(--table-border);
+    }
+  
+    /* Header สีเดียวกัน */
+    .scan-history-table thead th {
+      background-color: var(--table-header-bg);
+      color: var(--table-header-text);
+      font-weight: 600;
+    }
+  
+    .scan-history-table thead th.sticky-col {
+      background-color: var(--table-header-bg) !important;
+    }
+  
+    /* ลบ gradient ทั้งหมด */
+    .scan-history-table th.sticky-col::after,
+    .scan-history-table td.sticky-col::after {
+      background: none !important;
+    }
+  
+    /* ปุ่มเล็กลงให้พอดีช่อง */
+    .scan-history-table td.sticky-col .btn {
+      width: 100%;
+      font-size: 10.8px;
+      padding: 3px 4px;
+      justify-content: center;
+      white-space: nowrap;
+    }
+  
+    /* แถว hover สว่างเล็กน้อย */
+    .scan-history-table tbody tr:hover {
+      background-color: var(--table-header-bg2);
+    }
+  
+    /* ปรับให้ scroll ลื่นสุด */
+    .scan-history-container .table {
+      display: table !important;
+      overflow: visible !important;
+      white-space: normal !important;
+    }
+  
+    /* ปุ่ม action & pagination ให้ย่อด้วย */
+    .actions .btn {
+      min-width: 100px;
+      font-size: 12px;
+      padding: 5px 8px;
+    }
+  
+    /* Dark mode */
+    :host-context(body.dark-mode) .scan-history-table .sticky-col {
+      background: var(--bg-card);
+    }
+    :host-context(body.dark-mode) .scan-history-table .log-col::after {
+      background: var(--card-border);
+    }
+  }
+  /* ===============================
+     Fix inside cell (prevent button clipping)
+     =============================== */
+     @media (max-width: 768px) {
+      /* ให้ปุ่มด้านในมีพื้นที่แสดงเต็มไม่โดนตัด */
+      .scan-history-table td.sticky-col {
+        overflow: visible !important;
+      }
+    
+      /* ขยายปุ่มให้พอดีกับ cell ด้านใน */
+      .scan-history-table td.sticky-col .btn {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: calc(100% - 2px); /* ลดขอบนิดหน่อยกันขอบชน */
+        font-size: 11px;
+        padding: 4px 6px;
+        white-space: nowrap;
+      }
+    
+      /* สำหรับกรณีมี border หรือ shadow ใน sticky */
+      .scan-history-table .result-col .btn,
+      .scan-history-table .log-col .btn {
+        margin-right: 2px; /* ป้องกันถูกบีบจนขอบขวาตัด */
+      }
+    
+      /* ปุ่ม hover ให้คงอยู่ใน cell ไม่ล้น */
+      .scan-history-table td.sticky-col .btn:hover {
+        transform: none;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+
+/* ============ Pagination — Correct Prev/Next Active Colors ============ */
+:host-context(body.dark-mode) .pagination .page-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid #111827;
+  background-color: #1f2937;
+  color: #9ca3af;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+/* Prev (กดได้ = ฟ้า) */
+:host-context(body.dark-mode) .pagination .page-btn.prev:not(.disabled) {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(37,99,235,0.4);
+}
+:host-context(body.dark-mode) .pagination .page-btn.prev:not(.disabled):hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 0 18px rgba(37,99,235,0.55);
+  transform: translateY(-2px);
+}
+
+/* Prev (disabled) */
+:host-context(body.dark-mode) .pagination .page-btn.prev.disabled {
+  background-color: #0f172a;
+  color: #374151;
+  border-color: #1f2937;
+  pointer-events: none;
+  opacity: 0.8;
+  box-shadow: none;
+}
+
+/* Next (ปกติ = ฟ้า) */
+:host-context(body.dark-mode) .pagination .page-btn.next:not(.disabled) {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(37,99,235,0.4);
+}
+:host-context(body.dark-mode) .pagination .page-btn.next:not(.disabled):hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 0 18px rgba(37,99,235,0.55);
+  transform: translateY(-2px);
+}
+
+/* Next (disabled) */
+:host-context(body.dark-mode) .pagination .page-btn.next.disabled {
+  background-color: #0f172a;
+  color: #374151;
+  border-color: #1f2937;
+  pointer-events: none;
+  opacity: 0.8;
+  box-shadow: none;
+}
+
+/* Label */
+:host-context(body.dark-mode) .pagination .page-label {
+  color: #fff;
+  font-weight: 600;
+}

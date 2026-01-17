@@ -1,0 +1,6 @@
+<router-outlet></router-outlet>
+
+<button class="theme-toggle-btn" (click)="toggleTheme()" 
+        [title]="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+  <i [ngClass]="darkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
+</button>

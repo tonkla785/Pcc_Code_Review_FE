@@ -1,0 +1,172 @@
+<div class="scan-history-container p-4">
+  <h2><i class="bi bi-journal-text"></i> Scan History</h2>
+
+  <!-- Date Filter -->
+  <div class="filter-row my-3 d-flex flex-wrap align-items-center gap-2">
+    <label for="dateRange">Date Range:</label>
+
+    <div class="date-wrapper">
+      <input type="date" [(ngModel)]="startDate" class="form-control form-control-sm" />
+      <span class="calendar-icon"></span>
+    </div>
+
+    <span>to</span>
+
+    <div class="date-wrapper">
+      <input type="date" [(ngModel)]="endDate" class="form-control form-control-sm" />
+      <span class="calendar-icon"></span>
+    </div>
+
+    <button class="btn btn-primary btn-sm" (click)="applyFilter()">
+      <i class="bi bi-search"></i> Search
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table class="table table-striped align-middle scan-history-table">
+      <thead class="table-light">
+        <tr>
+          <th>
+            <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)" />
+          </th>
+          <th>Date/Time</th>
+          <th>Project</th>
+          <!-- <th>Owner Scan</th> -->
+          <th>Grade</th>
+          <th>Issues</th>
+          <!-- <th class="log-col sticky-col">Log</th> -->
+          <th class="result-col sticky-col">Result</th>
+        </tr>
+      </thead>
+  
+      <tbody>
+        <tr *ngFor="let scan of pagedScans">
+           <td>
+            <input type="checkbox" [checked]="isSelected(scan)" 
+                   (change)="toggleScanSelection(scan, $event)" />
+          </td>
+  
+
+          <td>
+            {{scan.completedAt | date:'dd/MM/yyyy'}} <br /> {{scan.completedAt | date:'HH:mm'}}
+          </td>
+  
+          <td>
+            {{scan.projectName}} <br />
+            <span [ngClass]="statusClass(scan.status)">
+              <i [ngClass]="statusIcon(scan.status)"></i> {{scan.status}}
+            </span>
+          </td>
+   <!-- <td>{{scan.ownerScan}}</td> -->
+          <td>{{scan.qualityGate}}</td>
+  
+          <td>
+            <span *ngIf="scan.metrics?.bugs"><i class="bi bi-bug"></i> {{scan.metrics?.bugs}}</span>
+            <span *ngIf="scan.metrics?.vulnerabilities"><i class="bi bi-shield"></i> {{scan.metrics?.vulnerabilities}}</span>
+            <span *ngIf="scan.metrics?.codeSmells"><i class="bi bi-code"></i> {{scan.metrics?.codeSmells}}</span>
+            <span *ngIf="scan.metrics?.coverage"><i class="bi bi-bar-chart"></i> {{scan.metrics?.coverage}}</span>
+            <span *ngIf="scan.metrics?.duplications"><i class="bi bi-duplicate"></i> {{scan.metrics?.duplications}}</span>
+
+            <!-- <span *ngIf="scan.metrics?.locks" class="ms-2"><i class="bi bi-lock"></i> {{scan.metrics?.locks}}</span>
+            <span *ngIf="scan.metrics?.warnings" class="ms-2"><i class="bi bi-exclamation-triangle"></i> {{scan.metrics?.warnings}}</span> -->
+          </td>
+  
+          <!-- ไม่มีการซ้อน <td> -->
+          <!-- <td class="log-col sticky-col" (click)="$event.stopPropagation()">
+            <button title="View log" class="btn btn-log btn-sm" (click)="viewLog(scan); $event.stopPropagation()">
+              <i class="bi bi-file-text"></i> 
+            </button>
+          </td> -->
+  
+          <td class="result-col sticky-col" (click)="$event.stopPropagation()">
+            <button title="View Result Scan" class="btn btn-primary btn-sm" (click)="viewResult(scan); $event.stopPropagation()">
+              <i class="bi bi-eye"></i> 
+            </button>
+          </td>
+  
+        </tr>
+      </tbody>
+    </table>
+  </div>  
+  <div class="pagination">
+    <!-- Prev -->
+    <button class="page-btn prev" [class.disabled]="currentPage === 1"
+            (click)="goPage(currentPage - 1)">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+  
+    <!-- Page Label -->
+    <span class="page-label">Page {{currentPage}}</span>
+  
+    <!-- Next -->
+    <button class="page-btn next" [class.disabled]="currentPage === totalPages"
+            (click)="goPage(currentPage + 1)">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+  
+  
+
+  <!-- Actions -->
+  <div class="actions mt-3 d-flex gap-2 flex-wrap">
+    <button class="btn btn-success btn-sm" (click)="exportHistory()">
+      <i class="bi bi-download"></i> Export History
+    </button>
+    <button class="btn btn-info btn-sm" (click)="compareScans()">
+      <i class="bi bi-bar-chart"></i> Compare Scans
+    </button>
+    <button class="btn btn-danger btn-sm" (click)="clearLogs()">
+      <i class="bi bi-trash"></i> Clear Old Logs
+    </button>
+  </div>
+</div>
+
+<!-- Compare Modal -->
+<div *ngIf="showCompareModal" class="modal-backdrop-custom">
+  <div class="modal-content-custom">
+    <div class="modal-header-custom">
+      <h5>Compare Scans</h5>
+      <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">X</button>
+    </div>
+    <div class="modal-body-custom">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th *ngFor="let scan of selectedScans">{{scan.projectName}} ({{scan.startedAt | date:'yyyy-MM-dd'}})</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Grade</td>
+            <td *ngFor="let scan of selectedScans">{{scan.qualityGate}} </td>
+          </tr>
+          <tr>
+            <td>Bugs</td>
+            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.bugs ?? 0 }}</td>
+          </tr>
+           <tr>
+            <td>Code Smells</td>
+            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.codeSmells ?? 0 }}</td>
+          </tr>
+
+          <tr>
+            <td>Coverage (%)</td>
+            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.coverage ?? 0 }}</td>
+          </tr>
+
+          <tr>
+            <td>Duplications</td>
+            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.duplications ?? 0 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer-custom">
+      <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">Close</button>
+    </div>
+  </div>
+
+</div>
+

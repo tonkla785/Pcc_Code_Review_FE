@@ -1,0 +1,174 @@
+<!-- Loading / Error guards -->
+<div *ngIf="loading" class="p-3">Loading…</div>
+<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div>
+
+<!-- Content -->
+<div class="issue-container" *ngIf="!loading && !error && issue">
+
+  <!-- Header -->
+  <div class="issue-header">
+    <button title="Back to Issue" class="back-btn" (click)="goBack()"><i class="bi bi-arrow-left"></i></button>
+    <h2><i class="bi bi-shield-lock-fill"></i> {{ issue.type }} issue : {{ issue.title }}</h2>
+    <!-- <span class="priority" [ngClass]="issue.priority.toLowerCase() || 'No priority'">
+      {{ issue.priority || 'No priority' }}
+    </span> -->
+  </div>
+
+  <!-- Issue Info -->
+  <div class="issue-info">
+    <div class="info-row">
+      <div><strong>ID:</strong> {{ issue.id }}</div>
+      <div><strong>Type:</strong> {{ issue.type }}</div>
+    </div>
+
+    <div class="info-row">
+      <div>
+        <strong>Severity:</strong>
+        <span [ngClass]="['badge','severity',(issue.severity || '').toLowerCase()]">
+          {{ issue.severity }}
+        </span>
+      </div>
+      <div>
+        <strong>Status:</strong>
+        <span [ngClass]="['badge','status',(issue.status || '').toLowerCase()]">
+          {{ issue.status }}
+        </span>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div><strong>Project:</strong> {{ issue.project }}</div>
+      <div><strong>File:</strong> {{ issue.file }}</div>
+    </div>
+
+    <div class="info-row">
+      <!-- <div><strong>Line:</strong> {{ issue.line }}</div> -->
+      <div><strong>Created:</strong> {{ issue.created | date:'dd/MM/yyyy, hh:mm a' }}</div>
+    </div>
+
+    <div class="info-row">
+      <strong>Assigned:</strong>
+      {{ issue.assignedName || 'No assignee' }}
+
+      <div>
+        <strong>Due Date:</strong>
+        {{ issue.dueDate | date:'dd/MM/yyyy' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-icons mt-3">
+    <button type="button" class="btn btn-primary" (click)="openAssignModal()" title="Add Assignee">
+      <i class="bi bi-person"></i>
+    </button>
+
+    <!-- <button type="button" class="btn btn-warning" (click)="setPriority()" title="Set Priority">
+      <i class="bi bi-lightning"></i>
+    </button> -->
+
+    <!-- <button type="button" class="btn btn-secondary" (click)="openStatusModal()"title="Update Status">
+      <i class="bi bi-arrow-repeat"></i>
+    </button> -->
+
+    <!-- <button type="button" class="btn btn-danger" (click)="rejectIssue()" title="Reject Assign">
+      <i class="bi bi-x"></i>
+    </button> -->
+
+    <app-issuemodal #assignModal (assignSubmit)="handleAssignSubmit($event)" (statusSubmit)="handleStatusSubmit($event)"
+      (closed)="{}">
+    </app-issuemodal>
+
+
+
+  </div>
+
+  <!-- Description -->
+  <!-- <div class="issue-description">
+    <h3>Description</h3>
+    <p>{{ issue.description }}</p>
+    <pre class="code-block">{{ issue.vulnerableCode }}</pre>
+    <p><strong>Recommended Fix:</strong> {{ issue.recommendedFix }}</p>
+  </div> -->
+
+  <!-- Comments -->
+  <!-- <div class="issue-comments">
+    <h3>Comments & Discussion</h3>
+
+    <div class="comment" *ngFor="let c of issue.comments; trackBy: trackByComment">
+      <p><strong>{{ c.userId }}</strong> - {{ c.timestamp | date:'dd/MM/yyyy, hh:mm a' }}</p>
+      <p>{{ c.comment }}</p>
+
+      <div *ngIf="c.attachments?.length">
+        <ul>
+          <li *ngFor="let a of c.attachments">
+            <a [href]="a.url" target="_blank" rel="noopener">📎 {{ a.filename }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    Add comment 
+    <div class="add-comment d-flex align-items-center gap-2 mt-3">
+      <input type="text" placeholder="Write a comment..." [(ngModel)]="newComment.comment"
+        class="form-control flex-grow-1" title="Write your comment"
+        (keyup.enter)="newComment.comment.trim() && postComment()" />
+
+      <button class="btn btn-primary" type="button" title="Post comment" (click)="postComment()"
+        [disabled]="!newComment.comment.trim()">
+        <i class="bi bi-chat-dots"></i>
+      </button>
+    </div>
+  </div> -->
+
+  <!-- Comments -->
+  <div class="issue-comments mt-4" *ngIf="issue?.id">
+    <h3 class="d-flex align-items-center gap-2">
+      Comments &amp; Discussion
+      <button class="btn-refresh" (click)="loadComments()" [disabled]="loadingComments" title="Refresh comments">
+  <span *ngIf="!loadingComments">
+    <i class="bi bi-arrow-clockwise me-1"></i> 
+  </span>
+  <span *ngIf="loadingComments">
+    <i class="spinner-border spinner-border-sm me-1"></i> Loading...
+  </span>
+</button>
+
+    </h3>
+
+    <!-- รายการคอมเมนต์ -->
+    <div class="comment" *ngFor="let c of comments; trackBy: trackByComment">
+      <p class="mb-1">
+        <strong>{{ c.userId }}</strong>
+        <span class="text-muted"> - {{ c.timestamp | date:'dd/MM/yyyy, hh:mm a' }}</span>
+      </p>
+      <p class="mb-2">{{ c.comment }}</p>
+
+      <!-- แนบไฟล์ (รองรับ future use) -->
+      <div *ngIf="c.attachments?.length">
+        <ul class="mb-2">
+          <li *ngFor="let a of c.attachments">
+            <a [href]="a.url" target="_blank" rel="noopener">📎 {{ a.filename }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ว่าง -->
+    <div *ngIf="!comments?.length && !loadingComments" class="text-muted">
+      No comments so far. Share your thoughts!
+    </div>
+
+    <!-- Add comment -->
+    <div class="add-comment d-flex align-items-center gap-2 mt-3">
+      <input type="text" placeholder="Write a comment..." [(ngModel)]="newComment.comment"
+        class="form-control flex-grow-1" title="Write your comment"
+        (keyup.enter)="newComment.comment.trim() && postComment()" />
+      <button class="btn btn-primary" type="button" title="Post comment" (click)="postComment()"
+        [disabled]="!newComment.comment?.trim() || sendingComment">
+        <i class="bi bi-chat-dots" *ngIf="!sendingComment"></i>
+        <span *ngIf="sendingComment">Sending...</span>
+        <span class="visually-hidden" *ngIf="!sendingComment">Send</span>
+      </button>
+    </div>
+  </div>

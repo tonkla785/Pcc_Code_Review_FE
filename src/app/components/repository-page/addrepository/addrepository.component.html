@@ -1,0 +1,125 @@
+<div class="page-wrapper">
+  <div class="form-card">
+
+    <h2>{{ isEditMode ? 'Edit Repository' : 'Add Repository' }}</h2>
+
+    <form #repoForm="ngForm" (ngSubmit)="onSubmit(repoForm)">
+
+      <!-- Repository Information -->
+      <fieldset>
+        <legend>Repository Information</legend>
+
+        <div class="mb-3">
+          <label for="name" class="form-label">Repository Name <span class="required">*</span></label>
+          <input type="text" class="form-control" name="name"
+                 [(ngModel)]="gitRepository.name" required minlength="5" #name="ngModel" (ngModelChange)="onNameChange($event)" >
+          <div class="error" *ngIf="name.invalid && name.touched">Name is required (min 5 chars).</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="url" class="form-label">Git URL <span class="required">*</span></label>
+          <input type="url" class="form-control" name="url"
+                 [(ngModel)]="gitRepository.repositoryUrl" required #url="ngModel" [disabled]="isEditMode">
+          <div class="error" *ngIf="url.invalid && url.touched">Valid URL required.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="type" class="form-label">Project Type <span class="required">*</span></label>
+          <select class="form-select" name="type"
+                  [(ngModel)]="gitRepository.projectType" required #type="ngModel">
+                  <option [ngValue]="undefined" disabled>-- Select Type --</option>
+                  <option [ngValue]="'Angular'">Angular</option>
+                  <option [ngValue]="'Spring Boot'">Spring Boot</option>
+          </select>
+          <div class="error" *ngIf="type.invalid && type.touched">Project type required.</div>
+        </div>
+
+        <!-- <div class="mb-3">
+          <label for="branch" class="form-label">Default Branch <span class="required">*</span></label>
+          <input type="text" class="form-control" name="branch"
+                 [(ngModel)]="gitRepository.branch" required #branch="ngModel">
+          <div class="error" *ngIf="branch.invalid && branch.touched">Branch required.</div>
+        </div> -->
+      </fieldset>
+
+      <!-- Authentication -->
+      <fieldset>
+        <legend>Authentication</legend>
+  
+        <div >
+          <label for="username">Username <span class="required">*</span></label>
+          <input type="text" name="username" [(ngModel)]="credentials.username" required #username="ngModel">
+          <div class="error" *ngIf="username.invalid && username.touched">Username required.</div>
+  
+          <label for="password">Token <span class="required">*</span></label>
+          <input type="password" name="password" [(ngModel)]="credentials.password" required minlength="6" #password="ngModel">
+          <div class="error" *ngIf="password.invalid && password.touched">Password min 6 chars.</div>
+        </div>
+
+        <div class="alert-note" role="alert">
+          <i class="bi bi-shield-lock-fill"></i>
+          <div>
+            <strong>หมายเหตุ:</strong>
+            ระบบนี้จะไม่เก็บ <strong>Username</strong> และ <strong>Password</strong>  
+            ข้อมูลนี้จะถูกใช้สำหรับการเชื่อมต่อเพียงครั้งเดียวเท่านั้น
+          </div>
+        </div>
+        
+  
+      </fieldset>
+
+      <!-- SonarQube Config -->
+      <fieldset>
+        <legend>SonarQube Configuration</legend>
+
+        <div class="mb-3">
+          <label for="serverUrl" class="form-label">SonarQube Server <span class="required">*</span></label>
+          <input type="url" class="form-control" name="serverUrl"
+                 [(ngModel)]="sonarConfig.serverUrl" required #serverUrl="ngModel">
+          <div class="error" *ngIf="serverUrl.invalid && serverUrl.touched">Valid server URL required.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="sonarProjectKey" class="form-label">Project Key <span class="required">*</span> </label>
+          <input type="text" class="form-control" name="sonarProjectKey"
+       [(ngModel)]="sonarConfig.projectKey"
+       [disabled]="true"  
+       required #sonarProjectKey="ngModel">
+
+          <!-- <input type="text" class="form-control" name="sonarProjectKey"
+                 [(ngModel)]="gitRepository.sonarProjectKey" required #sonarProjectKey="ngModel" [disabled]="!isEditMode"> -->
+          <div class="error" *ngIf="sonarProjectKey.invalid && sonarProjectKey.touched">Project key required.</div>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input custom-check" type="checkbox" id="autoScan"
+                 [(ngModel)]="sonarConfig.enableAutoScan" name="enableAutoScan" checked>
+          <label class="form-check-label" for="autoScan">Enable Automatic Scanning</label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input custom-check" type="checkbox" id="qualityGate"
+                 [(ngModel)]="sonarConfig.enableQualityGate" name="enableQualityGate" checked>
+          <label class="form-check-label" for="qualityGate">Enable Quality Gate Check</label>
+        </div>
+      </fieldset>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button type="button" class="btn btn-danger" (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn btn-warning" (click)="clearForm(repoForm)">Clear Form</button>
+        <!-- <button type="button" class="btn btn-primary" (click)="onTest()">Test Connection</button> -->
+
+        <!-- ปุ่ม Delete จะโชว์เฉพาะ Edit Mode -->
+        <button *ngIf="isEditMode" type="button" class="btn btn-outline-danger" (click)="onDelete()">
+          Delete
+        </button>
+
+        <button type="submit" class="btn btn-success" [disabled]="!repoForm.valid">
+          {{ isEditMode ? 'Update' : 'Save' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -1,0 +1,279 @@
+/* ===============================
+   Container
+   =============================== */
+   .config-container {
+    max-width: 900px;
+    margin: auto;
+    background: transparent !important; /* โปร่งใส */
+    padding: 20px;
+    border-radius: 12px !important;       /* เอามุมโค้งออก */
+    box-shadow: none !important;       /* เอาเงาออก */
+    animation: fadeIn 0.5s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* ===============================
+     Titles (Light Mode)
+     =============================== */
+  .config-container h5 {
+    color: #2563eb; /* ฟ้า */
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.7rem;
+  }
+  
+  /* ===============================
+     Cards / Sections
+     =============================== */
+  .config-container .card,
+  .config-container .card-header,
+  .config-container .card-body,
+  .config-container .card-footer {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  
+  .card, section {
+    transition: all 0.3s ease;
+    border-radius: 10px;
+  }
+  
+  .card:hover, section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  }
+  div.config-container > div.card.shadow-sm {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* ===============================
+     Inputs / Selects
+     =============================== */
+  input, select, textarea {
+    transition: all 0.25s ease;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    border-color: #3498db !important;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.2) !important;
+    transform: scale(1.01);
+  }
+  
+  /* ===============================
+     Buttons (General)
+     =============================== */
+  .btn {
+    border-radius: 8px !important;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .btn:active {
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+  
+  /* Ripple effect */
+  .btn::after {
+    content: "";
+    position: absolute;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .btn:active::after {
+    top: var(--y, 50%);
+    left: var(--x, 50%);
+    width: 200%;
+    height: 200%;
+    transform: scale(1);
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 1s ease;
+  }
+  
+  /* ===============================
+     Checkboxes & Radios
+     =============================== */
+  .form-check-input {
+    transition: all 0.25s ease;
+    cursor: pointer;
+  }
+  
+  .form-check-input:checked {
+    background-color: #2e0de9;
+    border-color: #310de5;
+  }
+  
+  .form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.25);
+  }
+  
+  /* ===============================
+     Dark Mode Overrides
+     =============================== */
+  :host-context(.dark-mode) .config-container {
+    background: #1e1e1e !important;
+    color: #f3f4f6 !important;
+  }
+  
+  :host-context(.dark-mode) .card,
+  :host-context(.dark-mode) section {
+    background: #1f2937 !important;
+    color: #e5e7eb !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
+  }
+  
+  :host-context(.dark-mode) .card:hover,
+  :host-context(.dark-mode) section:hover {
+    background: #2d3748 !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.6) !important;
+  }
+  
+  /* Inputs */
+  :host-context(.dark-mode) input,
+  :host-context(.dark-mode) select,
+  :host-context(.dark-mode) textarea {
+    background-color: #111827 !important;
+    color: #f9fafb !important;
+    border: 1px solid #374151 !important;
+  }
+  
+  :host-context(.dark-mode) input::placeholder,
+  :host-context(.dark-mode) textarea::placeholder {
+    color: #9ca3af !important;
+  }
+  
+  /* Checkboxes */
+  :host-context(.dark-mode) .form-check-input {
+    background-color: #1f2937 !important;
+    border: 1px solid #4b5563 !important;
+  }
+  
+  :host-context(.dark-mode) .form-check-input:checked {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+  }
+  
+  /* ===============================
+     Buttons (Dark Mode Specific)
+     =============================== */
+  :host-context(.dark-mode) .btn-outline-primary {
+    background-color: #2563eb !important; /* น้ำเงิน */
+    color: #fff !important;
+    border: none !important;
+  }
+  
+  :host-context(.dark-mode) .btn-outline-primary:hover {
+    background-color: #1e40af !important;
+  }
+  
+  :host-context(.dark-mode) .btn-outline-warning {
+    background-color: #facc15 !important; /* เหลือง */
+    color: #1a1a1a !important;
+    border: none !important;
+  }
+  
+  :host-context(.dark-mode) .btn-outline-warning:hover {
+    background-color: #eab308 !important;
+    color: #fff !important;
+  }
+  
+  :host-context(.dark-mode) .btn-success {
+    background-color: #16a34a !important; /* เขียว */
+    color: #fff !important;
+    border: none !important;
+  }
+  
+  :host-context(.dark-mode) .btn-success:hover {
+    background-color: #15803d !important;
+  }
+  
+  :host-context(.dark-mode) .btn-outline-secondary {
+    background-color: #2563eb !important; /* น้ำเงิน */
+    color: #fff !important;
+    border: none !important;
+  }
+  
+  :host-context(.dark-mode) .btn-outline-secondary:hover {
+    background-color: #1e40af !important; /* น้ำเงินเข้ม */
+  }
+  
+  /* ===============================
+     Helper Text / Form Text (Dark Mode)
+     =============================== */
+  :host-context(.dark-mode) .form-text {
+    color: #9ca3af !important; /* เทาอ่อน */
+  }
+  /* ===============================
+   Dark Mode → Titles
+   =============================== */
+:host-context(.dark-mode) .config-container h5,
+:host-context(.dark-mode) h2 {
+  color: #ffffff !important; /* ขาว */
+}
+
+@media (max-width: 767px) {
+  .config-container h5 {
+    font-size: 1.2rem;
+  }
+}
+/* ===============================
+   MOBILE COMPACT BUTTONS (CONFIG PAGE)
+   =============================== */
+   @media (max-width: 768px) {
+    .config-container .btn {
+      font-size: 0.78rem !important;
+      padding: 6px 10px !important;  /* ลดพื้นที่ในปุ่ม */
+      border-radius: 6px !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important; /* ไม่ตัดคำขึ้นบรรทัดใหม่ */
+      flex: 1 1 auto !important;
+      min-width: auto !important;
+    }
+  
+    /* กล่องรวมปุ่ม ให้เรียงกันสวยขึ้น */
+    .config-container .button-group,
+    .config-container .d-flex {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      justify-content: center !important;
+    }
+  
+    /* ไอคอนในปุ่มเล็กลงนิด */
+    .config-container .btn i,
+    .config-container .btn svg {
+      width: 16px !important;
+      height: 16px !important;
+    }
+  }
+  
+  /* สำหรับจอเล็กมาก (ต่ำกว่า iPhone SE) */
+  @media (max-width: 480px) {
+    .config-container .btn {
+      font-size: 0.7rem !important;
+      padding: 4px 8px !important;
+      border-radius: 5px !important;
+    }
+  }
+  
+  

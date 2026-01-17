@@ -1,0 +1,533 @@
+/* ===============================
+   ปุ่มวงกลม (Add Repository)
+   =============================== */
+   .btn-circle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  
+  .btn-circle:hover {
+    transform: scale(1.12) rotate(6deg);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  }
+  
+  .btn-circle i {
+    color: #fff;
+    transition: transform 0.25s ease;
+  }
+  
+  .btn-circle:hover i {
+    transform: scale(1.1);
+  }
+  
+  /* ===============================
+     Dashboard Container
+     =============================== */
+  .repo-dashboard {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    padding: 20px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* ===============================
+     Summary Card
+     =============================== */
+  .summary-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: var(--detail-bg);
+    color: var(--text-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.3s ease;
+  }
+  
+  .summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+  
+  .summary-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    color: #fff;
+    transition: transform 0.25s ease;
+  }
+  
+  .summary-card:hover .summary-icon {
+    transform: rotate(8deg) scale(1.1);
+  }
+  
+  /* ===============================
+     Tabs
+     =============================== */
+  .repo-tabs .nav-link {
+    color: var(--text-color);
+    border-radius: 20px;
+    margin-right: 8px;
+    font-weight: 600;  /* หนาขึ้น */
+    font-size: 1rem;   /* ขยายเล็กน้อย */
+    transition: background-color 0.25s ease, transform 0.2s ease, color 0.25s ease;
+  }
+  
+  .repo-tabs .nav-link:hover {
+    background-color: var(--detail-bg);
+    transform: translateY(-2px);
+  }
+  
+  .repo-tabs .nav-link.active {
+    background-color: var(--navbar-active-bg);
+    color: var(--repo-tab-text);
+    font-weight: 700;   /* เน้นเพิ่ม */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  
+  /* ===============================
+     Dark Mode → Tabs + Badge
+     =============================== */
+  body.dark-mode .repo-tabs .nav-link.active {
+    background-color: #ffffff !important;
+    color: #2563eb !important;
+    font-weight: 700 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  body.dark-mode .badge.bg-secondary {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+  }
+  
+  body.dark-mode .badge.bg-warning {
+    background-color: #fbbf24 !important;
+    color: #000000 !important;
+  }
+  
+  body.dark-mode .badge.bg-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+  }
+  
+  /* ===============================
+     Repo Card
+     =============================== */
+  .repo-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--detail-bg);
+    color: var(--text-color);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.3s ease;
+  }
+  
+  .repo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
+  
+  /* ===============================
+     Repo Link
+     =============================== */
+  .repo-link {
+    color: #2563eb;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.25s ease;
+  }
+  
+  .repo-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+  }
+  
+  /* ===============================
+     Status Badge
+     =============================== */
+  .status-badge {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: transform 0.25s ease;
+    color: #fff;
+  }
+  
+  .status-badge:hover {
+    transform: scale(1.08);
+  }
+  
+  .status-badge.bg-success {
+    background: linear-gradient(90deg, #10b981, #059669);
+  }
+  
+  .status-badge.bg-info {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+  }
+  
+  .status-badge.bg-warning {
+    background: linear-gradient(90deg, #f59e0b, #e3881f);
+  }
+  
+  /* ===============================
+     Grade Badge
+     =============================== */
+  .grade-badge {
+    color: white;
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.9rem;  /* ขยายเล็กน้อย */
+  }
+  
+  .grade-a { background-color: var(--grade-a); }
+  .grade-b { background-color: var(--grade-b); }
+  .grade-c { background-color: var(--grade-c); }
+  .grade-d { background-color: var(--grade-d); }
+  .grade-e { background-color: var(--grade-e); }
+  
+  /* ===============================
+     Repo Stats
+     =============================== */
+  .repo-stats {
+    display: flex;
+    justify-content: flex-start;
+    gap: 18px;
+    margin-top: 12px;
+    font-size: 0.95rem;   /* ใหญ่ขึ้นนิด */
+    color: var(--text-color);
+  }
+  
+  .repo-stats i {
+    color: #2563eb;
+    transition: transform 0.25s ease;
+  }
+  
+  .repo-stats span:hover i {
+    transform: scale(1.2);
+  }
+  
+  /* ===============================
+     Progress Bar
+     =============================== */
+
+
+  .custom-progress {
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--detail-bg);
+    overflow: hidden;
+  }
+  
+  .custom-progress::-webkit-progress-value {
+    background: linear-gradient(90deg, #0ea5e9, #2563eb);
+    border-radius: 6px;
+    transition: width 0.4s ease;  
+  }
+  
+  .custom-progress::-moz-progress-bar {
+    background: linear-gradient(90deg, #0ea5e9, #2563eb);
+    border-radius: 6px;
+    transition: width 0.4s ease;
+  }
+  
+ 
+  .scanning-text {
+  font-size: 1.2rem;        
+  font-weight: 600;       
+  color: #2563eb;          
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  animation: pulse 1.5s infinite;
+}
+
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  
+  /* ===============================
+     Repo Actions Buttons
+     =============================== */
+  .repo-card .btn {
+    border-radius: 8px;
+    transition: all 0.25s ease;
+  }
+  
+  .repo-card .btn:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  /* ===============================
+     Text Muted
+     =============================== */
+  .text-muted {
+    color: var(--text-color) !important;
+    opacity: 0.8;
+  }
+  
+  /* ===============================
+     Repository Wrapper
+     =============================== */
+  .repo-wrapper {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0;
+    transition: all 0.3s ease;
+  }
+  
+  /* ===============================
+     Repository Header (Light Mode)
+     =============================== */
+  .repo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, #ffffff, #f9fafb);
+    padding: 18px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+    margin-bottom: 24px;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .repo-header h3 {
+    margin: 0;
+    font-weight: 800;    /* หนาขึ้น */
+    font-size: 1.5rem;   /* ใหญ่ขึ้น */
+    color: var(--dashboard-title-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .repo-header .btn-circle {
+    flex-shrink: 0;
+  }
+  
+  /* ===============================
+     Repository Header → Dark Mode
+     =============================== */
+  :host-context(.dark-mode) .repo-header {
+    background: linear-gradient(to bottom, var(--bg-card), var(--bg-panel)) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6),
+                inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    color: var(--text-heading) !important;
+  }
+  
+  :host-context(.dark-mode) .repo-header h3,
+  :host-context(.dark-mode) .repo-header i {
+    color: var(--text-heading) !important;
+    font-weight: 800 !important;
+    font-size: 1.5rem !important;
+  }
+  
+  /* ===============================
+     Repository Card → Dark Mode
+     =============================== */
+  :host-context(.dark-mode) .repo-card {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--text-main) !important;
+  }
+  
+  /* ===============================
+     Tabs → Dark Mode
+     =============================== */
+  :host-context(.dark-mode) .repo-tabs .nav-link.active {
+    background-color: var(--navbar-active-bg) !important;
+    color: var(--repo-tab-text) !important;
+    font-weight: 700 !important;
+  }
+  
+  /* ===============================
+     Badge Override → Dark Mode
+     =============================== */
+  :host-context(.dark-mode) .badge.bg-secondary {
+    background-color: #2563eb !important;
+    color: #fff !important;
+  }
+  
+  :host-context(.dark-mode) .badge.bg-warning {
+    background-color: #fbbf24 !important;
+    color: #000 !important;
+  }
+  
+  :host-context(.dark-mode) .badge.bg-success {
+    background-color: #10b981 !important;
+    color: #fff !important;
+  }
+  
+  /* ===============================
+     Responsive
+     =============================== */
+  @media (max-width: 576px) {
+    .repo-stats {
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+  
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+    }
+  
+    .repo-card {
+      padding: 14px;
+    }
+  
+    .repo-link {
+      font-size: 0.8rem;
+      word-break: break-word;
+    }
+  }
+  
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .repo-dashboard .col-md-3 {
+      flex: 0 0 50% !important;
+      max-width: 50% !important;
+    }
+  
+    .repo-dashboard .col-md-6 {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+    }
+  
+    .repo-dashboard .search-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+  
+    .repo-dashboard .search-row .form-control,
+    .repo-dashboard .search-row select {
+      width: 100% !important;
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+  
+    .repo-card {
+      padding: 16px;
+    }
+  
+    .repo-tabs .nav-link {
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+  }
+
+  .modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* เพิ่มความเข้ม */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1040;
+}
+
+.modal-dialog-custom {
+  width: 500px;
+  max-width: 90%;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* เงาสวย */
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 10px;
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.modal-body {
+  margin-top: 15px;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 10px;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  border: none;
+  transition: 0.2s;
+}
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border: none;
+  transition: 0.2s;
+}
+.btn-secondary:hover {
+  background-color: #5c636a;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+:host-context(.dark-mode) .modal-header,
+:host-context(.dark-mode) .modal-footer {
+  border: none !important;
+  background: transparent !important;
+}
+

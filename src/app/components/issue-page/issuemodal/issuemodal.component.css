@@ -1,0 +1,111 @@
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* เพิ่มความเข้ม */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1040;
+}
+
+.modal-dialog-custom {
+  width: 500px;
+  max-width: 90%;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* เงาสวย */
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 10px;
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.modal-body {
+  margin-top: 15px;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 10px;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  border: none;
+  transition: 0.2s;
+}
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border: none;
+  transition: 0.2s;
+}
+.btn-secondary:hover {
+  background-color: #5c636a;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+
+
+
+:host-context(.dark-mode) .modal-header,
+:host-context(.dark-mode) .modal-footer {
+  border: none !important;
+  background: transparent !important;
+}
+
+:host-context(.dark-mode) .modal-dialog-custom {
+  background-color: #333 !important;
+  color: #eee !important;
+}
+
+:host-context(.dark-mode) .form-control {
+  background-color: #444 !important;
+  color: #eee !important;
+  border: 1px solid #666 !important;
+}
+
+:host-context(.dark-mode) .form-control::placeholder {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+:host-context(.dark-mode) .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 1;
+}
+
+:host-context(.dark-mode) .btn-close:hover {
+  opacity: 0.75;
+}

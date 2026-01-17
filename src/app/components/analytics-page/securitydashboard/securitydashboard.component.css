@@ -1,0 +1,247 @@
+/* =========================
+   BACK BUTTON
+   ========================= */
+   .back-btn {
+    display: inline-flex;                 /* ทำให้ปุ่มจัดไอคอนกับตัวอักษรในแนวนอน */
+    align-items: center;                  /* จัดให้อยู่กึ่งกลางแนวตั้ง */
+    justify-content: center;              /* จัดให้อยู่กึ่งกลางแนวนอน */
+    padding: 8px 12px;                    /* ระยะห่างรอบปุ่ม */
+    font-size: 1.3rem;                    /* ขนาดตัวอักษรในปุ่ม */
+    margin-bottom: 15px;                  /* เว้นด้านล่าง */
+    color: #2563eb;                       /* ฟ้าเข้ม */
+    text-decoration: none;                /* ตัดเส้นใต้ลิงก์ออก */
+    border: none;                         /* ไม่มีเส้นขอบ */
+    border-radius: 12px;                  /* มุมโค้งมน */
+    background: #ffffff;                  /* พื้นหลังขาว */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06); /* เงาบาง */
+    transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
+  }
+  .back-btn:hover {
+    background: #f0f6ff;                  /* เปลี่ยนพื้นหลังเมื่อ hover */
+    transform: translateX(-4px);          /* ขยับไปทางซ้ายเล็กน้อย */
+    box-shadow: 0 4px 12px rgba(37,99,235,0.2); /* เงาเข้มขึ้น */
+  }
+  .back-btn i {
+    font-size: 1.5rem;                    /* ไอคอนใหญ่กว่าตัวอักษร */
+  }
+  
+  /* =========================
+     CARD & HEADER
+     ========================= */
+  .card {
+    border: none;                         /* ไม่ใช้เส้นขอบ */
+    border-radius: 14px;                  /* มุมโค้งมน */
+    overflow: hidden;                     /* กันเงาล้น */
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .card:hover {
+    transform: translateY(-3px);          /* ยกการ์ดขึ้นเล็กน้อย */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08); /* เพิ่มเงา */
+  }
+  .card-header {
+    font-weight: 600;                     /* ตัวหนา */
+    font-size: 1rem;                      /* ขนาดกลาง */
+    background-color: #f8faff;            /* เทาอ่อนอมฟ้า */
+    border-bottom: 1px solid #e5e7eb;     /* เส้นคั่นด้านล่าง */
+    padding: 12px 16px;                   /* padding ด้านใน */
+  }
+  
+  /* =========================
+     VULNERABILITIES
+     ========================= */
+  .vulnerability-item {
+    margin-bottom: 1rem;                  /* เว้นระยะระหว่างรายการ */
+  }
+  .progress-bar-container {
+    height: 18px;                         /* ความสูงของ progress bar */
+    background-color: #f1f3f5;            /* เทาอ่อน */
+    border-radius: 10px;                  /* มุมโค้งมน */
+    overflow: hidden;                     /* กัน progress bar ล้น */
+  }
+  .progress-bar {
+    height: 100%;                         /* สูงเต็ม container */
+    transition: width 0.6s ease;          /* ความกว้างเปลี่ยนแบบ smooth */
+    border-radius: 10px;                  /* มุมโค้งมน */
+  }
+  /* สีของ bar ตามระดับ severity */
+  .bg-critical { background-color: #dc3545; } /* แดง */
+  .bg-high     { background-color: #fd7e14; } /* ส้ม */
+  .bg-medium   { background-color: #ffc107; } /* เหลือง */
+  .bg-low      { background-color: #198754; } /* เขียว */
+  
+  /* =========================
+     OWASP LIST
+     ========================= */
+  .list-group-item {
+    border: 1px solid #f1f3f5;            /* เส้นบาง ๆ */
+    border-radius: 8px;                   /* มุมโค้ง */
+    margin-bottom: 8px;                   /* เว้นระหว่าง item */
+    transition: background 0.25s, transform 0.25s;
+  }
+  .list-group-item:hover {
+    background: #f9fbff;                  /* ฟ้าอ่อนเมื่อ hover */
+    transform: translateX(4px);           /* ขยับไปขวานิดหน่อย */
+  }
+  
+  /* =========================
+     HOT ISSUES
+     ========================= */
+  ol {
+    padding-left: 18px;                   /* เว้นซ้ายของตัวเลขลำดับ */
+    margin-bottom: 12px;                  /* เว้นด้านล่าง */
+  }
+  ol li {
+    margin-bottom: 6px;                   /* เว้นระหว่างบรรทัด */
+    font-weight: 500;                     /* ตัวกลาง */
+  }
+  
+  /* =========================
+     SECURITY TREND CHART
+     ========================= */
+  .apexcharts-canvas {
+    border-radius: 12px;                  /* มุมโค้ง */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04); /* เงาอ่อน */
+    padding: 10px;                        /* padding รอบกราฟ */
+    background: #ffffff;                  /* พื้นหลังขาว */
+  }
+  /* =========================
+   DARK MODE OVERRIDE
+   ========================= */
+:host-context(.dark-mode) .back-btn {
+  background: #2563eb !important;   /* พื้นหลังน้ำเงิน */
+  color: #ffffff !important;        /* ไอคอน/ข้อความ ขาว */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+:host-context(.dark-mode) .back-btn:hover {
+  background: #1d4ed8 !important;   /* น้ำเงินเข้ม */
+  transform: translateX(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* Card */
+:host-context(.dark-mode) .card {
+  background-color: #1f2937 !important;  /* เทาเข้ม */
+  color: #f9fafb !important;             /* ตัวหนังสือขาว */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+:host-context(.dark-mode) .card-header {
+  background-color: #111827 !important;  /* ดำเข้ม */
+  border-bottom: 1px solid #374151 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Vulnerabilities progress bar container */
+:host-context(.dark-mode) .progress-bar-container {
+  background-color: #374151 !important;
+}
+
+/* OWASP list */
+:host-context(.dark-mode) .list-group-item {
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: #e5e7eb !important;
+}
+:host-context(.dark-mode) .list-group-item:hover {
+  background: #111827 !important;
+}
+
+/* Hot issues list */
+:host-context(.dark-mode) ol li {
+  color: #f9fafb !important;
+}
+
+/* ApexCharts */
+:host-context(.dark-mode) .apexcharts-canvas {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+/* ===============================
+   Dark Mode Override for ApexCharts
+   =============================== */
+
+/* Axis + Labels */
+body.dark-mode .apexcharts-canvas text,
+body.dark-mode .apexcharts-canvas tspan {
+  fill: var(--apexcharts-text, #ffffff) !important;  /* ใช้สีจากตัวแปร ถ้าไม่มีก็ fallback = ขาว */
+  color: var(--apexcharts-text, #ffffff) !important;
+}
+
+/* Title + Subtitle */
+body.dark-mode .apexcharts-title-text,
+body.dark-mode .apexcharts-subtitle-text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Tooltip */
+body.dark-mode .apexcharts-tooltip {
+  background: #1f2937 !important;   /* เทาเข้ม */
+  color: #f9fafb !important;        /* ตัวอักษรขาว */
+  border: 1px solid #374151 !important;
+}
+:host-context(.dark-mode) ::ng-deep .apexcharts-canvas text,
+:host-context(.dark-mode) ::ng-deep .apexcharts-canvas tspan {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-title-text,
+:host-context(.dark-mode) ::ng-deep .apexcharts-subtitle-text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-tooltip {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+/* =========================
+   BACK BUTTON
+   ========================= */
+   .back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;                       /* กะทัดรัด */
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    color: #2563eb;                     /* ฟ้า */
+    text-decoration: none;
+    border: none;
+    border-radius: 12px;                /* มุมโค้งมน */
+    background: transparent;            /* พื้นหลังใส */
+    box-shadow: none;                   /* ไม่มีเงา */
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .back-btn:hover {
+    background: #e5f0ff;                /* ฟ้าอ่อนตอน hover */
+    transform: translateX(-4px);        /* ขยับซ้าย */
+  }
+  .back-btn:active {
+    background: #dbeafe;                /* ฟ้าเข้มขึ้นตอนกด */
+    transform: translateX(-2px) scale(0.96); /* ย่อลงเล็กน้อย */
+  }
+  .back-btn i {
+    font-size: 1.5rem;
+  }
+  
+  /* =========================
+     DARK MODE OVERRIDE
+     ========================= */
+  :host-context(.dark-mode) .back-btn {
+    background: transparent !important; /* ปกติใส */
+    color: #3b82f6 !important;          /* ฟ้าอ่อนกว่าเล็กน้อย */
+    box-shadow: none !important;
+  }
+  :host-context(.dark-mode) .back-btn:hover {
+    background: rgba(59,130,246,0.15) !important; /* ฟ้าใสตอน hover */
+  }
+  :host-context(.dark-mode) .back-btn:active {
+    background: rgba(59,130,246,0.25) !important; /* ฟ้าเข้มขึ้นตอนกด */
+  }
+  
+
+
+  

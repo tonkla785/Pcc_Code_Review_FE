@@ -1,0 +1,139 @@
+<div class="scan-results-container p-4">
+  <button title="Back to Previous Page" class="back-btn" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  <!-- Title -->
+  <h2 class="mb-4"><i class="bi bi-bar-chart"></i> Scan Results: {{ scanInfo?.projectName }}</h2>
+
+  <!-- Quality Gate & Scan Info -->
+  <div class="row mb-4 g-3">
+    <div class="col-md-6 mb-3">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <h5 class="card-title">
+            Quality Gate: {{ scanInfo?.qualityGate }}
+            <i class="bi" [ngClass]="{
+                 'bi-check-circle-fill text-success': scanInfo?.qualityGate === 'Passed',
+                 'bi-x-circle-fill text-danger': scanInfo?.qualityGate === 'Failed'
+               }"></i>
+          </h5>
+          <!-- <p>OwerScan: <strong>{{ scanInfo.owerscan }}</strong></p> -->
+        </div>
+      </div>
+    </div>
+
+
+    <div class="col-md-6 mb-3">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <h5 class="card-title">Scan Info <i class="bi bi-info-circle-fill"></i></h5>
+          <p>Started At: {{ scanInfo?.startedAt |date:'dd/MM/yyyy HH:mm'}}</p>
+          <p>Completed At: {{ scanInfo?.completedAt |date:'dd/MM/yyyy HH:mm'}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div *ngIf="scanInfo && hasOverallOrMetrics(scanInfo)">
+  <!-- Over all Code -->
+  <h4 class="mb-3 mt-4">Overall Gates</h4>
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Gate</th>
+        <th>Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Reliability</td>
+        <td>{{ scanInfo?.reliabilityGate }}</td>
+      </tr>
+      <tr>
+        <td>Security</td>
+        <td>{{ scanInfo?.securityGate }}</td>
+      </tr>
+      <tr>
+        <td>Maintainability</td>
+        <td>{{ scanInfo?.maintainabilityGate }}</td>
+      </tr>
+      <tr>
+        <td>Security Review</td>
+        <td>{{ scanInfo?.securityReviewGate }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Metrics Overview -->
+  <h4 class="mb-3 mt-4">Metrics Overview</h4>
+  <div class="row text-center g-3">
+    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+      <div class="card metric-card">
+        <div class="card-body h-100">
+          <h5><i class="bi bi-bug"></i> Bugs</h5>
+          <p>{{ scanInfo?.metrics?.bugs }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+      <div class="card metric-card">
+        <div class="card-body">
+          <h5><i class="bi bi-shield-lock"></i> Vulnerabilities</h5>
+          <p>{{ scanInfo?.metrics?.vulnerabilities }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+      <div class="card metric-card">
+        <div class="card-body">
+          <h5><i class="bi bi-droplet"></i> Code Smells</h5>
+          <p>{{ scanInfo?.metrics?.codeSmells }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+      <div class="card metric-card">
+        <div class="card-body">
+          <h5><i class="bi bi-bar-chart-line"></i> Coverage</h5>
+          <p>{{ scanInfo?.metrics?.coverage }}%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Technical Debt & Estimated Cost -->
+  <!-- <div class="row mb-4 g-3">
+    <div class="col-md-6">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <h6 class="card-title fw-bold"><i class="bi bi-clock-history"></i> Technical Debt</h6>
+          <p class="fs-4">{{ scanInfo?.technicalDebt }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <h6 class="card-title fw-bold"><i class="bi bi-currency-dollar"></i> Estimated Cost</h6>
+          <p class="fs-4">฿{{ scanInfo?.estimatedCost | number }}</p>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- Action Buttons -->
+  <div class="actions mt-4">
+    <button class="btn btn-success" (click)="downloadReport()">
+      <i class="bi bi-download"></i> Download Report
+    </button>
+    <button class="btn btn-info" (click)="emailReport()">
+      <i class="bi bi-envelope"></i> Email Report
+    </button>
+    <button class="btn btn-warning" [routerLink]="['/issue']" 
+    [queryParams]="{ project: scanInfo?.projectName, scanId: scanInfo?.scanId }">
+      <i class="bi bi-search"></i> View Issues
+    </button>
+  </div>
+</div>

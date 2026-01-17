@@ -1,0 +1,128 @@
+<div class="user-management-container">
+    <h2><i class="bi bi-people"></i> User Management</h2>
+
+    <!-- Search bar -->
+    <div class="toolbar">
+        <input type="text" placeholder="Search users..." [(ngModel)]="searchText" class="search-input" />
+        <button class="btn btn-primary" (click)="openAddUser()">
+            <i class="bi bi-person-plus"></i> Add User
+        </button>
+    </div>
+
+    <!-- User Table -->
+    <div class="user-table-wrapper">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th class="actions-col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let user of filteredUsers(); let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <span [class.active]="user.active" [class.inactive]="!user.active">
+                        {{ user.active ? "Active" : "Inactive" }}
+                    </span>
+                </td>
+                <td class="actions-col">
+                    <button class="btn btn-sm btn-warning" (click)="openEditUser(user)">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" (click)="deleteUser(user)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal" [class.show]="modalOpen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>{{ editingUser ? "Update User" : "Add User" }}</h5>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form #userForm="ngForm">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="modalData.name"
+              name="name"
+              required
+            />
+            <small *ngIf="userForm.submitted && !modalData.name" class="text-danger">
+              Name is required
+            </small>
+          </div>
+  
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="modalData.email"
+              name="email"
+              required
+              email
+            />
+            <small *ngIf="userForm.submitted && !modalData.email" class="text-danger">
+              Email is required
+            </small>
+          </div>
+  
+          <div class="form-group">
+            <label for="role">Role</label>
+            <select
+              class="form-control"
+              [(ngModel)]="modalData.role"
+              name="role"
+              required
+            >
+              <option value="Admin">Admin</option>
+              <option value="User">User</option>
+            </select>
+            <small *ngIf="userForm.submitted && !modalData.role" class="text-danger">
+              Role is required
+            </small>
+          </div>
+  
+          <div class="form-group">
+            <label for="active">Status</label>
+            <select
+              class="form-control"
+              [(ngModel)]="modalData.active"
+              name="active"
+            >
+              <option [ngValue]="true">Active</option>
+              <option [ngValue]="false">Inactive</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+        <button
+          class="btn btn-primary"
+          [disabled]="!canSave()"
+          (click)="saveUser()"
+        >
+          {{ editingUser ? "Update" : "Add" }}
+        </button>
+      </div>
+    </div>
+  </div>
+  

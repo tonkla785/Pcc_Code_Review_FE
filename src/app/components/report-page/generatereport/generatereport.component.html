@@ -1,0 +1,180 @@
+<div class="container my-5 report-wrapper">
+
+  <!-- Title outside box -->
+  <h2 class="report-title">
+    <i class="bi bi-file-earmark-text"></i> Generate Report
+  </h2>
+
+  <!-- Form inside box -->
+  <div class="report-box">
+    <form #reportForm="ngForm" (ngSubmit)="onGenerate(reportForm)" novalidate>
+      
+      <!-- Report Type -->
+      <!-- <div class="mb-3">
+        <label for="reportType" class="form-label">Report Type *</label>
+        <select id="reportType" class="form-select"
+                [(ngModel)]="reportType"
+                name="reportType"
+                required>
+          <option value="" disabled selected>Select a type</option>
+          <option value="executive-summary">Executive Summary</option>
+          <option value="detailed-technical-report">Detailed Technical Report</option>
+          <option value="security-assessment">Security Assessment</option>
+          <option value="technical-debt-analysis">Technical Debt Analysis</option>
+        </select>
+      </div> -->
+
+      <!-- Projects -->
+       <div class="mb-3">
+  <label class="form-label fw-bold mb-2" for="projects">Projects to Include<span class="text-danger">*</span></label>
+  <div class="form-check" *ngFor="let p of projects">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      [(ngModel)]="p.selected"
+      name="proj_{{p.name}}"
+      id="{{p.name}}"
+      (change)="onSelectProject(p)"
+    />
+    <label class="form-check-label" for="{{p.name}}">
+      {{p.name}}
+    </label>
+  </div>
+
+  <div class="text-danger small" *ngIf="reportForm.submitted && !hasSelectedProjects()">
+    Please select at least one project.
+  </div>
+</div>
+
+      <!-- <div class="mb-3">
+        <label class="form-label" for="projects">Projects to Include</label>
+        <div class="form-check" *ngFor="let p of projects">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="p.selected" name="proj_{{p.name}}" id="{{p.name}}">
+          <label class="form-check-label" for="{{p.name}}">
+            {{p.name}}
+          </label>
+        </div>
+        <div class="text-danger small" *ngIf="reportForm.submitted && !hasSelectedProjects()">
+          Please select at least one project.
+        </div>
+
+        <div class="mb-2">
+          <button class="btn btn-sm btn-outline-primary me-2" type="button" (click)="selectAllProjects(true)">
+            <i class="bi bi-check2-square"></i> Select All
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" type="button" (click)="selectAllProjects(false)">
+            <i class="bi bi-x-square"></i> Deselect All
+          </button>
+        </div>
+      </div> -->
+
+      <!-- Date Range -->
+      <div class="mb-3">
+        <label class="form-label fw-bold mb-2" for="dateRange">Date Range <span class="text-danger">*</span></label>
+        <div class="d-flex gap-2">
+          <input type="date" class="form-control" [(ngModel)]="dateFrom" name="dateFrom" required [max]="today" (change)="onDateFromChange()"/>
+          <input type="date" class="form-control" [(ngModel)]="dateTo" name="dateTo" required  [min]="dateFrom " [max]="today" (change)="onDateToChange()" [disabled]="!dateFrom"/>
+        </div>
+        <div class="text-danger small" *ngIf="reportForm.submitted && (!dateFrom || !dateTo)">
+          Please select both start and end dates.
+        </div>
+        <div class="text-danger small" *ngIf="reportForm.submitted && dateFrom && dateTo && dateFrom > dateTo">
+          Start date cannot be later than end date.
+        </div>
+      </div>
+
+      <!-- Sections -->
+      <div class="mb-3">
+        <label class="form-label fw-bold mb-2" for="sections" >Include Sections<span class="text-danger">*</span></label>
+        <div class="form-check" *ngFor="let s of sections">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="s.selected" name="section_{{s.name}}" id="{{s.name}}">
+          <label class="form-check-label" for="{{s.name}}">
+            {{s.name}}
+          </label>
+        </div>
+      </div>
+
+      <!-- Output Format -->
+    <div class="mb-3">
+  <label class="form-label fw-bold mb-2" for = "format" >
+     Output Format <span class="text-danger">*</span>
+  </label>
+
+  <div class="format-option">
+  <div 
+    class="form-check form-check-inline" 
+    *ngFor="let format of ['PDF', 'Excel', 'Word', 'PowerPoint']"
+  >
+    <input 
+      class="btn-check"
+      [ngClass]="{
+        'pdf': format === 'PDF',
+        'excel': format === 'Excel',
+        'word': format === 'Word',
+        'ppt': format === 'PowerPoint'
+      }"
+      type="radio" 
+      name="format" 
+      [value]="format" 
+      [(ngModel)]="outputFormat" 
+      required 
+      id="{{format}}"
+    >
+    <label 
+      class="btn btn-outline-primary px-4 py-2 rounded-pill shadow-sm"
+      for="{{format}}"
+    >
+      <i 
+        class="bi" 
+        [ngClass]="{
+          'bi-filetype-pdf': format === 'PDF',
+          'bi-filetype-xlsx': format === 'Excel',
+          'bi-filetype-docx': format === 'Word',
+          'bi-filetype-pptx': format === 'PowerPoint'
+        }"
+      ></i> {{format}}
+    </label>
+  </div>
+</div>
+ <div class="text-danger small mt-1" *ngIf="reportForm.submitted && !outputFormat">
+    Please select an output format.
+  </div>
+</div>
+
+
+
+      <!-- Delivery Method -->
+      <!-- <div class="mb-3">
+        <label class="form-label" for="deliveryMethod">Delivery Method</label>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" checked id="download">
+          <label class="form-check-label" for="download">Download</label>
+        </div>
+        <div class="mt-2">
+          <label for="email" class="form-label">Email to:</label>
+          <input type="email" class="form-control"
+                 id="email"
+                 [(ngModel)]="email"
+                 name="email"
+                 email
+                 placeholder="example@mail.com"/>
+          <div class="text-danger small" *ngIf="reportForm.submitted && email && reportForm.controls['email']?.invalid">
+            Please enter a valid email address.
+          </div>
+        </div>
+      </div> -->
+
+      <!-- Actions -->
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-secondary" type="button" (click)="cancel()">Cancel</button>
+        <!-- <button class="btn btn-primary" type="button" (click)="onPreview(reportForm)"><i class="bi bi-eye"></i> Preview</button> -->
+        <button class="btn btn-success" type="submit" [disabled]="loading">
+  {{ loading ? 'Generating...' : 'Generate' }}
+</button>
+</div>
+    
+  
+</form>
+</div>
+</div>
+

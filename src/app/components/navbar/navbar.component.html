@@ -1,0 +1,63 @@
+<button class="hamburger" [class.active]="navbarOpen" (click)="toggleNavbar()">
+  <i class="bi bi-list"></i>
+</button> 
+
+<nav class="vertical-navbar" [class.active]="navbarOpen">
+  <h4><i class="bi bi-code-slash"></i> PCCTH Automate Code Review</h4>
+  <ul>
+    <li class="nav-item">
+      <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+      <a class="nav-link" routerLink="/repositories" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()">
+        <i class="bi bi-folder-fill"></i> Repositories
+      </a>
+
+      <a class="nav-link" routerLink="/scanhistory" routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()">
+      <i class="bi bi-clock-history"></i> Scan History
+    </a>
+  
+      <!-- <a class="nav-link" (click)="toggleSubmenu('codeReview')">
+          <i class="bi-chat-left-text"></i> Code Review
+        </a>
+        <ul *ngIf="submenuOpen['codeReview']">
+          <li><a routerLink="/activescan" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-play-circle"></i>Active Scan</a></li>
+          <li><a routerLink="/scanhistory" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-clock-history"></i>Scan History</a></li>
+        </ul> -->
+   
+
+      <a class="nav-link" routerLink="/issue" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()">
+        <i class="bi bi-exclamation-circle-fill"></i> Issue
+      </a>
+      <a class="nav-link" routerLink="/analysis" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()">
+        <i class="bi bi-graph-up"></i> Analytics
+      </a>
+
+      <a class="nav-link" (click)="toggleSubmenu('report')">
+        <i class="bi bi-file-earmark-text-fill"></i> Report
+      </a>
+      <ul *ngIf="submenuOpen['report']">
+        <li><a routerLink="/generatereport" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-file-plus"></i>Generate Report</a></li>
+        <li><a routerLink="/reporthistory" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-journal-text"></i>Report History</a></li>
+      </ul>
+    </li>
+
+    <!-- กลุ่ม Setting , logout-->
+    <li class="nav-item mt-auto">
+      <a class="nav-link" (click)="toggleSubmenu('Setting')">
+        <i class="bi bi-gear-fill"></i> Setting
+      </a>
+      <ul *ngIf="submenuOpen['Setting']">
+        <li><a routerLink="/sonarqubeconfig" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"> <i class="bi bi-gear"></i>Sonarqube Config</a></li>
+        <li><a routerLink="/notificationsetting" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-bell"></i> Notification Setting</a></li>
+        <li *ngIf="this.authService.role === 'ADMIN' || '[ADMIN]'"><a routerLink="/usermanagement" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-people"></i>User Management</a></li>
+      </ul>
+
+      <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="logout(); closeNavbar()">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,227 @@
+<div class="container-fluid p-3 repo-dashboard">
+  <!-- Header -->
+  <div class="repo-header">
+    <h3>
+      <i class="bi bi-folder2-open text-primary"></i> Repository Management
+    </h3>
+    <button class="btn btn-circle" (click)="goToAddRepository()" title="AddRepository">
+      <i class="bi bi-plus"></i>
+    </button>
+
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4">
+    <ng-container *ngFor="let stat of summaryStats">
+      <div class="col-md-3">
+        <div class="summary-card">
+          <div class="summary-icon" [ngClass]="stat.bg">
+            <i [class]="stat.icon"></i>
+          </div>
+          <div>
+            <h4>{{ stat.count }}</h4>
+            <p>{{ stat.label }}</p>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Search + Filter Tabs -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+    <!-- Tabs -->
+    <ul class="nav nav-pills repo-tabs mb-2">
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeFilter === 'all'" (click)="filterBy('all')">
+          All Repositories
+          <span class="badge bg-secondary ms-1">{{ filteredRepositories.length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeFilter === 'Angular'" (click)="filterBy('Angular')">
+          Angular
+          <span class="badge bg-warning text-dark ms-1">{{ countByFramework('Angular') }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeFilter === 'Spring Boot'" (click)="filterBy('Spring Boot')">
+          Spring Boot
+          <span class="badge bg-success ms-1">{{ countByFramework('Spring Boot') }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Search + Status -->
+    <div class="d-flex flex-wrap gap-2 ms-auto mb-2 search-box">
+      <input type="text" class="form-control" placeholder="Search repositories..." (input)="searchRepositories($event)">
+
+      <select class="form-select" [(ngModel)]="selectedStatus" (change)="filterByStatus()">
+        <option value="all">All Status</option>
+        <option value="Active">Active</option>
+        <option value="Scanning">Scanning</option>
+        <option value="Error">Error</option>
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <!-- Repository Cards -->
+  <div class="row g-3">
+    <div class="col-12 col-md-6" *ngFor="let repo of filteredRepositories">
+      <div class="repo-card">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="fw-bold mb-1">{{ repo.name }}</h5>
+            <p class="text-muted mb-2">{{ repo.projectType }}</p>
+            <a [href]="repo.repositoryUrl" target="_blank" class="repo-link">
+              <i class="bi bi-link-45deg me-1"></i>{{ repo.repositoryUrl }}
+            </a>
+            <!-- <p class="mb-1"><i class="bi bi-git me-1"></i> Branch: {{ repo.branch }}</p> -->
+
+            <!-- Status / Scan Progress -->
+            <div>
+              <!-- <i class="bi me-1" [ngClass]="repo.status === 'Scanning' ? 'bi-arrow-repeat' : 'bi-clock'"></i>
+
+              <span *ngIf="repo.status === 'Scanning'"> Scanning: <strong>{{ repo.scanningProgress }}%</strong>
+                <progress class="custom-progress" [value]="repo.scanningProgress" max="100">
+                  {{ repo.scanningProgress }}%
+                </progress>
+              </span>
+              <span *ngIf="repo.status !== 'Scanning'">
+                Last Scan: <strong>{{ repo.lastScan | date:'dd/MM/yyyy, hh:mm a' }}</strong>
+              </span> -->
+
+              <div *ngIf="repo.status === 'Scanning'">
+                <div class="scanning-text">
+                  <i class="bi bi-arrow-repeat"></i> Scanning...
+                </div>
+              </div>
+
+              <div *ngIf="repo.status !== 'Scanning'">
+                Last Scan: <strong>{{ repo.lastScan | date:'dd/MM/yyyy, hh:mm a' }}</strong>
+              </div>
+
+            </div>
+
+            <!-- Quality Gate Badge -->
+            <div>
+              <div>
+                <span class="badge grade-badge" [ngClass]="{
+                    'grade-a': repo.qualityGate === 'Passed',
+                    'grade-e': repo.qualityGate === 'Failed'
+                  }">
+                  <i class="bi me-1" [ngClass]="{
+                       'bi-check-circle': repo.qualityGate === 'Passed' ,
+                       'bi-x-circle': repo.qualityGate === 'Failed'
+                     }"></i>
+                  {{ repo.status === 'Scanning' ? 'Previous: ' : 'Quality Gate: ' }}{{ repo.qualityGate }}
+                </span>
+              </div>
+
+            </div>
+
+
+          </div>
+
+          <span class="status-badge" [ngClass]="{
+            'bg-success': repo.status === 'Active',
+            'bg-info': repo.status === 'Scanning',
+            'bg-danger': repo.status === 'Error',
+          }">
+            {{ repo.status }}
+          </span>
+        </div>
+
+        <!-- Stats + Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <!-- Stats -->
+          <div class="repo-stats">
+            <span>
+              <i class="bi bi-bug me-1 text-danger"></i>{{ repo.metrics?.bugs }} Bugs
+            </span>
+
+            <span>
+              <i class="bi bi-shield-lock me-1 text-warning"></i>{{ repo.metrics?.vulnerabilities }} Vulnerabilities
+            </span>
+
+            <span>
+              <i class="bi bi-graph-up me-1 text-success"></i>{{ repo.metrics?.coverage }}% Coverage
+            </span>
+
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex gap-2">
+
+            <!-- Run -->
+            <button class="btn btn-sm btn-outline-primary" title="RunScan" *ngIf="repo.status == 'Active'"
+              (click)="runScan(repo)">
+              <i class="bi bi-play-circle"></i>
+            </button>
+
+            <!-- Resume (เฉพาะตอน Paused และ Scanning ไม่สำเร็จ) -->
+            <button class="btn btn-sm btn-outline-success" title="ResumeScan" *ngIf="repo.status === 'Error'"
+              (click)="resumeScan(repo)">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+
+
+            <!-- Settings -->
+            <button class="btn btn-sm btn-outline-secondary" title="Settings" (click)="editRepo(repo)">
+              <i class="bi bi-sliders"></i>
+            </button>
+
+            <!-- View -->
+            <button class="btn btn-sm btn-outline-info" title="ViewDetails" (click)="viewRepo(repo)">
+              <i class="bi bi-eye"></i>
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scan Credentials Modal -->
+<div class="modal-backdrop-custom" *ngIf="showScanModal" (click)="closeScanModal()">
+  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-shield-lock"></i> Run Scan
+        </h5>
+        <button class="btn-close" (click)="closeScanModal()"></button>
+      </div>
+
+      <form #scanForm="ngForm" (ngSubmit)="confirmScan(scanForm)">
+        <div class="modal-body">
+          <!-- Username -->
+          <div class="form-group mb-3">
+            <label>Username</label>
+            <input type="text" [(ngModel)]="scanUsername" name="username" class="form-control" required />
+            <div class="text-danger" *ngIf="scanForm.submitted && !scanUsername">
+              Username is required
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group mb-3">
+            <label>Token</label>
+            <input type="password" [(ngModel)]="scanPassword" name="password" class="form-control" required />
+            <div class="text-danger" *ngIf="scanForm.submitted && !scanPassword">
+              Token is required
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Start Scan</button>
+          <button type="button" class="btn btn-secondary" (click)="closeScanModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

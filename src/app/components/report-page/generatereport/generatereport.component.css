@@ -1,0 +1,587 @@
+/* ===========================================================
+   📄 REPORT PAGE STYLE (CLEAN & ORGANIZED VERSION)
+   =========================================================== */
+
+/* ===============================
+   🧱 Container
+   =============================== */
+.report-wrapper {
+  max-width: 900px;
+  margin: 30px auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.report-title,
+.report-container h2 {
+  border: 1px solid var(--card-border, #cbd5e1);
+  border-radius: 12px;
+  background-color: var(--bg-panel, #f9fafb);
+  padding: 14px 18px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--dashboard-title-color);
+}
+
+.report-title { margin-bottom: 20px; }
+.report-container h2 { margin-bottom: 24px; }
+
+
+/* Form Box */
+.report-box {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* ===============================
+   🧩 Sections
+   =============================== */
+.report-section {
+  margin-bottom: 20px;
+}
+
+.report-section label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+/* Divider Between Sections */
+.report-section:not(:last-child) {
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+/* ===============================
+   🧠 Inputs & Select
+   =============================== */
+input[type="date"],
+select,
+input[type="email"],
+.form-control {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  width: 100%;
+  max-width: 320px;
+  margin-right: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+/* Inline Input Group */
+.input-group-inline {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Stretch date inputs */
+.input-group-inline input[type="date"],
+.input-group-inline select,
+.input-group-inline .form-control {
+  max-width: none;
+  flex-grow: 1;
+  margin-right: 0;
+}
+
+/* Hover & Focus */
+input:focus,
+select:focus,
+.form-control:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+input[type="date"]:hover,
+select:hover,
+input[type="email"]:hover,
+.form-control:hover {
+  border-color: #93c5fd;
+}
+
+/* ===============================
+   ✅ Checkbox / Radio
+   =============================== */
+.checkbox-group label,
+.form-check-label {
+  display: block;
+  font-weight: 400;
+  margin-bottom: 4px;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+/* Checkbox Animation */
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  transform-origin: center;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.form-check-input:hover {
+  transform: scale(1.1);
+  border-color: #2563eb;
+}
+
+.form-check-input:checked {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  transform: scale(1.1);
+}
+
+/* ===============================
+   🎯 Actions
+   =============================== */
+.report-actions,
+.d-flex.justify-content-end {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.report-btn {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Button Colors */
+.report-actions button:nth-child(1),
+.btn-secondary {
+  background: #9ca3af;
+}
+.report-actions button:nth-child(2),
+.btn-primary {
+  background: #2563eb;
+}
+.report-actions button:nth-child(3),
+.btn-success {
+  background: #16a34a;
+}
+
+/* Hover Effect */
+.report-actions button:hover,
+.d-flex.justify-content-end button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  opacity: 0.95;
+}
+
+/* Loading State */
+button.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+  position: relative;
+}
+
+button.loading::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  transform: translateY(-50%);
+}
+
+@keyframes spin {
+  from {
+    transform: translateY(-50%) rotate(0);
+  }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* ===============================
+   ⚠️ Error Text
+   =============================== */
+.text-danger.small {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #dc2626;
+}
+
+/* ===============================
+   ✨ Animation
+   =============================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   🎛️ Output Format Options
+   =============================== */
+.format-option {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Format Buttons */
+.format-option .btn-check + .btn {
+  min-width: 120px;
+  flex-grow: 1;
+  text-align: center;
+  padding: 10px 18px;
+  font-size: 1rem;
+}
+
+/* --- Light Mode Variants --- */
+.format-option .pdf.btn-check:checked + .btn,
+.format-option .pdf.btn-check + .btn:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  color: white;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.5);
+}
+
+.format-option .excel.btn-check:checked + .btn,
+.format-option .excel.btn-check + .btn:hover {
+  background-color: #16a34a;
+  border-color: #16a34a;
+  color: white;
+  box-shadow: 0 0 8px rgba(22, 163, 74, 0.5);
+}
+
+.format-option .word.btn-check:checked + .btn,
+.format-option .word.btn-check + .btn:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: white;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+}
+
+.format-option .ppt.btn-check:checked + .btn,
+.format-option .ppt.btn-check + .btn:hover {
+  background-color: #ea580c;
+  border-color: #ea580c;
+  color: white;
+  box-shadow: 0 0 8px rgba(234, 88, 12, 0.5);
+}
+
+/* ===============================
+   🌙 Dark Mode Styles
+   =============================== */
+
+/* Basic Elements */
+:host-context(.dark-mode) .report-title {
+  border: 1px solid #374151;
+  background-color: #1e293b;
+  color: var(--dashboard-title-color);
+}
+
+:host-context(.dark-mode) .report-box {
+  background: #1e1e1e;
+  border: 1px solid #374151;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Full Container */
+:host-context(.dark-mode) .report-container {
+  background: #1e1e1e !important;
+  border: 1px solid #374151 !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Headings & Labels */
+:host-context(.dark-mode) .report-container h2 {
+  color: var(--dashboard-title-color) !important;
+}
+
+:host-context(.dark-mode) .report-section label,
+:host-context(.dark-mode) .form-label {
+  color: #e5e7eb !important;
+}
+
+:host-context(.dark-mode) .checkbox-group label,
+:host-context(.dark-mode) .form-check-label {
+  color: #cbd5e1 !important;
+}
+
+/* Inputs */
+:host-context(.dark-mode) input[type="date"],
+:host-context(.dark-mode) input[type="email"],
+:host-context(.dark-mode) select,
+:host-context(.dark-mode) .form-control {
+  background-color: #1e293b !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+
+:host-context(.dark-mode) input::placeholder,
+:host-context(.dark-mode) .form-control::placeholder {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+:host-context(.dark-mode) input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+:host-context(.dark-mode) input:focus,
+:host-context(.dark-mode) select:focus,
+:host-context(.dark-mode) .form-control:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* Section Dividers */
+:host-context(.dark-mode) .report-section:not(:last-child) {
+  border-bottom: 1px dashed #374151 !important;
+}
+
+/* Buttons */
+:host-context(.dark-mode) .report-actions button,
+:host-context(.dark-mode) .d-flex.justify-content-end button {
+  color: #fff !important;
+}
+
+:host-context(.dark-mode) .btn-secondary,
+:host-context(.dark-mode) .btn-primary,
+:host-context(.dark-mode) .btn-success {
+  color: #fff !important;
+}
+
+
+:host-context(.dark-mode) .report-actions button:hover {
+  opacity: 0.9 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Checkbox */
+:host-context(.dark-mode) .form-check-input {
+  background-color: #1f2937;
+  border: 2px solid #4b5563;
+}
+
+:host-context(.dark-mode) .form-check-input:checked {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+/* Error */
+:host-context(.dark-mode) .text-danger.small {
+  color: #f87171 !important;
+}
+
+/* Select Override */
+:host-context(.dark-mode) select.form-select {
+  appearance: none !important;
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+  border-radius: 8px;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24' width='16' height='16'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 16px;
+}
+
+:host-context(.dark-mode) select.form-select option[disabled] {
+  color: #9ca3af !important;
+}
+
+:host-context(.dark-mode) select.form-select::-ms-expand {
+  display: none;
+}
+
+/* --- Dark Mode Format Buttons --- */
+:host-context(.dark-mode) .format-option .pdf.btn-check:checked + .btn,
+:host-context(.dark-mode) .format-option .pdf.btn-check + .btn:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+  color: white;
+  box-shadow: 0 0 8px rgba(185, 28, 28, 0.6);
+}
+
+:host-context(.dark-mode) .format-option .excel.btn-check:checked + .btn,
+:host-context(.dark-mode) .format-option .excel.btn-check + .btn:hover {
+  background-color: #15803d;
+  border-color: #15803d;
+  color: white;
+  box-shadow: 0 0 8px rgba(21, 128, 61, 0.6);
+}
+
+:host-context(.dark-mode) .format-option .word.btn-check:checked + .btn,
+:host-context(.dark-mode) .format-option .word.btn-check + .btn:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  color: white;
+  box-shadow: 0 0 8px rgba(29, 78, 216, 0.6);
+}
+
+:host-context(.dark-mode) .format-option .ppt.btn-check:checked + .btn,
+:host-context(.dark-mode) .format-option .ppt.btn-check + .btn:hover {
+  background-color: #c2410c;
+  border-color: #c2410c;
+  color: white;
+  box-shadow: 0 0 8px rgba(194, 65, 12, 0.6);
+}
+
+/* ===========================================================
+   📱 Responsive Layout
+   =========================================================== */
+
+/* ≤768px */
+@media (max-width: 768px) {
+  .report-wrapper {
+    margin: 15px auto;
+    padding: 0;
+    max-width: 95%;
+  }
+
+  .report-box {
+    padding: 16px 18px;
+  }
+
+  input[type="date"],
+  select,
+  input[type="email"],
+  .form-control {
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+
+  .input-group-inline {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .input-group-inline input[type="date"],
+  .input-group-inline select,
+  .input-group-inline .form-control {
+    margin-bottom: 10px;
+  }
+
+  /* 2-column grid for format buttons */
+  .format-option {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    justify-items: stretch;
+  }
+
+  .format-option .btn-check + .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+    padding: 10px 0 !important;
+    font-size: 0.9rem !important;
+  }
+
+  .checkbox-group label,
+  .form-check-label {
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .report-actions,
+  .d-flex.justify-content-end {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .report-actions button,
+  .d-flex.justify-content-end button {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .report-title,
+  .report-container h2 {
+    font-size: 1.2rem;
+    padding: 12px 14px;
+  }
+}
+
+/* ≤480px */
+@media (max-width: 480px) {
+  .report-box {
+    padding: 14px;
+  }
+
+  .report-section label {
+    font-size: 0.9rem;
+  }
+
+  .report-actions button {
+    padding: 10px 0;
+    font-size: 0.95rem;
+  }
+
+  input[type="date"],
+  input[type="email"],
+  select,
+  .form-control {
+    font-size: 0.9rem;
+    padding: 6px 8px;
+  }
+
+  .form-check-label {
+    font-size: 0.85rem;
+  }
+
+  .format-option {
+    gap: 8px !important;
+  }
+
+  .format-option .btn-check + .btn {
+    font-size: 0.85rem !important;
+    padding: 8px 0 !important;
+  }
+}
+
+/* 768–1024px (Tablet) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .report-wrapper {
+    padding: 0 20px !important;
+    margin: 30px auto !important;
+    max-width: 95% !important;
+  }
+
+  .report-box {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .main-content {
+    padding: 0 20px !important;
+  }
+}

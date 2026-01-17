@@ -1,0 +1,232 @@
+/* ===========================================================
+   📊 ANALYTICS PAGE STYLE (CLEAN & ORGANIZED VERSION)
+   =========================================================== */
+
+/* ===============================
+   🧱 Container (Transparent Layout)
+   =============================== */
+
+/* ตัด container นอกออก ไม่ให้มีกรอบ/พื้นหลัง */
+.analytics-container {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  margin: 0;
+}
+
+/* กรอบหัวข้ออย่างเดียว */
+.analytics-header {
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background-color: var(--bg-panel);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ตัวอักษรหัวข้อ */
+.analytics-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 25px;
+}
+
+/* ===============================
+   🎨 Host Style
+   =============================== */
+:host {
+  display: block;
+  background: transparent !important; /* ทั้ง light/dark โปร่งใส */
+  color: #212529;
+  font-family: "Inter", "Prompt", sans-serif;
+}
+
+:host-context(body.dark-mode) {
+  background: transparent !important; /* dark mode ก็โปร่งใส */
+  color: #f9fafb;
+}
+
+/* ===============================
+   🌈 GLOBAL STYLE (Component Scope)
+   =============================== */
+:host {
+  display: block;
+  background: linear-gradient(180deg, #f8faff 0%, #eef4ff 100%);
+  color: #212529;
+  font-family: "Inter", "Prompt", sans-serif;
+}
+
+/* ===============================
+   🧾 SUMMARY CARD
+   =============================== */
+.summary-card {
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card h5 {
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.summary-card p {
+  color: #212529;
+  font-weight: 500;
+}
+
+.summary-card button {
+  color: #0d6efd;
+  border-color: #0d6efd;
+  border-radius: 8px;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.summary-card button:hover {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+.summary-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.15);
+}
+
+/* ===============================
+   📋 LIST GROUP ITEM
+   =============================== */
+.list-group-item {
+  background: #ffffff;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 1px solid #f1f3f5;
+  padding: 12px 16px;
+  font-weight: 500;
+  transition: transform 0.25s ease,
+              background-color 0.25s ease,
+              box-shadow 0.25s ease;
+}
+
+.list-group-item:hover {
+  transform: translateX(6px);
+  background-color: #f0f7ff;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+}
+
+/* ===============================
+   🏷️ BADGE
+   =============================== */
+.badge {
+  padding: 0.45em 0.75em;
+  font-size: 0.85em;
+  font-weight: 600;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.red    { background-color: #ff6b6b; color: #fff; }
+.orange { background-color: #ffa94d; color: #fff; }
+.yellow { background-color: #ffd43b; color: #212529; }
+.green  { background-color: #51cf66; color: #fff; }
+
+/* ===============================
+   🎨 TEXT COLORS OVERRIDE
+   =============================== */
+.text-primary { color: #0d6efd !important; }
+.text-info    { color: #17a2b8 !important; }
+.text-warning { color: #ffc107 !important; }
+
+/* ===============================
+   🔠 HEADINGS
+   =============================== */
+h3, h5 {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+h3.text-primary {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.summary-card p.display-6 {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+p strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ===============================
+   🌑 DARK MODE OVERRIDE
+   =============================== */
+:host-context(body.dark-mode) {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+  color: #f9fafb;
+}
+
+/* Summary Card */
+:host-context(body.dark-mode) .summary-card {
+  background: #1e1e1e;
+  border: 1px solid #374151;
+  color: #f9fafb;
+}
+
+:host-context(body.dark-mode) .summary-card h5 {
+  color: #60a5fa;
+}
+
+/* List Group */
+:host-context(body.dark-mode) .list-group-item {
+  background: #2c2c2c;
+  border: 1px solid #4b5563;
+  color: #e5e7eb;
+}
+
+:host-context(body.dark-mode) .list-group-item:hover {
+  background-color: #374151;
+}
+
+/* Badge */
+:host-context(body.dark-mode) .badge.yellow {
+  color: #000; /* ให้ badge เหลืองยังอ่านออก */
+}
+
+/* ===============================
+   🌘 ANALYTICS HEADER (DARK MODE)
+   =============================== */
+:host-context(body.dark-mode) .analytics-header {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+:host-context(body.dark-mode) .analytics-header h3 {
+  color: var(--dashboard-title-color) !important;
+}
+
+/* ===============================
+   📱 TABLET TEXT SCALE ONLY
+   =============================== */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* ย่อเฉพาะข้อความในการ์ด ไม่แตะกรอบ */
+  .summary-card h5 {
+    font-size: 0.9rem !important;  /* จากเดิม ~1.1–1.2 → ย่อเล็กลง */
+    line-height: 1 !important;
+    overflow: hidden !important;
+    text-align: center;
+  }
+}

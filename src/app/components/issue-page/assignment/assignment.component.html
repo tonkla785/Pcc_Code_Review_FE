@@ -1,0 +1,141 @@
+<div class="container mt-4 assignment-wrapper">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <button class="back-btn" (click)="goBack()"><i class="bi bi-arrow-left"></i></button>
+
+      <h3 class="mb-0 text-primary dark:text-white"
+        style="font-size:2rem; font-weight:600; display:flex; align-items:center; gap:8px;">
+        <i class="bi bi-list-task me-1 text-primary dark:text-info" style="font-size:2rem;"></i>
+        My Assignments
+      </h3>
+
+
+
+    </div>
+    <button type="button" class="btn btn-outline-primary" (click)="openAssignModal()" title="Change Assignee">
+      <i class="bi bi-person-check"></i> Assign Issue
+    </button>
+  </div>
+
+
+
+  <table class="table table-bordered assignment-table">
+    <thead>
+      <tr>
+        <th class="text-center" >Assigned To</th>
+        <th class="text-center">Issue</th>
+        <th class="text-center">Severity</th>
+        <th class="text-center">Due Date</th>
+        <th class="text-center">Status</th>
+
+        <th class="text-center" *ngIf="hasActionColumn">Action</th>
+        <!-- <th>Resolution</th> -->
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let a of Assign" (click)="goToDetail(a.issueId)">
+        <td>{{ a.assignedToName }}</td>
+        <td>{{ a.message }}</td>
+        <td class="text-center">
+          <span class="badge severity-badge" [ngStyle]="{
+          'background-color': getPriorityColor(a.severity),
+          'font-weight': '500'
+        }">
+            {{ a.severity }}
+          </span>
+        </td>
+
+
+        <td class="text-center">{{ a.dueDate | date:'yyyy-MM-dd' }}</td>
+        <td class="text-center"> 
+          <span class="status-box" [ngClass]="statusClass(a.status)">
+            {{ a.status }}
+          </span>
+        </td>
+
+        <!-- <td>{{ a.resolution || '-' }}</td> -->
+
+        <td class="text-center" *ngIf="hasActionColumn">
+          <!-- สำหรับ PENDING -->
+          <ng-container *ngIf="a.status === 'PENDING' ">
+            <button *ngIf="a.own==true" class="btn btn-success btn-sm me-1" (click)="updateStatus(a,'ACCEPT')">
+              <i class="bi bi-check-lg"></i>
+            </button>
+            <button *ngIf="a.own==true" class="btn btn-danger btn-sm" (click)="updateStatus(a,'REJECT')">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </ng-container>
+
+          <!-- สำหรับ IN PROGRESS -->
+          <ng-container *ngIf="a.status === 'IN PROGRESS'">
+            <button *ngIf="a.own==true" class="btn btn-primary btn-sm" (click)="updateStatus(a,'DONE')">
+              <i class="bi bi-check2-square"></i> Done
+            </button>
+          </ng-container>
+
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <app-issuemodal #assignModal (assignSubmit)="handleAssignSubmit($event)" (statusSubmit)="handleStatusSubmit($event)"
+    (closed)="{}">
+  </app-issuemodal>
+
+</div>
+
+
+<!-- Modal -->
+<!-- <div class="modal modal-backdrop-custom" 
+     [ngClass]="showAssignModal ? 'modal-show' : 'modal-hide'" 
+     (click)="closeAssignModal()">
+  <div class="modal-dialog modal-dialog-custom" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-check"></i> Assign Issue</h5>
+        <button type="button" class="btn-close" (click)="closeAssignModal()"></button>
+      </div>
+
+      <div class="modal-body">
+        <form #assignmentForm="ngForm" (ngSubmit)="onSubmit(assignmentForm)" novalidate>
+          <div class="mb-3">
+            <label for="issueId" class="form-label">Issue ID</label>
+            <input type="text" class="form-control" [(ngModel)]="assignment.issueId" 
+                   name="issueId" #issueId="ngModel" required>
+            <div *ngIf="issueId.invalid && (issueId.dirty || issueId.touched)" class="text-danger small">
+              Please enter an issue ID.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="assignedTo" class="form-label">Assign To</label>
+            <select class="form-select" [(ngModel)]="assignment.assignedTo" 
+                    name="assignedTo" #assignedTo="ngModel" required>
+              <option value="" disabled selected>-- Select User --</option>
+              <option *ngFor="let user of users" [value]="user.name">{{ user.name }}</option>
+            </select>
+            <div *ngIf="assignedTo.invalid && (assignedTo.dirty || assignedTo.touched)" class="text-danger small">
+              Please select a user.
+            </div>
+          </div>
+
+       
+          <div class="mb-3">
+            <label for="dueDate" class="form-label">Due Date</label>
+            <input type="date" class="form-control" [(ngModel)]="assignment.dueDate" 
+                   name="dueDate" #dueDate="ngModel" required>
+            <div *ngIf="dueDate.invalid && (dueDate.dirty || dueDate.touched)" class="text-danger small">
+              Please select a due date.
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeAssignModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="assignmentForm.invalid">
+              Save Assignment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div> -->

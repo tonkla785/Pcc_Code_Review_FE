@@ -1,0 +1,115 @@
+<!-- Top Bar: Login / Register (ขวาบน) -->
+<nav
+  class="navbar navbar-light bg-transparent position-absolute top-0 end-0 p-3 z-3"
+>
+  <div class="d-flex gap-2">
+    <button
+      type="button"
+      class="btn btn-outline-primary btn-sm"
+      (click)="goToLogin()"
+    >
+      Login
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary btn-sm"
+      (click)="goToRegister()"
+    >
+      Register
+    </button>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero d-flex align-items-center text-center">
+  <div class="container">
+    <h1 class="display-5 fw-bold mb-2">PCCTH Automate Code Review</h1>
+    <p class="lead mb-4">
+      Automated code quality improvement:<br class="d-none d-md-block" />
+      <span class="fw-semibold">fast, accurate, and transparent.</span>
+    </p>
+    <button
+      type="button"
+      class="btn btn-primary btn-lg px-4"
+      (click)="scrollTo('features')"
+    >
+      Explore Features
+    </button>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5">
+  <div class="container text-center">
+    <h2 class="h3 fw-bold mb-4">Why Choose PCCTH Automate Code Review ?</h2>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-md-4">
+        <div class="card h-100 feature-card">
+          <div class="card-body">
+            <div class="fs-2 text-primary">
+              <i class="bi bi-alarm"></i>
+            </div>
+            <h3 class="h5 fw-bold mt-2 mb-1">Save Time</h3>
+            <div class="text-muted small">Reduce review time &amp; focus.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="card h-100 feature-card">
+          <div class="card-body">
+            <div class="fs-2 text-success">
+              <i class="bi bi-search"></i>
+            </div>
+
+            <h3 class="h5 fw-bold mt-2 mb-1">Issue Detection</h3>
+            <div class="text-muted small">Identify instantly.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="card h-100 feature-card">
+          <div class="card-body">
+            <div class="fs-2 text-gradient-red">
+              <i class="bi bi-bar-chart"></i>
+            </div>
+            <h3 class="h5 fw-bold mt-2 mb-1">Dashboard</h3>
+            <div class="text-muted small">Visualize project quality.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Notification Levels -->
+<section class="py-5 notifications-section">
+  <div class="container text-center">
+    <h2 class="h4 fw-bold mb-4">4 ‑ level Notifications</h2>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+      <span class="badge rounded-pill bg-success px-3 py-2">Success</span>
+      <span class="badge rounded-pill bg-info text-dark px-3 py-2">Info</span>
+      <span class="badge rounded-pill bg-warning text-dark px-3 py-2"
+        >Warning</span
+      >
+      <span class="badge rounded-pill bg-danger px-3 py-2">Error</span>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 cta text-center text-white">
+  <div class="container">
+    <h2 class="h4 fw-bold mb-2">Start Automating Your Code Reviews Today</h2>
+    <p class="mb-4">Fast, accurate, transparent code quality.</p>
+    <button
+      type="button"
+      class="btn btn-outline-light btn-lg"
+      (click)="goToRegister()"
+    >
+      Get Started
+    </button>
+  </div>
+</section>

@@ -1,0 +1,133 @@
+<!-- Issues Management Page -->
+<div class="issues-container my-0">
+  <!-- Header -->
+  <div class="issues-header d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-list-task me-2"></i> Issues Management</h2>
+
+    <!-- ปุ่ม My Assignment ฝั่งขวา -->
+    <a [routerLink]="['/assignment']" class="custom-btn" title="My Assignment">
+      <i class="bi bi-person-badge me-1"></i> My Assignment
+    </a>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="d-flex flex-wrap gap-2 mb-4 align-items-center filters">
+    <select class="form-select w-auto" [(ngModel)]="filterType">
+      <option>All Types</option>
+      <option value="bug">Bug</option>
+      <option value="security">Security</option>
+      <option value="code-smell">Code Smell</option>
+    </select>
+
+    <select class="form-select w-auto" [(ngModel)]="filterSeverity">
+      <option>All Severity</option>
+      <option value="critical">Critical</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+
+    <select class="form-select w-auto" [(ngModel)]="filterStatus">
+      <option>All Status</option>
+      <option value="open">Open</option>
+      <option value="pending">Pending</option>
+      <option value="in-progress">In Progress</option>
+      <option value="done">Done</option>
+      <option value="reject">Reject</option>
+    </select>
+
+    <select class="form-select w-auto"
+        [(ngModel)]="filterProject"
+        (change)="currentPage = 1">
+  <option value="All Projects">All Projects</option>
+  <option *ngFor="let project of projects"
+          [value]="project.name">
+    {{ project.name }}
+  </option>
+    </select>
+
+    <input class="form-control w-auto" type="text" placeholder="Search issues..." [(ngModel)]="searchText">
+    <button class="btn btn-outline-primary" (click)="clearFilters()">Clear</button>
+  </div>
+
+  <!-- Table -->
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover table-bordered align-middle issues-table">
+      <thead>
+        <tr>
+          <th class="text-center">
+            <input type="checkbox" [checked]="isPageAllSelected()" (change)="selectAll($event)">
+          </th>
+
+          <th>Type</th>
+          <th>Severity</th>
+          <th>Issue</th>
+          <th>Project</th>
+          <th>Assigned</th>
+          <th>Status</th>
+          <th class="text-center view-column sticky-col">View</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let issue of paginatedIssues">
+          <td class="text-center"><input type="checkbox" [(ngModel)]="issue.selected"></td>
+          <td><i class="bi me-1" [ngClass]="typeIcon(issue.type)"></i>{{ issue.type | titlecase }}</td>
+          <td>
+            <span class="severity-badge" [ngClass]="severityClass(issue.severity)">
+              {{ issue.severity | uppercase }}
+            </span>
+          </td>
+          
+          <td>
+            <strong>{{ issue.message }}</strong><br>
+            <small class="text-muted">{{ issue.details }}</small>
+          </td>
+          <td>{{ issue.projectName }}</td>
+          <td>{{ issue.assignee }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="statusClass(issue.status)">
+              {{ issue.status | uppercase }}
+            </span>
+          </td>
+          
+          <td class="text-center sticky-col">
+            <a *ngIf="issue?.issuesId" [routerLink]="['/issuedetail', issue.issuesId]" class="btn btn-info btn-sm">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer-bar px-3 px-md-4">
+  <div class="footer-left">
+    <strong>Selected:</strong> {{ selectedCount() }}
+  </div>
+
+ 
+  <div class="pagination d-flex align-items-center gap-3">
+    <button class="page-btn" [class.disabled]="currentPage === 1" (click)="prevPage()">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span class="page-label mb-0">Page {{ currentPage }}</span>
+    <button class="page-btn" [class.disabled]="currentPage === totalPages" (click)="nextPage()">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+
+  <div class="bottom-action-buttons">
+    <!-- <button class="action-btn assign" (click)="assignDeveloper()" title="Assign Developer">
+      <i class="bi bi-person-plus"></i>
+    </button>
+    <button class="action-btn status" (click)="changeStatus()" title="Update Status">
+      <i class="bi bi-arrow-repeat"></i>
+    </button> -->
+    <button class="action-btn export" (click)="exportData()" title="Export">
+      <i class="bi bi-download"></i>
+    </button>
+  </div>
+  

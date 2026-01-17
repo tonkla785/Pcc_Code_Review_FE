@@ -1,0 +1,42 @@
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Navbar ด้านซ้าย */
+app-navbar {
+  width: 220px;
+  background-color: var(--navbar-bg);
+  color: var(--navbar-text);
+  flex-shrink: 0;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+/* เนื้อหาหลัก */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: auto;
+  background-color: var(--content-bg);
+  color: var(--text-color);
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  app-navbar {
+    width: 100%;
+  }
+
+  .main-content {
+    width: 100%;
+  }
+}

@@ -1,0 +1,104 @@
+<!-- Assign Modal -->
+<div class="modal-backdrop-custom" *ngIf="showAssign" (click)="close()">
+  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ isEdit ? 'Change Assignment' : 'Assign Issue' }}</h5>
+        <button class="btn-close" (click)="close()"></button>
+      </div>
+
+      <form #assignForm="ngForm" (ngSubmit)="submitAssign(assignForm)">
+        <div class="modal-body">
+          <!-- Issue ID -->
+          <div class="form-group mb-3">
+            <label for="issueId">Issue ID:</label>
+            <input id="issueId" type="text" class="form-control" [(ngModel)]="issue.issueId" name="issueId" required
+              placeholder="Enter Issue ID" [readonly]="isEdit || !!issue.issueId" />
+            <div class="text-danger" *ngIf="assignForm.submitted && !issue.issueId">
+              Issue ID is required
+            </div>
+          </div>
+
+          <!-- Assign To -->
+          <div class="form-group mb-3">
+            <label for="assignTo">Assign To:</label>
+            <select id="assignTo" class="form-control" [(ngModel)]="issue.assignedTo" name="assignedTo" required>
+              <option value="">Select User</option>
+              <option *ngFor="let u of users" [value]="u.id" [disabled]="isEdit && u.id === issue.assignedTo">{{
+                u.username }}</option>
+            </select>
+            <div class="text-danger" *ngIf="assignForm.submitted && !issue.assignedTo">
+              Please select a user
+            </div>
+          </div>
+
+          <!-- Due Date -->
+          <div class="form-group mb-3">
+            <label for="dueDate">Due Date:</label>
+            <input id="dueDate" type="date" class="form-control" [(ngModel)]="issue.dueDate" name="dueDate" required
+             [min]="today" #dueDateRef="ngModel" [ngModelOptions]="{ standalone: false }" />
+
+            <div class="text-danger" *ngIf="assignForm.submitted && dueDateRef.invalid">
+              Due Date is required
+            </div>
+          </div>
+
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">{{ isEdit ? 'Update' : 'Save' }}</button>
+          <button type="button" class="btn btn-secondary" (click)="close()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Status Modal -->
+<div class="modal-backdrop-custom" *ngIf="showStatus" (click)="close()">
+  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Status</h5>
+        <button class="btn-close" (click)="close()"></button>
+      </div>
+
+      <form #statusForm="ngForm" (ngSubmit)="submitStatus(statusForm)">
+        <div class="modal-body">
+          <label for="status">Status:</label>
+          <input id="status" type="text"name="status" class="form-control" [(ngModel)]="issue.status"  readonly />
+
+
+          <!-- Remark required เฉพาะ Reject -->
+          <div class="form-group mt-3">
+            <label for="remark">
+              Remark
+              <span *ngIf="issue.status === 'REJECT'" class="text-danger">*</span>
+            </label>
+            <textarea id="remark" class="form-control" rows="3" [(ngModel)]="issue.annotation" name="annotation"
+              [required]="issue.status === 'REJECT'">
+            </textarea>
+
+            <!-- Validation message -->
+            <div class="text-danger" *ngIf="
+                statusForm.submitted &&
+                issue.status === 'REJECT' &&
+                !issue.annotation
+              ">
+              Remark is required when rejecting
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" (click)="close()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

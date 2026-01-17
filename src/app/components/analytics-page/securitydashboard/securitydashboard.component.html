@@ -1,0 +1,97 @@
+<div class="container mt-4">
+  <div class="d-flex align-items-center mb-3">
+    <button class="back-btn me-2" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <h3 class="text-primary mb-0">
+      <i class="bi bi-shield-lock-fill"></i> Security Dashboard
+    </h3>
+  </div>
+  <div class="d-flex justify-content-between align-items-center my-3">
+    <p><strong>Security Score:</strong> {{securityScore}}/100</p>
+    <p><strong>Risk Level:</strong> {{riskLevel}}</p>
+  </div>
+
+  <div class="row">
+    <!-- Vulnerabilities -->
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header">Vulnerabilities by Severity</div>
+        <div class="card-body">
+          <div *ngFor="let v of vulnerabilities" class="vulnerability-item">
+            <div class="d-flex justify-content-between">
+              <span>{{v.severity}}</span>
+              <span>{{v.count}}</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" [ngClass]="v.color" [style.width.%]="(v.count / totalVulnerabilities) * 100">
+              </div>
+            </div>
+          </div>
+          <hr>
+          <p>Total: {{ totalVulnerabilities }} vulnerabilities</p>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- OWASP Top 10 -->
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header">OWASP Top 10 Coverage</div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li *ngFor="let item of owaspCoverage" class="list-group-item d-flex justify-content-between align-items-center">
+              {{ item.name }}
+              <i 
+                [ngClass]="{
+                  'bi bi-check-circle-fill text-success': item.status === 'pass',
+                  'bi bi-exclamation-triangle-fill text-warning': item.status === 'warning',
+                  'bi bi-x-circle-fill text-danger': item.status === 'fail'
+                }">
+              </i>
+            </li>
+          </ul>       
+        </div>
+      </div>
+    </div>
+
+    <!-- Hot Security Issues -->
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header">Hot Security Issues</div>
+        <div class="card-body">
+          <ol>
+            <li *ngFor="let issue of hotIssues">{{issue}}</li>
+          </ol>
+          <button class="btn btn-outline-primary btn-sm w-100" [routerLink]="['/issue']"
+            [queryParams]="{ type: 'security' }">
+            View All Security Issues
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security Trend Chart -->
+  <div class="card shadow-sm mt-3">
+    <div class="card-body">
+      <apx-chart 
+  [series]="chartSeries" 
+  [chart]="chartOptions.chart!"
+  [xaxis]="chartOptions.xaxis!"
+  [stroke]="chartOptions.stroke!"
+  [yaxis]="chartOptions.yaxis!"
+  [colors]="chartOptions.colors!"
+  [dataLabels]="chartOptions.dataLabels!"
+  [tooltip]="chartOptions.tooltip!"
+  [title]="chartOptions.title!">
+</apx-chart>
+
+
+    </div>
+  </div>
+
+</div>

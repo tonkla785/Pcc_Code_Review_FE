@@ -1,0 +1,64 @@
+<div class="login-container">
+  <div class="login-wrapper"> <!-- NEW: ครอบสองฝั่ง -->
+
+    <!-- LEFT: Welcome -->
+    <div class="welcome-section">
+      <h1>Hello,<br> welcome Back !</h1>
+      <p>PCCTH Automate Code Review.</p>
+    </div>
+
+    <div class="login-box">
+      <div class="login-header">
+        <a routerLink="/" class="back-btn">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2>Login</h2>
+      </div>
+      <form (ngSubmit)="onSubmit(form)" #form="ngForm" novalidate >
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" name="email" [(ngModel)]="email" required email
+          pattern="^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$" #emailRef="ngModel"
+          placeholder="Enter your email" title="Please enter your email address" />
+          <div *ngIf="emailRef.touched || emailRef.dirty || submitted">
+            <small *ngIf="emailRef.errors?.['required']" class="error-message">
+                Email is required
+            </small>
+            <small *ngIf="emailRef.errors?.['email']" class="error-message">
+                Enter a valid email
+            </small>
+            <small *ngIf="emailRef.errors?.['pattern']" class="error-message">
+                Email must have at least 2 characters after "."
+            </small>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" name="password" [(ngModel)]="password" required #pwdRef="ngModel"
+            placeholder="Enter your password" title="Please enter your password" />
+          <div *ngIf="pwdRef.touched || pwdRef.dirty || submitted">
+            <small *ngIf="pwdRef.errors?.['required']" class="error-message">
+              Password is required
+            </small>
+          </div>
+        </div>
+
+        <button type="submit">Login</button>
+      </form>
+
+      <div class="extra-links">
+        <p>
+          Forgot your Password?
+          <a [routerLink]="['/forgot-password']">Reset Password</a>
+        </p>
+        <p>
+          Don't have an account?
+          <a [routerLink]="['/register']">Register</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+

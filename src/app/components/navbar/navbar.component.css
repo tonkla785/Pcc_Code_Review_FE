@@ -1,0 +1,125 @@
+.vertical-navbar {
+  width: 220px;
+  min-height: 100vh;
+  background-color: var(--navbar-bg);
+  color: var(--navbar-text);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+  padding: 20px 0;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+/* Heading */
+.vertical-navbar h4 {
+  color: var(--navbar-text);
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Menu list */
+.vertical-navbar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between; /* กระจายเมนูให้ balance */
+}
+
+.vertical-navbar li {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* เว้นช่องว่างระหว่างเมนู */
+}
+
+.vertical-navbar a {
+  color: var(--navbar-text);
+  text-decoration: none;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  border-left: 4px solid transparent;
+  transition: all 0.3s;
+}
+
+.vertical-navbar a i {
+  margin-right: 10px; /* เว้นช่องว่างไอคอนกับข้อความ */
+}
+
+/* Submenu items */
+.vertical-navbar ul li ul li a {
+  font-weight: normal; /* ทำให้ตัวอักษรไม่หนา */
+  padding-left: 1.2rem; /* กำหนดระยะย่อหน้าซ้ายเล็กน้อย */
+  font-size: 0.95rem; /* ปรับขนาดตัวอักษรถ้าต้องการ */
+}
+
+
+.vertical-navbar a:hover {
+  background-color: var(--navbar-hover);
+}
+
+.vertical-navbar a.active {
+  background-color: var(--navbar-active-bg);
+  border-left: 4px solid var(--navbar-active-border);
+}
+
+/* Desktop fixed */
+@media (min-width: 768px) {
+  .vertical-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  .main-content {
+    margin-left: 220px; /* เว้นพื้นที่ navbar */
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .vertical-navbar {
+    position: fixed;
+    top: 0;
+    left: -220px; /* ซ่อน navbar */
+    z-index: 1000;
+  }
+
+  .vertical-navbar h4 {
+    padding-left: 40px;
+  }
+
+  .vertical-navbar.active {
+    left: 0; /* slide in */
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding-top: 70px; /* เว้น hamburger */
+  }
+
+  .hamburger {
+    display: block;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    font-size: 24px;
+    color: #007BFF;
+    z-index: 1100;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .vertical-navbar.active + .hamburger,
+.hamburger.active {
+  color: white; /* เปลี่ยนเป็นสีขาว */
+}
+}
