@@ -64,15 +64,15 @@ export class RegisterComponent {
 
 
   onSubmit(form: NgForm) {
-  
-    this.submitted = true; 
+
+    this.submitted = true;
 
     if (form.invalid || this.passwordsMismatch) {
       this.snack.open('Registration failed', '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-red'], 
+        panelClass: ['app-snack', 'app-snack-red'],
       });
       return;
     }
@@ -82,7 +82,7 @@ export class RegisterComponent {
     this.auth.register({
       username: this.username.trim(),
       email: this.email.trim(),
-      phoneNumber: this.phoneNumber.trim(),
+      phone: this.phoneNumber.trim(),
       password: this.password.trim()
     }).subscribe({
       next: (res: any) => {
@@ -91,7 +91,7 @@ export class RegisterComponent {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-blue'], 
+          panelClass: ['app-snack', 'app-snack-blue'],
         });
         this.router.navigate(['/login']);
       },
@@ -119,7 +119,7 @@ export class RegisterComponent {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red'], 
+          panelClass: ['app-snack', 'app-snack-red'],
         });
       }
     });

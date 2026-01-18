@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IssuemodalComponent } from '../issuemodal/issuemodal.component';
-import { IssueService, Issue as ApiIssue } from '../../services/issueservice/issue.service';
+import { IssueService, Issue as ApiIssue } from '../../../services/issueservice/issue.service';
 import { filter, map } from 'rxjs/operators';
-import { AuthService } from '../../services/authservice/auth.service';
-import { RepositoryService } from '../../services/reposervice/repository.service';
-import { AssignhistoryService } from '../../services/assignservice/assignhistory.service';
+import { AuthService } from '../../../services/authservice/auth.service';
+import { RepositoryService } from '../../../services/reposervice/repository.service';
+import { AssignhistoryService } from '../../../services/assignservice/assignhistory.service';
 
 /** === เพิ่มสำหรับคอมเมนต์ === */
-import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../services/commentservice/comment';
+import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../../services/commentservice/comment';
 
 interface Attachment { filename: string; url: string; }
 interface IssueComment {
@@ -61,8 +61,8 @@ export class IssuedetailComponent implements OnInit {
   nextStatus: Issue['status'] | undefined;
   private readonly auth = inject(AuthService);
 
-  currentUserId = this.auth.userId ?? '';
-  currentUserName = this.auth.username;
+  currentUserId = '';
+  currentUserName = '';
 
   newComment = { mention: '', comment: '' };
 
@@ -78,17 +78,14 @@ export class IssuedetailComponent implements OnInit {
     private readonly repositoryService: RepositoryService,
     private readonly assignService: AssignhistoryService,
     private readonly commentService: CommentService,
-    private readonly authService : AuthService,
+    private readonly authService: AuthService,
   ) { }
 
   ngOnInit(): void {
-
-    const userId = this.authService.userId;
-      console.log(userId);
-      if (!userId) {
-        this.router.navigate(['/login']);
-        return;
-      }
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
 
     this.route.paramMap.pipe(
       map(pm => pm.get('issuesId') ?? ''),
@@ -102,13 +99,13 @@ export class IssuedetailComponent implements OnInit {
         this.loading = true;
         this.issueApi.getById(id).pipe(map(raw => this.toIssue(raw)))
           .subscribe({
-            next: issue => {
+            next: (issue: Issue) => {
               this.issue = issue;
               this.issue.assignedTo ||= '';
               this.loading = false;
               this.loadComments();             // << โหลดคอมเมนต์หลังได้ issue
             },
-            error: err => {
+            error: (err: any) => {
               console.error('getById error', err);
               this.error = 'โหลดข้อมูลไม่สำเร็จ';
               this.loading = false;
@@ -176,23 +173,23 @@ export class IssuedetailComponent implements OnInit {
   }
 
 
-loadComments() {
-  if (!this.issue?.id) return;
-  this.loadingComments = true;
-  this.commentService.getIssueComments(this.issue.id).subscribe({
-    next: (list: IssueCommentModel[]) =>
-      this.comments = (list ?? []).map((x: IssueCommentModel) => this.mapComment(x)),
-    error: (e: unknown) => console.error('loadComments error:', e),
-    complete: () => (this.loadingComments = false),
-  });
-}
+  loadComments() {
+    if (!this.issue?.id) return;
+    this.loadingComments = true;
+    this.commentService.getIssueComments(this.issue.id).subscribe({
+      next: (list: IssueCommentModel[]) =>
+        this.comments = (list ?? []).map((x: IssueCommentModel) => this.mapComment(x)),
+      error: (e: unknown) => console.error('loadComments error:', e),
+      complete: () => (this.loadingComments = false),
+    });
+  }
 
 
   postComment() {
     const text = (this.newComment.comment || '').trim();
     if (!text || !this.issue?.id) return;
 
-    const userId = this.currentUserId || this.auth.userId;
+    const userId = this.currentUserId;
     if (!userId) { this.error = 'กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น'; return; }
 
     this.sendingComment = true;
@@ -268,10 +265,10 @@ loadComments() {
       this.issue.assignedTo ?? '',
       this.issue.dueDate
     ).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         console.log('Assigned successfully:', res);
       },
-      error: (err) => console.error('Error:', err),
+      error: (err: any) => console.error('Error:', err),
     });
   }
 
@@ -303,9 +300,8 @@ loadComments() {
 
     const prevStatus = this.issue.status;
 
-    const userId = this.auth.userId;
-    if (!userId) {
-      console.error('Missing userId');
+    if (!this.auth.isLoggedIn) {
+      console.error('User not logged in');
       return;
     }
 
@@ -317,7 +313,7 @@ loadComments() {
     if (this.issue.assignedTo) body.assignedTo = this.issue.assignedTo;
     if (this.issue.dueDate) body.dueDate = this.issue.dueDate;
 
-    this.assignService.updateStatus(userId, issueId, body).subscribe({
+    this.assignService.updateStatus('', issueId, body).subscribe({
       next: (res: any) => {
         this.issue = {
           ...this.issue,
@@ -328,7 +324,7 @@ loadComments() {
         console.log('Status updated successfully:', this.issue.status);
         this.assignModal.close();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error updating status:', err);
         this.issue = { ...this.issue, status: prevStatus }; // rollback
       }

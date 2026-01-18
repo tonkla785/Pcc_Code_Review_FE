@@ -63,7 +63,8 @@ export class RepositoryService {
   /** GET /api/repositories */
 /** GET /api/repositories?userId=<UUID> */
 getAllRepo(): Observable<Repository[]> {
-  const userId = this.auth.userId || '';
+  // TODO: Get userId from token when available
+  const userId = '';
   const opts = {
     ...this.authOpts(),                             // ใส่ Authorization ถ้ามี
     params: new HttpParams().set('userId', userId), // << ส่ง userId ไปด้วย

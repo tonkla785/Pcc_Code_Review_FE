@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
@@ -32,8 +32,8 @@ export class UsermanagementComponent {
 
   modalOpen: boolean = false;
   editingUser: boolean = false;
-  modalData: User = this.emptyUser(); 
-  originalData: User = this.emptyUser(); 
+  modalData: User = this.emptyUser();
+  originalData: User = this.emptyUser();
 
   emptyUser(): User {
     return { id: 0, name: '', email: '', role: 'User', active: true };
@@ -47,18 +47,16 @@ export class UsermanagementComponent {
   }
 
   constructor(
-        private readonly router: Router,
-        private readonly authService: AuthService,
-      ) { }
-      
+    private readonly router: Router,
+    private readonly authService: AuthService,
+  ) { }
+
   ngOnInit(): void {
-      const userId = this.authService.userId;
-      console.log(userId);
-      if (!userId) {
-        this.router.navigate(['/login']);
-        return;
-      }
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
     }
+  }
 
   openAddUser() {
     this.modalData = this.emptyUser();
@@ -80,7 +78,7 @@ export class UsermanagementComponent {
     if (!this.modalData.name || !this.modalData.email || !this.modalData.role) {
       return false; // กรอกไม่ครบ
     }
-    
+
     if (this.editingUser) {
       return !(
         this.modalData.name === this.originalData.name &&

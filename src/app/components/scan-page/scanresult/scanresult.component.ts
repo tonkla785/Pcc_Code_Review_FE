@@ -1,7 +1,7 @@
-import { Component} from '@angular/core';
-import { CommonModule } from '@angular/common'; 
-import { Router, RouterLink,RouterOutlet } from '@angular/router';
-import { Scan,ScanService } from '../../../services/scanservice/scan.service';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { AuthService } from '../../../services/authservice/auth.service';
@@ -16,20 +16,18 @@ import { AuthService } from '../../../services/authservice/auth.service';
 })
 export class ScanresultComponent {
 
-  constructor(private readonly router: Router,private readonly scanService: ScanService,
-          private readonly authService: AuthService,) {}
-          
+  constructor(private readonly router: Router, private readonly scanService: ScanService,
+    private readonly authService: AuthService,) { }
+
   goBack() { window.history.back(); }
 
- scanInfo: Scan | null = null;
+  scanInfo: Scan | null = null;
 
- ngOnInit(): void {
-  const userId = this.authService.userId;
-      console.log(userId);
-      if (!userId) {
-        this.router.navigate(['/login']);
-        return;
-      }
+  ngOnInit(): void {
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
     const scanId = this.router.url.split('/').pop(); // หรือใช้ ActivatedRoute
     if (scanId) {
       this.scanService.getByScanId(scanId).subscribe(scan => {
@@ -37,25 +35,25 @@ export class ScanresultComponent {
       });
     }
   }
- hasOverallOrMetrics(scan: any): boolean {
-  const isValid = (v: any) => v !== null && v !== undefined && v !== '' && v !== 'null';
+  hasOverallOrMetrics(scan: any): boolean {
+    const isValid = (v: any) => v !== null && v !== undefined && v !== '' && v !== 'null';
 
-  const overallGates = [
-    scan.reliabilityGate,
-    scan.securityGate,
-    scan.maintainabilityGate,
-    scan.securityReviewGate
-  ];
+    const overallGates = [
+      scan.reliabilityGate,
+      scan.securityGate,
+      scan.maintainabilityGate,
+      scan.securityReviewGate
+    ];
 
-  const metrics = scan.metrics ? [
-    scan.metrics.bugs,
-    scan.metrics.vulnerabilities,
-    scan.metrics.codeSmells,
-    scan.metrics.coverage
-  ] : [];
+    const metrics = scan.metrics ? [
+      scan.metrics.bugs,
+      scan.metrics.vulnerabilities,
+      scan.metrics.codeSmells,
+      scan.metrics.coverage
+    ] : [];
 
-  return overallGates.some(isValid) || metrics.some(isValid);
-}
+    return overallGates.some(isValid) || metrics.some(isValid);
+  }
 
   generatePDF(): jsPDF {
     const doc = new jsPDF();
@@ -128,7 +126,7 @@ export class ScanresultComponent {
     console.log('PDF ready to send by email', pdfBlob);
     alert('Report prepared for email (demo only)');
   }
-  
+
   viewIssues() {
     this.router.navigate(['/issues', this.scanInfo?.scanId]);
   }

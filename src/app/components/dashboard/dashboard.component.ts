@@ -156,8 +156,9 @@ export class DashboardComponent {
       return;
     }
 
-    const userId = this.auth.userId;
-    if (!userId) return;
+    // TODO: Get userId from token when available
+    const userId = '';
+    if (!this.auth.isLoggedIn) return;
 
     // ดาวน์โหลดข้อมูล dashboard
     this.fetchFromServer(userId);
@@ -490,7 +491,7 @@ export class DashboardComponent {
       const st = norm(h.status);
       return ['FAILED', 'ERROR', 'FAIL', 'FAILURE'].includes(st);
     }).length;
-    
+
 
     this.Data = { passedCount: passed, failedCount: failed };
     this.totalProjects = passed + failed;
@@ -741,7 +742,8 @@ export class DashboardComponent {
 
   // ================== ACTIONS อื่น ๆ ==================
   onRefresh() {
-    this.fetchFromServer(this.auth.userId!);
+    // TODO: Get userId from token when available
+    this.fetchFromServer('');
   }
 
   viewDetail(scanId: string) {

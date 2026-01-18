@@ -58,14 +58,12 @@ export class SonarqubeconfigComponent implements OnInit {
   private storageKey = 'sonarConfig_v1';
 
   constructor(
-        private readonly router: Router,
-        private readonly authService: AuthService,
-      ) { }
+    private readonly router: Router,
+    private readonly authService: AuthService,
+  ) { }
 
   ngOnInit(): void {
-     const userId = this.authService.userId;
-    console.log(userId);
-    if (!userId) {
+    if (!this.authService.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
     }

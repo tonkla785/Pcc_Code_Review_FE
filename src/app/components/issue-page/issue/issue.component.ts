@@ -46,20 +46,11 @@ export class IssueComponent {
   ) { }
 
   ngOnInit(): void {
-    const userId = this.auth.userId;
-    if (!userId) { this.router.navigate(['/login']); return; }
+    if (!this.auth.isLoggedIn) { this.router.navigate(['/login']); return; }
 
-    // อ่านค่า filter จาก query param (โครงเดิม)
-    // this.route.queryParams.subscribe(params => {
-    //   this.filterType     = params['type']     || 'All Types';
-    //   this.filterProject  = params['project']  || 'All Projects';
-    //   this.filterSeverity = params['severity'] || 'All Severity';
-    //   this.filterStatus   = params['status']   || 'All Status';
-    //   this.searchText     = params['search']   || '';
-    //   this.currentPage = 1;
-    // });
-
-    this.loadIssues(String(userId));
+    // TODO: Get userId from token when available
+    const userId = '';
+    this.loadIssues(userId);
     console.log(`Issue ID: ${this.issueId}`);
 
     this.repositoryService.getAllRepo().subscribe(repos => {
@@ -112,22 +103,22 @@ export class IssueComponent {
   }
 
   private buildTopIssues() {
-  const counter: Record<string, number> = {};
+    const counter: Record<string, number> = {};
 
-  // นับตาม message อย่างเดียว
-  for (const it of this.issues) {
-    const msg = (it.message || '(no message)').trim().toLowerCase();
-    counter[msg] = (counter[msg] || 0) + 1;
+    // นับตาม message อย่างเดียว
+    for (const it of this.issues) {
+      const msg = (it.message || '(no message)').trim().toLowerCase();
+      counter[msg] = (counter[msg] || 0) + 1;
+    }
+
+    // แปลงเป็น array แล้ว sort
+    const arr: TopIssue[] = Object.entries(counter)
+      .map(([message, count]) => ({ message, count }))
+      .sort((a, b) => b.count - a.count);   // มาก → น้อย
+
+    // เก็บเฉพาะจำนวนที่อยากโชว์ป
+    this.topIssues = arr.slice(0, this.maxTop);
   }
-
-  // แปลงเป็น array แล้ว sort
-  const arr: TopIssue[] = Object.entries(counter)
-    .map(([message, count]) => ({ message, count }))
-    .sort((a, b) => b.count - a.count);   // มาก → น้อย
-
-  // เก็บเฉพาะจำนวนที่อยากโชว์ป
-  this.topIssues = arr.slice(0, this.maxTop);
-}
 
   private mapApiIssueToUi(r: import('../../../services/issueservice/issue.service').Issue): Issue {
     // type mapping: 'Bug' | 'Vulnerability' | 'Code Smell'  ->  'bug' | 'security' | 'code-smell'

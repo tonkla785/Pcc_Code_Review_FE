@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router,RouterModule ,ActivatedRoute } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
-import { Scan,ScanService } from '../../../services/scanservice/scan.service';
-import { Issue} from '../../../services/issueservice/issue.service';
+import { Scan, ScanService } from '../../../services/scanservice/scan.service';
+import { Issue } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 
 
@@ -20,7 +20,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
   repo!: Repository;
   scans: Scan[] = [];
   issues: Issue[] = [];
-  activeTab: 'overview' | 'bugs' | 'history'  = 'overview';
+  activeTab: 'overview' | 'bugs' | 'history' = 'overview';
   loading: boolean = true;
   private scanInterval?: any;
 
@@ -29,16 +29,14 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly repoService: RepositoryService,
     private readonly scanService: ScanService,
-    private readonly authService : AuthService
-  ) {}
+    private readonly authService: AuthService
+  ) { }
 
   ngOnInit(): void {
-    const userId = this.authService.userId;
-      console.log(userId);
-      if (!userId) {
-        this.router.navigate(['/login']);
-        return;
-      }
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.repoId = this.route.snapshot.paramMap.get('projectId') ?? '';
 
     if (this.repoId) {
@@ -53,8 +51,8 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
         if (repo) {
           this.repo = repo;
           this.scans = (repo.scans ?? [])
-          .filter(scan => scan.completedAt)                 
-          .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
+            .filter(scan => scan.completedAt)
+            .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
           this.issues = repo.issues ?? [];
         }
         this.loading = false;
@@ -66,7 +64,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     });
   }
 
-   
+
 
   switchTab(tab: 'overview' | 'bugs' | 'history') {
     this.activeTab = tab;
@@ -74,7 +72,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
 
   runScan(repo: Repository) {
     // if (repo.status === 'Scanning') return;
-    
+
     // // Validate required fields
     // if (!repo.sonarProjectKey) {
     //   console.error('Missing sonar_project_key for repository:', repo.name);
@@ -89,7 +87,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
 
     // repo.status = 'Scanning';
     // repo.scanningProgress = 0;
-  
+
     // this.scanService.startScan({
     //   repoUrl: repo.repositoryUrl,
     //   projectKey: repo.sonarProjectKey,
@@ -116,11 +114,11 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     //   }
     // });
   }
-  
+
   resumeScan(repo: Repository) {
     this.runScan(repo);
   }
-  
+
 
   editRepo(repo: Repository) {
     this.router.navigate(['/settingrepo', repo.projectId]);
@@ -137,14 +135,14 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
   }
 
   getQualityGateClass(qualityGate: string): string {
-  switch (qualityGate.toLowerCase()) {
-    case 'passed': return 'active';
-    case 'failed': return 'failed';
-    case 'warning': return 'paused';
-    case 'scanning': return 'scanning';
-    default: return '';
+    switch (qualityGate.toLowerCase()) {
+      case 'passed': return 'active';
+      case 'failed': return 'failed';
+      case 'warning': return 'paused';
+      case 'scanning': return 'scanning';
+      default: return '';
+    }
   }
-}
 
   ngOnDestroy(): void {
     // Clean up interval to prevent memory leaks

@@ -23,23 +23,23 @@ export class LoginComponent {
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly snack: MatSnackBar
-  ) {}
+  ) { }
 
   onSubmit(form: NgForm) {
     this.submitted = true;
     this.loading = true;
-    
-     if (form.invalid ) {
+
+    if (form.invalid) {
       this.snack.open('Login Failed. Please fill in all fields.', '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-red'], 
+        panelClass: ['app-snack', 'app-snack-red'],
       });
       return;
     }
 
-     this.loading = true;
+    this.loading = true;
     this.auth.login({ email: this.email, password: this.password }).subscribe({
       next: () => {
         this.loading = false;
@@ -49,11 +49,7 @@ export class LoginComponent {
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-blue'],
         });
-      console.log('Token:',this.auth.token)
-     console.log('Username:', this.auth.username);
-console.log('User ID:', this.auth.userId);
-console.log('Role:', this.auth.role);
-console.log('Email:', this.auth.email);
+        console.log('Token:', this.auth.token);
 
         this.router.navigate(['/dashboard']);
       },

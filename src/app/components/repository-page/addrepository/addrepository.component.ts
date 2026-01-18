@@ -72,13 +72,13 @@ export class AddrepositoryComponent implements OnInit {
       this.loadRepository(projectId);
     }
 
-    const userId = this.authService.userId;
-    if (!userId) {
+    if (!this.authService.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
     }
 
-    this.gitRepository.user = userId.toString();
+    // TODO: Get userId from token when available
+    this.gitRepository.user = '';
     this.updateProjectKey();
   }
 

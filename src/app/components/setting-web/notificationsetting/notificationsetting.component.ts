@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import{FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
 
@@ -17,7 +17,7 @@ interface NotificationSettings {
 @Component({
   selector: 'app-notificationsetting',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './notificationsetting.component.html',
   styleUrl: './notificationsetting.component.css'
 })
@@ -34,17 +34,15 @@ export class NotificationsettingComponent implements OnInit {
   saving = false;
 
   constructor(
-          private readonly router: Router,
-          private readonly authService: AuthService,
-        ) { }
+    private readonly router: Router,
+    private readonly authService: AuthService,
+  ) { }
 
   ngOnInit(): void {
-    const userId = this.authService.userId;
-      console.log(userId);
-      if (!userId) {
-        this.router.navigate(['/login']);
-        return;
-      }
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.loadSettings();
   }
 

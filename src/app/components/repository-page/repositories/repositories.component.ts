@@ -40,15 +40,12 @@ export class RepositoriesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    const userId = this.authService.userId;
-    console.log(userId);
-    if (!userId) {
+    if (!this.authService.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
     }
-    // this.fetch? null : this.fetchFromServer(userId);
-    this.fetchFromServer(userId);
-    
+    // TODO: Get userId from token when available
+    this.fetchFromServer('');
   }
 
   fetchFromServer(userId: string | number) {
@@ -130,116 +127,116 @@ export class RepositoriesComponent implements OnInit {
     ];
   }
 
-runScan(repo: Repository) {
-  if (repo.status === 'Scanning') return;
+  runScan(repo: Repository) {
+    if (repo.status === 'Scanning') return;
 
-  // ถ้าไม่มียูส/พาส ให้เปิด modal เหมือนเดิม
-  if (!repo.username || !repo.password) {
-    this.openScanModal(repo);
-    return;
-  }
-
-  // 🔑 ใช้ projectId เป็น key กลาง (ต้องไม่ null)
-  const sseKey = repo.projectId;
-  if (!sseKey) {
-    console.warn('No projectId for repo, cannot open SSE');
-    return;
-  }
-
-  console.log('[runScan] subscribe SSE with key =', sseKey);
-
-  let sseSub: any = null;
-  let interval: any = null;
-
-  // สถานะตอนเริ่ม Scan
-  repo.status = 'Scanning';
-  repo.scanningProgress = 0;
-  this.updateSummaryStats();
-
-  // ✅ 1) เปิด SSE ก่อน ให้ "รอรับ" event เลย
-  sseSub = this.sse.connect(sseKey).subscribe({
-    next: (data) => {
-      // อัปเดตตามผลจริงจาก backend
-      repo.scanningProgress = 100;
-      repo.status = this.scanService.mapStatus(data.status || 'SUCCESS');
-      repo.lastScan = new Date();
-      this.updateSummaryStats();
-
-      this.snack.open(`Scan finished: ${repo.name}`, '', {
-        duration: 3000,
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-green']
-      });window.location.reload();;
-      // เคลียร์ progress ปลอม ถ้ายังวิ่งอยู่
-      if (interval) {
-        clearInterval(interval);
-      }
-
-      // if (sseSub) {
-      //   sseSub.unsubscribe();
-      // }
-    },
-    error: (err) => {
-      console.error('SSE error:', err);
-      if (sseSub) {
-        sseSub.unsubscribe();
-        window.location.reload();
-      }
-      // ไม่ต้องเปลี่ยนหน้า แค่ปล่อยให้ progress ปลอมจบไป
+    // ถ้าไม่มียูส/พาส ให้เปิด modal เหมือนเดิม
+    if (!repo.username || !repo.password) {
+      this.openScanModal(repo);
+      return;
     }
-  });
 
-  // ✅ 2) จากนั้นค่อยสั่ง startScan (หลังจากเปิด SSE แล้ว)
-  this.scanService.startScan(
-    repo.projectId!,
-    {
-      username: repo.username,
-      password: repo.password,
+    // 🔑 ใช้ projectId เป็น key กลาง (ต้องไม่ null)
+    const sseKey = repo.projectId;
+    if (!sseKey) {
+      console.warn('No projectId for repo, cannot open SSE');
+      return;
     }
-  ).subscribe({
-    next: (res) => {
-      console.log('Scan started successfully:', res);
 
-      // progress ปลอม ๆ ไหลไปก่อน เผื่อ SSE ดีเลย์
-      interval = setInterval(() => {
-        repo.scanningProgress = Math.min((repo.scanningProgress ?? 0) + 15, 100);
+    console.log('[runScan] subscribe SSE with key =', sseKey);
+
+    let sseSub: any = null;
+    let interval: any = null;
+
+    // สถานะตอนเริ่ม Scan
+    repo.status = 'Scanning';
+    repo.scanningProgress = 0;
+    this.updateSummaryStats();
+
+    // ✅ 1) เปิด SSE ก่อน ให้ "รอรับ" event เลย
+    sseSub = this.sse.connect(sseKey).subscribe({
+      next: (data) => {
+        // อัปเดตตามผลจริงจาก backend
+        repo.scanningProgress = 100;
+        repo.status = this.scanService.mapStatus(data.status || 'SUCCESS');
+        repo.lastScan = new Date();
         this.updateSummaryStats();
 
-        // กรณี SSE ไม่มาเลย (เช่น backend ไม่ส่ง / key ไม่ตรง)
-        if (repo.scanningProgress >= 100) {
-          repo.status = this.scanService.mapStatus(res.status);
-          repo.lastScan = new Date();
+        this.snack.open(`Scan finished: ${repo.name}`, '', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-green']
+        }); window.location.reload();;
+        // เคลียร์ progress ปลอม ถ้ายังวิ่งอยู่
+        if (interval) {
           clearInterval(interval);
-          this.updateSummaryStats();
         }
-      }, 1000);
 
-      // ล้าง username/password หลัง scan เริ่ม
-      setTimeout(() => {
-        delete repo.username;
-        delete repo.password;
-      }, 1000);
-    },
-    error: (err) => {
-      console.error('Scan failed:', err);
-      repo.status = 'Error';
-      repo.scanningProgress = 0;
-      this.updateSummaryStats();
-
-      if (sseSub) {
-        sseSub.unsubscribe();
+        // if (sseSub) {
+        //   sseSub.unsubscribe();
+        // }
+      },
+      error: (err) => {
+        console.error('SSE error:', err);
+        if (sseSub) {
+          sseSub.unsubscribe();
+          window.location.reload();
+        }
+        // ไม่ต้องเปลี่ยนหน้า แค่ปล่อยให้ progress ปลอมจบไป
       }
+    });
 
-      this.snack.open('Scan failed to start', '', {
-        duration: 3000,
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-red']
-      });
-    }
-  });
-}
+    // ✅ 2) จากนั้นค่อยสั่ง startScan (หลังจากเปิด SSE แล้ว)
+    this.scanService.startScan(
+      repo.projectId!,
+      {
+        username: repo.username,
+        password: repo.password,
+      }
+    ).subscribe({
+      next: (res) => {
+        console.log('Scan started successfully:', res);
+
+        // progress ปลอม ๆ ไหลไปก่อน เผื่อ SSE ดีเลย์
+        interval = setInterval(() => {
+          repo.scanningProgress = Math.min((repo.scanningProgress ?? 0) + 15, 100);
+          this.updateSummaryStats();
+
+          // กรณี SSE ไม่มาเลย (เช่น backend ไม่ส่ง / key ไม่ตรง)
+          if (repo.scanningProgress >= 100) {
+            repo.status = this.scanService.mapStatus(res.status);
+            repo.lastScan = new Date();
+            clearInterval(interval);
+            this.updateSummaryStats();
+          }
+        }, 1000);
+
+        // ล้าง username/password หลัง scan เริ่ม
+        setTimeout(() => {
+          delete repo.username;
+          delete repo.password;
+        }, 1000);
+      },
+      error: (err) => {
+        console.error('Scan failed:', err);
+        repo.status = 'Error';
+        repo.scanningProgress = 0;
+        this.updateSummaryStats();
+
+        if (sseSub) {
+          sseSub.unsubscribe();
+        }
+
+        this.snack.open('Scan failed to start', '', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      }
+    });
+  }
 
 
 

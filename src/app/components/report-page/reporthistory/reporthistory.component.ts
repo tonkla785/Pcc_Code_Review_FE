@@ -23,12 +23,12 @@ export class ReporthistoryComponent {
 
   searchText: string = '';
 
-  
+
   // mock data ตัวอย่าง
   reports = [
     {
       reportType: 'Executive Summary',
-      projects: ['Commu T-POP','Intelligent Music'],
+      projects: ['Commu T-POP', 'Intelligent Music'],
       dateRange: '2025-08-01 to 2025-08-31',
       generatedBy: 'Admin',
       generatedAt: new Date('2025-09-05T09:15:00'),
@@ -87,19 +87,17 @@ export class ReporthistoryComponent {
   currentPage = 1;
   pageSize = 5;
 
-   constructor(
-        private readonly router: Router,
-        private readonly authService: AuthService,
-      ) { }
+  constructor(
+    private readonly router: Router,
+    private readonly authService: AuthService,
+  ) { }
   ngOnInit(): void {
-      const userId = this.authService.userId;
-      console.log(userId);
-      if (!userId) {
-        this.router.navigate(['/login']);
-        return;
-      }
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
     }
-  
+  }
+
   filteredReports() {
     return this.reports.filter(r =>
       !this.searchText ||
@@ -107,28 +105,28 @@ export class ReporthistoryComponent {
       r.projects.some(p => p.toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
-  
+
   paginatedReports() {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredReports().slice(start, start + this.pageSize);
   }
-  
+
   totalPages() {
     return Math.ceil(this.filteredReports().length / this.pageSize);
   }
-  
+
   nextPage() {
     if (this.currentPage < this.totalPages()) {
       this.currentPage++;
     }
   }
-  
+
   prevPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
     }
   }
-  
+
 
 
   downloadReport(report: ReportHistory) {

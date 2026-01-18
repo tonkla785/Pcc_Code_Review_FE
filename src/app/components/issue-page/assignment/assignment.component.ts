@@ -24,15 +24,14 @@ interface StatusUpdate {
 export class AssignmentComponent implements OnInit {
   @ViewChild(IssuemodalComponent) assignModal!: IssuemodalComponent;
 
-goToDetail(issueId: string) {
-  const userId = this.auth.userId;
-  if (!userId || !issueId) return;
+  goToDetail(issueId: string) {
+    if (!this.auth.isLoggedIn || !issueId) return;
 
-  this.router.navigate(
-    ['/issuedetail', issueId],
-    { queryParams: { userId } }        // ✅ ส่ง userId ไปกับ URL
-  );
-}
+    this.router.navigate(
+      ['/issuedetail', issueId],
+      { queryParams: {} }        // ✅ ส่ง query params ไปกับ URL
+    );
+  }
 
 
 
@@ -53,17 +52,17 @@ goToDetail(issueId: string) {
     private readonly issue: IssueService
   ) { }
 
-  
+
   ngOnInit() {
-    const userId = this.auth.userId;
-    if (!userId) { this.router.navigate(['/login']); return; }
+    if (!this.auth.isLoggedIn) { this.router.navigate(['/login']); return; }
     this.loadAssignments();
   }
 
   // ฟังก์ชันโหลดข้อมูล assignment ทั้งหมด
   loadAssignments() {
-    const userId = this.auth.userId;
-    if (!userId) return;
+    if (!this.auth.isLoggedIn) return;
+    // TODO: Get userId from token when available
+    const userId = '';
 
     this.assignService.getAllAssign(userId).subscribe({
       next: (data: any[]) => {
@@ -95,60 +94,61 @@ goToDetail(issueId: string) {
   }
 
   // ส่ง assignment ไป backend
-handleAssignSubmit(data: { issue: Partial<Issue>, isEdit: boolean }) {
-  if (!data.issue.issueId || !data.issue.assignedTo || !data.issue.dueDate) return;
+  handleAssignSubmit(data: { issue: Partial<Issue>, isEdit: boolean }) {
+    if (!data.issue.issueId || !data.issue.assignedTo || !data.issue.dueDate) return;
 
-  const issueId = data.issue.issueId;  
-  const assignedTo = data.issue.assignedTo;
-  const dueDate = data.issue.dueDate; // string 'YYYY-MM-DD'
+    const issueId = data.issue.issueId;
+    const assignedTo = data.issue.assignedTo;
+    const dueDate = data.issue.dueDate; // string 'YYYY-MM-DD'
 
-  this.assignService.addassign(issueId, assignedTo, dueDate).subscribe({
-    next: (res) => {
-      console.log('Assigned successfully:', res);
-      this.loadAssignments();
-    },
-    error: (err) => console.error('Error:', err),
-  });
-}
+    this.assignService.addassign(issueId, assignedTo, dueDate).subscribe({
+      next: (res) => {
+        console.log('Assigned successfully:', res);
+        this.loadAssignments();
+      },
+      error: (err) => console.error('Error:', err),
+    });
+  }
 
 
   // ส่ง status update ไป backend
   handleStatusSubmit(update: StatusUpdate) {
-  const userId = this.auth.userId;
-  const { issueId, status, annotation } = update;
+    // TODO: Get userId from token when available
+    const userId = '';
+    const { issueId, status, annotation } = update;
 
-  if (!userId || !issueId) {
-    console.error('Missing userId or issueId');
-    return;
+    if (!this.auth.isLoggedIn || !issueId) {
+      console.error('User not logged in or missing issueId');
+      return;
+    }
+
+    const body: any = { status };
+    if (status !== 'IN PROGRESS' && annotation) {
+      body.annotation = annotation;
+    }
+
+    this.assignService.updateStatus(userId, issueId, body).subscribe({
+      next: () => {
+        console.log('Status updated successfully');
+
+        this.assignModal.close();
+
+        const idx = this.Assign.findIndex(a => a.issueId === issueId);
+        if (idx >= 0) {
+          this.Assign[idx].status = status === 'ACCEPT' ? 'IN PROGRESS' : status;
+
+        }
+
+
+      },
+      error: (err) => console.error('Error updating status:', err),
+    });
   }
 
-  const body: any = { status };
-  if (status !== 'IN PROGRESS' && annotation) {
-    body.annotation = annotation;
+
+  get hasActionColumn(): boolean {
+    return this.Assign.some(a => a.status === 'PENDING' || a.status === 'IN PROGRESS');
   }
-
-  this.assignService.updateStatus(userId, issueId, body).subscribe({
-    next: () => {
-      console.log('Status updated successfully');
-
-      this.assignModal.close();
-      
-      const idx = this.Assign.findIndex(a => a.issueId === issueId);
-      if (idx >= 0) {
-         this.Assign[idx].status = status === 'ACCEPT' ? 'IN PROGRESS' : status;
-
-      }
-
-  
-    },
-    error: (err) => console.error('Error updating status:', err),
-  });
-}
-
-
-get hasActionColumn(): boolean {
-  return this.Assign.some(a => a.status === 'PENDING' || a.status === 'IN PROGRESS');
-}
 
 
 

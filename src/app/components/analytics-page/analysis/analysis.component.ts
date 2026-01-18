@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import {CommonModule} from '@angular/common';
-import { Router} from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
 
 interface SecurityIssue {
@@ -46,15 +46,12 @@ export class AnalysisComponent {
     { item: 'Update dependencies', time: '2d', cost: 60000, priority: 'Medium', color: 'yellow' }
   ];
 
-  constructor(private readonly router: Router , private authService:AuthService) {}
+  constructor(private readonly router: Router, private authService: AuthService) { }
   ngOnInit(): void {
-    const userId = this.authService.userId;
-    console.log(userId);
-    if (!userId) {
+    if (!this.authService.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
     }
-
   }
 
   summaryCards: any[] = [
