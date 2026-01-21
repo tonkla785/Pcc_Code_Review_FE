@@ -4,11 +4,13 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { ScanService, Scan } from '../scanservice/scan.service';
 import { IssueService, Issue } from '../issueservice/issue.service';
 import { AuthService } from '../authservice/auth.service';
+import { environment } from '../../environments/environment';
 
 
 export interface Repository {
-  projectId?: string;   // UUID (string)
-  user: string;      // UUID (string)
+  id?: string;
+  projectId?: string;// UUID (string)
+  user?: string;// เทียบกับ user: string | undefined; มีก็ได้ไม่มีก็ได้
   name: string;
   repositoryUrl: string;
   projectType?: 'Angular' | 'Spring Boot';
@@ -18,7 +20,7 @@ export interface Repository {
   updatedAt?: Date;
 
   username?: string;
-  password? : string;
+  password?: string;
 
   scans?: Scan[];
   status?: 'Active' | 'Scanning' | 'Error';
@@ -29,11 +31,12 @@ export interface Repository {
     bugs?: number;
     vulnerabilities?: number;
     codeSmells?: number;
-    coverage?: number;   
-    duplications?: number; 
+    coverage?: number;
+    duplications?: number;
   };
   issues?: Issue[];
 }
+
 
 @Injectable({ providedIn: 'root' })
 export class RepositoryService {
@@ -51,65 +54,175 @@ export class RepositoryService {
   private readonly issueService = inject(IssueService);
   private readonly auth = inject(AuthService);
 
-  private readonly base = 'http://localhost:8080/api/repositories';
+  private readonly base = 'http://localhost:8080/repository';
+  private readonly basescan = 'http://localhost:8080/api';
+  // private readonly basescanTest = 'http://localhost:8080';
 
 
+  //สร้างมาเพื่อเทสงานเพราะไม่อยาก merge code กับบัง
+  //เริ่มสแกน 
+  startScan(projectId: string, branch: string = 'main'): Observable<any> {
+    console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
 
-  /** POST /api/repositories */
-  addRepo(repo: Partial<Repository>): Observable<Repository> {
-    return this.http.post<Repository>(`${this.base}/add`, repo);
+    return this.http.post(
+      `${environment.apiUrl}/${projectId}/scan`,
+      null,
+      {
+        params: new HttpParams().set('branch', branch),
+        ...this.authOpts()
+      }
+    );
   }
 
-  /** GET /api/repositories */
-/** GET /api/repositories?userId=<UUID> */
-getAllRepo(): Observable<Repository[]> {
-  // TODO: Get userId from token when available
-  const userId = '';
-  const opts = {
-    ...this.authOpts(),                             // ใส่ Authorization ถ้ามี
-    params: new HttpParams().set('userId', userId), // << ส่ง userId ไปด้วย
-  };
+  //สร้างมาเพื่อเทสงานเพราะไม่อยาก merge code กับบัง
+  //ดึงสแกนตาม project_id (ถ้า backend ยังไม่มี endpoint แยก ใช้วิธี filter ฝั่ง client ชั่วคราว)
+  getScansByProjectId(projectId: string): Observable<Scan[]> {
+    return this.getAllScan().pipe(
+      map(scans => scans.filter(s => s.projectId === projectId).map(s => ({ ...s, status: this.mapStatus(s.status) })))
+    );
+  }
 
-  return this.http.get<Repository[]>(`${this.base}/getAll/${userId}`, opts).pipe(
-    map(repos =>
-      repos
-        .map(r => ({
-          ...r,
-          createdAt: r.createdAt ? new Date(r.createdAt) : undefined,
-          updatedAt: r.updatedAt ? new Date(r.updatedAt) : undefined,
-          userId: (r as any).userId || (r as any).user_id
-        }))
-        .sort((a, b) => {
-          const aTime = a.updatedAt?.getTime() ?? a.createdAt?.getTime() ?? 0;
-          const bTime = b.updatedAt?.getTime() ?? b.createdAt?.getTime() ?? 0;
+  /** GET /api/scans — ดึงสแกนทั้งหมด */
+  getAllScan(): Observable<Scan[]> {
+    console.log('[ScanService] Fetching all scans...');
+    // TODO: Get userId from token when available
+    return this.http.get<Scan[]>(`${this.basescan}/scans`).pipe(
+      map(scans => {
+        console.log('[ScanService] Raw scans from backend:', scans);
+        const mapped = scans.map(s => ({
+          ...s,
+          status: this.mapStatus(s.status),
+          qualityGate: this.mapQualityStatus(s.qualityGate ?? '')
+        }));
+        console.log('[ScanService] Mapped scans:', mapped);
+        return mapped;
+      })
+    );
+  }
+
+  public mapStatus(status?: string | 'Active' | 'Scanning' | 'Error'): 'Active' | 'Scanning' | 'Error' {
+    if (!status) return 'Error'; // fallback
+
+    const s = status.toUpperCase();
+
+    switch (s) {
+      case 'SUCCESS':
+      case 'ACTIVE':   // ถ้า backend บางครั้งส่ง Active
+        return 'Active';
+      case 'FAILED':
+      case 'ERROR':    // ถ้า backend บางครั้งส่ง Error
+        return 'Error';
+      case 'SCANNING':
+        return 'Scanning';
+      default:
+        return 'Error'; // fallback
+    }
+  }
+
+   public mapQualityStatus(status: 'OK' | 'ERROR' | string): 'Passed' | 'Failed' {
+    const s = String(status ?? '').trim().toUpperCase();
+    return s === 'OK' ? 'Passed' : 'Failed';
+  }
+
+
+  // อันนี้ของ repo
+
+  // เพิ่ม repo
+  addRepo(repo: Partial<Repository>): Observable<Repository> {
+    return this.http.post<Repository>(`${environment.apiUrl}/repository/new-repository`, repo);
+  }
+
+  // update
+  updateRepo(projectId: string, repo: Partial<Repository>): Observable<Repository> {
+    return this.http.put<Repository>(`${environment.apiUrl}/repository/update-repository/${projectId}`, repo);
+  }
+
+  // DELETE
+  deleteRepo(projectId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/repository/delete-repository/${projectId}`);
+  }
+
+  // ดึง repo ทั้งหมด
+  getAllRepo(): Observable<Repository[]> {
+    const opts = this.authOpts(); // ใส่ Authorization header อย่างเดียว
+
+    return this.http.get<any[]>(`${environment.apiUrl}/api/scans`, opts).pipe(
+      map(scans => {
+        // Group scans by project.id
+        const projectMap = new Map<string, { project: any, scans: any[] }>();
+
+        scans.forEach(scan => {
+          const projectId = scan.project.id;
+          if (!projectMap.has(projectId)) {
+            projectMap.set(projectId, {
+              project: scan.project,
+              scans: []
+            });
+          }
+          projectMap.get(projectId)!.scans.push(scan);
+        });
+
+        // Map to Repository[]
+        const repos: Repository[] = Array.from(projectMap.values()).map(({ project, scans }) => ({
+          projectId: project.id,
+          name: project.name,
+          repositoryUrl: project.repositoryUrl,
+          projectType: project.projectType,
+          sonarProjectKey: project.sonarProjectKey,
+          createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
+          updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
+          scans: scans.map(scan => ({
+            scanId: scan.id,
+            projectId: scan.project.id,
+            projectName: scan.project.name,
+            status: scan.status,
+            startedAt: scan.startedAt ? new Date(scan.startedAt) : undefined,
+            completedAt: scan.completedAt ? new Date(scan.completedAt) : undefined,
+            qualityGate: scan.qualityGate,
+            metrics: {
+              bugs: scan.metrics?.bugs,
+              vulnerabilities: scan.metrics?.vulnerabilities,
+              codeSmells: scan.metrics?.codeSmells,
+              coverage: scan.metrics?.coverage,
+              duplications: scan.metrics?.duplicatedLinesDensity
+            },
+            log_file_path: scan.logFilePath
+          })),
+          // Set status, lastScan, qualityGate, metrics from latest scan
+          status: scans.length ? this.scanService.mapStatus(scans[scans.length - 1].status) : 'Active',
+          lastScan: scans.length && scans[scans.length - 1].completedAt ? new Date(scans[scans.length - 1].completedAt) : undefined,
+          qualityGate: scans.length ? scans[scans.length - 1].qualityGate : undefined,
+          metrics: scans.length ? {
+            bugs: scans[scans.length - 1].metrics?.bugs,
+            vulnerabilities: scans[scans.length - 1].metrics?.vulnerabilities,
+            codeSmells: scans[scans.length - 1].metrics?.codeSmells,
+            coverage: scans[scans.length - 1].metrics?.coverage,
+            duplications: scans[scans.length - 1].metrics?.duplicatedLinesDensity
+          } : undefined
+        }));
+
+        // Sort by lastScan or updatedAt
+        return repos.sort((a, b) => {
+          const aTime = a.lastScan?.getTime() ?? a.updatedAt?.getTime() ?? a.createdAt?.getTime() ?? 0;
+          const bTime = b.lastScan?.getTime() ?? b.updatedAt?.getTime() ?? b.createdAt?.getTime() ?? 0;
           return bTime - aTime;
-        })
-    )
-  );
-}
+        });
+      })
+    );
+  }
 
-
-  /** GET /api/repositories/{id} */
+  // ดึง repo ตาม id
   getByIdRepo(projectId: string): Observable<Repository> {
-    return this.http.get<Repository>(`${this.base}/detail/${projectId}`).pipe(
+    return this.http.get<Repository>(`${this.base}/search-repositories/${projectId}`).pipe(
       map(r => ({
         ...r,
         createdAt: r.createdAt ? new Date(r.createdAt) : undefined,
-        updatedAt: r.updatedAt ? new Date(r.updatedAt) : undefined,
-        userId: (r as any).userId || (r as any).user_id
+        updatedAt: r.updatedAt ? new Date(r.updatedAt) : undefined
       }))
     );
   }
 
-  /** PUT /api/repositories/{id} */
-  updateRepo(projectId: string, repo: Partial<Repository>): Observable<Repository> {
-    return this.http.put<Repository>(`${this.base}/${projectId}`, repo);
-  }
-
-  /** DELETE /api/repositories/{id} */
-  deleteRepo(projectId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${projectId}`);
-  }
+  
 
   /** POST /api/repositories/clone?projectId=UUID  (backend คืน text) */
   clone(projectId: string): Observable<string> {
@@ -120,60 +233,20 @@ getAllRepo(): Observable<Repository[]> {
     });
   }
 
-  
-
-
-
   /** ---------------- Enrich ด้วย Scan/Issue ---------------- */
 
   /** ดึง repo ทั้งหมด + เติมสรุป scan ล่าสุด */
   getRepositoriesWithScans(): Observable<Repository[]> {
-    return this.getAllRepo().pipe(
-      switchMap(repos => {
-        if (!repos.length) return of<Repository[]>([]);
-        return forkJoin(
-          repos.map(repo => {
-            if (!repo.projectId) return of(repo); // ✅ ป้องกัน undefined
-            return this.scanService.getScansByProjectId(repo.projectId).pipe(
-              map(scans => {
-                const latest = scans.length ? scans[scans.length - 1] : undefined;
-                return {
-                  ...repo,
-                  status: latest ? this.scanService.mapStatus(latest.status) : 'Active',
-                  lastScan: latest?.completedAt ? new Date(latest.completedAt) : undefined,
-                  scanningProgress: latest?.status === 'Scanning' ? 50 : 100,
-                  qualityGate: latest?.qualityGate,
-                  metrics: latest?.metrics,
-                } as Repository;
-              })
-            );
-          })
-        ).pipe(
-          map(reposWithScans =>
-            reposWithScans.sort((a, b) => {
-              const aTime = a.lastScan?.getTime()
-                ?? a.updatedAt?.getTime()
-                ?? a.createdAt?.getTime()
-                ?? 0;
-              const bTime = b.lastScan?.getTime()
-                ?? b.updatedAt?.getTime()
-                ?? b.createdAt?.getTime()
-                ?? 0;
-              return bTime - aTime;
-            })
-          )
-        );
-      })
-    );
+    return this.getAllRepo();
   }
-  
+
   getFullRepository(projectId: string): Observable<Repository | undefined> {
     return this.getByIdRepo(projectId).pipe(
       switchMap(repo => {
         if (!repo) return of(undefined);
 
         // ดึง Scan ของ repository
-        const scans$ = this.scanService.getScansByProjectId(projectId).pipe(
+        const scans = this.getScansByProjectId(projectId).pipe(
           map(scans =>
             scans.map(s => ({
               ...s,
@@ -182,6 +255,7 @@ getAllRepo(): Observable<Repository[]> {
             }))
           )
         );
+        console.log('Fetched scans for projectId', projectId, ':', scans);
 
         // ดึง Issue ของ repository
         const issues$ = this.issueService.getIssueByProjectId(projectId).pipe(
@@ -189,7 +263,7 @@ getAllRepo(): Observable<Repository[]> {
         );
 
         // รวม Scan + Issue เข้ากับ repo
-        return forkJoin({ scans: scans$, issues: issues$ }).pipe(
+        return forkJoin({ scans, issues: issues$ }).pipe(
           map(({ scans, issues }) => {
             const latest = scans.reduce((prev, curr) => {
               return (curr.completedAt?.getTime() ?? 0) > (prev.completedAt?.getTime() ?? 0)
@@ -212,201 +286,79 @@ getAllRepo(): Observable<Repository[]> {
       }
       ));
   }
-  // return this.getByIdRepo(projectId).pipe(
-  //   switchMap(repo => {
-  //     if (!repo) return of(undefined);
 
-  //     // ดึง Scan ของ repository
-  //     const scans$ = this.scanService.getScansByProjectId(projectId).pipe(
-  //       map(scans =>
-  //         scans.map(s => ({
-  //           ...s,
-  //           startedAt: s.started_at ? new Date(s.started_at) : undefined,
-  //           completedAt: s.completed_at ? new Date(s.completed_at) : undefined
-  //         }))
-  //       )
-  //     );
+  getFullRepositoryTest(projectId: string): Observable<Repository | undefined> {
+  const opts = this.authOpts();
 
-  //     // ดึง Issue ของ repository
-  //     const issues$ = this.issueService.getIssueByProjectId(projectId).pipe(
-  //       map(allIssues => allIssues.filter(i => i.projectId === projectId))
-  //     );
+  return this.http.get<any>(`${environment.apiUrl}/api/${projectId}`, opts).pipe(
+    map(project => {
+      if (!project) return undefined;
 
-  //     // รวม Scan + Issue เข้ากับ repo
-  //     return forkJoin({ scans: scans$, issues: issues$ }).pipe(
-  //       map(({ scans, issues }) => {
-  //         const latest = scans.reduce((prev, curr) => {
-  //           return (curr.completedAt?.getTime() ?? 0) > (prev.completedAt?.getTime() ?? 0)
-  //             ? curr
-  //             : prev;
-  //         }, scans[0]);
+      // ---- 1) แปลง scanData → Scan (interface เดิมของคุณ) ----
+      const mappedScans: Scan[] = (project.scanData ?? []).map((s: any) => ({
+        scanId: s.id,
+        projectId: project.id,
+        projectName: project.name,
+        status: this.scanService.mapStatus(s.status),
+        startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
+        completedAt: s.completedAt ? new Date(s.completedAt) : undefined,
+        qualityGate: this.scanService.mapQualityStatus(s.qualityGate ?? ''),
+        metrics: {
+          bugs: s.metrics?.bugs,
+          vulnerabilities: s.metrics?.vulnerabilities,
+          coverage: s.metrics?.coverage,
+          codeSmells: s.metrics?.codeSmells,
+          duplications: s.metrics?.duplicatedLinesDensity
+        },
+        log_file_path: s.logFilePath
+      }));
 
-  //         return {
-  //           ...repo,
-  //           scans,
-  //           issues,
-  //           status: latest?.status ?? 'Active',
-  //           lastScan: latest?.completedAt,
-  //           scanningProgress: latest?.status === 'Scanning' ? 50 : 100,
-  //           qualityGate: latest?.quality_gate,
-  //           metrics: latest?.metrics
-  //         } as Repository;
-  //       })
-  //     );
-  //   })
-  // );
+      // ---- 2) ดึง Issues (จาก latest scan) แล้ว map ให้เข้ากับ Issue เดิม ----
+      const latestScan = mappedScans
+        .filter(s => s.completedAt)
+        .sort((a, b) =>
+          (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0)
+        )[0];
+
+      const mappedIssues: Issue[] = (latestScan as any)?.issueData?.map((i: any) => ({
+        id: i.id,
+        scanId: latestScan.scanId,
+        issueKey: i.issueKey,
+        type: i.type,
+        severity: i.severity,
+        message: i.message,
+        assignedTo: i.assignedTo,
+        status: i.status,
+        createdAt: i.createdAt ? new Date(i.createdAt) : undefined
+      })) ?? [];
+
+      // ---- 3) หา latest scan เพื่อเติมข้อมูล summary ----
+      const latest = mappedScans.length ? mappedScans[mappedScans.length - 1] : undefined;
+
+      return {
+        projectId: project.id,
+        name: project.name,
+        repositoryUrl: project.repositoryUrl,
+        projectType: project.projectType,
+        sonarProjectKey: project.sonarProjectKey,
+        createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
+        updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
+
+        // ใส่ของที่ Component เดิมคาดหวัง
+        scans: mappedScans,
+        issues: mappedIssues,
+
+        // summary fields (เหมือนโค้ดตัวอย่างของคุณ)
+        status: latest ? this.scanService.mapStatus(latest.status) : 'Active',
+        lastScan: latest?.completedAt,
+        qualityGate: latest?.qualityGate,
+        metrics: latest?.metrics
+      } as Repository;
+    })
+  );
+}
+
 }
 
 
-
-
-  // private repositories: Repository[] = [
-  //   {
-  //     project_id: '111',
-  //     user_id: 'u1-uuid-1111',
-  //     name: 'E-Commerce Platform',
-  //     repository_url: 'https://github.com/pccth/ecommerce-frontend.git',
-  //     project_type: 'Angular',
-  //     branch: 'main',
-  //     sonar_project_key: 'SONAR_ECOMMERCE',
-  //     created_at: new Date(),
-  //     updated_at: new Date()
-  //   },
-  //   {
-  //     project_id: '222',
-  //     user_id: 'u2-uuid-2222',
-  //     name: 'Payment API Service',
-  //     repository_url: 'https://github.com/pccth/payment-service.git',
-  //     project_type: 'Spring Boot',
-  //     branch: 'main',
-  //     sonar_project_key: 'SONAR_PAYMENT',
-  //     created_at: new Date(),
-  //     updated_at: new Date()
-  //   },
-  //   {
-  //     project_id: '333',
-  //     user_id: 'u1-uuid-1111',
-  //     name: 'Inventory Management',
-  //     repository_url: 'https://github.com/pccth/inventory-frontend.git',
-  //     project_type: 'Angular',
-  //     branch: 'main',
-  //     sonar_project_key: 'SONAR_INVENTORY',
-  //     created_at: new Date(),
-  //     updated_at: new Date()
-  //   },
-  //   {
-  //     project_id: '444',
-  //     user_id: 'u3-uuid-3333',
-  //     name: 'User Authentication Service',
-  //     repository_url: 'https://github.com/pccth/auth-service.git',
-  //     project_type: 'Spring Boot',
-  //     branch: 'main',
-  //     sonar_project_key: 'SONAR_AUTH',
-  //     created_at: new Date(),
-  //     updated_at: new Date()
-  //   },
-  //   {
-  //     project_id: '555',
-  //     user_id: 'u4-uuid-4444',
-  //     name: 'Marketing Dashboard',
-  //     repository_url: 'https://github.com/pccth/marketing-dashboard.git',
-  //     project_type: 'Angular',
-  //     branch: 'main',
-  //     sonar_project_key: 'SONAR_MARKETING',
-  //     created_at: new Date(),
-  //     updated_at: new Date()
-  //   }
-  // ];
-
-  // constructor(
-  //   private readonly scanService: ScanService,
-  //   private readonly issueService: IssueService
-  // ) {}
-
-  // /** POST /api/repositories */
-  // addRepo(repo: Partial<Repository>, autoScan: boolean = false): Observable<Repository> {
-  //   const newRepo: Repository = {
-  //     ...repo,
-  //     project_id: (Math.max(...this.repositories.map(r => +r.project_id)) + 1).toString(),
-  //     created_at: new Date(),
-  //     updated_at: new Date(),
-  //     status: autoScan ? 'Scanning' : 'Active',
-  //     scanningProgress: autoScan ? 0 : 100,
-  //     scans: [],
-  //     issues: []
-  //   } as Repository;
-
-  //   this.repositories.push(newRepo);
-
-  //   if (autoScan) {
-  //     this.scanService.startScan({ project_id: newRepo.project_id }).subscribe(() => {
-  //       this.simulateScan(newRepo);
-  //     });
-  //   }
-
-  //   return of(newRepo);
-  // }
-
-  // /** mock scan progress */
-  // private simulateScan(repo: Repository) {
-  //   const interval = setInterval(() => {
-  //     if ((repo.scanningProgress ?? 0) >= 100) {
-  //       repo.scanningProgress = 100;
-  //       repo.status = 'Active';
-  //       repo.updated_at = new Date();
-  //       clearInterval(interval);
-  //     } else {
-  //       repo.scanningProgress = (repo.scanningProgress ?? 0) + 20;
-  //     }
-  //   }, 500);
-  // }
-
-  // /** GET /api/repositories */
-  // getAllRepo(): Observable<Repository[]> {
-  //   return of(this.repositories);
-  // }
-
-  // /** GET /api/repositories/{id} */
-  // getByIdRepo(id: string): Observable<Repository | undefined> {
-  //   const repo = this.repositories.find(r => r.project_id === id);
-  //   return of(repo);
-  // }
-
-  // /** PUT /api/repositories/{id} */
-  // updateRepo(id: string, repo: Partial<Repository>): Observable<Repository | undefined> {
-  //   const index = this.repositories.findIndex(r => r.project_id === id);
-  //   if (index > -1) {
-  //     this.repositories[index] = {
-  //       ...this.repositories[index],
-  //       ...repo,
-  //       updated_at: new Date()
-  //     };
-  //     return of(this.repositories[index]);
-  //   }
-  //   return of(undefined);
-  // }
-
-  // /** DELETE /api/repositories/{id} */
-  // deleteRepo(id: string): Observable<void> {
-  //   this.repositories = this.repositories.filter(r => r.project_id !== id);
-  //   return of(void 0);
-  // }
-
-  // /** POST /api/repositories/clone?projectId=UUID */
-  // clone(projectId: string): Observable<string> {
-  //   const repo = this.repositories.find(r => r.project_id === projectId);
-  //   if (!repo) return of('Not found');
-
-  //   const newRepo: Repository = {
-  //     ...repo,
-  //     project_id: (Math.max(...this.repositories.map(r => +r.project_id)) + 1).toString(),
-  //     name: repo.name + ' (Clone)',
-  //     created_at: new Date(),
-  //     updated_at: new Date()
-  //   };
-  //   this.repositories.push(newRepo);
-  //   return of(`Cloned repo: ${newRepo.project_id}`);
-  // }
-  
-//}
-
+ 
