@@ -1,8 +1,11 @@
+
+import { UserInfo } from './../../interface/user_interface';
 import { inject, Injectable } from '@angular/core';
 import { AuthService } from '../authservice/auth.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
+import { ScanResponseDTO } from '../../interface/scan_interface';
 export interface User{
   id : string;
   username: string;
@@ -26,7 +29,7 @@ export class UserService {
   private readonly auth = inject(AuthService);
   private readonly base = environment.apiUrl + '/users';
   private readonly baseverify = environment.apiUrl + '/auth';
-
+  private baseUrl = environment.apiUrl;
 
   private authOpts() {
     const token = this.auth.token;
@@ -58,4 +61,30 @@ verifyEmail(email: string): Observable<User> {
 }
 
 
+  getUser(): Observable<UserInfo[]> {
+    return this.http.get<UserInfo[]>(
+      `${this.baseUrl}/user/all-user`,
+      this.authOpts()
+    );
+  }
+  AddNewUser(userInfo: UserInfo): Observable<UserInfo[]> {
+    return this.http.post<UserInfo[]>(
+      `${this.baseUrl}/user/new-user`,
+      userInfo,
+      this.authOpts()
+    );
+  }
+    DeleteUser(id: string): Observable<UserInfo[]> {
+    return this.http.delete<UserInfo[]>(
+      `${this.baseUrl}/user/delete-user/` + id,
+      this.authOpts()
+    );
+  }
+    EditUser(User: UserInfo): Observable<UserInfo[]> {
+    return this.http.put<UserInfo[]>(
+      `${this.baseUrl}/user/update-user/` + User.id,
+      User,
+      this.authOpts()
+    );
+  }
 }

@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 
 @Component({
   selector: 'app-scanhistory',
@@ -17,39 +19,48 @@ export class ScanhistoryComponent {
   startDate: string = '';
   endDate: string = '';
 
-  scans: Scan[] = [];
+  scans: ScanResponseDTO[] = [];
 
-  filteredScans: Scan[] = [...this.scans];
+  filteredScans: ScanResponseDTO[] = [...this.scans];
 
   // Pagination
   pageSize: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
-  pagedScans: Scan[] = [];
+  pagedScans: ScanResponseDTO[] = [];
   pages: number[] = [];
+  ScanHistory: ScanResponseDTO[] = [];
 
 
-
-  constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService) {
-
-    this.scanService.getAllScan().subscribe(scans => {
-      // เรียงจากล่าสุดไปเก่า
-      this.scans = scans.sort((a, b) => {
-        const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-        const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-        return dateB - dateA; // มากไปน้อย = ใหม่ไปเก่า
-      });
-      this.filteredScans = [...this.scans];
-      this.updatePagination();
-    });
+  constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
+    private sharedData: SharedDataService,
+  ) {
   }
+
 
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
+    this.sharedData.scansHistory$.subscribe(data => { 
+      this.ScanHistory = data || [];
+    });
+    if(!this.sharedData.hasScansHistoryCache){
+      this.loadScanHistory();
+      console.log("No cache - load from server");
     }
   }
+
+loadScanHistory() {
+
+  this.sharedData.setLoading(true);
+  this.scanService.getScansHistory().subscribe({
+    next: (data) => {
+      this.sharedData.Scans = data;
+      this.sharedData.setLoading(false);
+      console.log('Scan history loaded:', data);
+    },
+    error: () => this.sharedData.setLoading(false)
+  });
+}
+
   applyFilter() {
     const start = this.startDate ? new Date(this.startDate) : null;
     const end = this.endDate ? new Date(this.endDate) : null;
@@ -82,8 +93,8 @@ export class ScanhistoryComponent {
 
   statusClass(status: string) {
     switch (status) {
-      case 'Active': return 'text-success';
-      case 'Error': return 'text-danger';
+      case 'SUCCESS': return 'text-success';
+      case 'FAILED': return 'text-danger';
       case 'Scanning': return 'text-warning';
       default: return '';
     }
@@ -91,20 +102,22 @@ export class ScanhistoryComponent {
 
   statusIcon(status: string) {
     switch (status) {
-      case 'Active': return 'bi-check-circle';
-      case 'Error': return 'bi-x-circle';
+      case 'SUCCESS': return 'bi-check-circle';
+      case 'FAILED': return 'bi-x-circle';
       case 'Scanning': return 'bi-exclamation-circle';
       default: return '';
     }
   }
 
-  viewLog(scan: Scan) {
-    this.router.navigate(['/logviewer', scan.scanId]);
+  viewLog(scan: ScanResponseDTO) {
+    this.router.navigate(['/logviewer', scan.id]);
   }
 
-  viewResult(scan: Scan) {
-    this.router.navigate(['/scanresult', scan.scanId]);
-  }
+viewResult(scan: ScanResponseDTO) {
+  this.sharedData.ScansDetail = scan;   
+  this.router.navigate(['/scanresult', scan.id]);
+}
+
 
   // Export CSV
   exportHistory(): void {
@@ -125,14 +138,14 @@ export class ScanhistoryComponent {
         Time: completedAt
           ? completedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
           : '',
-        Project: scan.projectId ?? '',
+        Project: scan.project?.name ?? '',
         Status: scan.status ?? '',
         Grade: scan.qualityGate ?? '',
         Bugs: scan.metrics?.bugs ?? 0,
         Vulnerabilities: scan.metrics?.vulnerabilities ?? 0,
         CodeSmells: scan.metrics?.codeSmells ?? 0,
         Coverage: scan.metrics?.coverage ?? 0,
-        Duplications: scan.metrics?.duplications ?? 0
+        DuplicatedLinesDensity: scan.metrics?.duplicatedLinesDensity ?? 0
       };
     });
 
@@ -157,7 +170,7 @@ export class ScanhistoryComponent {
       .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
 
     // ดึงชื่อ project ของ scan แรกมาใส่ในชื่อไฟล์ (หรือใช้ "multiple" ถ้ามากกว่า 1 โครงการ)
-    const uniqueProjects = [...new Set(this.selectedScans.map(s => s.projectId ?? 'Unknown'))];
+    const uniqueProjects = [...new Set(this.selectedScans.map(s => s.project?.name ?? 'Unknown'))];
     const projectName =
       uniqueProjects.length === 1
         ? uniqueProjects[0].replace(/\s+/g, '_') // เปลี่ยนช่องว่างเป็น "_"
@@ -180,12 +193,12 @@ export class ScanhistoryComponent {
   }
 
 
-  selectedScans: Scan[] = [];
+  selectedScans: ScanResponseDTO[] = [];
   showCompareModal = false;
 
-  toggleScanSelection(scan: Scan, event: Event): void {
+  toggleScanSelection(scan: ScanResponseDTO, event: Event): void {
     event.stopPropagation();
-    const index = this.selectedScans.findIndex(s => s.scanId === scan.scanId);
+    const index = this.selectedScans.findIndex(s => s.id === scan.id);
 
     if (index >= 0) {
       this.selectedScans.splice(index, 1);
@@ -198,8 +211,8 @@ export class ScanhistoryComponent {
   }
 
 
-  isSelected(scan: Scan): boolean {
-    return this.selectedScans.some(s => s.scanId === scan.scanId);
+  isSelected(scan: ScanResponseDTO): boolean {
+    return this.selectedScans.some(s => s.id === scan.id);
   }
 
 
@@ -252,4 +265,3 @@ export class ScanhistoryComponent {
   }
 
 }
-

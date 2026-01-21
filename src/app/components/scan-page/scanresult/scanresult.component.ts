@@ -5,8 +5,10 @@ import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 
-
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-scanresult',
   standalone: true,
@@ -17,24 +19,45 @@ import { AuthService } from '../../../services/authservice/auth.service';
 export class ScanresultComponent {
 
   constructor(private readonly router: Router, private readonly scanService: ScanService,
-    private readonly authService: AuthService,) { }
+    private readonly authService: AuthService,private sharedData: SharedDataService,    private route: ActivatedRoute,) { }
 
   goBack() { window.history.back(); }
 
   scanInfo: Scan | null = null;
-
+  scanResult: ScanResponseDTO | null = null;
+  
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    const scanId = this.router.url.split('/').pop(); // หรือใช้ ActivatedRoute
-    if (scanId) {
-      this.scanService.getByScanId(scanId).subscribe(scan => {
-        this.scanInfo = scan;
+      this.sharedData.selectedScan$.subscribe(data => { 
+        this.scanResult = data;
       });
+    this.route.paramMap.subscribe(pm => {
+      const id = pm.get('scanId');
+      if (!id) return;
+
+      console.log('scanId from route:', id);
+
+      // ถ้ามี cache และเป็น id เดียวกัน  ไม่ต้อง fetch
+      const cached = this.sharedData.ScansDetail;
+      if (cached?.id === id) {
+        return;
+      }
+      // ถ้าไม่ตรง → โหลดใหม่
+      this.loadScanDetails(id);
+    });
     }
+
+  loadScanDetails(scanId: string) {
+    this.sharedData.setLoading(true);
+    this.scanService.getScanById(scanId).subscribe({
+      next: (data) => {
+        this.sharedData.ScansDetail = data;
+        this.sharedData.setLoading(false);
+        console.log('Scan history loaded:', data);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
   }
+
   hasOverallOrMetrics(scan: any): boolean {
     const isValid = (v: any) => v !== null && v !== undefined && v !== '' && v !== 'null';
 

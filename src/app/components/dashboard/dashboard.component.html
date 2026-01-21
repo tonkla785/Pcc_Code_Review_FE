@@ -74,15 +74,15 @@
           <div class="profile-details">
             <p><strong>Username:</strong> {{ userProfile?.username }}</p>
             <p><strong>Email:</strong> {{ userProfile?.email }}</p>
-            <p><strong>Phone Number:</strong> {{ userProfile?.phoneNumber }}</p>
+            <p><strong>Phone Number:</strong> {{ userProfile?.phone}}</p>
             <p>
               <strong>Status:</strong>
-              <span [ngClass]="{
+              <!-- <span [ngClass]="{
             'status-pending': userProfile?.status === 'PENDING_VERIFICATION',
             'status-active': userProfile?.status === 'ACTIVE'
           }">
                 {{ userProfile?.status }}
-              </span>
+              </span> -->
             </p>
           </div>
 
@@ -92,9 +92,9 @@
           </button>
 
           <!-- ปุ่ม Verify Email เฉพาะตอน Pending -->
-          <button *ngIf="userProfile?.status === 'PENDING_VERIFICATION'" class="btn-verify" (click)="verifyEmail()">
+          <!-- <button *ngIf="userProfile?.status === 'PENDING_VERIFICATION'" class="btn-verify" (click)="verifyEmail()">
             Verify Email
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -111,13 +111,13 @@
       </h4>
 
       <!-- Loading Spinner -->
-      <div *ngIf="loading" class="loading-container">
+      <!-- <div *ngIf="loading" class="loading-container">
         <div class="spinner"></div>
         <p>Loading data...</p>
-      </div>
+      </div> -->
 
       <!-- Chart & Status -->
-      <div *ngIf="!loading">
+      <div>
         <div class="chart-container">
           <div *ngIf="pieChartOptions">
             <apx-chart [series]="pieChartOptions.series!" [chart]="pieChartOptions.chart!"
@@ -132,15 +132,15 @@
           <div class="status-item passed">
             <i class="bi bi-check-circle-fill"></i>
             <div class="status-info">
-              <span class="label">Passed</span>
-              <span class="count">{{ Data.passedCount }}</span>
+              <span class="label">Success</span>
+              <span class="count">{{ passedCount }}</span>
             </div>
           </div>
           <div class="status-item failed">
             <i class="bi bi-x-circle-fill"></i>
             <div class="status-info">
               <span class="label">Failed</span>
-              <span class="count">{{ Data.failedCount }}</span>
+              <span class="count">{{ failedCount }}</span>
             </div>
           </div>
         </div>
@@ -165,15 +165,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let scan of recentScans">
-              <td>{{ scan.projectName }}</td>
+            <tr *ngFor="let scan of DashboardData | slice:0:5">
+              <td>{{ scan.project.name }}</td>
               <td [ngClass]="{
-              'status-cell status--passed':  scan.qualityGate === 'Passed',
-              'status-cell status--failed':  scan.qualityGate === 'Failed'
-            }">{{ scan.qualityGate }}</td>
+              'status-cell status--passed':  scan.status === 'SUCCESS',
+              'status-cell status--failed':  scan.status === 'FAILED'
+            }">{{ scan.status }}</td>
               <!-- <td [ngClass]="{
               'grade-cell grade--a': scan.grade === 'A',
-              'grade-cell grade--b': scan.grade === 'B',
+              'grade-cell grade--b': scan.grade === 'B',  
               'grade-cell grade--c': scan.grade === 'C',
               'grade-cell grade--d': scan.grade === 'D',
               'grade-cell grade--e': scan.grade === 'E'
@@ -181,7 +181,7 @@
               <td>{{ scan.completedAt | date:'dd/MM/yyyy, hh:mm a' }}</td>
               <td>
                 <button class="btn btn-primary btn-sm text-white" title="View scan detail" type="button"
-                  (click)="viewDetail(scan.scanId)">
+                  (click)="viewDetail(scan)">
                   <i class="bi bi-eye"></i>
                 </button>
 
@@ -206,28 +206,28 @@
     <div class="metric-card bugs">
       <div class="metric-icon"><i class="bi bi-bug-fill"></i></div>
       <div class="metric-title">Bugs</div>
-      <div class="metric-value">{{ dashboardData.metrics.bugs }}</div>
+      <div class="metric-value">{{ passedCountBug }}</div>
       <!-- <div class="metric-change decrease">↓ 5 today</div> -->
     </div>
 
     <div class="metric-card security">
       <div class="metric-icon"><i class="bi bi-shield-lock"></i></div>
       <div class="metric-title">Security</div>
-      <div class="metric-value">{{ dashboardData.metrics.vulnerabilities }}</div>
+      <div class="metric-value">{{ securityCount }}</div>
       <!-- <div class="metric-change increase">↑ 1 today</div> -->
     </div>
 
     <div class="metric-card code-smells">
       <div class="metric-icon"><i class="bi bi-wind"></i></div>
       <div class="metric-title">Code Smells</div>
-      <div class="metric-value">{{ dashboardData.metrics.codeSmells }}</div>
+      <div class="metric-value">{{ codeSmellCount }}</div>
       <!-- <div class="metric-change decrease">↓ 12 today</div> -->
     </div>
 
     <div class="metric-card coverage">
       <div class="metric-icon"><i class="bi bi-check2-circle"></i></div>
       <div class="metric-title">Coverage</div>
-      <div class="metric-value">{{ dashboardData.metrics.coverage }}%</div>
+      <div class="metric-value">{{ coverRateCount }}%</div>
       <!-- <div class="metric-change increase">↑ 2.3%</div> -->
     </div>
   </div>
