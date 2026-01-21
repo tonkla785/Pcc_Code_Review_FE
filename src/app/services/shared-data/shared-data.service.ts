@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 import { Repository } from '../reposervice/repository.service';
-import { Scan } from '../scanservice/scan.service';
+
 import { UserInfo } from '../../interface/user_interface';
+import { ScanResponseDTO } from '../../interface/scan_interface';
 
 /**
  * SharedDataService - Central state management using RxJS BehaviorSubject
@@ -56,11 +57,17 @@ export class SharedDataService {
     }
 
     // ==================== SCANS STATE ====================
-    private _recentScans$ = new BehaviorSubject<Scan[]>([]);
-    readonly recentScans$ = this._recentScans$.asObservable();
-
-    get recentScansValue(): Scan[] {
-        return this._recentScans$.getValue();
+    private scansHistory = new BehaviorSubject<ScanResponseDTO[] | null>(null);
+    readonly scansHistory$ = this.scansHistory.asObservable();
+    public scanData: ScanResponseDTO[] = [];
+    public status: boolean = false;
+    
+    get hasScansHistoryCache(): boolean {
+        return this.status === true;
+    }
+    set Scans(data: ScanResponseDTO[]) {
+        this.scanData = data;
+        this.status = true; 
     }
 
     // ==================== LOADING STATE ====================
@@ -111,20 +118,20 @@ export class SharedDataService {
     }
 
     /** อัปเดต repository (หลัง update สำเร็จ) */
-    updateRepository(projectId: string, updates: Partial<Repository>): void {
-        const current = this._repositories$.getValue();
-        const index = current.findIndex(r => r.projectId === projectId);
-        if (index >= 0) {
-            current[index] = { ...current[index], ...updates };
-            this._repositories$.next([...current]);
-        }
-    }
+    // updateRepository(projectId: string, updates: Partial<Repository>): void {
+    //     const current = this._repositories$.getValue();
+    //     const index = current.findIndex(r => r.projectId === projectId);
+    //     if (index >= 0) {
+    //         current[index] = { ...current[index], ...updates };
+    //         this._repositories$.next([...current]);
+    //     }
+    // }
 
-    /** ลบ repository (หลัง delete สำเร็จ) */
-    removeRepository(projectId: string): void {
-        const current = this._repositories$.getValue();
-        this._repositories$.next(current.filter(r => r.projectId !== projectId));
-    }
+    // /** ลบ repository (หลัง delete สำเร็จ) */
+    // removeRepository(projectId: string): void {
+    //     const current = this._repositories$.getValue();
+    //     this._repositories$.next(current.filter(r => r.projectId !== projectId));
+    // }
 
     /** เซ็ต repository ที่เลือก (สำหรับหน้า detail) */
     setSelectedRepository(repo: Repository | null): void {
@@ -134,15 +141,15 @@ export class SharedDataService {
     // ==================== SCAN METHODS ====================
 
     /** เซ็ตรายการ scans (หลัง fetch API) */
-    setRecentScans(scans: Scan[]): void {
-        this._recentScans$.next(scans);
+    setScans(scans: ScanResponseDTO[]): void {
+        this.scansHistory.next(scans);
     }
 
     /** เพิ่ม scan ใหม่ (หลัง trigger scan) */
-    addScan(scan: Scan): void {
-        const current = this._recentScans$.getValue();
-        this._recentScans$.next([scan, ...current.slice(0, 9)]);
-    }
+    // addScan(scan: ScanResponseDTO): void {
+    //     const current = this.scansHistory.getValue();
+    //     this.scansHistory.next([scan, ...current.slice(0, 9)]);
+    // }
 
     // ==================== LOADING & CLEAR ====================
 
@@ -155,7 +162,7 @@ export class SharedDataService {
         this._currentUser$.next(null);
         this._repositories$.next([]);
         this._selectedRepository$.next(null);
-        this._recentScans$.next([]);
+        this.scansHistory.next([]);
         this._isLoading$.next(false);
     }
 }
