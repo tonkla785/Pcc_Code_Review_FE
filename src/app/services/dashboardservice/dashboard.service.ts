@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../authservice/auth.service';
+import { ScanResponseDTO } from '../../interface/scan_interface';
 
 export interface Dashboard {
   id: string;
@@ -61,7 +62,7 @@ export class DashboardService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly base = environment.apiUrl + '/dashboard';
-
+  private baseUrl = environment.apiUrl;
   private authOpts() {
     const token = this.auth.token;
     return token ? { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) } : {};
@@ -229,5 +230,12 @@ getMetricsSummary(overview: any[]) {
   };
 }
 
+  getDashboard(): Observable<ScanResponseDTO[]> {
+    return this.http.get<ScanResponseDTO[]>(
+      `${this.baseUrl}/api/scans`,
+      this.authOpts()
+    );
+  }
+  
 
 }

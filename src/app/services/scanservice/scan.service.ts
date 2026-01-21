@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AuthService } from '../authservice/auth.service';
 import { environment } from '../../environments/environment';
+import { ScanResponseDTO } from '../../interface/scan_interface';
 
 export type ScanStatus = 'Active' | 'Scanning' | 'Error' | 'Cancelled';
 export type YN = 'Y' | 'N';
@@ -61,7 +62,7 @@ export class ScanService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly base = environment.apiUrl + '/scans';
-
+  private baseUrl = environment.apiUrl;
   private authOpts() {
     const token = this.auth.token;
     return token
@@ -72,7 +73,7 @@ export class ScanService {
   /** POST /api/scans — เริ่มสแกน */
   startScan(projectId: string, req: ScanRequest): Observable<Scan> {
     console.log('[ScanService] Starting scan for repository:', req, 'projectId:', projectId);
-    return this.http.post<Scan>(`${this.base}/${projectId}`, req);
+    return this.http.post<Scan>(`${this.base}/${projectId}`, req, this.authOpts());
   }
 
 
@@ -101,7 +102,7 @@ export class ScanService {
 
   /** GET /api/scans/{scanid} — รายละเอียดสแกน */
   getByScanId(scanId: string): Observable<Scan> {
-    return this.http.get<Scan>(`${this.base}/${scanId}`).pipe(
+    return this.http.get<Scan>(`${this.base}/${scanId}`, this.authOpts()).pipe(
       map(s => ({
         ...s,
         status: this.mapStatus(s.status),
@@ -120,14 +121,14 @@ export class ScanService {
 
   /** GET /api/scans/{id}/log — log ของสแกน */
   getLog(id: string): Observable<ScanLogModel> {
-    return this.http.get<ScanLogModel>(`${this.base}/${id}/log`);
+    return this.http.get<ScanLogModel>(`${this.base}/${id}/log`, this.authOpts());
   }
 
   /** POST /api/scans/{id}/cancel — ยกเลิกสแกน */
   cancelScan(id: string): Observable<Scan> {
     // *** ระวัง: ใน Controller ใช้ @PostMapping("/{id}/cancel") แต่พารามิเตอร์ชื่อ scanId
     // ให้แก้ที่ฝั่ง Spring เป็น @PathVariable("id") UUID scanId
-    return this.http.post<Scan>(`${this.base}/${id}/cancel`, null);
+    return this.http.post<Scan>(`${this.base}/${id}/cancel`, null, this.authOpts());
   }
 
   /** ดึงสแกนตาม project_id (ถ้า backend ยังไม่มี endpoint แยก ใช้วิธี filter ฝั่ง client ชั่วคราว) */
@@ -161,147 +162,19 @@ export class ScanService {
     return s === 'OK' ? 'Passed' : 'Failed';
   }
 
+  getScansHistory(): Observable<ScanResponseDTO[]> {
+    return this.http.get<ScanResponseDTO[]>(
+      `${this.baseUrl}/api/scans`,
+      this.authOpts()
+    );
+  }
 
+  getScanById(scanId: string): Observable<ScanResponseDTO> {
+    return this.http.get<ScanResponseDTO>(
+      `${this.baseUrl}/api/scans/${scanId}`,
+      this.authOpts()
+    );
+  }
 
-
-
-  //       private readonly scans: Scan[] = [
-  //     {
-  //       scans_id: '1',
-  //       project_id: '111',
-  //       quality_gate: 'A',
-  //       status: 'Active',
-  //       started_at: new Date(Date.now() - 3600 * 1000),
-  //       completed_at: new Date(),
-  //       reliability_gate: 'Y',
-  //       security_gate: 'Y',
-  //       maintainability_gate: 'Y',
-  //       security_review_gate: 'Y',
-  //       metrics: { coverage: 85, bugs: 12, vulnerabilities: 3 },
-  //       log_file_path: '/logs/scan1.log',
-  //       log_file_name: 'scan1.log',
-  //       log_content: 'Scan 1 log content',
-  //     },
-  //     {
-  //       scans_id: '2',
-  //       project_id: '222',
-  //       quality_gate: 'B',
-  //       status: 'Scanning',
-  //       started_at: new Date(),
-  //       reliability_gate: 'Y',
-  //       security_gate: 'N',
-  //       maintainability_gate: 'Y',
-  //       security_review_gate: 'Y',
-  //       metrics: { coverage: 70, bugs: 25, vulnerabilities: 5 },
-  //       log_file_path: '/logs/scan2.log',
-  //       log_file_name: 'scan2.log',
-  //       log_content: 'Scan 2 log content',
-  //     },
-  //     {
-  //       scans_id: '3',
-  //       project_id: '333',
-  //       quality_gate: 'C',
-  //       status: 'Error',
-  //       started_at: new Date(Date.now() - 7200 * 1000),
-  //       completed_at: new Date(Date.now() - 3600 * 1000),
-  //       reliability_gate: 'N',
-  //       security_gate: 'Y',
-  //       maintainability_gate: 'Y',
-  //       security_review_gate: 'N',
-  //       metrics: { coverage: 70, bugs: 25, vulnerabilities: 5 },
-  //       log_file_path: '/logs/scan3.log',
-  //       log_file_name: 'scan3.log',
-  //       log_content: 'Scan 3 log content',
-  //     },
-  //     {
-  //       scans_id: '4',
-  //       project_id: '444',
-  //       quality_gate: 'A',
-  //       status: 'Active',
-  //       started_at: new Date(Date.now() - 10800 * 1000),
-  //       completed_at: new Date(Date.now() - 10700 * 1000),
-  //       reliability_gate: 'Y',
-  //       security_gate: 'N',
-  //       maintainability_gate: 'N',
-  //       security_review_gate: 'N',
-  //       metrics: { coverage: 50, bugs: 40, vulnerabilities: 10 },
-  //       log_file_path: '/logs/scan4.log',
-  //       log_file_name: 'scan4.log',
-  //       log_content: 'Scan 4 log content',
-  //     },
-  //     {
-  //       scans_id: '5',
-  //       project_id: '555',
-  //       quality_gate: 'B',
-  //       status: 'Error',
-  //       reliability_gate: 'Y',
-  //       security_gate: 'Y',
-  //       maintainability_gate: 'Y',
-  //       security_review_gate: 'Y',
-  //       metrics: { coverage: 90, bugs: 5, vulnerabilities: 0 },
-  //       log_file_path: '/logs/scan5.log',
-  //       log_file_name: 'scan5.log',
-  //       log_content: 'Scan 5 log content',
-  //     }
-  //   ];
-
-  //    GET /api/scans
-  //    ดึง scan ทั้งหมด (List all scan)
-
-  //   getAll(): Scan[] {
-  //     return this.scans;
-  //   }
-
-
-  //     GET /api/scans/:id
-  //     ดึง scan ตาม scan_id(get scan detail)
-
-  //   getByIdScan(scans_id: string): Scan | undefined {
-  //     return this.scans.find(s => s.scans_id === scans_id);
-  //   }
-
-
-
-  // POST /api/scans
-  // เพิ่ม scan ใหม่ (start scan)
-  // แบบเรียก API จริง
-  //  addScan(project_id: string): Observable<any> {
-  //   return this.http.post(`${this.apiUrl}/scans`, { project_id });
-  // }
-
-  // แบบ mock data (ไม่ยิง API จริง)
-  // addScan(project_id: string): Observable<any> {
-  //   console.log('[MOCK] Start scan for', project_id);
-  //   return of({
-  //     project_id,
-  //     status: 'Scanning',
-  //     started_at: new Date(),
-  //     message:'Scan started successfully'
-  //   });
-  // }
-
-
-
-  //    GET /api/scans/:id/log
-  //    ดึง log ของ scan ตาม scan_id
-
-  //   getLog(scans_id: string): string | undefined {
-  //     const scan = this.getByIdScan(scans_id);
-  //     return scan?.log_content;
-  //   }
-
-
-  //   POST /api/scans/:id/cancel
-  //   ยกเลิก scan ที่กำลังทำงาน (Scanning → Cancelled)
-
-  //   cancelScan(scans_id: string): boolean {
-  //     const scan = this.getByIdScan(scans_id);
-  //     if (scan && scan.status === 'Scanning') {
-  //       scan.status = 'Cancelled';
-  //       scan.completed_at = new Date(); // กำหนดเวลาสิ้นสุด
-  //       return true;
-  //     }
-  //     return false;
-  //   }
 
 }

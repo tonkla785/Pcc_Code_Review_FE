@@ -3,7 +3,7 @@
 
     <!-- Search bar -->
     <div class="toolbar">
-        <input type="text" placeholder="Search users..." [(ngModel)]="searchText" class="search-input" />
+        <input type="text" placeholder="Search users..."  [(ngModel)]="searchText" (ngModelChange)="onSearchChange($event)" class="search-input" />
         <button class="btn btn-primary" (click)="openAddUser()">
             <i class="bi bi-person-plus"></i> Add User
         </button>
@@ -15,29 +15,29 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Full Name</th>
+                <th>Username</th>
                 <th>Email</th>
                 <th>Role</th>
-                <th>Status</th>
+                <!-- <th>Status</th> -->
                 <th class="actions-col">Actions</th>
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let user of filteredUsers(); let i = index">
+            <tr *ngFor="let user of filteredUsers; let i = index">
                 <td>{{ i + 1 }}</td>
-                <td>{{ user.name }}</td>
+                <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.role }}</td>
-                <td>
+                <!-- <td>
                     <span [class.active]="user.active" [class.inactive]="!user.active">
                         {{ user.active ? "Active" : "Inactive" }}
                     </span>
-                </td>
+                </td> -->
                 <td class="actions-col">
                     <button class="btn btn-sm btn-warning" (click)="openEditUser(user)">
                         <i class="bi bi-pencil-square"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" (click)="deleteUser(user)">
+                    <button class="btn btn-sm btn-danger" (click)="onDelete(user.id)">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
@@ -55,20 +55,45 @@
       </div>
       <div class="modal-body">
         <form #userForm="ngForm">
-          <div class="form-group">
-            <label for="name">Full Name</label>
+                    <div class="form-group">
+            <label for="name">Username</label>
             <input
               type="text"
               class="form-control"
-              [(ngModel)]="modalData.name"
-              name="name"
+              [(ngModel)]="modalData.username"
+              name="username"
               required
             />
-            <small *ngIf="userForm.submitted && !modalData.name" class="text-danger">
+            <small *ngIf="userForm.submitted && !modalData.username" class="text-danger">
               Name is required
             </small>
           </div>
-  
+           <div *ngIf="editingUser == false" class="form-group">
+            <label for="name">Password</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="modalData.password"
+              name="password"
+              required
+            />
+            <small *ngIf="userForm.submitted && !modalData.password" class="text-danger">
+              Password is required
+            </small>
+          </div>
+                   <div class="form-group">
+            <label for="name">Phone</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="modalData.phone"
+              name="phone"
+              required
+            />
+            <small *ngIf="userForm.submitted && !modalData.phone" class="text-danger">
+              Phone is required
+            </small>
+          </div>
           <div class="form-group">
             <label for="email">Email</label>
             <input
@@ -78,9 +103,16 @@
               name="email"
               required
               email
+              (ngModelChange)="checkEmail()"
             />
             <small *ngIf="userForm.submitted && !modalData.email" class="text-danger">
               Email is required
+            </small>
+            <small
+              *ngIf="isEmail"
+              class="text-danger"
+            >
+              This email is already used by another user
             </small>
           </div>
   
@@ -92,15 +124,15 @@
               name="role"
               required
             >
-              <option value="Admin">Admin</option>
-              <option value="User">User</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="USER">USER</option>
             </select>
             <small *ngIf="userForm.submitted && !modalData.role" class="text-danger">
               Role is required
             </small>
           </div>
   
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label for="active">Status</label>
             <select
               class="form-control"
@@ -110,15 +142,15 @@
               <option [ngValue]="true">Active</option>
               <option [ngValue]="false">Inactive</option>
             </select>
-          </div>
+          </div> -->
         </form>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
         <button
           class="btn btn-primary"
-          [disabled]="!canSave()"
-          (click)="saveUser()"
+          [disabled]="!canSave() || isEmail"
+          (click)="onSubmitUser(modalData)"
         >
           {{ editingUser ? "Update" : "Add" }}
         </button>
