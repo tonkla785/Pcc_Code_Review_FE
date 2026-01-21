@@ -4,6 +4,7 @@
 export interface UserInfo {
   id: string;
   username: string;
+  password: string;
   email: string;
   phone?: string;
   role: 'USER' | 'ADMIN';
@@ -11,7 +12,7 @@ export interface UserInfo {
 
 /**
  * Login Response from API
- */
+ */ 
 export interface LoginRequest {
   email: string;
   password: string;

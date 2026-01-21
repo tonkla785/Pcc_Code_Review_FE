@@ -1,3 +1,4 @@
+import { Dashboard } from './../../services/dashboardservice/dashboard.service';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,11 +8,14 @@ import { DashboardService } from '../../services/dashboardservice/dashboard.serv
 import { AuthService } from '../../services/authservice/auth.service';
 import { ScanService, Scan } from '../../services/scanservice/scan.service';
 import { UserService, ChangePasswordData } from '../../services/userservice/user.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, scan } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
 import { NotificationService, Notification } from '../../services/notiservice/notification.service';
+import { ScanResponseDTO } from '../../interface/scan_interface';
+import { SharedDataService } from '../../services/shared-data/shared-data.service';
+import { UserInfo } from '../../interface/user_interface';
 
 interface TopIssue {
   message: string;
@@ -98,6 +102,8 @@ export class DashboardComponent {
     private readonly scanService: ScanService,
     private readonly issueService: IssueService,
     private readonly notificationService: NotificationService,
+    private readonly dashboardService: DashboardService,
+    private readonly sharedData: SharedDataService,
 
   ) { }
 
@@ -137,50 +143,70 @@ export class DashboardComponent {
   maxTop = 5;
 
 
-  userProfile: UserProfile = { username: '', email: '', phoneNumber: '', status: '' };
+  userProfile: UserInfo | null = null;
   user: any = {};
   editedUser: any = {};
   showEditModal = false;
   showProfileDropdown = false;
 
   notifications: Notification[] = [];
+  DashboardData: ScanResponseDTO[] = [];
+  passedCountBug = 0;
+  securityCount = 0;
+  codeSmellCount = 0;
+  coverRateCount = 0;
+  passedCount = 0;
+  failedCount = 0;
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
-
+  AllScan: ScanResponseDTO[] = [];
   // ================== LIFE CYCLE ==================
   ngOnInit() {
-    // ถ้าไม่มี token ให้เด้งไป login ก่อน
-    if (!this.auth.token) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    // TODO: Get userId from token when available
-    const userId = '';
-    if (!this.auth.isLoggedIn) return;
-
-    // ดาวน์โหลดข้อมูล dashboard
-    this.fetchFromServer(userId);
-
-    // โหลดโปรไฟล์ผู้ใช้
-    this.userService.getUserProfile(userId).subscribe({
-      next: (user) => {
-        this.userProfile = {
-          username: user.username || '',
-          email: user.email || '',
-          phoneNumber: user.phoneNumber || '',
-          status: user.status || ''
-        };
-      },
-      error: (err) => console.error('Error fetching user profile:', err)
+      this.sharedData.scansHistory$.subscribe(data => { 
+      this.DashboardData = data || [];
     });
-
-    // โหลดกราฟครั้งแรก (จะถูกเรียกซ้ำตอน fetch เสร็จ)
-    this.loadDashboardData();
-    this.loadNotifications();
+    if(!this.sharedData.hasScansHistoryCache){
+      this.loadDashboard();
+    }
   }
+  loadDashboard() {
+    this.dashboardService.getDashboard().subscribe({
+      next: (res: any[]) => {
+        this.sharedData.Scans = res ?? [];
+        this.countQualityGate();
+        this.buildPieChart();
+        this.countBug();
+        console.log('Dashboard Data', this.DashboardData);
+      },
+      error: (err) => {
+        console.error('โหลด ประวัติการสแกน ล้มเหลว', err);
+      }
+    });
+  }
+  countQualityGate() {
+  const scans = this.DashboardData ?? [];
 
+  this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
+  this.failedCount  = scans.filter(s => (s?.status ?? '').toUpperCase() === 'FAILED').length;
+  console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
+}
+  countBug() {
+  const bugs = this.DashboardData ?? [];
+  this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0),0);
+  this.securityCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),0);
+  this.codeSmellCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0),0);
+  this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
+  console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
+}
+buildPieChart() {
+  this.pieChartOptions = {
+    series: [this.passedCount, this.failedCount],
+    labels: ['Success', 'Failed'],
+    chart: { type: 'pie' },
+    legend: { position: 'bottom' }
+  };
+}
   // ================== FETCH FROM SERVER ==================
   fetchFromServer(userId: string | number) {
     this.loading = true;
@@ -360,15 +386,15 @@ export class DashboardComponent {
     });
   }
 
-  verifyEmail() {
-    this.userService.verifyEmail(this.userProfile.email).subscribe({
-      next: () => alert('Verification email sent successfully!'),
-      error: (err) => {
-        console.error('Error sending verification email:', err);
-        alert('Failed to send verification email.');
-      }
-    });
-  }
+  // verifyEmail() {
+  //   this.userService.verifyEmail(this.userProfile.email).subscribe({
+  //     next: () => alert('Verification email sent successfully!'),
+  //     error: (err) => {
+  //       console.error('Error sending verification email:', err);
+  //       alert('Failed to send verification email.');
+  //     }
+  //   });
+  // }
 
   // ================== NOTIFICATIONS ==================
   showNotifications = false;
@@ -746,7 +772,8 @@ export class DashboardComponent {
     this.fetchFromServer('');
   }
 
-  viewDetail(scanId: string) {
-    this.router.navigate(['/scanresult', scanId]);
+  viewDetail(scan : ScanResponseDTO) {
+    this.sharedData.ScansDetail = scan;     
+    this.router.navigate(['/scanresult', scan.id]);
   }
 }
