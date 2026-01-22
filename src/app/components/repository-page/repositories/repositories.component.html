@@ -63,9 +63,7 @@
       </select>
 
     </div>
-
   </div>
-
 
   <!-- Repository Cards -->
   <div class="row g-3">
@@ -92,23 +90,18 @@
             </div>
 
             <!-- Quality Gate Badge -->
-            <div>
-              <div>
-                <span class="badge grade-badge" [ngClass]="{
-                    'grade-a': repo.qualityGate === 'Passed',
-                    'grade-e': repo.qualityGate === 'Failed'
-                  }">
-                  <i class="bi me-1" [ngClass]="{
-                       'bi-check-circle': repo.qualityGate === 'Passed' ,
-                       'bi-x-circle': repo.qualityGate === 'Failed'
-                     }"></i>
-                  {{ repo.status === 'Scanning' ? 'Previous: ' : 'Quality Gate: ' }}{{ repo.qualityGate }}
-                </span>
-              </div>
-
+            <div *ngIf="repo.status !== 'Scanning' && repo.qualityGate">
+              <span class="badge grade-badge" [ngClass]="{
+              'grade-a': repo.qualityGate === 'Passed',
+              'grade-e': repo.qualityGate === 'Failed'
+              }">
+                <i class="bi me-1" [ngClass]="{
+                'bi-check-circle': repo.qualityGate === 'Passed',
+                'bi-x-circle': repo.qualityGate === 'Failed'
+              }"></i>
+                Quality Gate: {{ repo.qualityGate }}
+              </span>
             </div>
-
-
           </div>
 
           <span class="status-badge" [ngClass]="{
