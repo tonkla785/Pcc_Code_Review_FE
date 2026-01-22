@@ -41,12 +41,13 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
 
     if (this.repoId) {
       this.loadRepositoryFull(this.repoId);
+      console.log('Loading repository with ID:', this.repoId);
     }
   }
 
   loadRepositoryFull(repoId: string): void {
     this.loading = true;
-    this.repoService.getFullRepository(repoId).subscribe({
+    this.repoService.getFullRepositoryTest(repoId).subscribe({
       next: (repo) => {
         if (repo) {
           this.repo = repo;
@@ -64,61 +65,9 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     });
   }
 
-
-
   switchTab(tab: 'overview' | 'bugs' | 'history') {
     this.activeTab = tab;
   }
-
-  runScan(repo: Repository) {
-    // if (repo.status === 'Scanning') return;
-
-    // // Validate required fields
-    // if (!repo.sonarProjectKey) {
-    //   console.error('Missing sonar_project_key for repository:', repo.name);
-    //   alert('Cannot start scan: Sonar project key is not configured');
-    //   return;
-    // }
-
-    // // Clear any existing interval
-    // if (this.scanInterval) {
-    //   clearInterval(this.scanInterval);
-    // }
-
-    // repo.status = 'Scanning';
-    // repo.scanningProgress = 0;
-
-    // this.scanService.startScan({
-    //   repoUrl: repo.repositoryUrl,
-    //   projectKey: repo.sonarProjectKey,
-    //   branchName: repo.branch,
-    //   token: 'squ_d1e1f5a2c1f5a2c1f5a2c1f5a2c1f5a2c1f5a2c1' // TODO: Get from config/environment
-    // }).subscribe({
-    //   next: () => {
-    //     this.scanInterval = setInterval(() => {
-    //       if ((repo.scanningProgress ?? 0) >= 100) {
-    //         repo.scanningProgress = 100;
-    //         repo.status = 'Active';
-    //         repo.lastScan = new Date();
-    //         clearInterval(this.scanInterval);
-    //         this.scanInterval = undefined;
-    //       } else {
-    //         repo.scanningProgress = (repo.scanningProgress ?? 0) + 20;
-    //       }
-    //     }, 500);
-    //   },
-    //   error: (err) => {
-    //     console.error('Scan failed for repository:', repo.name, err);
-    //     repo.status = 'Error';
-    //     repo.scanningProgress = 0;
-    //   }
-    // });
-  }
-
-  resumeScan(repo: Repository) {
-    this.runScan(repo);
-  }
-
 
   editRepo(repo: Repository) {
     this.router.navigate(['/settingrepo', repo.projectId]);

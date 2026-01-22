@@ -19,6 +19,8 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@stomp/stompjs": "^7.2.1",
+    "@types/sockjs-client": "^1.5.4",
     "apexcharts": "^3.54.1",
     "bootstrap": "^5.3.7",
     "docx": "^9.5.1",
@@ -29,6 +31,7 @@
     "ng-apexcharts": "^1.7.3",
     "pptxgenjs": "^4.0.1",
     "rxjs": "~7.8.0",
+    "sockjs-client": "^1.6.1",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",
     "zone.js": "~0.14.10"

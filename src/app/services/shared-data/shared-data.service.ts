@@ -4,6 +4,7 @@ import { TokenStorageService } from '../tokenstorageService/token-storage.servic
 import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
 import { UserInfo } from '../../interface/user_interface';
+import { ScanResponseDTO } from '../../interface/scan_interface';
 
 /**
  * SharedDataService - Central state management using RxJS BehaviorSubject
@@ -56,12 +57,54 @@ export class SharedDataService {
     }
 
     // ==================== SCANS STATE ====================
-    private _recentScans$ = new BehaviorSubject<Scan[]>([]);
-    readonly recentScans$ = this._recentScans$.asObservable();
+    private readonly scansHistory =
+    new BehaviorSubject<ScanResponseDTO[] | null>(null);
 
-    get recentScansValue(): Scan[] {
-        return this._recentScans$.getValue();
+    readonly scansHistory$ = this.scansHistory.asObservable();
+
+    //เคยโหลดแล้วหรือยัง (ไม่สนว่าข้อมูลว่างไหม) 
+    get hasScansHistoryLoaded(): boolean {
+    return this.scansHistory.value !== null;
     }
+    // มีข้อมูลจริง ๆ ไหม (length > 0) 
+    get hasScansHistoryCache(): boolean {
+    const data = this.scansHistory.value;
+    return data !== null;
+    }
+    //update cache 
+    set Scans(data: ScanResponseDTO[]) {
+    this.scansHistory.next(data ?? []);
+    }
+    private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
+        readonly selectedScan$ = this.selectedScan.asObservable();
+      
+        get hasScansDetailsLoaded(): boolean {
+        return this.selectedScan.value !== null;
+        }
+   
+        get hasScansDetailsCache(): boolean {
+        const data = this.selectedScan.value;
+        return data !== null;
+        }
+  
+        set ScansDetail(data: ScanResponseDTO) {
+        this.selectedScan.next(data);
+        }
+    private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
+        readonly AllUser$ = this.AllUser.asObservable();
+      
+        get hasUserLoaded(): boolean {
+        return this.AllUser.value !== null;
+        }
+   
+        get hasUserCache(): boolean {
+        const data = this.AllUser.value;
+        return data !== null;
+        }
+  
+        set UserShared(data: UserInfo[]) {
+        this.AllUser.next(data);
+        }
 
     // ==================== LOADING STATE ====================
     private _isLoading$ = new BehaviorSubject<boolean>(false);
@@ -79,6 +122,7 @@ export class SharedDataService {
     setUserFromLoginResponse(response: {
         id: string;
         username: string;
+        password: string;
         email: string;
         phone?: string;
         role: string;
@@ -86,6 +130,7 @@ export class SharedDataService {
         const user: UserInfo = {
             id: response.id,
             username: response.username,
+            password: response.password || '',
             email: response.email,
             phone: response.phone,
             role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
@@ -134,15 +179,15 @@ export class SharedDataService {
     // ==================== SCAN METHODS ====================
 
     /** เซ็ตรายการ scans (หลัง fetch API) */
-    setRecentScans(scans: Scan[]): void {
-        this._recentScans$.next(scans);
+    setRecentScans(scans: ScanResponseDTO[]): void {
+        this.scansHistory.next(scans);
     }
 
     /** เพิ่ม scan ใหม่ (หลัง trigger scan) */
-    addScan(scan: Scan): void {
-        const current = this._recentScans$.getValue();
-        this._recentScans$.next([scan, ...current.slice(0, 9)]);
-    }
+    // addScan(scan: ScanResponseDTO): void {
+    //     const current = this.scansHistory.getValue();
+    //     this.scansHistory.next([scan, ...current.slice(0, 9)]);
+    // }
 
     // ==================== LOADING & CLEAR ====================
 
@@ -151,11 +196,11 @@ export class SharedDataService {
     }
 
     /** เรียกตอน logout - ล้างข้อมูลทั้งหมด */
-    clearAll(): void {
-        this._currentUser$.next(null);
-        this._repositories$.next([]);
-        this._selectedRepository$.next(null);
-        this._recentScans$.next([]);
-        this._isLoading$.next(false);
-    }
+    // clearAll(): void {
+    //     this._currentUser$.next(null);
+    //     this._repositories$.next([]);
+    //     this._selectedRepository$.next(null);
+    //     this._recentScans$.next([]);
+    //     this._isLoading$.next(false);
+    // }
 }

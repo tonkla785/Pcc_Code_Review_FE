@@ -7,6 +7,7 @@ import { Repository, RepositoryService } from '../../../services/reposervice/rep
 import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 
 @Component({
   selector: 'app-addrepository',
@@ -18,6 +19,7 @@ import { SseService } from '../../../services/scanservice/sse.service';        /
 export class AddrepositoryComponent implements OnInit {
 
   constructor(
+    private sharedData: SharedDataService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly repositoryService: RepositoryService,
@@ -36,6 +38,10 @@ export class AddrepositoryComponent implements OnInit {
       'Unknown error'
     );
   }
+
+  // private scanningProjectIds = new Set<string>();
+
+
 
   authMethod: 'usernamePassword' | 'accessToken' | null = null;
   isEditMode: boolean = false;
@@ -65,16 +71,16 @@ export class AddrepositoryComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     const projectId = this.route.snapshot.paramMap.get('projectId');
 
     if (projectId) {
       this.isEditMode = true;
       this.loadRepository(projectId);
-    }
-
-    if (!this.authService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
     }
 
     // TODO: Get userId from token when available
@@ -84,7 +90,10 @@ export class AddrepositoryComponent implements OnInit {
 
   loadRepository(projectId: string) {
     this.repositoryService.getByIdRepo(projectId).subscribe({
+
       next: (repo) => {
+        // console.log('RAW REPO FROM API:', repo);
+
         if (!repo) {
           console.error('Repository not found');
           return;
@@ -102,13 +111,14 @@ export class AddrepositoryComponent implements OnInit {
         }
 
         this.gitRepository = {
-          projectId: repo.projectId || '',
+          projectId: repo.projectId || repo.id,
           user: repo.user || '',
           name: repo.name || '',
           repositoryUrl: repo.repositoryUrl || '',
           projectType: normalizedType,
           sonarProjectKey: repo.sonarProjectKey || ''
         };
+        // console.log('RAW REPO FROM API:', this.gitRepository);
         this.updateProjectKey();
       },
       error: (err) => console.error('Failed to load repository', err)
@@ -134,11 +144,17 @@ export class AddrepositoryComponent implements OnInit {
       });
       return;
     }
+
     this.updateProjectKey();
 
     const payload = {
-      ...this.gitRepository,
-      ...this.credentials
+      name: this.gitRepository.name,
+      url: this.gitRepository.repositoryUrl,
+      type: this.gitRepository.projectType === 'Angular'
+        ? 'ANGULAR'
+        : 'SPRING_BOOT',
+      username: this.credentials.username,
+      password: this.credentials.password
     };
 
     const saveOrUpdate$ = this.isEditMode
@@ -147,85 +163,78 @@ export class AddrepositoryComponent implements OnInit {
 
     saveOrUpdate$.subscribe({
       next: (savedRepo) => {
-        const msg = this.isEditMode
-          ? 'Repository updated successfully!'
-          : 'Repository added successfully!';
-        this.router.navigate(['/repositories']);
-        this.snack.open(msg, '', {
-          duration: 2500,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-blue']
-        });
+        console.log('[ADD REPO RESPONSE]', savedRepo);
 
-        // 1) เตรียม key ให้ตรงกับ backend
-        const sseKey =
-          savedRepo.sonarProjectKey ||
-          savedRepo.projectId ||
-          this.sonarConfig.projectKey ||
-          savedRepo.name;
+        // แจ้งผลเพิ่ม/แก้ repo
+        this.snack.open(
+          this.isEditMode
+            ? 'Repository updated successfully!'
+            : 'Repository added successfully!',
+          '',
+          {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-blue']
+          }
+        );
 
-        // 2) ถ้ามี key -> ค่อยฟัง SSE
-        if (sseKey) {
-          const sub = this.sse.connect(sseKey).subscribe({
-            next: (data) => {
-              this.snack.open('Sonar scan finished!', '', {
+        // เรียก start scan ทันที API ใหม่
+        if (savedRepo?.projectId) {
+
+          this.repositoryService.startScan(savedRepo.projectId, 'main').subscribe({
+            next: () => {
+
+              // แค่รีเฟรช list แล้วกลับหน้า repo
+              this.repositoryService.getAllRepo().subscribe(repos => {
+                this.repositoryService.getAllRepo().subscribe(repos => {
+
+                  repos.forEach(r => {
+                    if (r.projectId === savedRepo.projectId) {
+                      r.status = 'Scanning';
+                      r.scanningProgress = 0;
+                    }
+                  });
+
+                  this.sharedData.setRepositories(repos);
+
+                  this.router.navigate(['/repositories'], {
+                    state: { message: 'Scan started successfully!' }
+                  });
+                });
+
+              });
+            },
+
+            error: (err) => {
+              const msgErr = this.extractApiError(err);
+              this.snack.open(`Scan failed to start: ${msgErr}`, '', {
                 duration: 3000,
                 horizontalPosition: 'right',
                 verticalPosition: 'top',
-                panelClass: ['app-snack', 'app-snack-green']
-              })
-              setTimeout(() => {
-                window.location.reload();
-                this.router.navigate(['/repositories']);
-                sub.unsubscribe();
-              }, 3500);
-              ;
-              // 👉 ตอนนี้ค่อย navigate ได้ เพราะ event มาแล้ว
-              this.router.navigate(['/repositories']);
-              sub.unsubscribe();
-            },
-            error: (err) => {
-              console.error('SSE error:', err);
-              // ถ้า SSE พัง ค่อยกลับหน้า list
-              this.router.navigate(['/repositories']);
+                panelClass: ['app-snack', 'app-snack-red']
+              });
             }
           });
-        } else {
-          // ถ้าไม่มี key เลย ก็กลับก่อน
-          this.router.navigate(['/repositories']);
         }
 
-        // 3) ค่อยสั่ง start scan ทีหลัง
-        if (savedRepo.projectId) {
-          setTimeout(() => {
-            this.scanService.startScan(savedRepo.projectId!, {
-              username: this.credentials.username || '',
-              password: this.credentials.password || ''
-            }).subscribe({
-              next: () => {
-                this.snack.open('Scan started successfully!', '', {
-                  duration: 2500,
-                  horizontalPosition: 'right',
-                  verticalPosition: 'top',
-                  panelClass: ['app-snack', 'app-snack-green']
-                });
-              },
-              error: (err) => {
-                const msgErr = this.extractApiError(err);
-                console.error('Scan failed:', err);
-                this.snack.open(`Scan failed to start: ${msgErr}`, '', {
-                  duration: 3000,
-                  horizontalPosition: 'right',
-                  verticalPosition: 'top',
-                  panelClass: ['app-snack', 'app-snack-red']
-                });
-              }
-            });
-          }, 1000);
+        else {
+          // fallback: ไม่มี projectId ก็กลับหน้า list
+          this.repositoryService.getAllRepo().subscribe(repos => {
+            this.sharedData.setRepositories(repos);
+            this.router.navigate(['/repositories']);
+          });
         }
+      },
+      error: (err) => {
+        const msgErr = this.extractApiError(err);
+        this.snack.open(`Save repository failed: ${msgErr}`, '', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
       }
-
     });
   }
 
@@ -242,14 +251,17 @@ export class AddrepositoryComponent implements OnInit {
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-red'],
         });
-        this.router.navigate(['/repositories']);
+        this.repositoryService.getAllRepo().subscribe(repos => {
+          this.sharedData.setRepositories(repos);
+          this.router.navigate(['/repositories']);
+        });
       });
     }
   }
 
   clearForm(form?: NgForm) {
     this.gitRepository = {
-      projectId: '',
+      projectId: undefined,
       user: '',
       name: '',
       projectType: undefined,
