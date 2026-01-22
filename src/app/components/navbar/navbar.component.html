@@ -63,8 +63,7 @@
             (click)="closeNavbar()"><i class="bi bi-people"></i>User Management</a></li>
       </ul>
 
-      <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-        (click)="logout(); closeNavbar()">
+      <a class="nav-link" (click)="logout(); closeNavbar()">
         <i class="bi bi-box-arrow-right"></i> Logout
       </a>
     </li>
