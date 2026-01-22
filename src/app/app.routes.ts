@@ -45,7 +45,7 @@ export const routes: Routes = [
       { path: 'repositories', component: RepositoriesComponent },
       { path: 'addrepository', component: AddrepositoryComponent },
       { path: 'settingrepo/:projectId', component: AddrepositoryComponent },
-      { path: 'detailrepo/:projectId', component: DetailrepositoryComponent },
+      { path: 'detailrepo/:projectId/:scanId', component: DetailrepositoryComponent },
       { path: 'scanhistory', component: ScanhistoryComponent },
       { path: 'scanresult/:scanId', component: ScanresultComponent },
       { path: 'logviewer/:scanId', component: LogviewerComponent },

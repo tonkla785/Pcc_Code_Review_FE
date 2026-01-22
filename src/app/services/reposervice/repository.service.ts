@@ -23,6 +23,7 @@ export interface Repository {
   password?: string;
 
   scans?: Scan[];
+  scanId?: string;
   status?: 'Active' | 'Scanning' | 'Error';
   lastScan?: Date;
   scanningProgress?: number;
@@ -36,6 +37,21 @@ export interface Repository {
   };
   issues?: Issue[];
 }
+
+//ตัว test lssue
+export interface ScanIssue {
+  id: string;
+  scanId: string;
+  issueKey: string;
+  type: 'Bug' | 'Vulnerability' | 'Code Smell';
+  severity: 'Blocker' | 'Critical' | 'Major' | 'Minor';
+  component: string;
+  message: string;
+  status: 'OPEN' | 'PENDING' | 'IN PROGRESS' | 'DONE' | 'REJECT';
+  createdAt: Date | string;
+  assignedTo?: string;
+}
+
 
 
 @Injectable({ providedIn: 'root' })
@@ -54,11 +70,6 @@ export class RepositoryService {
   private readonly issueService = inject(IssueService);
   private readonly auth = inject(AuthService);
 
-  private readonly base = 'http://localhost:8080/repository';
-  private readonly basescan = 'http://localhost:8080/api';
-  // private readonly basescanTest = 'http://localhost:8080';
-
-
   //สร้างมาเพื่อเทสงานเพราะไม่อยาก merge code กับบัง
   //เริ่มสแกน 
   startScan(projectId: string, branch: string = 'main'): Observable<any> {
@@ -74,58 +85,13 @@ export class RepositoryService {
     );
   }
 
-  //สร้างมาเพื่อเทสงานเพราะไม่อยาก merge code กับบัง
-  //ดึงสแกนตาม project_id (ถ้า backend ยังไม่มี endpoint แยก ใช้วิธี filter ฝั่ง client ชั่วคราว)
-  getScansByProjectId(projectId: string): Observable<Scan[]> {
-    return this.getAllScan().pipe(
-      map(scans => scans.filter(s => s.projectId === projectId).map(s => ({ ...s, status: this.mapStatus(s.status) })))
+  getScanById(scanId: string): Observable<any> {
+    return this.http.get(
+      `${environment.apiUrl}/api/scans/${scanId}`,
+      this.authOpts()
     );
   }
 
-  /** GET /api/scans — ดึงสแกนทั้งหมด */
-  getAllScan(): Observable<Scan[]> {
-    console.log('[ScanService] Fetching all scans...');
-    // TODO: Get userId from token when available
-    return this.http.get<Scan[]>(`${this.basescan}/scans`).pipe(
-      map(scans => {
-        console.log('[ScanService] Raw scans from backend:', scans);
-        const mapped = scans.map(s => ({
-          ...s,
-          status: this.mapStatus(s.status),
-          qualityGate: this.mapQualityStatus(s.qualityGate ?? '')
-        }));
-        console.log('[ScanService] Mapped scans:', mapped);
-        return mapped;
-      })
-    );
-  }
-
-  public mapStatus(status?: string | 'Active' | 'Scanning' | 'Error'): 'Active' | 'Scanning' | 'Error' {
-    if (!status) return 'Error'; // fallback
-
-    const s = status.toUpperCase();
-
-    switch (s) {
-      case 'SUCCESS':
-      case 'ACTIVE':   // ถ้า backend บางครั้งส่ง Active
-        return 'Active';
-      case 'FAILED':
-      case 'ERROR':    // ถ้า backend บางครั้งส่ง Error
-        return 'Error';
-      case 'SCANNING':
-        return 'Scanning';
-      default:
-        return 'Error'; // fallback
-    }
-  }
-
-   public mapQualityStatus(status: 'OK' | 'ERROR' | string): 'Passed' | 'Failed' {
-    const s = String(status ?? '').trim().toUpperCase();
-    return s === 'OK' ? 'Passed' : 'Failed';
-  }
-
-
-  // อันนี้ของ repo
 
   // เพิ่ม repo
   addRepo(repo: Partial<Repository>): Observable<Repository> {
@@ -140,6 +106,34 @@ export class RepositoryService {
   // DELETE
   deleteRepo(projectId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/repository/delete-repository/${projectId}`);
+  }
+
+
+  //เก็บ status ใน localstorage  
+  private getCachedStatus(projectId: string): 'Active' | 'Scanning' | 'Error' | null {
+    const value = localStorage.getItem(`repo-status-${projectId}`);
+    if (value === 'Active' || value === 'Scanning' || value === 'Error') {
+      return value;
+    }
+    return null;
+  }
+
+  private deriveRepoStatusFromScan(
+    scan?: any
+  ): 'Active' | 'Scanning' | 'Error' {
+    if (!scan) return 'Active';
+
+    switch (scan.status) {
+      case 'SCANNING':
+        return 'Scanning';
+      case 'SUCCESS':
+        return 'Active';
+      case 'FAILED':
+      case 'ERROR':
+        return 'Error';
+      default:
+        return 'Active';
+    }
   }
 
   // ดึง repo ทั้งหมด
@@ -163,43 +157,72 @@ export class RepositoryService {
         });
 
         // Map to Repository[]
-        const repos: Repository[] = Array.from(projectMap.values()).map(({ project, scans }) => ({
-          projectId: project.id,
-          name: project.name,
-          repositoryUrl: project.repositoryUrl,
-          projectType: project.projectType,
-          sonarProjectKey: project.sonarProjectKey,
-          createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
-          updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
-          scans: scans.map(scan => ({
-            scanId: scan.id,
-            projectId: scan.project.id,
-            projectName: scan.project.name,
-            status: scan.status,
-            startedAt: scan.startedAt ? new Date(scan.startedAt) : undefined,
-            completedAt: scan.completedAt ? new Date(scan.completedAt) : undefined,
-            qualityGate: scan.qualityGate,
-            metrics: {
-              bugs: scan.metrics?.bugs,
-              vulnerabilities: scan.metrics?.vulnerabilities,
-              codeSmells: scan.metrics?.codeSmells,
-              coverage: scan.metrics?.coverage,
-              duplications: scan.metrics?.duplicatedLinesDensity
-            },
-            log_file_path: scan.logFilePath
-          })),
-          // Set status, lastScan, qualityGate, metrics from latest scan
-          status: scans.length ? this.scanService.mapStatus(scans[scans.length - 1].status) : 'Active',
-          lastScan: scans.length && scans[scans.length - 1].completedAt ? new Date(scans[scans.length - 1].completedAt) : undefined,
-          qualityGate: scans.length ? scans[scans.length - 1].qualityGate : undefined,
-          metrics: scans.length ? {
-            bugs: scans[scans.length - 1].metrics?.bugs,
-            vulnerabilities: scans[scans.length - 1].metrics?.vulnerabilities,
-            codeSmells: scans[scans.length - 1].metrics?.codeSmells,
-            coverage: scans[scans.length - 1].metrics?.coverage,
-            duplications: scans[scans.length - 1].metrics?.duplicatedLinesDensity
-          } : undefined
-        }));
+        const repos: Repository[] = Array.from(projectMap.values()).map(({ project, scans }) => {
+
+          const sortedScans = scans
+            .slice()
+            .sort((a, b) => {
+              const aTime = a.startedAt ? new Date(a.startedAt).getTime() : 0;
+              const bTime = b.startedAt ? new Date(b.startedAt).getTime() : 0;
+              return bTime - aTime;
+            });
+
+          const latestScan = sortedScans[0];
+          const cachedStatus = this.getCachedStatus(project.id);
+
+          return {
+            projectId: project.id,
+            name: project.name,
+            repositoryUrl: project.repositoryUrl,
+            projectType: project.projectType,
+            sonarProjectKey: project.sonarProjectKey,
+            createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
+            updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
+            scanId: latestScan?.id, //เอาไว้ส่งให้หน้า detailrepo
+            scans: sortedScans.map(scan => ({
+              scanId: scan.id,
+              projectId: scan.project.id,
+              projectName: scan.project.name,
+              status: scan.status,
+              startedAt: scan.startedAt ? new Date(scan.startedAt) : undefined,
+              completedAt: scan.completedAt ? new Date(scan.completedAt) : undefined,
+              qualityGate: this.scanService.mapQualityStatus(scan.qualityGate ?? ''),
+              metrics: {
+                bugs: scan.metrics?.bugs,
+                vulnerabilities: scan.metrics?.vulnerabilities,
+                codeSmells: scan.metrics?.codeSmells,
+                coverage: scan.metrics?.coverage,
+                duplications: scan.metrics?.duplicatedLinesDensity
+              },
+              log_file_path: scan.logFilePath
+            })),
+
+            // summary จาก startedAt ใหม่สุด
+            status: cachedStatus
+              ?? this.deriveRepoStatusFromScan(latestScan),
+
+
+            lastScan: latestScan?.startedAt
+              ? new Date(latestScan.startedAt)
+              : undefined,
+
+            qualityGate: latestScan
+              ? this.scanService.mapQualityStatus(latestScan.qualityGate ?? '')
+              : undefined,
+
+            metrics: latestScan?.metrics
+              ? {
+                bugs: latestScan.metrics.bugs,
+                vulnerabilities: latestScan.metrics.vulnerabilities,
+                codeSmells: latestScan.metrics.codeSmells,
+                coverage: latestScan.metrics.coverage,
+                duplications: latestScan.metrics.duplicatedLinesDensity
+              }
+              : undefined
+          };
+        });
+
+        console.log('Mapped repositories:', repos);
 
         // Sort by lastScan or updatedAt
         return repos.sort((a, b) => {
@@ -207,13 +230,14 @@ export class RepositoryService {
           const bTime = b.lastScan?.getTime() ?? b.updatedAt?.getTime() ?? b.createdAt?.getTime() ?? 0;
           return bTime - aTime;
         });
+
       })
     );
   }
 
   // ดึง repo ตาม id
   getByIdRepo(projectId: string): Observable<Repository> {
-    return this.http.get<Repository>(`${this.base}/search-repositories/${projectId}`).pipe(
+    return this.http.get<Repository>(`${environment.apiUrl}/repository/search-repositories/${projectId}`).pipe(
       map(r => ({
         ...r,
         createdAt: r.createdAt ? new Date(r.createdAt) : undefined,
@@ -222,143 +246,64 @@ export class RepositoryService {
     );
   }
 
-  
-
-  /** POST /api/repositories/clone?projectId=UUID  (backend คืน text) */
-  clone(projectId: string): Observable<string> {
-    const params = new HttpParams().set('projectId', projectId);
-    return this.http.post(`${this.base}/clone`, null, {
-      params,
-      responseType: 'text',
-    });
-  }
-
-  /** ---------------- Enrich ด้วย Scan/Issue ---------------- */
-
   /** ดึง repo ทั้งหมด + เติมสรุป scan ล่าสุด */
   getRepositoriesWithScans(): Observable<Repository[]> {
     return this.getAllRepo();
   }
 
   getFullRepository(projectId: string): Observable<Repository | undefined> {
-    return this.getByIdRepo(projectId).pipe(
-      switchMap(repo => {
-        if (!repo) return of(undefined);
+    const opts = this.authOpts();
 
-        // ดึง Scan ของ repository
-        const scans = this.getScansByProjectId(projectId).pipe(
-          map(scans =>
-            scans.map(s => ({
-              ...s,
-              startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
-              completedAt: s.completedAt ? new Date(s.completedAt) : undefined
-            }))
-          )
-        );
-        console.log('Fetched scans for projectId', projectId, ':', scans);
+    return this.http.get<any>(`${environment.apiUrl}/api/${projectId}`, opts).pipe(
+      map(project => {
+        if (!project) return undefined;
 
-        // ดึง Issue ของ repository
-        const issues$ = this.issueService.getIssueByProjectId(projectId).pipe(
-          map(allIssues => allIssues.filter(i => i.projectId === projectId))
-        );
+        const mappedScans: Scan[] = (project.scanData ?? []).map((s: any) => ({
+          scanId: s.id,
+          projectId: project.id,
+          projectName: project.name,
+          status: this.scanService.mapStatus(s.status),
+          startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
+          completedAt: s.completedAt ? new Date(s.completedAt) : undefined,
+          qualityGate: this.scanService.mapQualityStatus(s.qualityGate ?? ''),
+          metrics: {
+            bugs: s.metrics?.bugs,
+            vulnerabilities: s.metrics?.vulnerabilities,
+            coverage: s.metrics?.coverage,
+            codeSmells: s.metrics?.codeSmells,
+            duplications: s.metrics?.duplicatedLinesDensity
+          },
+          log_file_path: s.logFilePath
+        }));
 
-        // รวม Scan + Issue เข้ากับ repo
-        return forkJoin({ scans, issues: issues$ }).pipe(
-          map(({ scans, issues }) => {
-            const latest = scans.reduce((prev, curr) => {
-              return (curr.completedAt?.getTime() ?? 0) > (prev.completedAt?.getTime() ?? 0)
-                ? curr
-                : prev;
-            }, scans[0]);
+        const latest = mappedScans
+          .filter(s => s.completedAt)
+          .sort((a, b) =>
+            (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0)
+          )[0];
 
-            return {
-              ...repo,
-              scans,
-              issues,
-              status: latest?.status ?? 'Active',
-              lastScan: latest?.completedAt,
-              scanningProgress: latest?.status === 'Scanning' ? 50 : 100,
-              qualityGate: latest?.qualityGate,
-              metrics: latest?.metrics
-            } as Repository;
-          })
-        );
-      }
-      ));
+        return {
+          projectId: project.id,
+          name: project.name,
+          repositoryUrl: project.repositoryUrl,
+          projectType: project.projectType,
+          sonarProjectKey: project.sonarProjectKey,
+          createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
+          updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
+
+          scans: mappedScans,
+
+          status: latest?.status ?? 'Active',
+          lastScan: latest?.completedAt,
+          qualityGate: latest?.qualityGate,
+          metrics: latest?.metrics
+        } as Repository;
+      })
+    );
   }
 
-  getFullRepositoryTest(projectId: string): Observable<Repository | undefined> {
-  const opts = this.authOpts();
-
-  return this.http.get<any>(`${environment.apiUrl}/api/${projectId}`, opts).pipe(
-    map(project => {
-      if (!project) return undefined;
-
-      // ---- 1) แปลง scanData → Scan (interface เดิมของคุณ) ----
-      const mappedScans: Scan[] = (project.scanData ?? []).map((s: any) => ({
-        scanId: s.id,
-        projectId: project.id,
-        projectName: project.name,
-        status: this.scanService.mapStatus(s.status),
-        startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
-        completedAt: s.completedAt ? new Date(s.completedAt) : undefined,
-        qualityGate: this.scanService.mapQualityStatus(s.qualityGate ?? ''),
-        metrics: {
-          bugs: s.metrics?.bugs,
-          vulnerabilities: s.metrics?.vulnerabilities,
-          coverage: s.metrics?.coverage,
-          codeSmells: s.metrics?.codeSmells,
-          duplications: s.metrics?.duplicatedLinesDensity
-        },
-        log_file_path: s.logFilePath
-      }));
-
-      // ---- 2) ดึง Issues (จาก latest scan) แล้ว map ให้เข้ากับ Issue เดิม ----
-      const latestScan = mappedScans
-        .filter(s => s.completedAt)
-        .sort((a, b) =>
-          (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0)
-        )[0];
-
-      const mappedIssues: Issue[] = (latestScan as any)?.issueData?.map((i: any) => ({
-        id: i.id,
-        scanId: latestScan.scanId,
-        issueKey: i.issueKey,
-        type: i.type,
-        severity: i.severity,
-        message: i.message,
-        assignedTo: i.assignedTo,
-        status: i.status,
-        createdAt: i.createdAt ? new Date(i.createdAt) : undefined
-      })) ?? [];
-
-      // ---- 3) หา latest scan เพื่อเติมข้อมูล summary ----
-      const latest = mappedScans.length ? mappedScans[mappedScans.length - 1] : undefined;
-
-      return {
-        projectId: project.id,
-        name: project.name,
-        repositoryUrl: project.repositoryUrl,
-        projectType: project.projectType,
-        sonarProjectKey: project.sonarProjectKey,
-        createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
-        updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
-
-        // ใส่ของที่ Component เดิมคาดหวัง
-        scans: mappedScans,
-        issues: mappedIssues,
-
-        // summary fields (เหมือนโค้ดตัวอย่างของคุณ)
-        status: latest ? this.scanService.mapStatus(latest.status) : 'Active',
-        lastScan: latest?.completedAt,
-        qualityGate: latest?.qualityGate,
-        metrics: latest?.metrics
-      } as Repository;
-    })
-  );
-}
 
 }
 
 
- 
+

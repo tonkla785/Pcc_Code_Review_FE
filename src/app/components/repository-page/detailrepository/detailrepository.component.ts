@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
+import { Repository, RepositoryService, ScanIssue } from '../../../services/reposervice/repository.service';
 import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import { Issue } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
@@ -16,10 +16,11 @@ import { AuthService } from '../../../services/authservice/auth.service';
 })
 export class DetailrepositoryComponent implements OnInit, OnDestroy {
 
+  issues: ScanIssue[] = [];
+  scanId!: string;
   repoId!: string;
   repo!: Repository;
   scans: Scan[] = [];
-  issues: Issue[] = [];
   activeTab: 'overview' | 'bugs' | 'history' = 'overview';
   loading: boolean = true;
   private scanInterval?: any;
@@ -37,17 +38,25 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
-    this.repoId = this.route.snapshot.paramMap.get('projectId') ?? '';
 
-    if (this.repoId) {
-      this.loadRepositoryFull(this.repoId);
-      console.log('Loading repository with ID:', this.repoId);
+    this.repoId = this.route.snapshot.paramMap.get('projectId') ?? '';
+    this.scanId = this.route.snapshot.paramMap.get('scanId') ?? '';
+
+    if (!this.repoId || !this.scanId) {
+      console.warn('Missing projectId or scanId');
+      return;
     }
+
+    console.log('Loading repository:', this.repoId, 'scan:', this.scanId);
+
+    this.loadRepositoryFull(this.repoId);
+    this.loadScanIssues(this.scanId);
   }
+
 
   loadRepositoryFull(repoId: string): void {
     this.loading = true;
-    this.repoService.getFullRepositoryTest(repoId).subscribe({
+    this.repoService.getFullRepository(repoId).subscribe({
       next: (repo) => {
         if (repo) {
           this.repo = repo;
@@ -64,6 +73,30 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  loadScanIssues(scanId: string): void {
+    this.scanService.getScanById(scanId).subscribe({
+      next: (scan) => {
+        this.issues = (scan.issueData ?? []).map((i: any): ScanIssue => ({
+          id: i.id,
+          scanId: scan.id,
+          issueKey: i.issueKey,
+          type: i.type,
+          severity: i.severity,
+          component: i.component,
+          message: i.message,
+          status: i.status,
+          createdAt: i.createdAt,
+          assignedTo: i.assignedTo
+        }));
+        console.log('Loaded scan issues:', this.issues);
+      },
+      error: (err) => {
+        console.error('Failed to load scan issues', err);
+      }
+    });
+  }
+
 
   switchTab(tab: 'overview' | 'bugs' | 'history') {
     this.activeTab = tab;

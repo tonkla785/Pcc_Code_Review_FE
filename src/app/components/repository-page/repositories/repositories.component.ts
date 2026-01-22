@@ -42,8 +42,6 @@ export class RepositoriesComponent implements OnInit {
     private readonly issueService: IssueService,
     private readonly snack: MatSnackBar,
     private readonly ws: WebSocketService
-
-
   ) { }
 
   ngOnInit(): void {
@@ -81,6 +79,25 @@ export class RepositoriesComponent implements OnInit {
     this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
       const mappedStatus = this.mapStatus(event.status);
 
+      //เก็บข้อมูลลง localstorage
+      localStorage.setItem(
+        `repo-status-${event.projectId}`,
+        mappedStatus
+      );
+
+      //เก็บข้อมูลลง shared data
+      this.sharedData.updateRepoStatus(
+        event.projectId,
+        mappedStatus,
+        event.status === 'SCANNING'
+          ? 0
+          : event.status === 'SUCCESS'
+            ? 100
+            : undefined
+      );
+
+      console.log('WS Scan Event:', event);
+
       const updated = this.repositories.map(repo =>
         repo.projectId === event.projectId
           ? {
@@ -92,6 +109,7 @@ export class RepositoriesComponent implements OnInit {
           : repo
       );
 
+      // scan เสร็จ แจ้งผล
       if (event.status === 'SUCCESS' || event.status === 'FAILED') {
 
         this.snack.open(
@@ -108,27 +126,25 @@ export class RepositoriesComponent implements OnInit {
           }
         );
 
-        this.repoService.getFullRepositoryTest(event.projectId).subscribe({
+        // ล้าง localStorage
+        localStorage.removeItem(`repo-status-${event.projectId}`);
+
+        // ดึงข้อมูลจริงมาแทน
+        this.repoService.getFullRepository(event.projectId).subscribe({
           next: (fullRepo) => {
-            console.log("Full repo refreshed:", fullRepo);
             if (!fullRepo) return;
 
-            const updated = this.repositories.map(repo =>
+            const merged = this.sharedData.repositoriesValue.map(repo =>
               repo.projectId === event.projectId
                 ? { ...repo, ...fullRepo }
                 : repo
             );
 
-            this.sharedData.setRepositories(updated);
-
-            this.filteredRepositories = this.sortRepositories([...updated]);
-            this.updateSummaryStats();
+            this.sharedData.setRepositories(merged);
           },
           error: err => console.error('Failed to refresh full repo', err)
         });
       }
-      this.sharedData.setRepositories(updated);
-
     });
 
   }
@@ -138,9 +154,10 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.getAllRepo().subscribe({
       next: (repos) => {
-        // 4. เก็บข้อมูลลง SharedDataService
+        // เก็บข้อมูลลง SharedDataService
         this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
+        console.log('Repositories loaded:', repos);
 
         this.filteredRepositories = this.sortRepositories([...repos]);
         this.updateSummaryStats();
@@ -305,7 +322,7 @@ export class RepositoriesComponent implements OnInit {
   }
 
   viewRepo(repo: Repository): void {
-    this.router.navigate(['/detailrepo', repo.projectId]);
+    this.router.navigate(['/detailrepo', repo.projectId, repo.scanId]);
   }
 
   sortRepositories(list: Repository[]): Repository[] {
