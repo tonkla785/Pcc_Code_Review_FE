@@ -15,7 +15,7 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && auth.isLoggedIn) {
+      if ((err.status === 401 && auth.isLoggedIn) || (err.status === 403 && auth.isLoggedIn)) {
         return auth.refresh().pipe(
           switchMap(() => {
             const retry = req.clone({
