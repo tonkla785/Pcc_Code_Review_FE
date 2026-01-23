@@ -6,14 +6,14 @@
     <label for="dateRange">Date Range:</label>
 
     <div class="date-wrapper">
-      <input type="date" [(ngModel)]="startDate" class="form-control form-control-sm" />
+      <input type="date" [(ngModel)]="startDate" class="form-control form-control-sm"  (ngModelChange)="onStartDateChange()"/>
       <span class="calendar-icon"></span>
     </div>
 
     <span>to</span>
 
     <div class="date-wrapper">
-      <input type="date" [(ngModel)]="endDate" class="form-control form-control-sm" />
+      <input type="date" [(ngModel)]="endDate" class="form-control form-control-sm" [min]="minEndDate"/>
       <span class="calendar-icon"></span>
     </div>
 
