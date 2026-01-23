@@ -3,11 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
-<<<<<<< HEAD
 import { LoginUser, UserInfo } from '../../interface/user_interface';
-=======
-import { UserInfo } from '../../interface/user_interface';
->>>>>>> dev
 import { ScanResponseDTO } from '../../interface/scan_interface';
 
 /**
@@ -251,4 +247,26 @@ private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
     //     this._recentScans$.next([]);
     //     this._isLoading$.next(false);
     // }
+        updateRepoStatus(
+        projectId: string,
+        status: 'Active' | 'Scanning' | 'Error',
+        scanningProgress?: number
+    ): void {
+        const current = this._repositories$.getValue();
+
+        const updated = current.map(repo =>
+            repo.projectId === projectId
+                ? {
+                    ...repo,
+                    status,
+                    scanningProgress:
+                        scanningProgress !== undefined
+                            ? scanningProgress
+                            : repo.scanningProgress
+                }
+                : repo
+        );
+
+        this._repositories$.next(updated);
+    }
 }
