@@ -1,9 +1,9 @@
 <!-- Loading / Error guards -->
-<div *ngIf="loading" class="p-3">Loading…</div>
-<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div>
+<!-- <div *ngIf="loading" class="p-3">Loading…</div>
+<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div> -->
 
 <!-- Content -->
-<div class="issue-container" *ngIf="!loading && !error && issue">
+<div class="issue-container">
 
   <!-- Header -->
   <div class="issue-header">
@@ -122,7 +122,7 @@
   </div> -->
 
   <!-- Comments -->
-  <div class="issue-comments mt-4" *ngIf="issue?.id">
+  <div class="issue-comments mt-4">
     <h3 class="d-flex align-items-center gap-2">
       Comments &amp; Discussion
       <button class="btn-refresh" (click)="loadComments()" [disabled]="loadingComments" title="Refresh comments">
