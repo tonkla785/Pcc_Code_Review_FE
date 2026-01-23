@@ -17,7 +17,7 @@
       </div>
       <div class="col-md-6">
         <div class="p-3 border rounded bg-light">
-          <strong>Estimated Cost:</strong> {{ formatTHB(totalCost) }}
+          <strong>Estimated Cost:</strong> {{ totalCosts() | currency:'THB':'symbol':'1.0-0' }}
         </div>
       </div>
     </div>
@@ -28,23 +28,23 @@
         <i class="bi bi-diagram-3"></i> Debt Distribution by Project
       </div>
       <div class="card-body">
-        <div *ngFor="let p of projectDebts; trackBy: trackByName" class="mb-3">
+        <div *ngFor="let p of ScanHistoy;" class="mb-3">
           <div class="d-flex justify-content-between">
-            <span>{{ p.name }}</span>
-            <span>{{ p.days }}d - {{ formatTHB(p.cost) }}</span>
+            <span>{{ p.project.name }}</span>
+            <span>{{ toTechDebtDays(p.metrics.technicalDebtMinutes) }}d - {{ formatTHB(p.metrics.debtRatio) }}</span>
           </div>
           <div class="card p-3 mb-3 shadow-sm">
-            <h6 class="card-title mb-2">{{ p.name }}</h6>
+            <h6 class="card-title mb-2">{{ p.project.name }}</h6>
             
             <div class="progress-wrapper">
               <progress 
                   class="progress-bar" 
-                  [value]="p.days" 
+                  [value]="p.metrics.technicalDebtMinutes" 
                   [max]="maxProjectDays">
               </progress>
             </div>
             
-            <small class="text-muted mt-1">{{ p.days }} / {{ maxProjectDays }} days</small>
+            <small class="text-muted mt-1">{{ p.metrics.technicalDebtMinutes }} / {{ maxProjectDays }} days</small>
           </div>
           
         </div>

@@ -1,3 +1,4 @@
+import { SharedDataService } from './../../../services/shared-data/shared-data.service';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -5,6 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { jwtDecode } from 'jwt-decode';
+import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +24,9 @@ export class LoginComponent {
   constructor(
     private readonly auth: AuthService,
     private readonly router: Router,
-    private readonly snack: MatSnackBar
+    private readonly snack: MatSnackBar,
+    private readonly sharedDataService: SharedDataService,
+    private readonly tokenStorage: TokenStorageService,
   ) { }
 
   onSubmit(form: NgForm) {
@@ -41,7 +45,7 @@ export class LoginComponent {
 
     this.loading = true;
     this.auth.login({ email: this.email, password: this.password }).subscribe({
-      next: () => {
+      next: (user) => {
         this.loading = false;
         this.snack.open('Login Successfully!', '', {
           duration: 2500,
@@ -50,8 +54,11 @@ export class LoginComponent {
           panelClass: ['app-snack', 'app-snack-blue'],
         });
         console.log('Token:', this.auth.token);
-
-        this.router.navigate(['/dashboard']);
+        console.log('Logged in user:', user);
+              console.log('Logged in user:', jwtDecode(this.auth.token!));
+              this.sharedDataService.LoginUserShared = user;  
+                this.tokenStorage.setLoginUser(user);
+          this.router.navigate(['/dashboard']);
       },
       error: () => {
         this.loading = false;

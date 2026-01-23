@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
-import { UserInfo } from '../../interface/user_interface';
+import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 
 /**
@@ -58,53 +58,97 @@ export class SharedDataService {
 
     // ==================== SCANS STATE ====================
     private readonly scansHistory =
-        new BehaviorSubject<ScanResponseDTO[] | null>(null);
+    new BehaviorSubject<ScanResponseDTO[] | null>(null);
 
     readonly scansHistory$ = this.scansHistory.asObservable();
 
     //เคยโหลดแล้วหรือยัง (ไม่สนว่าข้อมูลว่างไหม) 
     get hasScansHistoryLoaded(): boolean {
-        return this.scansHistory.value !== null;
+    return this.scansHistory.value !== null;
     }
     // มีข้อมูลจริง ๆ ไหม (length > 0) 
     get hasScansHistoryCache(): boolean {
-        const data = this.scansHistory.value;
-        return data !== null;
+    const data = this.scansHistory.value;
+    return data !== null;
     }
     //update cache 
     set Scans(data: ScanResponseDTO[]) {
-        this.scansHistory.next(data ?? []);
+    this.scansHistory.next(data ?? []);
     }
+    get scanValue(): ScanResponseDTO[] {
+            return this.scansHistory.value ?? [];
+            }
+    addScan(newScan: ScanResponseDTO) {
+            const next = [newScan, ...this.scanValue];
+            this.scansHistory.next(next);
+            }
     private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
-    readonly selectedScan$ = this.selectedScan.asObservable();
-
-    get hasScansDetailsLoaded(): boolean {
+        readonly selectedScan$ = this.selectedScan.asObservable();
+      
+        get hasScansDetailsLoaded(): boolean {
         return this.selectedScan.value !== null;
-    }
-
-    get hasScansDetailsCache(): boolean {
+        }
+   
+        get hasScansDetailsCache(): boolean {
         const data = this.selectedScan.value;
         return data !== null;
-    }
-
-    set ScansDetail(data: ScanResponseDTO) {
+        }
+  
+        set ScansDetail(data: ScanResponseDTO) {
         this.selectedScan.next(data);
-    }
+        }
+
     private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
-    readonly AllUser$ = this.AllUser.asObservable();
-
-    get hasUserLoaded(): boolean {
+        readonly AllUser$ = this.AllUser.asObservable();
+      
+        get hasUserLoaded(): boolean {
         return this.AllUser.value !== null;
-    }
-
-    get hasUserCache(): boolean {
+        }
+   
+        get hasUserCache(): boolean {
         const data = this.AllUser.value;
         return data !== null;
-    }
-
-    set UserShared(data: UserInfo[]) {
+        }
+  
+        set UserShared(data: UserInfo[]) {
         this.AllUser.next(data);
-    }
+        }
+
+        get usersValue(): UserInfo[] {
+            return this.AllUser.value ?? [];
+            }
+
+            updateUser(updated: UserInfo) {
+            const next = this.usersValue.map(u => u.id === updated.id ? updated : u);
+            this.AllUser.next(next);
+            }
+
+            addUser(newUser: UserInfo) {
+            const next = [newUser, ...this.usersValue];
+            this.AllUser.next(next);
+            }
+
+            removeUser(userId: string) {
+            const next = this.usersValue.filter(u => u.id !== userId);
+            this.AllUser.next(next);
+}
+
+private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
+        readonly LoginUser$ = this.LoginUser.asObservable();
+      
+        get hasLoginUserLoaded(): boolean {
+        return this.LoginUser.value !== null;
+        }
+   
+        get hasLoginUserCache(): boolean {
+        const data = this.LoginUser.value;
+        return data !== null;
+        }
+  
+        set LoginUserShared(data: LoginUser) {
+        this.LoginUser.next(data);
+        }
+
 
     // ==================== LOADING STATE ====================
     private _isLoading$ = new BehaviorSubject<boolean>(false);
@@ -203,11 +247,7 @@ export class SharedDataService {
     //     this._recentScans$.next([]);
     //     this._isLoading$.next(false);
     // }
-
-
-    //เก็บสถานะ repository ใน shared data เพื่อให้ component อื่นๆ ใช้งาน
-    // อัปเดต status ของ repository จาก realtime event
-    updateRepoStatus(
+        updateRepoStatus(
         projectId: string,
         status: 'Active' | 'Scanning' | 'Error',
         scanningProgress?: number
@@ -229,5 +269,4 @@ export class SharedDataService {
 
         this._repositories$.next(updated);
     }
-
 }

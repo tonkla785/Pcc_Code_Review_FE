@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { ActivatedRoute } from '@angular/router';
+import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 interface SonarResults {
   qualityGate: 'Passed' | 'Failed';
   coverage: number;
@@ -25,7 +28,11 @@ interface ScanLog {
     details?: string[];
   };
 }
-
+type Severity = 'MAJOR' | 'MINOR';
+interface GroupedIssues {
+  MAJOR: any[];
+  MINOR: any[];
+}
 @Component({
   selector: 'app-logviewer',
   standalone: true,
@@ -34,9 +41,73 @@ interface ScanLog {
   styleUrl: './logviewer.component.css'
 })
 export class LogviewerComponent {
+constructor(private sharedData: SharedDataService, private route: ActivatedRoute, private readonly scanService: ScanService) { }
 
-   // @Input() log!: ScanLog;
-   
+
+  groupedIssues!: GroupedIssues;
+  majorIssues: any[] = [];
+  minorIssues: any[] = [];
+    scanResult: ScanResponseDTO | null = null;
+
+
+     ngOnInit(): void {
+      this.sharedData.selectedScan$.subscribe(data => { 
+        this.scanResult = data;
+      });
+    this.route.paramMap.subscribe(pm => {
+      const id = pm.get('scanId');
+      if (!id) return;
+
+      console.log('log from route:', id);
+
+      // ถ้ามี cache และเป็น id เดียวกัน  ไม่ต้อง fetch
+      const cached = this.sharedData.ScansDetail;
+      if (cached?.id === id) {
+        return;
+      }
+      // ถ้าไม่ตรง → โหลดใหม่
+      this.loadScanDetails(id);
+    });
+    }
+
+  loadScanDetails(scanId: string) {
+    this.sharedData.setLoading(true);
+    this.scanService.getScanById(scanId).subscribe({
+      next: (data) => {
+        this.sharedData.ScansDetail = data;
+        this.sharedData.setLoading(false);
+        this.groupedIssues = this.countIssues(data.issueData ?? []);
+          this.majorIssues = this.groupedIssues.MAJOR;
+      this.minorIssues = this.groupedIssues.MINOR;
+
+      console.log('MAJOR:', this.majorIssues);
+      console.log('MINOR:', this.minorIssues);
+        console.log('Scan Log loaded:', data);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
+
+  countIssues(issues: any[]): GroupedIssues {
+  return issues.reduce<GroupedIssues>((acc, issue) => {
+    const sev = issue.severity as Severity;
+    if (sev === 'MAJOR') acc.MAJOR.push(issue);
+    if (sev === 'MINOR') acc.MINOR.push(issue);
+
+    return acc;
+  }, { MAJOR: [], MINOR: [] });
+}
+
+  getDurationSeconds(startedAt?: string, completedAt?: string): number | null {
+  if (!startedAt || !completedAt) return null;
+
+  const start = new Date(startedAt).getTime();
+  const end = new Date(completedAt).getTime();
+
+  const diff = Math.abs(end - start);
+
+  return Math.floor(diff / 1000);
+}
   log: ScanLog = {
     applicationName: 'Angular-App',
     timestamp: new Date('2024-01-15T10:30:45'),

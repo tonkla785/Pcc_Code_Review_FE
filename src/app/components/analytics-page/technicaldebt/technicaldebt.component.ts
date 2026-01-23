@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgApexchartsModule, ApexOptions } from 'ng-apexcharts';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { ScanService } from '../../../services/scanservice/scan.service';
 
 type Priority = 'High' | 'Med' | 'Low';
 
@@ -74,15 +77,62 @@ export class TechnicaldebtComponent {
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
+    private readonly sharedData: SharedDataService,
+    private readonly scanService: ScanService,
   ) { }
-
+  ScanHistoy: ScanResponseDTO[] = [];
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
+    this.sharedData.scansHistory$.subscribe(data => { 
+      this.ScanHistoy = this.latestScanPerProject(data ?? []);
+    });
+    if(!this.sharedData.hasScansHistoryCache){
+      this.loadScanHistory();
+      console.log("No cache - load from server");
     }
   }
 
+loadScanHistory() {
+
+  this.sharedData.setLoading(true);
+  this.scanService.getScansHistory().subscribe({
+    next: (data) => {
+      this.sharedData.Scans = data;
+      this.sharedData.setLoading(false);
+      this.ScanHistoy = this.latestScanPerProject(data);
+      console.log('Scan history loaded:', this.ScanHistoy );
+    },
+    error: () => this.sharedData.setLoading(false)
+  });
+}
+totalCosts(): number {
+    return this.ScanHistoy.reduce((sum, p) => sum + p.metrics.debtRatio, 0);
+}
+latestScanPerProject(scans: ScanResponseDTO[]): ScanResponseDTO[] {
+  const byProject = new Map<string, ScanResponseDTO>();
+
+  for (const s of scans) {
+    const pid = s.project?.id;
+    if (!pid) continue;
+
+    const prev = byProject.get(pid);
+    if (!prev) {
+      byProject.set(pid, s);
+      continue;
+    }
+    const sTime = new Date(s.completedAt ?? s.startedAt ?? 0).getTime();
+    const pTime = new Date(prev.completedAt ?? prev.startedAt ?? 0).getTime();
+
+    if (sTime > pTime) {
+      byProject.set(pid, s);
+    }
+  }
+
+  return Array.from(byProject.values());
+}
+toTechDebtDays(minutes: number): string {
+  const days = minutes / (1440);
+  return days.toFixed(2);
+}
   // ปุ่มย้อนกลับ
   goBack(): void {
     this.router.navigate(['/analysis']);

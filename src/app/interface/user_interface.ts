@@ -9,6 +9,13 @@ export interface UserInfo {
   phone?: string;
   role: 'USER' | 'ADMIN';
 }
+export interface LoginUser {
+  id: string;
+  username: string;
+  email: string;
+  phone?: string;
+  role: string;
+}
 
 /**
  * Login Response from API
