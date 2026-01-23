@@ -32,6 +32,7 @@ export class ScanresultComponent {
       });
     this.route.paramMap.subscribe(pm => {
       const id = pm.get('scanId');
+
       if (!id) return;
 
       console.log('scanId from route:', id);
@@ -39,9 +40,9 @@ export class ScanresultComponent {
       // ถ้ามี cache และเป็น id เดียวกัน  ไม่ต้อง fetch
       const cached = this.sharedData.ScansDetail;
       if (cached?.id === id) {
+        console.log("NO FETCH")
         return;
       }
-      // ถ้าไม่ตรง → โหลดใหม่
       this.loadScanDetails(id);
     });
     }

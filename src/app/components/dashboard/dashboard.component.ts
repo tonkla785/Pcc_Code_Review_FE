@@ -1,3 +1,4 @@
+import { AuthService } from './../../services/authservice/auth.service';
 import { Dashboard } from './../../services/dashboardservice/dashboard.service';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -5,7 +6,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NgApexchartsModule, ApexOptions } from 'ng-apexcharts';
 import { DashboardService } from '../../services/dashboardservice/dashboard.service';
-import { AuthService } from '../../services/authservice/auth.service';
 import { ScanService, Scan } from '../../services/scanservice/scan.service';
 import { UserService, ChangePasswordData } from '../../services/userservice/user.service';
 import { forkJoin, scan } from 'rxjs';
@@ -15,7 +15,8 @@ import { IssueService } from '../../services/issueservice/issue.service';
 import { NotificationService, Notification } from '../../services/notiservice/notification.service';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
-import { UserInfo } from '../../interface/user_interface';
+import { LoginUser, UserInfo } from '../../interface/user_interface';
+import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
 
 interface TopIssue {
   message: string;
@@ -104,7 +105,7 @@ export class DashboardComponent {
     private readonly notificationService: NotificationService,
     private readonly dashboardService: DashboardService,
     private readonly sharedData: SharedDataService,
-
+    private readonly tokenStorage: TokenStorageService,
   ) { }
 
   loading = true;
@@ -151,6 +152,7 @@ export class DashboardComponent {
 
   notifications: Notification[] = [];
   DashboardData: ScanResponseDTO[] = [];
+  UserLogin: LoginUser | null = null;
   passedCountBug = 0;
   securityCount = 0;
   codeSmellCount = 0;
@@ -163,12 +165,29 @@ export class DashboardComponent {
   AllScan: ScanResponseDTO[] = [];
   // ================== LIFE CYCLE ==================
   ngOnInit() {
+    if (!this.auth.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
+      const user = this.tokenStorage.getLoginUser();
+        if (user) {
+          this.sharedData.LoginUserShared = user;
+        }
       this.sharedData.scansHistory$.subscribe(data => { 
       this.DashboardData = data || [];
+      this.countQualityGate();
+      this.buildPieChart();
+      this.countBug();
+    });
+       this.sharedData.LoginUser$.subscribe(data => {
+      this.UserLogin = data;
+      console.log('User Login in Dashboard:', this.UserLogin);
     });
     if(!this.sharedData.hasScansHistoryCache){
+      console.log("@")
       this.loadDashboard();
     }
+    
   }
   loadDashboard() {
     this.dashboardService.getDashboard().subscribe({
@@ -186,7 +205,6 @@ export class DashboardComponent {
   }
   countQualityGate() {
   const scans = this.DashboardData ?? [];
-
   this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
   this.failedCount  = scans.filter(s => (s?.status ?? '').toUpperCase() === 'FAILED').length;
   console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
@@ -650,7 +668,7 @@ buildPieChart() {
     y += 12;
 
     const today = new Date();
-    const username = this.user?.username || 'Unknown User';
+    const username = this.UserLogin?.username || 'Unknown User';
     pdf.setFontSize(11);
     pdf.setTextColor(85, 85, 85);
     pdf.text(`Date: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`, margin, y);
@@ -669,9 +687,9 @@ buildPieChart() {
     y += 7;
     pdf.setFontSize(11);
     pdf.setTextColor(0);
-    pdf.text(`Passed: ${this.Data.passedCount}`, margin, y);
+    pdf.text(`Passed: ${this.passedCount}`, margin, y);
     y += 6;
-    pdf.text(`Failed: ${this.Data.failedCount}`, margin, y);
+    pdf.text(`Failed: ${this.failedCount}`, margin, y);
     y += 10;
 
     // Recent scans
@@ -681,9 +699,9 @@ buildPieChart() {
     y += 6;
 
     const scansColumns = ['Project Name', 'Status', 'Completed At'];
-    const scansRows = this.recentScans.map((s) => [
-      s.projectName || 'N/A',
-      s.qualityGate || 'N/A',
+    const scansRows = this.DashboardData.map((s) => [
+      s.project.name || 'N/A',
+      s.status || 'N/A',
       new Date(s.completedAt ?? '').toLocaleString()
     ]);
 
@@ -707,13 +725,13 @@ buildPieChart() {
     y += 6;
     pdf.setFontSize(11);
     pdf.setTextColor(0);
-    pdf.text(`Bugs: ${this.dashboardData.metrics.bugs}`, margin, y);
+    pdf.text(`Bugs: ${this.passedCountBug}`, margin, y);
     y += 5;
-    pdf.text(`Security: ${this.dashboardData.metrics.vulnerabilities}`, margin, y);
+    pdf.text(`Security: ${this.securityCount}`, margin, y);
     y += 5;
-    pdf.text(`Code Smells: ${this.dashboardData.metrics.codeSmells}`, margin, y);
+    pdf.text(`Code Smells: ${this.codeSmellCount}`, margin, y);
     y += 5;
-    pdf.text(`Coverage: ${this.dashboardData.metrics.coverage}%`, margin, y);
+    pdf.text(`Coverage: ${this.codeSmellCount}`, margin, y);
     y += 10;
 
     // Top issues

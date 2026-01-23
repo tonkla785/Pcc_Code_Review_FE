@@ -72,18 +72,18 @@
 
         <div class="profile-menu" *ngIf="showProfileDropdown">
           <div class="profile-details">
-            <p><strong>Username:</strong> {{ userProfile?.username }}</p>
-            <p><strong>Email:</strong> {{ userProfile?.email }}</p>
-            <p><strong>Phone Number:</strong> {{ userProfile?.phone}}</p>
-            <p>
+            <p><strong>Username:</strong> {{ UserLogin?.username }}</p>
+            <p><strong>Email:</strong> {{ UserLogin?.email }}</p>
+            <p><strong>Phone Number:</strong> {{ UserLogin?.phone}}</p>
+            <!-- <p>
               <strong>Status:</strong>
-              <!-- <span [ngClass]="{
+              <span [ngClass]="{
             'status-pending': userProfile?.status === 'PENDING_VERIFICATION',
             'status-active': userProfile?.status === 'ACTIVE'
           }">
                 {{ userProfile?.status }}
-              </span> -->
-            </p>
+              </span>
+            </p> -->
           </div>
 
           <!-- ปุ่มเปลี่ยนรหัสผ่าน -->
