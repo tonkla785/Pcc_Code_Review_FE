@@ -1,3 +1,4 @@
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -48,6 +49,12 @@ export class AuthService {
   }
 
   logout() {
-    this.tokenStorage.clear();
+    return this.http.post(
+      `${this.base}/user/logout`,
+      {},
+      { withCredentials: true, responseType: 'text' as const }
+    ).pipe(
+      tap(() => this.tokenStorage.clear())
+    );
   }
 }
