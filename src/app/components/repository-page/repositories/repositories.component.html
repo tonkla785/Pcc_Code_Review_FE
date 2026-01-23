@@ -38,15 +38,15 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" [class.active]="activeFilter === 'Angular'" (click)="filterBy('Angular')">
+        <a class="nav-link" [class.active]="activeFilter === 'ANGULAR'" (click)="filterBy('ANGULAR')">
           Angular
-          <span class="badge bg-warning text-dark ms-1">{{ countByFramework('Angular') }}</span>
+          <span class="badge bg-warning text-dark ms-1">{{ countByFramework('ANGULAR') }}</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" [class.active]="activeFilter === 'Spring Boot'" (click)="filterBy('Spring Boot')">
+        <a class="nav-link" [class.active]="activeFilter === 'SPRING_BOOT'" (click)="filterBy('SPRING_BOOT')">
           Spring Boot
-          <span class="badge bg-success ms-1">{{ countByFramework('Spring Boot') }}</span>
+          <span class="badge bg-success ms-1">{{ countByFramework('SPRING_BOOT') }}</span>
         </a>
       </li>
     </ul>
@@ -63,9 +63,7 @@
       </select>
 
     </div>
-
   </div>
-
 
   <!-- Repository Cards -->
   <div class="row g-3">
@@ -78,21 +76,7 @@
             <a [href]="repo.repositoryUrl" target="_blank" class="repo-link">
               <i class="bi bi-link-45deg me-1"></i>{{ repo.repositoryUrl }}
             </a>
-            <!-- <p class="mb-1"><i class="bi bi-git me-1"></i> Branch: {{ repo.branch }}</p> -->
-
-            <!-- Status / Scan Progress -->
             <div>
-              <!-- <i class="bi me-1" [ngClass]="repo.status === 'Scanning' ? 'bi-arrow-repeat' : 'bi-clock'"></i>
-
-              <span *ngIf="repo.status === 'Scanning'"> Scanning: <strong>{{ repo.scanningProgress }}%</strong>
-                <progress class="custom-progress" [value]="repo.scanningProgress" max="100">
-                  {{ repo.scanningProgress }}%
-                </progress>
-              </span>
-              <span *ngIf="repo.status !== 'Scanning'">
-                Last Scan: <strong>{{ repo.lastScan | date:'dd/MM/yyyy, hh:mm a' }}</strong>
-              </span> -->
-
               <div *ngIf="repo.status === 'Scanning'">
                 <div class="scanning-text">
                   <i class="bi bi-arrow-repeat"></i> Scanning...
@@ -106,23 +90,18 @@
             </div>
 
             <!-- Quality Gate Badge -->
-            <div>
-              <div>
-                <span class="badge grade-badge" [ngClass]="{
-                    'grade-a': repo.qualityGate === 'Passed',
-                    'grade-e': repo.qualityGate === 'Failed'
-                  }">
-                  <i class="bi me-1" [ngClass]="{
-                       'bi-check-circle': repo.qualityGate === 'Passed' ,
-                       'bi-x-circle': repo.qualityGate === 'Failed'
-                     }"></i>
-                  {{ repo.status === 'Scanning' ? 'Previous: ' : 'Quality Gate: ' }}{{ repo.qualityGate }}
-                </span>
-              </div>
-
+            <div *ngIf="repo.status !== 'Scanning' && repo.qualityGate">
+              <span class="badge grade-badge" [ngClass]="{
+              'grade-a': repo.qualityGate === 'Passed',
+              'grade-e': repo.qualityGate === 'Failed'
+              }">
+                <i class="bi me-1" [ngClass]="{
+                'bi-check-circle': repo.qualityGate === 'Passed',
+                'bi-x-circle': repo.qualityGate === 'Failed'
+              }"></i>
+                Quality Gate: {{ repo.qualityGate }}
+              </span>
             </div>
-
-
           </div>
 
           <span class="status-badge" [ngClass]="{

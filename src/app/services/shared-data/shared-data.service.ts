@@ -3,7 +3,11 @@ import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
+<<<<<<< HEAD
 import { LoginUser, UserInfo } from '../../interface/user_interface';
+=======
+import { UserInfo } from '../../interface/user_interface';
+>>>>>>> dev
 import { ScanResponseDTO } from '../../interface/scan_interface';
 
 /**

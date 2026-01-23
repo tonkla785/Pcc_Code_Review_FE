@@ -32,7 +32,6 @@ export class ScanresultComponent {
       });
     this.route.paramMap.subscribe(pm => {
       const id = pm.get('scanId');
-
       if (!id) return;
 
       console.log('scanId from route:', id);
