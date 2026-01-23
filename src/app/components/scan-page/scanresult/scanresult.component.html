@@ -3,7 +3,7 @@
     <i class="bi bi-arrow-left"></i>
   </button>
   <!-- Title -->
-  <h2 class="mb-4"><i class="bi bi-bar-chart"></i> Scan Results: {{ scanInfo?.projectName }}</h2>
+  <h2 class="mb-4"><i class="bi bi-bar-chart"></i> Scan Results: {{ scanResult?.project.name }}</h2>
 
   <!-- Quality Gate & Scan Info -->
   <div class="row mb-4 g-3">
@@ -11,10 +11,10 @@
       <div class="card text-center h-100">
         <div class="card-body">
           <h5 class="card-title">
-            Quality Gate: {{ scanInfo?.qualityGate }}
+            Quality Gate: {{ scanResult?.qualityGate }}
             <i class="bi" [ngClass]="{
-                 'bi-check-circle-fill text-success': scanInfo?.qualityGate === 'Passed',
-                 'bi-x-circle-fill text-danger': scanInfo?.qualityGate === 'Failed'
+                 'bi-check-circle-fill text-success': scanResult?.qualityGate === 'SUCCESS',
+                 'bi-x-circle-fill text-danger': scanResult?.qualityGate === 'ERROR'
                }"></i>
           </h5>
           <!-- <p>OwerScan: <strong>{{ scanInfo.owerscan }}</strong></p> -->
@@ -27,14 +27,14 @@
       <div class="card text-center h-100">
         <div class="card-body">
           <h5 class="card-title">Scan Info <i class="bi bi-info-circle-fill"></i></h5>
-          <p>Started At: {{ scanInfo?.startedAt |date:'dd/MM/yyyy HH:mm'}}</p>
-          <p>Completed At: {{ scanInfo?.completedAt |date:'dd/MM/yyyy HH:mm'}}</p>
+          <p>Started At: {{ scanResult?.startedAt |date:'dd/MM/yyyy HH:mm'}}</p>
+          <p>Completed At: {{ scanResult?.completedAt |date:'dd/MM/yyyy HH:mm'}}</p>
         </div>
       </div>
     </div>
   </div>
 
-<div *ngIf="scanInfo && hasOverallOrMetrics(scanInfo)">
+<div *ngIf="scanResult">
   <!-- Over all Code -->
   <h4 class="mb-3 mt-4">Overall Gates</h4>
   <table class="table table-bordered table-striped">
@@ -47,19 +47,19 @@
     <tbody>
       <tr>
         <td>Reliability</td>
-        <td>{{ scanInfo?.reliabilityGate }}</td>
+        <td>{{ scanResult?.qualityGate }}</td>
       </tr>
       <tr>
         <td>Security</td>
-        <td>{{ scanInfo?.securityGate }}</td>
+        <td>{{ scanResult?.metrics?.securityRating}}</td>
       </tr>
       <tr>
         <td>Maintainability</td>
-        <td>{{ scanInfo?.maintainabilityGate }}</td>
+        <td>{{ scanResult?.metrics?.maintainabilityRating }}</td>
       </tr>
       <tr>
         <td>Security Review</td>
-        <td>{{ scanInfo?.securityReviewGate }}</td>
+        <td>{{ scanResult?.metrics?.reliabilityRating}}</td>
       </tr>
     </tbody>
   </table>
@@ -67,35 +67,35 @@
   <!-- Metrics Overview -->
   <h4 class="mb-3 mt-4">Metrics Overview</h4>
   <div class="row text-center g-3">
-    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
       <div class="card metric-card">
         <div class="card-body h-100">
           <h5><i class="bi bi-bug"></i> Bugs</h5>
-          <p>{{ scanInfo?.metrics?.bugs }}</p>
+          <p>{{ scanResult?.metrics?.bugs }}</p>
         </div>
       </div>
     </div>
-    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
       <div class="card metric-card">
         <div class="card-body">
           <h5><i class="bi bi-shield-lock"></i> Vulnerabilities</h5>
-          <p>{{ scanInfo?.metrics?.vulnerabilities }}</p>
+          <p>{{ scanResult?.metrics?.vulnerabilities }}</p>
         </div>
       </div>
     </div>
-    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
       <div class="card metric-card">
         <div class="card-body">
           <h5><i class="bi bi-droplet"></i> Code Smells</h5>
-          <p>{{ scanInfo?.metrics?.codeSmells }}</p>
+          <p>{{ scanResult?.metrics?.codeSmells }}</p>
         </div>
       </div>
     </div>
-    <div class="col-md-3 mb-3" *ngIf="scanInfo?.metrics">
+    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
       <div class="card metric-card">
         <div class="card-body">
           <h5><i class="bi bi-bar-chart-line"></i> Coverage</h5>
-          <p>{{ scanInfo?.metrics?.coverage }}%</p>
+          <p>{{ scanResult?.metrics?.coverage }}%</p>
         </div>
       </div>
     </div>

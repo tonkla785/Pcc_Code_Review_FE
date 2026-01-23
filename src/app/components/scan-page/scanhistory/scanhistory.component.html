@@ -6,14 +6,14 @@
     <label for="dateRange">Date Range:</label>
 
     <div class="date-wrapper">
-      <input type="date" [(ngModel)]="startDate" class="form-control form-control-sm" />
+      <input type="date" [(ngModel)]="startDate" class="form-control form-control-sm"  (ngModelChange)="onStartDateChange()"/>
       <span class="calendar-icon"></span>
     </div>
 
     <span>to</span>
 
     <div class="date-wrapper">
-      <input type="date" [(ngModel)]="endDate" class="form-control form-control-sm" />
+      <input type="date" [(ngModel)]="endDate" class="form-control form-control-sm" [min]="minEndDate"/>
       <span class="calendar-icon"></span>
     </div>
 
@@ -41,7 +41,7 @@
       </thead>
   
       <tbody>
-        <tr *ngFor="let scan of pagedScans">
+        <tr *ngFor="let scan of ScanHistory">
            <td>
             <input type="checkbox" [checked]="isSelected(scan)" 
                    (change)="toggleScanSelection(scan, $event)" />
@@ -53,7 +53,7 @@
           </td>
   
           <td>
-            {{scan.projectName}} <br />
+            {{scan.project.name}} <br />
             <span [ngClass]="statusClass(scan.status)">
               <i [ngClass]="statusIcon(scan.status)"></i> {{scan.status}}
             </span>
@@ -62,22 +62,21 @@
           <td>{{scan.qualityGate}}</td>
   
           <td>
-            <span *ngIf="scan.metrics?.bugs"><i class="bi bi-bug"></i> {{scan.metrics?.bugs}}</span>
-            <span *ngIf="scan.metrics?.vulnerabilities"><i class="bi bi-shield"></i> {{scan.metrics?.vulnerabilities}}</span>
-            <span *ngIf="scan.metrics?.codeSmells"><i class="bi bi-code"></i> {{scan.metrics?.codeSmells}}</span>
-            <span *ngIf="scan.metrics?.coverage"><i class="bi bi-bar-chart"></i> {{scan.metrics?.coverage}}</span>
-            <span *ngIf="scan.metrics?.duplications"><i class="bi bi-duplicate"></i> {{scan.metrics?.duplications}}</span>
-
-            <!-- <span *ngIf="scan.metrics?.locks" class="ms-2"><i class="bi bi-lock"></i> {{scan.metrics?.locks}}</span>
-            <span *ngIf="scan.metrics?.warnings" class="ms-2"><i class="bi bi-exclamation-triangle"></i> {{scan.metrics?.warnings}}</span> -->
+           <span *ngIf="scan.metrics?.bugs !== undefined"><i class="bi bi-bug"></i> {{scan.metrics?.bugs}}</span>
+            <span *ngIf="scan.metrics?.vulnerabilities !== undefined"><i class="bi bi-shield"></i> {{scan.metrics?.vulnerabilities}}</span>
+            <span *ngIf="scan.metrics?.codeSmells !== undefined"><i class="bi bi-code"></i> {{scan.metrics?.codeSmells}}</span>
+            <span *ngIf="scan.metrics?.coverage !== undefined"><i class="bi bi-bar-chart"></i> {{scan.metrics?.coverage}}</span>
+              <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined"><i class="bi bi-duplicate"></i> {{scan.metrics?.duplicatedLinesDensity}}</span>
+              <!-- <span *ngIf="scan.metrics?.locks !== undefined" class="ms-2"><i class="bi bi-lock"></i> {{scan.metrics?.locks}}</span>
+              <span *ngIf="scan.metrics?.warnings !== undefined" class="ms-2"><i class="bi bi-exclamation-triangle"></i> {{scan.metrics?.warnings}}</span> -->
           </td>
   
-          <!-- ไม่มีการซ้อน <td> -->
-          <!-- <td class="log-col sticky-col" (click)="$event.stopPropagation()">
+
+         <td class="log-col sticky-col" (click)="$event.stopPropagation()">
             <button title="View log" class="btn btn-log btn-sm" (click)="viewLog(scan); $event.stopPropagation()">
               <i class="bi bi-file-text"></i> 
             </button>
-          </td> -->
+          </td>
   
           <td class="result-col sticky-col" (click)="$event.stopPropagation()">
             <button title="View Result Scan" class="btn btn-primary btn-sm" (click)="viewResult(scan); $event.stopPropagation()">
@@ -134,7 +133,7 @@
         <thead>
           <tr>
             <th>Metric</th>
-            <th *ngFor="let scan of selectedScans">{{scan.projectName}} ({{scan.startedAt | date:'yyyy-MM-dd'}})</th>
+            <th *ngFor="let scan of selectedScans">{{scan.project?.name}} ({{scan.startedAt | date:'yyyy-MM-dd'}})</th>
           </tr>
         </thead>
         <tbody>
@@ -158,7 +157,7 @@
 
           <tr>
             <td>Duplications</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.duplications ?? 0 }}</td>
+            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.duplicatedLinesDensity ?? 0 }}</td>
           </tr>
         </tbody>
       </table>
@@ -169,4 +168,3 @@
   </div>
 
 </div>
-

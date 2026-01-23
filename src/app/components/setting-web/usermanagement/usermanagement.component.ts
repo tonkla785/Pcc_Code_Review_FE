@@ -3,6 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { UserService } from '../../../services/userservice/user.service';
+import { UserInfo } from '../../../interface/user_interface';
 
 
 interface User {
@@ -32,31 +35,70 @@ export class UsermanagementComponent {
 
   modalOpen: boolean = false;
   editingUser: boolean = false;
-  modalData: User = this.emptyUser();
-  originalData: User = this.emptyUser();
-
-  emptyUser(): User {
-    return { id: 0, name: '', email: '', role: 'User', active: true };
+  modalData: UserInfo = this.emptyUser();
+  originalData: UserInfo = this.emptyUser();
+  UserData: UserInfo[] = [];
+  originalEmail!: string;
+  isEmail: boolean = false;
+  filteredUsers: UserInfo[] = [];
+  emptyUser(): UserInfo {
+    return { id: "0", username: '',password:'', email: '', role: 'USER' };
   }
 
-  filteredUsers(): User[] {
-    return this.users.filter(user =>
-      user.name.toLowerCase().includes(this.searchText.toLowerCase()) ||
-      user.email.toLowerCase().includes(this.searchText.toLowerCase())
-    );
-  }
+  // filteredUsers(): User[] {
+  //   return this.users.filter(user =>
+  //     user.name.toLowerCase().includes(this.searchText.toLowerCase()) ||
+  //     user.email.toLowerCase().includes(this.searchText.toLowerCase())
+  //   );
+  // }
 
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
+    private readonly sharedData: SharedDataService,
+    private readonly userDateService: UserService
   ) { }
 
-  ngOnInit(): void {
-    if (!this.authService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
+  ngOnInit(){
+       this.sharedData.AllUser$.subscribe(data => { 
+        this.UserData = data ?? [];
+        this.applyFilter();
+      });
+       if(!this.sharedData.hasUserCache){
+      this.loadUser();
+      console.log("No cache - load from server");
     }
+
   }
+  loadUser() {
+    this.sharedData.setLoading(true);
+    this.userDateService.getUser().subscribe({
+      next: (data) => {
+        this.sharedData.UserShared = data;
+        this.sharedData.setLoading(false);
+        console.log('User loaded:', data);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
+  applyFilter() {
+  const keyword = this.searchText.trim().toLowerCase();
+
+  if (keyword == null || keyword === '') {
+    this.filteredUsers = [...this.UserData];
+    return;
+  }
+
+  this.filteredUsers = this.UserData.filter(u =>
+    (u.username ?? '').toLowerCase().startsWith(keyword) 
+    // (u.email ?? '').toLowerCase().includes(keyword) ||
+    // (u.role ?? '').toLowerCase().includes(keyword)
+  );
+}
+onSearchChange(value: string) {
+  this.searchText = value;
+  this.applyFilter();
+}
 
   openAddUser() {
     this.modalData = this.emptyUser();
@@ -64,52 +106,76 @@ export class UsermanagementComponent {
     this.modalOpen = true;
   }
 
-  openEditUser(user: User) {
+  openEditUser(user: UserInfo) {
     this.modalData = { ...user };
+    this.originalEmail = user.email;
+    console.log("Modal", this.modalData);
     this.originalData = { ...user };
     this.editingUser = true;
     this.modalOpen = true;
+  }
+
+  checkEmail() {
+      const email = this.modalData.email?.trim().toLowerCase();
+    if (email === this.originalEmail?.toLowerCase()) {
+    this.isEmail = false;
+    return;
+  }
+  this.isEmail = this.UserData.some(
+    u => u.email.toLowerCase() === email && u.id !== this.modalData.id
+  );
+
   }
 
   closeModal() {
     this.modalOpen = false;
   }
   canSave(): boolean {
-    if (!this.modalData.name || !this.modalData.email || !this.modalData.role) {
+    if (!this.modalData.username || !this.modalData.email || !this.modalData.role) {
       return false; // กรอกไม่ครบ
     }
 
     if (this.editingUser) {
       return !(
-        this.modalData.name === this.originalData.name &&
+        this.modalData.username === this.originalData.username &&
         this.modalData.email === this.originalData.email &&
-        this.modalData.role === this.originalData.role &&
-        this.modalData.active === this.originalData.active
+        this.modalData.role === this.originalData.role 
       );
     }
 
     return true; // สำหรับ Add User ถ้ากรอกครบ
   }
-  saveUser() {
-    if (this.editingUser) {
-      // Update user
-      const index = this.users.findIndex(u => u.id === this.modalData.id);
-      if (index > -1) this.users[index] = { ...this.modalData };
-      alert('User updated successfully');
-    } else {
-      // Add new user
-      this.modalData.id = this.users.length + 1;
-      this.users.push({ ...this.modalData });
-      alert('User added successfully');
-    }
-    this.closeModal();
-  }
 
-  deleteUser(user: User) {
-    const confirmDelete = confirm(`Are you sure you want to delete ${user.name}?`);
-    if (confirmDelete) {
-      this.users = this.users.filter(u => u.id !== user.id);
-    }
-  }
-
+  onSubmitUser(user: UserInfo) {
+    if(this.editingUser = true){
+      this.userDateService.EditUser(user).subscribe({
+        next: (updatedUser) => {
+            this.sharedData.updateUser(user);
+          this.closeModal();
+          console.log('User updated:', updatedUser);
+        },
+        error: (err) => console.error(err,user)
+      });
+    }else{
+  this.userDateService.AddNewUser(user).subscribe({
+    next: (newUser) => {
+      this.closeModal();
+        this.sharedData.addUser(user);
+    },
+    error: (err) => console.error(err)
+  });
 }
+}
+
+onDelete(projectId: string) {
+  if (!confirm('ยืนยันการลบ?')) return;
+  
+  this.userDateService.DeleteUser(projectId).subscribe({
+    next: () => {
+      // หลัง API สำเร็จ → ลบออกจาก SharedDataService
+      this.sharedData.removeRepository(projectId);
+    },
+    error: (err) => console.error(err)
+  });
+}
+  }

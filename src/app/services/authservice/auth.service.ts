@@ -1,9 +1,11 @@
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { tap } from 'rxjs/operators';
-import { LoginRequest, LoginResponse, RefreshResponse, RegisterRequest } from '../../interface/user_interface';
+import { LoginRequest, LoginResponse, RefreshResponse, RegisterRequest, UserInfo } from '../../interface/user_interface';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -48,6 +50,24 @@ export class AuthService {
   }
 
   logout() {
-    this.tokenStorage.clear();
+    return this.http.post(
+      `${this.base}/user/logout`,
+      {},
+      { withCredentials: true, responseType: 'text' as const }
+    ).pipe(
+      tap(() => this.tokenStorage.clear())
+    );
   }
+  private userProfileSubject = new BehaviorSubject<UserInfo | null>(null);
+userProfile$ = this.userProfileSubject.asObservable();
+
+loadMyProfile() {
+  return this.http.get<UserInfo>(`${this.base}/user/search-user`).pipe(
+    tap(profile => this.userProfileSubject.next(profile))
+  );
+}
+
+get userProfile(): UserInfo | null {
+  return this.userProfileSubject.value;
+}
 }
