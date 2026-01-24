@@ -9,9 +9,31 @@ import { throwError, EMPTY, BehaviorSubject, Observable } from 'rxjs';
 // Flag เพื่อป้องกันการเรียก refresh ซ้ำ
 let isRefreshing = false;
 
+// Flag เพื่อป้องกันการเรียก logout ซ้ำ
+let isLoggingOut = false;
+
 // Subject เพื่อ notify requests ที่รอว่า refresh เสร็จแล้ว
 // null = กำลัง refresh, string = token ใหม่
 let refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+
+// Helper function สำหรับ logout และ redirect
+function logoutAndRedirect(auth: AuthService, tokenStorage: TokenStorageService, router: Router) {
+  if (isLoggingOut) {
+    return; // ถ้ากำลัง logout อยู่แล้ว ไม่ต้องทำซ้ำ
+  }
+
+  isLoggingOut = true;
+
+  auth.logout().pipe(
+    catchError(() => EMPTY),
+    finalize(() => {
+      isLoggingOut = false;
+      isRefreshing = false;
+      tokenStorage.clear();
+      router.navigate(['/']);
+    })
+  ).subscribe();
+}
 
 export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
 
@@ -19,10 +41,16 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
   const tokenStorage = inject(TokenStorageService);
   const router = inject(Router);
 
+  // ถ้ากำลัง logout อยู่ ไม่ต้องทำอะไร
+  if (isLoggingOut) {
+    return EMPTY;
+  }
+
   // ไม่ใส่ token ให้ request ไปยัง auth endpoints
   const isAuthUrl = req.url.includes('/user/login') ||
     req.url.includes('/user/register') ||
-    req.url.includes('/user/refresh');
+    req.url.includes('/user/refresh') ||
+    req.url.includes('/user/logout');
 
   const token = auth.token;
   const authReq = (token && !isAuthUrl)
@@ -31,21 +59,27 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((err: HttpErrorResponse) => {
+      // ถ้ากำลัง logout อยู่ ไม่ต้องทำอะไร
+      if (isLoggingOut) {
+        return EMPTY;
+      }
+
+      // ถ้าเป็น logout request ที่ล้มเหลว → ไม่ต้องทำอะไร (clear เลย)
+      if (req.url.includes('/user/logout')) {
+        console.warn('Logout request failed, clearing local data anyway');
+        isLoggingOut = false;
+        tokenStorage.clear();
+        router.navigate(['/']);
+        return EMPTY;
+      }
+
       // ถ้าเป็น refresh request ที่ล้มเหลว → เรียก logout แล้ว redirect
       if (req.url.includes('/user/refresh')) {
         console.warn('Refresh token expired or invalid, calling logout and redirecting to home');
         isRefreshing = false;
         refreshTokenSubject.next(null);
 
-        // เรียก logout เพื่อ clear ข้อมูลที่ backend (ไม่สนใจว่าสำเร็จหรือไม่)
-        auth.logout().pipe(
-          catchError(() => EMPTY),
-          finalize(() => {
-            tokenStorage.clear();
-            router.navigate(['/']);
-          })
-        ).subscribe();
-
+        logoutAndRedirect(auth, tokenStorage, router);
         return EMPTY;
       }
 
@@ -62,7 +96,9 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
                 setHeaders: { Authorization: `Bearer ${newToken}` }
               });
               return next(retryReq);
-            })
+            }),
+            // ถ้า retry ล้มเหลว ไม่ต้อง refresh อีก แค่ throw error
+            catchError(retryErr => throwError(() => retryErr))
           );
         }
 
@@ -87,15 +123,7 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
             refreshTokenSubject.next(null);
             console.warn('Token refresh failed, calling logout and redirecting to home');
 
-            // เรียก logout เพื่อ clear ข้อมูลที่ backend (ไม่สนใจว่าสำเร็จหรือไม่)
-            auth.logout().pipe(
-              catchError(() => EMPTY),
-              finalize(() => {
-                tokenStorage.clear();
-                router.navigate(['/']);
-              })
-            ).subscribe();
-
+            logoutAndRedirect(auth, tokenStorage, router);
             return EMPTY;
           })
         );
