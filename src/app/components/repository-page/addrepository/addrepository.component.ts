@@ -64,7 +64,7 @@ export class AddrepositoryComponent implements OnInit {
     projectName: '',
     projectVersion: '',
     sources: 'src',
-    serverUrl: 'http://localhost:9000',
+    serverUrl: 'https://code.pccth.com',
     token: '',
     enableAutoScan: true,
     enableQualityGate: true

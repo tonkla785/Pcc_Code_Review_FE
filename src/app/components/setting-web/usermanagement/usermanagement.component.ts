@@ -150,8 +150,8 @@ onSearchChange(value: string) {
     if(this.editingUser = true){
       this.userDateService.EditUser(user).subscribe({
         next: (updatedUser) => {
+            this.sharedData.updateUser(user);
           this.closeModal();
-      
           console.log('User updated:', updatedUser);
         },
         error: (err) => console.error(err,user)
@@ -160,6 +160,7 @@ onSearchChange(value: string) {
   this.userDateService.AddNewUser(user).subscribe({
     next: (newUser) => {
       this.closeModal();
+        this.sharedData.addUser(user);
     },
     error: (err) => console.error(err)
   });
