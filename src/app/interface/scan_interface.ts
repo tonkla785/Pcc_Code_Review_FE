@@ -9,7 +9,7 @@ export interface ScanResponseDTO {
   project: any;       
   status: 'PENDING' | 'SUCCESS' | 'FAILED';      
   startedAt: string;                
-  completedAt?: string | null;        
+  completedAt?: string;     
   qualityGate?: string | null;
   metrics:  {
   bugs: 0,

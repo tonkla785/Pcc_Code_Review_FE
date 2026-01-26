@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
-import { UserInfo } from '../../interface/user_interface';
+import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 
 /**
@@ -75,6 +75,13 @@ export class SharedDataService {
     set Scans(data: ScanResponseDTO[]) {
         this.scansHistory.next(data ?? []);
     }
+    get scanValue(): ScanResponseDTO[] {
+            return this.scansHistory.value ?? [];
+            }
+    addScan(newScan: ScanResponseDTO) {
+            const next = [newScan, ...this.scanValue];
+            this.scansHistory.next(next);
+            }
     private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
     readonly selectedScan$ = this.selectedScan.asObservable();
 
@@ -89,7 +96,8 @@ export class SharedDataService {
 
     set ScansDetail(data: ScanResponseDTO) {
         this.selectedScan.next(data);
-    }
+        }
+
     private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
     readonly AllUser$ = this.AllUser.asObservable();
 
@@ -105,6 +113,42 @@ export class SharedDataService {
     set UserShared(data: UserInfo[]) {
         this.AllUser.next(data);
     }
+
+        get usersValue(): UserInfo[] {
+            return this.AllUser.value ?? [];
+            }
+
+            updateUser(updated: UserInfo) {
+            const next = this.usersValue.map(u => u.id === updated.id ? updated : u);
+            this.AllUser.next(next);
+            }
+
+            addUser(newUser: UserInfo) {
+            const next = [newUser, ...this.usersValue];
+            this.AllUser.next(next);
+            }
+
+            removeUser(userId: string) {
+            const next = this.usersValue.filter(u => u.id !== userId);
+            this.AllUser.next(next);
+}
+
+private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
+        readonly LoginUser$ = this.LoginUser.asObservable();
+      
+        get hasLoginUserLoaded(): boolean {
+        return this.LoginUser.value !== null;
+        }
+   
+        get hasLoginUserCache(): boolean {
+        const data = this.LoginUser.value;
+        return data !== null;
+        }
+  
+        set LoginUserShared(data: LoginUser) {
+        this.LoginUser.next(data);
+        }
+
 
     // ==================== LOADING STATE ====================
     private _isLoading$ = new BehaviorSubject<boolean>(false);
@@ -203,11 +247,7 @@ export class SharedDataService {
     //     this._recentScans$.next([]);
     //     this._isLoading$.next(false);
     // }
-
-
-    //เก็บสถานะ repository ใน shared data เพื่อให้ component อื่นๆ ใช้งาน
-    // อัปเดต status ของ repository จาก realtime event
-    updateRepoStatus(
+        updateRepoStatus(
         projectId: string,
         status: 'Active' | 'Scanning' | 'Error',
         scanningProgress?: number
@@ -229,5 +269,4 @@ export class SharedDataService {
 
         this._repositories$.next(updated);
     }
-
 }

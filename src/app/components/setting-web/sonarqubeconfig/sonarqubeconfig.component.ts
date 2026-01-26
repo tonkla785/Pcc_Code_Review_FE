@@ -3,20 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
-
-interface AngularSettings {
-  runNpm: boolean;
-  coverage: boolean;
-  tsFiles: boolean;
-  exclusions: string;
-}
-
-interface SpringSettings {
-  runTests: boolean;
-  jacoco: boolean;
-  buildTool: string;
-  jdkVersion: number;
-}
+import { SonarQubeService } from '../../../services/sonarqubeservice/sonarqube.service';
+import {
+  AngularSettings,
+  SpringSettings,
+  QualityGates
+} from '../../../interface/sonarqube_interface';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-sonarqubeconfig',
@@ -25,29 +18,40 @@ interface SpringSettings {
   templateUrl: './sonarqubeconfig.component.html',
   styleUrl: './sonarqubeconfig.component.css'
 })
-export class SonarqubeconfigComponent implements OnInit {
+export class SonarqubeconfigComponent {
   serverUrl = 'https://code.pccth.com';
   authToken = '';
   organization = 'PCCTH';
   showToken = false;
+  isTestingConnection = false;
 
   angularSettings: AngularSettings = {
-    runNpm: true,
-    coverage: true,
-    tsFiles: true,
+    runNpm: false,
+    coverage: false,
+    tsFiles: false,
     exclusions: '**/node_modules/**, **/*.spec.ts'
   };
 
   springSettings: SpringSettings = {
-    runTests: true,
-    jacoco: true,
-    buildTool: 'gradle',
-    jdkVersion: 17
+    runTests: false,
+    jacoco: false,
+    buildTool: 'maven',
+    jdkVersion: 21
   };
 
   jdkVersions = [8, 11, 17, 21];
 
-  qualityGates = {
+  // Default Quality Gates (ค่า 0 ทั้งหมด)
+  readonly DEFAULT_QUALITY_GATES: QualityGates = {
+    failOnError: false,
+    coverageThreshold: 0,
+    maxBugs: 0,
+    maxVulnerabilities: 0,
+    maxCodeSmells: 0
+  };
+
+  // ค่า Quality Gates เมื่อเลือก failOnError
+  readonly ACTIVE_QUALITY_GATES: QualityGates = {
     failOnError: true,
     coverageThreshold: 80,
     maxBugs: 10,
@@ -55,11 +59,14 @@ export class SonarqubeconfigComponent implements OnInit {
     maxCodeSmells: 100
   };
 
+  qualityGates: QualityGates = { ...this.DEFAULT_QUALITY_GATES };
+
   private storageKey = 'sonarConfig_v1';
 
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
+    private readonly sonarQubeService: SonarQubeService,
   ) { }
 
   ngOnInit(): void {
@@ -74,57 +81,127 @@ export class SonarqubeconfigComponent implements OnInit {
     this.showToken = !this.showToken;
   }
 
+  // เมื่อ toggle failOnError checkbox
+  onFailOnErrorChange() {
+    if (this.qualityGates.failOnError) {
+      // เมื่อติ๊ก → ใช้ค่า active
+      this.qualityGates = { ...this.ACTIVE_QUALITY_GATES };
+    } else {
+      // เมื่อไม่ติ๊ก → ใช้ค่า default (0 ทั้งหมด)
+      this.qualityGates = { ...this.DEFAULT_QUALITY_GATES };
+    }
+  }
+
   testConnection() {
-    // ตัวอย่างการทดสอบแบบเบื้องต้น (จริงควรเรียก API)
     if (!this.serverUrl) {
-      alert('Please enter SonarQube Server URL.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing URL',
+        text: 'Please enter SonarQube Server URL.',
+        confirmButtonColor: '#3085d6'
+      });
       return;
     }
-    const msg = `Testing connection to:\n${this.serverUrl}\nOrganization: ${this.organization || '-'}`;
-    alert(msg);
+    if (!this.authToken) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Token',
+        text: 'Please enter SonarQube Token.',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    this.isTestingConnection = true;
+
+    this.sonarQubeService.testConnect({
+      sonarHostUrl: this.serverUrl,
+      sonarToken: this.authToken
+    }).subscribe({
+      next: (response) => {
+        this.isTestingConnection = false;
+        if (response.connected) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Connection Successful',
+            text: 'Successfully connected to SonarQube server!',
+            confirmButtonColor: '#28a745'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Connection Failed',
+            text: 'Unable to connect to SonarQube server.',
+            confirmButtonColor: '#dc3545'
+          });
+        }
+      },
+      error: (error) => {
+        this.isTestingConnection = false;
+        console.error('Test connection error:', error);
+        const errorMessage = error.error?.message || error.message || 'Network error';
+        Swal.fire({
+          icon: 'error',
+          title: 'Connection Failed',
+          text: errorMessage,
+          confirmButtonColor: '#dc3545'
+        });
+      }
+    });
   }
 
   resetSettings() {
     if (!confirm('Reset settings to default?')) return;
     localStorage.removeItem(this.storageKey);
-    // restore defaults
     this.serverUrl = 'https://code.pccth.com';
     this.authToken = '';
     this.organization = 'PCCTH';
     this.angularSettings = {
-      runNpm: true,
-      coverage: true,
-      tsFiles: true,
+      runNpm: false,
+      coverage: false,
+      tsFiles: false,
       exclusions: '**/node_modules/**, **/*.spec.ts'
     };
     this.springSettings = {
-      runTests: true,
-      jacoco: true,
-      buildTool: 'gradle',
-      jdkVersion: 17
+      runTests: false,
+      jacoco: false,
+      buildTool: 'maven',
+      jdkVersion: 21
     };
-    this.qualityGates = {
-      failOnError: true,
-      coverageThreshold: 80,
-      maxBugs: 10,
-      maxVulnerabilities: 5,
-      maxCodeSmells: 100
-    };
-    alert('Settings reset.');
+    this.qualityGates = { ...this.DEFAULT_QUALITY_GATES };
+    Swal.fire({
+      icon: 'success',
+      title: 'Reset Complete',
+      text: 'Settings have been reset to default.',
+      confirmButtonColor: '#3085d6'
+    });
   }
 
   saveSettings() {
+    // ไม่เก็บ jdkVersion ลง localStorage
+    const springSettingsToSave = {
+      runTests: this.springSettings.runTests,
+      jacoco: this.springSettings.jacoco,
+      buildTool: this.springSettings.buildTool
+    };
+
     const payload = {
       serverUrl: this.serverUrl,
       authToken: this.authToken,
       organization: this.organization,
       angularSettings: this.angularSettings,
-      springSettings: this.springSettings,
+      springSettings: springSettingsToSave,
       qualityGates: this.qualityGates
     };
+
     localStorage.setItem(this.storageKey, JSON.stringify(payload));
     console.log('Saved settings:', payload);
-    alert('Settings saved to localStorage.');
+    Swal.fire({
+      icon: 'success',
+      title: 'Settings Saved',
+      text: 'Settings have been saved successfully.',
+      confirmButtonColor: '#28a745'
+    });
   }
 
   private loadFromLocal() {
@@ -136,8 +213,23 @@ export class SonarqubeconfigComponent implements OnInit {
       this.authToken = obj.authToken ?? this.authToken;
       this.organization = obj.organization ?? this.organization;
       this.angularSettings = obj.angularSettings ?? this.angularSettings;
-      this.springSettings = obj.springSettings ?? this.springSettings;
-      this.qualityGates = obj.qualityGates ?? this.qualityGates;
+
+      // โหลด springSettings แต่ไม่เอา jdkVersion (ใช้ค่า default)
+      if (obj.springSettings) {
+        this.springSettings = {
+          ...this.springSettings,
+          runTests: obj.springSettings.runTests ?? this.springSettings.runTests,
+          jacoco: obj.springSettings.jacoco ?? this.springSettings.jacoco,
+          buildTool: obj.springSettings.buildTool ?? this.springSettings.buildTool
+        };
+      }
+
+      // โหลด qualityGates
+      if (obj.qualityGates) {
+        this.qualityGates = obj.qualityGates;
+      } else {
+        this.qualityGates = { ...this.DEFAULT_QUALITY_GATES };
+      }
     } catch (e) {
       console.warn('Failed to load sonar config from localStorage', e);
     }

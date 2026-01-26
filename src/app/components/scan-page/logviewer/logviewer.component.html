@@ -25,12 +25,12 @@
         <li class="list-group-item d-flex justify-content-between">
           <span>Status</span>
           <span [ngClass]="{'text-success': log.content.status==='success', 'text-danger': log.content.status==='failed'}">
-            {{ log.content.status | titlecase }}
+            {{ scanResult?.status| titlecase }}
           </span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Duration</span>
-          <span>{{ log.content.duration }} seconds</span>
+          <span>{{  getDurationSeconds(scanResult?.startedAt, scanResult?.completedAt) }} seconds</span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Scanner Type</span>
@@ -42,25 +42,94 @@
     <!-- SonarQube Results -->
     <section class="mb-4">
       <h4><i class="bi bi-graph-up"></i> SonarQube Results</h4>
-      <ul class="list-group list-group-flush" *ngIf="log.content.sonarResults; else noSonar">
-        <li class="list-group-item d-flex justify-content-between"><span>Quality Gate</span><span>{{ log.content.sonarResults.qualityGate }}</span></li>
-        <li class="list-group-item d-flex justify-content-between"><span>Coverage</span><span>{{ log.content.sonarResults.coverage }}%</span></li>
-        <li class="list-group-item d-flex justify-content-between"><span>Bugs</span><span>{{ log.content.sonarResults.bugs }}</span></li>
-        <li class="list-group-item d-flex justify-content-between"><span>Vulnerabilities</span><span>{{ log.content.sonarResults.vulnerabilities }}</span></li>
-        <li class="list-group-item d-flex justify-content-between"><span>Code Smells</span><span>{{ log.content.sonarResults.codeSmells }}</span></li>
-      </ul>
+<ul class="list-group list-group-flush"
+    *ngIf="scanResult?.metrics; else noSonar">
+
+  <!-- Quality -->
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Quality Gate</span>
+    <span>{{ scanResult?.qualityGate }}</span>
+  </li>
+
+  <!-- Bugs & Issues -->
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Bugs</span>
+    <span>{{ scanResult?.metrics?.bugs }}</span>
+  </li>
+
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Vulnerabilities</span>
+    <span>{{ scanResult?.metrics?.vulnerabilities }}</span>
+  </li>
+
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Security Hotspots</span>
+    <span>{{ scanResult?.metrics?.securityHotspots }}</span>
+  </li>
+
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Code Smells</span>
+    <span>{{ scanResult?.metrics?.codeSmells }}</span>
+  </li>
+
+  <!-- Coverage & Duplication -->
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Coverage</span>
+    <span>{{ scanResult?.metrics?.coverage }}%</span>
+  </li>
+
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Duplicated Lines</span>
+    <span>{{ scanResult?.metrics?.duplicatedLinesDensity }}%</span>
+  </li>
+
+  <!-- Technical Debt -->
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Technical Debt (min)</span>
+    <span>{{ scanResult?.metrics?.technicalDebtMinutes }}</span>
+  </li>
+
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Debt Ratio</span>
+    <span>{{ scanResult?.metrics?.debtRatio }}</span>
+  </li>
+
+  <!-- Ratings -->
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Maintainability</span>
+    <span>{{ scanResult?.metrics?.maintainabilityRating }}</span>
+  </li>
+
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Reliability</span>
+    <span>{{ scanResult?.metrics?.reliabilityRating }}</span>
+  </li>
+
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Security</span>
+    <span>{{ scanResult?.metrics?.securityRating }}</span>
+  </li>
+
+</ul>
+
+<ng-template #noSonar>
+  <div class="text-muted p-3 text-center">
+    No SonarQube result available
+  </div>
+</ng-template>
+
       <ng-template #noSonar>
         <p class="text-muted">No SonarQube results available.</p>
       </ng-template>
     </section>
 
     <!-- Details -->
-    <section class="mb-4">
+    <!-- <section class="mb-4">
       <h4><i class="bi bi-list-ul"></i> Details</h4>
       <ul class="list-group list-group-flush">
         <li class="list-group-item" *ngFor="let d of log.content.details">{{ d }}</li>
       </ul>
-    </section>
+    </section> -->
 
     <!-- Warnings -->
     <section class="mb-4" *ngIf="log.content.warnings?.length">

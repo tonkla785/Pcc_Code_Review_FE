@@ -16,9 +16,9 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 })
 export class ScanhistoryComponent {
 
-  startDate: string = '';
-  endDate: string = '';
-
+startDate: string | null = null; // yyyy-MM-dd
+endDate: string | null = null;  
+minEndDate: string | null = null;
   scans: ScanResponseDTO[] = [];
 
   filteredScans: ScanResponseDTO[] = [...this.scans];
@@ -30,6 +30,7 @@ export class ScanhistoryComponent {
   pagedScans: ScanResponseDTO[] = [];
   pages: number[] = [];
   ScanHistory: ScanResponseDTO[] = [];
+  originalData: ScanResponseDTO[] = [];
 
 
   constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
@@ -40,7 +41,8 @@ export class ScanhistoryComponent {
 
   ngOnInit(): void {
     this.sharedData.scansHistory$.subscribe(data => { 
-      this.ScanHistory = data || [];
+       this.originalData = data || [];
+       this.ScanHistory = [...this.originalData];
     });
     if(!this.sharedData.hasScansHistoryCache){
       this.loadScanHistory();
@@ -61,18 +63,37 @@ loadScanHistory() {
   });
 }
 
-  applyFilter() {
-    const start = this.startDate ? new Date(this.startDate) : null;
-    const end = this.endDate ? new Date(this.endDate) : null;
-
-    this.filteredScans = this.scans.filter(scan =>
-      (!start || (scan.startedAt && new Date(scan.startedAt) >= start)) &&
-      (!end || (scan.completedAt && new Date(scan.completedAt) <= end))
-    );
-    this.currentPage = 1;
-    this.updatePagination();
+applyFilter() {
+  if (!this.startDate || !this.endDate) {
+    this.ScanHistory = [...this.originalData];
+    return;
   }
 
+  const start = new Date(this.startDate);
+  const end = new Date(this.endDate);
+  end.setHours(23, 59, 59, 999); // รวมวันสุดท้าย
+
+  this.ScanHistory = this.originalData.filter(item => {
+    const scanDate = new Date(item.startedAt); // หรือ field วันที่ของคุณ
+    return scanDate >= start && scanDate <= end;
+  });
+}
+
+onStartDateChange() {
+  if (!this.startDate) {
+    this.minEndDate = null;
+    return;
+  }
+
+  const d = new Date(this.startDate);
+  d.setDate(d.getDate() + 1);
+
+  this.minEndDate = d.toISOString().split('T')[0];
+
+  if (this.endDate && this.endDate < this.minEndDate) {
+    this.endDate = null;
+  }
+}
   updatePagination() {
     this.totalPages = Math.ceil(this.filteredScans.length / this.pageSize);
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);

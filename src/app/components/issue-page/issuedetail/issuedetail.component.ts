@@ -82,36 +82,7 @@ export class IssuedetailComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
 
-    this.route.paramMap.pipe(
-      map(pm => pm.get('issuesId') ?? ''),
-      filter(id => {
-        if (!id) { this.error = 'Issue ID not found'; return false; }
-        if (!isUUID(id)) { this.error = 'Invalid Issue ID'; return false; }
-        return true;
-      })
-    )
-      .subscribe(id => {
-        this.loading = true;
-        this.issueApi.getById(id).pipe(map(raw => this.toIssue(raw)))
-          .subscribe({
-            next: (issue: Issue) => {
-              this.issue = issue;
-              this.issue.assignedTo ||= '';
-              this.loading = false;
-              this.loadComments();             // << โหลดคอมเมนต์หลังได้ issue
-            },
-            error: (err: any) => {
-              console.error('getById error', err);
-              this.error = 'โหลดข้อมูลไม่สำเร็จ';
-              this.loading = false;
-            }
-          });
-      });
   }
 
   /* ===================== Mapper (BE -> FE) ===================== */

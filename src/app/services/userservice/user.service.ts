@@ -85,6 +85,10 @@ verifyEmail(email: string): Observable<User> {
       `${this.baseUrl}/user/update-user/` + User.id,
       User,
       this.authOpts()
+  
     );
   }
+
+  
+  
 }
