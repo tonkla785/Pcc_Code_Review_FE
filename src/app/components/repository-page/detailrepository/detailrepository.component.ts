@@ -77,18 +77,23 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
   loadScanIssues(scanId: string): void {
     this.scanService.getScanById(scanId).subscribe({
       next: (scan) => {
-        this.issues = (scan.issueData ?? []).map((i: any): ScanIssue => ({
-          id: i.id,
-          scanId: scan.id,
-          issueKey: i.issueKey,
-          type: i.type,
-          severity: i.severity,
-          component: i.component,
-          message: i.message,
-          status: i.status,
-          createdAt: i.createdAt,
-          assignedTo: i.assignedTo
-        }));
+        this.issues = (scan.issueData ?? [])
+          .filter((i: any) =>
+            i.type === 'BUG' || i.type === 'VULNERABILITY'
+          )
+          .map((i: any): ScanIssue => ({
+            id: i.id,
+            scanId: scan.id,
+            issueKey: i.issueKey,
+            type: i.type,
+            severity: i.severity,
+            component: i.component,
+            message: i.message,
+            status: i.status,
+            createdAt: i.createdAt,
+            assignedTo: i.assignedTo
+          }));
+
         console.log('Loaded scan issues:', this.issues);
       },
       error: (err) => {
@@ -96,6 +101,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
       }
     });
   }
+
 
 
   switchTab(tab: 'overview' | 'bugs' | 'history') {

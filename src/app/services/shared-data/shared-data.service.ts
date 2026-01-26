@@ -5,6 +5,7 @@ import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
+import { QualityGates } from '../../interface/sonarqube_interface';
 
 /**
  * SharedDataService - Central state management using RxJS BehaviorSubject
@@ -76,12 +77,12 @@ export class SharedDataService {
         this.scansHistory.next(data ?? []);
     }
     get scanValue(): ScanResponseDTO[] {
-            return this.scansHistory.value ?? [];
-            }
+        return this.scansHistory.value ?? [];
+    }
     addScan(newScan: ScanResponseDTO) {
-            const next = [newScan, ...this.scanValue];
-            this.scansHistory.next(next);
-            }
+        const next = [newScan, ...this.scanValue];
+        this.scansHistory.next(next);
+    }
     private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
     readonly selectedScan$ = this.selectedScan.asObservable();
 
@@ -96,7 +97,7 @@ export class SharedDataService {
 
     set ScansDetail(data: ScanResponseDTO) {
         this.selectedScan.next(data);
-        }
+    }
 
     private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
     readonly AllUser$ = this.AllUser.asObservable();
@@ -114,40 +115,40 @@ export class SharedDataService {
         this.AllUser.next(data);
     }
 
-        get usersValue(): UserInfo[] {
-            return this.AllUser.value ?? [];
-            }
+    get usersValue(): UserInfo[] {
+        return this.AllUser.value ?? [];
+    }
 
-            updateUser(updated: UserInfo) {
-            const next = this.usersValue.map(u => u.id === updated.id ? updated : u);
-            this.AllUser.next(next);
-            }
+    updateUser(updated: UserInfo) {
+        const next = this.usersValue.map(u => u.id === updated.id ? updated : u);
+        this.AllUser.next(next);
+    }
 
-            addUser(newUser: UserInfo) {
-            const next = [newUser, ...this.usersValue];
-            this.AllUser.next(next);
-            }
+    addUser(newUser: UserInfo) {
+        const next = [newUser, ...this.usersValue];
+        this.AllUser.next(next);
+    }
 
-            removeUser(userId: string) {
-            const next = this.usersValue.filter(u => u.id !== userId);
-            this.AllUser.next(next);
-}
+    removeUser(userId: string) {
+        const next = this.usersValue.filter(u => u.id !== userId);
+        this.AllUser.next(next);
+    }
 
-private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
-        readonly LoginUser$ = this.LoginUser.asObservable();
-      
-        get hasLoginUserLoaded(): boolean {
+    private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
+    readonly LoginUser$ = this.LoginUser.asObservable();
+
+    get hasLoginUserLoaded(): boolean {
         return this.LoginUser.value !== null;
-        }
-   
-        get hasLoginUserCache(): boolean {
+    }
+
+    get hasLoginUserCache(): boolean {
         const data = this.LoginUser.value;
         return data !== null;
-        }
-  
-        set LoginUserShared(data: LoginUser) {
+    }
+
+    set LoginUserShared(data: LoginUser) {
         this.LoginUser.next(data);
-        }
+    }
 
 
     // ==================== LOADING STATE ====================
@@ -247,7 +248,7 @@ private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
     //     this._recentScans$.next([]);
     //     this._isLoading$.next(false);
     // }
-        updateRepoStatus(
+    updateRepoStatus(
         projectId: string,
         status: 'Active' | 'Scanning' | 'Error',
         scanningProgress?: number
@@ -269,4 +270,19 @@ private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
 
         this._repositories$.next(updated);
     }
+
+    // ==================== QUALITY GATES STATE ====================
+    private _qualityGates$ = new BehaviorSubject<QualityGates | null>(null);
+    readonly qualityGates$ = this._qualityGates$.asObservable();
+
+    get qualityGatesValue(): QualityGates | null {
+        return this._qualityGates$.getValue();
+    }
+
+    setQualityGates(gates: QualityGates): void {
+        this._qualityGates$.next(gates);
+    }
+
 }
+
+
