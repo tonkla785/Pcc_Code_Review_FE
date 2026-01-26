@@ -131,19 +131,40 @@
       </ul>
     </section> -->
 
-    <!-- Warnings -->
-    <section class="mb-4" *ngIf="log.content.warnings?.length">
-      <h4><i class="bi bi-exclamation-triangle text-warning"></i> Warnings</h4>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item" *ngFor="let w of log.content.warnings">{{ w }}</li>
-      </ul>
-    </section>
+<!-- Warnings -->
+<section class="mb-4" *ngIf="majorIssues?.length">
+  <h4 class="mb-3">
+    <i class="bi bi-exclamation-triangle text-warning"></i>
+    Warnings
+    <span class="badge bg-warning text-dark ms-2">
+      {{ majorIssues.length }}
+    </span>
+  </h4>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered align-middle">
+      <thead class="table-warning">
+        <tr>
+          <th style="width: 60px">#</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let w of majorIssues; let i = index">
+          <td class="text-center">{{ i + 1 }}</td>
+          <td>{{ w.message }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 
     <!-- Errors -->
-    <section class="mb-4" *ngIf="log.content.errors?.length">
+    <section class="mb-4" *ngIf="criticalIssues.length">
       <h4><i class="bi bi-bug text-danger"></i> Errors</h4>
       <ul class="list-group list-group-flush">
-        <li class="list-group-item text-danger" *ngFor="let e of log.content.errors">{{ e }}</li>
+        <li class="list-group-item text-danger" *ngFor="let e of criticalIssues">{{ e }}</li>
       </ul>
     </section>
   </div>

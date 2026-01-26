@@ -28,10 +28,10 @@ interface ScanLog {
     details?: string[];
   };
 }
-type Severity = 'MAJOR' | 'MINOR';
+type Severity = 'MAJOR' | 'CRITICAL';
 interface GroupedIssues {
   MAJOR: any[];
-  MINOR: any[];
+  CRITICAL: any[];
 }
 @Component({
   selector: 'app-logviewer',
@@ -46,7 +46,7 @@ constructor(private sharedData: SharedDataService, private route: ActivatedRoute
 
   groupedIssues!: GroupedIssues;
   majorIssues: any[] = [];
-  minorIssues: any[] = [];
+  criticalIssues: any[] = [];
     scanResult: ScanResponseDTO | null = null;
 
 
@@ -77,11 +77,11 @@ constructor(private sharedData: SharedDataService, private route: ActivatedRoute
         this.sharedData.ScansDetail = data;
         this.sharedData.setLoading(false);
         this.groupedIssues = this.countIssues(data.issueData ?? []);
-          this.majorIssues = this.groupedIssues.MAJOR;
-      this.minorIssues = this.groupedIssues.MINOR;
+        this.majorIssues = this.groupedIssues.MAJOR;
+      this.criticalIssues = this.groupedIssues.CRITICAL;
 
       console.log('MAJOR:', this.majorIssues);
-      console.log('MINOR:', this.minorIssues);
+      console.log('CRITICAL:', this.criticalIssues);
         console.log('Scan Log loaded:', data);
       },
       error: () => this.sharedData.setLoading(false)
@@ -92,10 +92,10 @@ constructor(private sharedData: SharedDataService, private route: ActivatedRoute
   return issues.reduce<GroupedIssues>((acc, issue) => {
     const sev = issue.severity as Severity;
     if (sev === 'MAJOR') acc.MAJOR.push(issue);
-    if (sev === 'MINOR') acc.MINOR.push(issue);
+    if (sev === 'CRITICAL') acc.CRITICAL.push(issue);
 
     return acc;
-  }, { MAJOR: [], MINOR: [] });
+  }, { MAJOR: [], CRITICAL: [] });
 }
 
   getDurationSeconds(startedAt?: string, completedAt?: string): number | null {
@@ -187,33 +187,20 @@ constructor(private sharedData: SharedDataService, private route: ActivatedRoute
 
   // แปลง log → Markdown
   generateMarkdown(): string {
-    const c = this.log.content;
-    const sonar = c.sonarResults;
     return `# Scan Report: ${this.log.applicationName}
-## Date: ${this.log.timestamp}
+## Date: ${this.scanResult?.startedAt ? new Date(this.scanResult.startedAt).toLocaleString() : '-'}
 
 ### Execution Summary
-- **Status**: ${c.status}
-- **Duration**: ${c.duration} seconds
-- **Scanner Type**: ${c.scannerType}
+- **Status**: ${this.scanResult?.status}
+
+
 
 ### SonarQube Results
-- **Quality Gate**: ${sonar?.qualityGate ?? '-'}
-- **Coverage**: ${sonar?.coverage ?? 0}%
-- **Bugs**: ${sonar?.bugs ?? 0}
-- **Vulnerabilities**: ${sonar?.vulnerabilities ?? 0}
-- **Code Smells**: ${sonar?.codeSmells ?? 0}
-
-### Details
-${c.details?.join('\n') ?? 'No details'}
-
-### Warnings
-${c.warnings?.join('\n') ?? 'None'}
-
-### Errors
-${c.errors?.join('\n') ?? 'None'}
-`;
-  }
-
+- **Quality Gate**: ${this.scanResult?.qualityGate ??'-'}
+- **Coverage**: ${this.scanResult?.metrics.coverage ?? 0}%
+- **Bugs**: ${this.scanResult?.metrics.bugs ?? 0}
+- **Vulnerabilities**: ${this.scanResult?.metrics.vulnerabilities ?? 0}
+- **Code Smells**: ${this.scanResult?.metrics.codeSmells ?? 0}
+`;  }
 
 }
