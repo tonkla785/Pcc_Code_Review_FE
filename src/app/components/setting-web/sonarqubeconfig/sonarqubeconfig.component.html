@@ -1,4 +1,4 @@
-<div class="config-container container my-3"> 
+<div class="config-container container my-3">
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0"><i class="bi bi-gear"></i> SonarQube Configuration</h5>
@@ -13,17 +13,8 @@
             <!-- URL -->
             <div class="col-12">
               <label class="form-label" for="sonarserverUrl">SonarQube Server URL *</label>
-              <input 
-                type="url" 
-                id="sonarserverUrl"
-                name="serverUrl"
-                class="form-control"
-                [(ngModel)]="serverUrl"
-                required
-                pattern="https?://.+"
-                placeholder="https://code.pccth.com"
-                #serverUrlRef="ngModel"
-              />
+              <input type="url" id="sonarserverUrl" name="serverUrl" class="form-control" [(ngModel)]="serverUrl"
+                required pattern="https?://.+" placeholder="https://code.pccth.com" #serverUrlRef="ngModel" />
               <div class="text-danger small" *ngIf="serverUrlRef.invalid && serverUrlRef.touched">
                 <div *ngIf="serverUrlRef.errors?.['required']">Server URL is required.</div>
                 <div *ngIf="serverUrlRef.errors?.['pattern']">Please enter a valid URL.</div>
@@ -33,15 +24,8 @@
             <!-- Token -->
             <div class="col-12 col-md-8">
               <label class="form-label" for="sonarauthToken">Authentication Token *</label>
-              <input 
-                [type]="showToken ? 'text' : 'password'" 
-                id="sonarauthToken"
-                name="authToken"
-                class="form-control" 
-                [(ngModel)]="authToken" 
-                required minlength="10"
-                #authTokenRef="ngModel"
-              />
+              <input [type]="showToken ? 'text' : 'password'" id="sonarauthToken" name="authToken" class="form-control"
+                [(ngModel)]="authToken" required minlength="10" #authTokenRef="ngModel" />
               <div class="text-danger small" *ngIf="authTokenRef.invalid && authTokenRef.touched">
                 <div *ngIf="authTokenRef.errors?.['required']">Authentication Token is required.</div>
                 <div *ngIf="authTokenRef.errors?.['minlength']">Token must be at least 10 characters.</div>
@@ -57,20 +41,13 @@
             <!-- Organization -->
             <div class="col-12">
               <label class="form-label" for="sonarorganization">Default Organization</label>
-              <input 
-                type="text" 
-                id="sonarorganization"
-                name="organization"
-                class="form-control" 
-                [(ngModel)]="organization" 
-                maxlength="50"
-                placeholder="PCCTH"
-              />
+              <input type="text" id="sonarorganization" name="organization" class="form-control"
+                [(ngModel)]="organization" maxlength="50" placeholder="PCCTH" />
             </div>
           </div>
         </div>
 
-        <hr/>
+        <hr />
 
         <!-- Scanner Settings -->
         <div class="mb-4">
@@ -82,26 +59,24 @@
                 <div class="card-body">
                   <h6 class="card-title">Angular Projects</h6>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="runNpm" name="runNpm" [(ngModel)]="angularSettings.runNpm">
+                    <input class="form-check-input" type="checkbox" id="runNpm" name="runNpm"
+                      [(ngModel)]="angularSettings.runNpm">
                     <label class="form-check-label" for="runNpm">Run npm install before scan</label>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="coverage" name="coverage" [(ngModel)]="angularSettings.coverage">
+                    <input class="form-check-input" type="checkbox" id="coverage" name="coverage"
+                      [(ngModel)]="angularSettings.coverage">
                     <label class="form-check-label" for="coverage">Generate coverage report</label>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="tsFiles" name="tsFiles" [(ngModel)]="angularSettings.tsFiles">
+                    <input class="form-check-input" type="checkbox" id="tsFiles" name="tsFiles"
+                      [(ngModel)]="angularSettings.tsFiles">
                     <label class="form-check-label" for="tsFiles">Include TypeScript files</label>
                   </div>
                   <div class="mt-3">
                     <label class="form-label small" for="exclusions">Exclusions</label>
-                    <input 
-                      class="form-control form-control-sm" 
-                      id="exclusions"
-                      name="exclusions"
-                      [(ngModel)]="angularSettings.exclusions" 
-                      placeholder="**/node_modules/**, **/*.spec.ts"
-                    />
+                    <input class="form-control form-control-sm" id="exclusions" name="exclusions"
+                      [(ngModel)]="angularSettings.exclusions" placeholder="**/node_modules/**, **/*.spec.ts" />
                     <div class="form-text">Comma separated patterns</div>
                   </div>
                 </div>
@@ -114,11 +89,13 @@
                 <div class="card-body">
                   <h6 class="card-title">Spring Boot Projects</h6>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="runTests" name="runTests" [(ngModel)]="springSettings.runTests">
+                    <input class="form-check-input" type="checkbox" id="runTests" name="runTests"
+                      [(ngModel)]="springSettings.runTests">
                     <label class="form-check-label" for="runTests">Run tests before scan</label>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="jacoco" name="jacoco" [(ngModel)]="springSettings.jacoco">
+                    <input class="form-check-input" type="checkbox" id="jacoco" name="jacoco"
+                      [(ngModel)]="springSettings.jacoco">
                     <label class="form-check-label" for="jacoco">Include JaCoCo coverage</label>
                   </div>
 
@@ -126,11 +103,13 @@
                     <label class="form-label small">Build Tool</label>
                     <div>
                       <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="maven" name="buildTool" value="maven" [(ngModel)]="springSettings.buildTool" required>
+                        <input class="form-check-input" type="radio" id="maven" name="buildTool" value="maven"
+                          [(ngModel)]="springSettings.buildTool" required>
                         <label class="form-check-label" for="maven">Maven</label>
                       </div>
                       <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="gradle" name="buildTool" value="gradle" [(ngModel)]="springSettings.buildTool">
+                        <input class="form-check-input" type="radio" id="gradle" name="buildTool" value="gradle"
+                          [(ngModel)]="springSettings.buildTool">
                         <label class="form-check-label" for="gradle">Gradle</label>
                       </div>
                     </div>
@@ -138,17 +117,12 @@
 
                   <div class="mt-2">
                     <label class="form-label small" for="jdkVersion">JDK Version</label>
-                    <select 
-                      id="jdkVersion"
-                      name="jdkVersion"
-                      class="form-select form-select-sm" 
-                      [(ngModel)]="springSettings.jdkVersion"
-                      required
-                      #jdkRef="ngModel"
-                    >
+                    <select id="jdkVersion" name="jdkVersion" class="form-select form-select-sm"
+                      [(ngModel)]="springSettings.jdkVersion" required #jdkRef="ngModel">
                       <option *ngFor="let v of jdkVersions" [value]="v">{{ v }}</option>
                     </select>
-                    <div class="text-danger small" *ngIf="jdkRef.invalid && jdkRef.touched">Please select JDK version.</div>
+                    <div class="text-danger small" *ngIf="jdkRef.invalid && jdkRef.touched">Please select JDK version.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -156,32 +130,37 @@
           </div>
         </div>
 
-        <hr/>
+        <hr />
 
         <!-- Quality Gates -->
         <div class="mb-3">
           <h6 class="fw-semibold">Quality Gates</h6>
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="failOnError" name="failOnError" [(ngModel)]="qualityGates.failOnError">
+            <input class="form-check-input" type="checkbox" id="failOnError" name="failOnError"
+              [(ngModel)]="qualityGates.failOnError" (change)="onFailOnErrorChange()">
             <label class="form-check-label" for="failOnError">Fail scan if quality gate fails</label>
-          </div>    
+          </div>
 
           <div class="row g-2">
             <div class="col-6 col-md-3">
               <label class="form-label small" for="coverageThreshold">Coverage threshold (%)</label>
-              <input type="number" id="coverageThreshold" name="coverageThreshold" class="form-control form-control-sm" [(ngModel)]="qualityGates.coverageThreshold" min="0" max="100"/>
+              <input type="number" id="coverageThreshold" name="coverageThreshold" class="form-control form-control-sm"
+                [(ngModel)]="qualityGates.coverageThreshold" min="0" max="100" />
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label small" for="maxBugs">Max bugs</label>
-              <input type="number" id="maxBugs" name="maxBugs" class="form-control form-control-sm" [(ngModel)]="qualityGates.maxBugs" min="0"/>
+              <input type="number" id="maxBugs" name="maxBugs" class="form-control form-control-sm"
+                [(ngModel)]="qualityGates.maxBugs" min="0" />
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label small" for="maxVulnerabilities">Max vulnerabilities</label>
-              <input type="number" id="maxVulnerabilities" name="maxVulnerabilities" class="form-control form-control-sm" [(ngModel)]="qualityGates.maxVulnerabilities" min="0"/>
+              <input type="number" id="maxVulnerabilities" name="maxVulnerabilities"
+                class="form-control form-control-sm" [(ngModel)]="qualityGates.maxVulnerabilities" min="0" />
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label small" for="maxCodeSmells">Max code smells</label>
-              <input type="number" id="maxCodeSmells" name="maxCodeSmells" class="form-control form-control-sm" [(ngModel)]="qualityGates.maxCodeSmells" min="0"/>
+              <input type="number" id="maxCodeSmells" name="maxCodeSmells" class="form-control form-control-sm"
+                [(ngModel)]="qualityGates.maxCodeSmells" min="0" />
             </div>
           </div>
         </div>
