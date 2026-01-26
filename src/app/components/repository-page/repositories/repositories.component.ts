@@ -141,6 +141,7 @@ export class RepositoriesComponent implements OnInit {
             );
 
             this.sharedData.setRepositories(merged);
+            this.sharedData.setLoading(true);
           },
           error: err => console.error('Failed to refresh full repo', err)
         });

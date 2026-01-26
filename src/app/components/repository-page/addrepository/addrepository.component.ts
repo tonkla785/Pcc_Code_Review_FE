@@ -197,6 +197,7 @@ export class AddrepositoryComponent implements OnInit {
                   });
 
                   this.sharedData.setRepositories(repos);
+                  this.sharedData.setLoading(true);
 
                   this.router.navigate(['/repositories'], {
                     state: { message: 'Scan started successfully!' }
