@@ -70,18 +70,56 @@ export class RepositoryService {
   private readonly issueService = inject(IssueService);
   private readonly auth = inject(AuthService);
 
-  //สร้างมาเพื่อเทสงานเพราะไม่อยาก merge code กับบัง
-  //เริ่มสแกน 
+  // สร้าง interface สำหรับ request
+  private getSonarConfigFromStorage() {
+    try {
+      const raw = localStorage.getItem('sonarConfig_v1');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('Failed to load sonar config from localStorage', e);
+      return null;
+    }
+  }
+
+  // เริ่มสแกน - ส่ง settings จาก localStorage ไปด้วย
   startScan(projectId: string, branch: string = 'main'): Observable<any> {
     console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
 
+    // ดึง settings จาก localStorage
+    const sonarConfig = this.getSonarConfigFromStorage();
+
+    // สร้าง request body
+    const requestBody: any = {
+      branch: branch,
+      sonarToken: sonarConfig?.authToken || ''
+    };
+
+    // เพิ่ม Angular settings ถ้ามี
+    if (sonarConfig?.angularSettings) {
+      requestBody.angularSettings = {
+        runNpm: sonarConfig.angularSettings.runNpm || false,
+        coverage: sonarConfig.angularSettings.coverage || false,
+        tsFiles: sonarConfig.angularSettings.tsFiles || false,
+        exclusions: sonarConfig.angularSettings.exclusions || '**/node_modules/**,**/*.spec.ts'
+      };
+    }
+
+    // เพิ่ม Spring settings ถ้ามี
+    if (sonarConfig?.springSettings) {
+      requestBody.springSettings = {
+        runTests: sonarConfig.springSettings.runTests || false,
+        jacoco: sonarConfig.springSettings.jacoco || false,
+        buildTool: sonarConfig.springSettings.buildTool || 'maven'
+      };
+    }
+
+    console.log('[ScanService] Request body:', requestBody);
+
     return this.http.post(
       `${environment.apiUrl}/${projectId}/scan`,
-      null,
-      {
-        params: new HttpParams().set('branch', branch),
-        ...this.authOpts()
-      }
+      requestBody,
+      this.authOpts()
     );
   }
 
