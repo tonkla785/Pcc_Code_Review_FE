@@ -42,17 +42,17 @@
         <div class="card-header">OWASP Top 10 Coverage</div>
         <div class="card-body">
           <ul class="list-group">
-            <li *ngFor="let item of owaspCoverage" class="list-group-item d-flex justify-content-between align-items-center">
+            <li *ngFor="let item of owaspCoverage"
+              class="list-group-item d-flex justify-content-between align-items-center">
               {{ item.name }}
-              <i 
-                [ngClass]="{
+              <i [ngClass]="{
                   'bi bi-check-circle-fill text-success': item.status === 'pass',
                   'bi bi-exclamation-triangle-fill text-warning': item.status === 'warning',
                   'bi bi-x-circle-fill text-danger': item.status === 'fail'
                 }">
               </i>
             </li>
-          </ul>       
+          </ul>
         </div>
       </div>
     </div>
@@ -62,9 +62,12 @@
       <div class="card shadow-sm">
         <div class="card-header">Hot Security Issues</div>
         <div class="card-body">
-          <ol>
-            <li *ngFor="let issue of hotIssues">{{issue}}</li>
+          <ol *ngIf="hotIssues.length > 0; else noHotIssues">
+            <li *ngFor="let issue of hotIssues">{{issue.name}} ({{issue.count}})</li>
           </ol>
+          <ng-template #noHotIssues>
+            <p class="text-muted text-center">No security issues found</p>
+          </ng-template>
           <button class="btn btn-outline-primary btn-sm w-100" [routerLink]="['/issue']"
             [queryParams]="{ type: 'security' }">
             View All Security Issues
@@ -78,17 +81,10 @@
   <!-- Security Trend Chart -->
   <div class="card shadow-sm mt-3">
     <div class="card-body">
-      <apx-chart 
-  [series]="chartSeries" 
-  [chart]="chartOptions.chart!"
-  [xaxis]="chartOptions.xaxis!"
-  [stroke]="chartOptions.stroke!"
-  [yaxis]="chartOptions.yaxis!"
-  [colors]="chartOptions.colors!"
-  [dataLabels]="chartOptions.dataLabels!"
-  [tooltip]="chartOptions.tooltip!"
-  [title]="chartOptions.title!">
-</apx-chart>
+      <apx-chart [series]="chartSeries" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
+        [stroke]="chartOptions.stroke!" [yaxis]="chartOptions.yaxis!" [colors]="chartOptions.colors!"
+        [dataLabels]="chartOptions.dataLabels!" [tooltip]="chartOptions.tooltip!" [title]="chartOptions.title!">
+      </apx-chart>
 
 
     </div>
