@@ -151,7 +151,6 @@ export class SonarqubeconfigComponent {
   }
 
   resetSettings() {
-    if (!confirm('Reset settings to default?')) return;
     localStorage.removeItem(this.storageKey);
     this.serverUrl = 'https://code.pccth.com';
     this.authToken = '';
