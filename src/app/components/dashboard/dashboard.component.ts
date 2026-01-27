@@ -17,7 +17,7 @@ import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
-import Swal from 'sweetalert2';
+
 interface TopIssue {
   message: string;
   count: number;
@@ -389,32 +389,20 @@ buildPieChart() {
     this.passwordData = { oldPassword: '', newPassword: '', confirmPassword: '' };
   }
 
-submitChangePassword(form: any) {
-  this.submitted = true;
-  if (form.invalid || this.passwordData.newPassword !== this.passwordData.confirmPassword) return;
+  submitChangePassword(form: any) {
+    this.submitted = true;
+    if (form.invalid || this.passwordData.newPassword !== this.passwordData.confirmPassword) return;
 
-  this.userService.changePassword(this.passwordData).subscribe({
-    next: () => {
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: 'Password changed successfully',
-        confirmButtonColor: '#3085d6',
-      }).then(() => {
+    this.userService.changePassword(this.passwordData).subscribe({
+      next: () => {
+        alert('Password changed successfully');
         this.closeChangePasswordModal();
-      });
-    },
-    error: (err) => {
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed',
-        text: err.error?.message || err.message || 'Failed to change password',
-        confirmButtonColor: '#d33',
-      });
-    }
-  });
-}
-
+      },
+      error: (err) => {
+        alert('Failed to change password: ' + (err.error?.message || err.message));
+      }
+    });
+  }
 
   // verifyEmail() {
   //   this.userService.verifyEmail(this.userProfile.email).subscribe({
