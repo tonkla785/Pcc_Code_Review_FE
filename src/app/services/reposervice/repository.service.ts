@@ -5,9 +5,9 @@ import { ScanService, Scan } from '../scanservice/scan.service';
 import { IssueService, Issue } from '../issueservice/issue.service';
 import { AuthService } from '../authservice/auth.service';
 import { environment } from '../../environments/environment';
-import { getLatestScan } from '../../utils/format.utils';
 import { QualityGates } from '../../interface/sonarqube_interface';
 import { SonarQubeService } from '../sonarqubeservice/sonarqube.service';
+import { getLatestScan } from '../../utils/format.utils';
 
 export interface Repository {
   id?: string;
@@ -16,6 +16,7 @@ export interface Repository {
   name: string;
   repositoryUrl: string;
   projectType?: 'ANGULAR' | 'SPRING_BOOT';
+  projectTypeLabel?: string;
   branch?: string;
   sonarProjectKey?: string;
   createdAt?: Date;
@@ -183,12 +184,13 @@ export class RepositoryService {
     },
     gates: QualityGates
   ): 'Passed' | 'Failed' {
+    console.log('Evaluating quality gate with metrics:', metrics, 'and gates:', gates);
 
-    if (!gates.failOnError) {
-      return 'Passed';
-    }
+    // if (!gates.failOnError) {
+    //   return 'Passed';
+    // }
 
-    if ((metrics.coverage ?? 100) < gates.coverageThreshold) {
+    if ((metrics.coverage ?? 0) > gates.coverageThreshold) {
       return 'Failed';
     }
 
@@ -205,6 +207,19 @@ export class RepositoryService {
     }
 
     return 'Passed';
+  }
+
+  private mapProjectTypeLabel(
+    type?: 'ANGULAR' | 'SPRING_BOOT'
+  ): string | undefined {
+    if (!type) return undefined;
+
+    switch (type) {
+      case 'SPRING_BOOT':
+        return 'SPRING BOOT';
+      case 'ANGULAR':
+        return 'ANGULAR';
+    }
   }
 
 
@@ -245,13 +260,14 @@ export class RepositoryService {
           );
           const cachedStatus = this.getCachedStatus(project.id);
           const gates = this.SonarQubeService.getQualityGates();
-          console.log('[Repo] QualityGates from config:', gates);
+          console.log('Repo QualityGates from config:', gates);
 
           return {
             projectId: project.id,
             name: project.name,
             repositoryUrl: project.repositoryUrl,
             projectType: project.projectType,
+            projectTypeLabel: this.mapProjectTypeLabel(project.projectType),
             sonarProjectKey: project.sonarProjectKey,
             createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
@@ -280,9 +296,13 @@ export class RepositoryService {
 
             lastScan: latestScan?.startedAt,
 
-            qualityGate: latestScan?.metrics
-              ? this.evaluateQualityGate(latestScan.metrics, gates)
-              : undefined,
+            qualityGate: gates.failOnError
+              ? (latestScan?.metrics
+                ? this.evaluateQualityGate(latestScan.metrics, gates)
+                : undefined)
+              : (latestScan?.qualityGate
+                ? this.scanService.mapQualityStatus(latestScan.qualityGate)
+                : undefined),
 
 
             metrics: latestScan?.metrics
@@ -296,9 +316,6 @@ export class RepositoryService {
               : undefined
           };
         });
-
-        // console.log('Mapped repositories:', repos);
-
         // Sort by lastScan or updatedAt
         return repos.sort((a, b) => {
           const aTime = a.lastScan?.getTime() ?? a.updatedAt?.getTime() ?? a.createdAt?.getTime() ?? 0;
@@ -351,11 +368,14 @@ export class RepositoryService {
           s => s.completedAt
         );
 
+        const gates = this.SonarQubeService.getQualityGates();
+
         return {
           projectId: project.id,
           name: project.name,
           repositoryUrl: project.repositoryUrl,
           projectType: project.projectType,
+          projectTypeLabel: this.mapProjectTypeLabel(project.projectType),
           sonarProjectKey: project.sonarProjectKey,
           createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
           updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
@@ -364,7 +384,14 @@ export class RepositoryService {
 
           status: latest?.status ?? 'Active',
           lastScan: latest?.completedAt,
-          qualityGate: latest?.qualityGate,
+
+          qualityGate: gates.failOnError
+            ? (latest?.metrics
+              ? this.evaluateQualityGate(latest.metrics, gates)
+              : undefined)
+            : latest?.qualityGate,
+
+
           metrics: latest?.metrics
         } as Repository;
       })
