@@ -100,12 +100,12 @@ export class AddrepositoryComponent implements OnInit {
         }
 
         const rawType = (repo.projectType || '').toLowerCase().trim();
-        let normalizedType: 'Angular' | 'Spring Boot' | undefined;
+        let normalizedType: 'ANGULAR' | 'SPRING_BOOT' | undefined;
 
         if (rawType.includes('angular')) {
-          normalizedType = 'Angular';
+          normalizedType = 'ANGULAR';
         } else if (rawType.includes('spring')) {
-          normalizedType = 'Spring Boot';
+          normalizedType = 'SPRING_BOOT';
         } else {
           normalizedType = undefined;
         }
@@ -150,7 +150,7 @@ export class AddrepositoryComponent implements OnInit {
     const payload = {
       name: this.gitRepository.name,
       url: this.gitRepository.repositoryUrl,
-      type: this.gitRepository.projectType === 'Angular'
+      type: this.gitRepository.projectType === 'ANGULAR'
         ? 'ANGULAR'
         : 'SPRING_BOOT',
       username: this.credentials.username,
@@ -197,6 +197,7 @@ export class AddrepositoryComponent implements OnInit {
                   });
 
                   this.sharedData.setRepositories(repos);
+                  this.sharedData.setLoading(true);
 
                   this.router.navigate(['/repositories'], {
                     state: { message: 'Scan started successfully!' }
