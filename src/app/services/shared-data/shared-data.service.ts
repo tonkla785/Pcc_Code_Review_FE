@@ -5,6 +5,7 @@ import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
+import { QualityGates } from '../../interface/sonarqube_interface';
 
 /**
  * SharedDataService - Central state management using RxJS BehaviorSubject
@@ -289,4 +290,19 @@ export class SharedDataService {
 
         this._repositories$.next(updated);
     }
+
+    // ==================== QUALITY GATES STATE ====================
+    private _qualityGates$ = new BehaviorSubject<QualityGates | null>(null);
+    readonly qualityGates$ = this._qualityGates$.asObservable();
+
+    get qualityGatesValue(): QualityGates | null {
+        return this._qualityGates$.getValue();
+    }
+
+    setQualityGates(gates: QualityGates): void {
+        this._qualityGates$.next(gates);
+    }
+
 }
+
+
