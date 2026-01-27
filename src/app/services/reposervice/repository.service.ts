@@ -384,13 +384,13 @@ export class RepositoryService {
 
           status: latest?.status ?? 'Active',
           lastScan: latest?.completedAt,
+
           qualityGate: gates.failOnError
             ? (latest?.metrics
               ? this.evaluateQualityGate(latest.metrics, gates)
               : undefined)
-            : (latest?.qualityGate
-              ? this.scanService.mapQualityStatus(latest.qualityGate)
-              : undefined),
+            : latest?.qualityGate,
+
 
           metrics: latest?.metrics
         } as Repository;
