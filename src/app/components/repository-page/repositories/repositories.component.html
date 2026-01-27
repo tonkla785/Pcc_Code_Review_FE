@@ -34,26 +34,26 @@
       <li class="nav-item">
         <a class="nav-link" [class.active]="activeFilter === 'all'" (click)="filterBy('all')">
           All Repositories
-          <span class="badge bg-secondary ms-1">{{ filteredRepositories.length }}</span>
+          <span class="badge bg-secondary ms-1">{{ repositories.length }}</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link" [class.active]="activeFilter === 'ANGULAR'" (click)="filterBy('ANGULAR')">
           Angular
-          <span class="badge bg-warning text-dark ms-1">{{ countByFramework('ANGULAR') }}</span>
+          <span class="badge bg-warning text-dark ms-1">{{ countByType('ANGULAR') }}</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link" [class.active]="activeFilter === 'SPRING_BOOT'" (click)="filterBy('SPRING_BOOT')">
           Spring Boot
-          <span class="badge bg-success ms-1">{{ countByFramework('SPRING_BOOT') }}</span>
+          <span class="badge bg-success ms-1">{{ countByType('SPRING_BOOT') }}</span>
         </a>
       </li>
     </ul>
 
     <!-- Search + Status -->
     <div class="d-flex flex-wrap gap-2 ms-auto mb-2 search-box">
-      <input type="text" class="form-control" placeholder="Search repositories..." (input)="searchRepositories($event)">
+      <input type="text" class="form-control" placeholder="Search Name Repositories..." (input)="searchRepositories($event)">
 
       <select class="form-select" [(ngModel)]="selectedStatus" (change)="filterByStatus()">
         <option value="all">All Status</option>
@@ -72,7 +72,7 @@
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <h5 class="fw-bold mb-1">{{ repo.name }}</h5>
-            <p class="text-muted mb-2">{{ repo.projectType }}</p>
+            <p class="text-muted mb-2">{{ repo.projectTypeLabel }}</p>
             <a [href]="repo.repositoryUrl" target="_blank" class="repo-link">
               <i class="bi bi-link-45deg me-1"></i>{{ repo.repositoryUrl }}
             </a>
