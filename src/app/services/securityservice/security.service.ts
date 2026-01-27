@@ -157,8 +157,7 @@ export class SecurityService {
         const hotIssues = hotIssueNames
             .map(name => ({ name, count: hotCounts[name] }))
             .filter(item => item.count > 0)
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 3);
+            .sort((a, b) => b.count - a.count);
 
         const vulnerabilities: VulnerabilitySeverity[] = [
             { severity: 'Critical', count: severityCounts['Critical'], color: 'bg-critical' },

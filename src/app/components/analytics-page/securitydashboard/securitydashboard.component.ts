@@ -6,7 +6,6 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
-import { WebSocketService } from '../../../services/websocket/websocket.service';
 import {
   SecurityIssueDTO,
   VulnerabilitySeverity,
@@ -45,7 +44,6 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
-    private readonly ws: WebSocketService,
     private readonly cdr: ChangeDetectorRef
   ) { }
 
@@ -64,14 +62,6 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.subscription.add(
-      this.ws.subscribeScanStatus().subscribe(event => {
-        if (event.status === 'SUCCESS') {
-          this.refreshSecurityData();
-        }
-      })
-    );
-
     this.loadSecurityData();
   }
 
@@ -86,18 +76,6 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
         this.applyMetrics();
       },
       error: (err) => console.error('Failed to load security issues', err)
-    });
-  }
-
-  refreshSecurityData(): void {
-    this.securityService.getSecurityIssues().subscribe({
-      next: (issues) => {
-        this.sharedData.setSecurityIssues(issues);
-        this.securityService.calculateAndStore(issues);
-        this.securityIssues = issues;
-        this.applyMetrics();
-      },
-      error: (err) => console.error('Failed to refresh security issues', err)
     });
   }
 
