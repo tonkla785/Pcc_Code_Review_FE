@@ -289,6 +289,15 @@ viewResult(scan: ScanResponseDTO) {
     this.showCompareModal = false;
   }
 
+  clearOldLogs() {
+    this.startDate = null;
+    this.endDate = null;
+    this.searchDate = null;
+    this.statusFilter = 'ALL';
+    this.selectedScans = [];
+    this.applyFilter();
+  }
+
   // ฟังก์ชันช่วยแปลงเป็น dd/mm/yyyy
   private formatDate(dateStr: string): string {
     const d = new Date(dateStr);
@@ -319,5 +328,6 @@ viewResult(scan: ScanResponseDTO) {
       this.selectedScans = this.selectedScans.filter(s => !this.pagedScans.some(p => p.id === s.id));
     }
   }
+  
 }
 
