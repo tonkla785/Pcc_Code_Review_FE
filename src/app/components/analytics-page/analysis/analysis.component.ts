@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
+import { ScanService } from '../../../services/scanservice/scan.service';
 
 interface SecurityIssue {
   name: string;
@@ -55,7 +56,8 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
-    private readonly securityService: SecurityService
+    private readonly securityService: SecurityService,
+    private readonly scanService: ScanService
   ) { }
 
   ngOnInit(): void {
@@ -64,6 +66,7 @@ export class AnalysisComponent implements OnInit, OnDestroy {
       return;
     }
     this.loadSecurityScore();
+    this.loadTechnicalDebt();
   }
 
   ngOnDestroy(): void {
@@ -93,6 +96,26 @@ export class AnalysisComponent implements OnInit, OnDestroy {
         error: (err) => console.error('Failed to load security score', err)
       });
     }
+  }
+
+  loadTechnicalDebt(): void {
+    if (!this.sharedData.hasScansHistoryCache) {
+      this.scanService.getScansHistory().subscribe({
+        next: (data) => {
+          this.sharedData.Scans = data;
+        },
+        error: (err) => console.error('Failed to load scan history', err)
+      });
+    }
+    const sub = this.sharedData.scansHistory$.subscribe(data => {
+      if (data) {
+        const totalMinutes = data.reduce((sum, p) => sum + (p.metrics?.technicalDebtMinutes || 0), 0);
+        const days = Math.floor(totalMinutes / 480);
+        this.technicalDebt = `${days}d`;
+      }
+    });
+
+    this.subscriptions.push(sub);
   }
 
   get summaryCards() {

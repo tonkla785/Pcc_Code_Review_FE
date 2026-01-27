@@ -150,27 +150,6 @@ export class SharedDataService {
         this.LoginUser.next(data);
     }
 
-
-    // ==================== SECURITY SCORE STATE ====================
-    private readonly securityScoreSubject = new BehaviorSubject<number>(0);
-    readonly securityScore = this.securityScoreSubject.asObservable();
-
-    private readonly riskLevelSubject = new BehaviorSubject<string>('');
-    readonly riskLevel = this.riskLevelSubject.asObservable();
-
-    get securityScoreValue(): number {
-        return this.securityScoreSubject.value;
-    }
-
-    get riskLevelValue(): string {
-        return this.riskLevelSubject.value;
-    }
-
-    setSecurityScore(score: number, risk: string): void {
-        this.securityScoreSubject.next(score);
-        this.riskLevelSubject.next(risk);
-    }
-
     // ==================== LOADING STATE ====================
     private _isLoading$ = new BehaviorSubject<boolean>(false);
     readonly isLoading$ = this._isLoading$.asObservable();
@@ -301,6 +280,27 @@ export class SharedDataService {
 
     setQualityGates(gates: QualityGates): void {
         this._qualityGates$.next(gates);
+    }
+
+    
+    // ==================== SECURITY SCORE STATE ====================
+    private readonly securityScoreSubject = new BehaviorSubject<number>(0);
+    readonly securityScore = this.securityScoreSubject.asObservable();
+
+    private readonly riskLevelSubject = new BehaviorSubject<string>('');
+    readonly riskLevel = this.riskLevelSubject.asObservable();
+
+    get securityScoreValue(): number {
+        return this.securityScoreSubject.value;
+    }
+
+    get riskLevelValue(): string {
+        return this.riskLevelSubject.value;
+    }
+
+    setSecurityScore(score: number, risk: string): void {
+        this.securityScoreSubject.next(score);
+        this.riskLevelSubject.next(risk);
     }
 
 }
