@@ -29,20 +29,23 @@ export class ForgotPasswordComponent {
   }
 
   submit(): void {
-    this.submitted = true;
-    if (this.form.invalid) {
-      this.snack.open('Please fill in a valid email.', '', {
-        duration: 2500,
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-red'],
-      });
-      return;
-    }
+  this.submitted = true;
 
-    this.loading = true;
-    // TODO: Implement forgot password API when available in AuthService
-    setTimeout(() => {
+  if (this.form.invalid) {
+    this.snack.open('Please fill in a valid email.', '', {
+      duration: 2500,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['app-snack', 'app-snack-red'],
+    });
+    return;
+  }
+
+  this.loading = true;
+  const email = this.form.value.email as string;
+
+  this.authService.requestPasswordReset(email).subscribe({
+    next: () => {
       this.loading = false;
       this.form.reset();
       this.submitted = false;
@@ -52,8 +55,21 @@ export class ForgotPasswordComponent {
         verticalPosition: 'top',
         panelClass: ['app-snack', 'app-snack-green'],
       });
-    }, 1000);
-  }
+    },
+    error: () => {
+      this.loading = false;
+      this.snack.open('Something went wrong. Please try again.', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red'],
+      });
+    },
+  });
+}
+
+
+
 
   goBack(): void {
     this.router.navigate(['/login']);
