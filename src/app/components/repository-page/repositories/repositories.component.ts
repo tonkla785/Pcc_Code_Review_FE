@@ -418,6 +418,27 @@ export class RepositoriesComponent implements OnInit {
       return dateB - dateA; // ล่าสุด → เก่าสุด
     });
   }
+onDelete(repo: Repository) {
+  if (!repo?.projectId) {
+    return;
+  }
+
+  if (confirm('Are you sure to delete this repository?')) {
+    this.repoService.deleteRepo(repo.projectId).subscribe(() => {
+      this.snack.open('Deleted successfully!', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red'],
+      });
+
+      this.repoService.getAllRepo().subscribe(repos => {
+        this.sharedData.setRepositories(repos);
+        this.router.navigate(['/repositories']);
+      });
+    });
+  }
+}
 
 
 }
