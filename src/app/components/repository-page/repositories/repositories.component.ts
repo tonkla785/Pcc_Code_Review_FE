@@ -81,6 +81,13 @@ export class RepositoriesComponent implements OnInit {
 
         console.log('QualityGates updated:', gates);
 
+        if (!gates.failOnError) {
+          this.repoService.getAllRepo().subscribe(repos => {
+            this.sharedData.setRepositories(repos);
+          });
+          return;
+        }
+
         //recalculated quality gate ใหม่
         const recalculated = this.repositories.map(repo => {
           if (!repo.metrics) return repo;
@@ -196,9 +203,36 @@ export class RepositoriesComponent implements OnInit {
   }
 
   searchRepositories(event: Event): void {
-    this.searchText = (event.target as HTMLInputElement).value.toLowerCase();
-    this.applyFilters();
+    const keyword = (event.target as HTMLInputElement).value
+      .trim()
+      .toLowerCase();
+
+    if (!keyword) {
+      // ไม่ค้นหา แสดงตามปกติ
+      this.filteredRepositories = this.sortRepositories([...this.repositories]);
+      this.updateSummaryStats();
+      return;
+    }
+
+    const matched: Repository[] = [];
+    const others: Repository[] = [];
+
+    this.repositories.forEach(repo => {
+      if (repo.name.toLowerCase().includes(keyword)) {
+        matched.push(repo);
+      } else {
+        others.push(repo);
+      }
+    });
+
+    this.filteredRepositories = [
+      ...this.sortRepositories(matched),
+      ...this.sortRepositories(others)
+    ];
+
+    this.updateSummaryStats();
   }
+
 
   filterBy(framework: string): void {
     this.activeFilter = framework;
@@ -226,20 +260,42 @@ export class RepositoriesComponent implements OnInit {
     this.updateSummaryStats();
   }
 
-  countByFramework(framework: string): number {
-    return this.filteredRepositories.filter(repo =>
-      repo.projectType?.toLowerCase().includes(framework.toLowerCase())
+  countByType(framework: 'ANGULAR' | 'SPRING_BOOT'): number {
+    return this.repositories.filter(
+      repo => repo.projectType === framework
     ).length;
   }
 
+
   updateSummaryStats(): void {
     this.summaryStats = [
-      { label: 'Total Repositories', count: this.filteredRepositories.length, icon: 'bi bi-database', bg: 'bg-primary' },
-      { label: 'Active', count: this.filteredRepositories.filter(r => r.status === 'Active').length, icon: 'bi bi-check-circle-fill', bg: 'bg-success' },
-      { label: 'Scanning', count: this.filteredRepositories.filter(r => r.status === 'Scanning').length, icon: 'bi bi-arrow-repeat', bg: 'bg-info' },
-      { label: 'Error', count: this.filteredRepositories.filter(r => r.status === 'Error').length, icon: 'bi bi-exclamation-circle-fill', bg: 'bg-danger' }
+      {
+        label: 'Total Repositories',
+        count: this.repositories.length,
+        icon: 'bi bi-database',
+        bg: 'bg-primary'
+      },
+      {
+        label: 'Active',
+        count: this.repositories.filter(r => r.status === 'Active').length,
+        icon: 'bi bi-check-circle-fill',
+        bg: 'bg-success'
+      },
+      {
+        label: 'Scanning',
+        count: this.repositories.filter(r => r.status === 'Scanning').length,
+        icon: 'bi bi-arrow-repeat',
+        bg: 'bg-info'
+      },
+      {
+        label: 'Error',
+        count: this.repositories.filter(r => r.status === 'Error').length,
+        icon: 'bi bi-exclamation-circle-fill',
+        bg: 'bg-danger'
+      }
     ];
   }
+
 
   private mapStatus(
     wsStatus: string
@@ -362,6 +418,27 @@ export class RepositoriesComponent implements OnInit {
       return dateB - dateA; // ล่าสุด → เก่าสุด
     });
   }
+onDelete(repo: Repository) {
+  if (!repo?.projectId) {
+    return;
+  }
+
+  if (confirm('Are you sure to delete this repository?')) {
+    this.repoService.deleteRepo(repo.projectId).subscribe(() => {
+      this.snack.open('Deleted successfully!', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red'],
+      });
+
+      this.repoService.getAllRepo().subscribe(repos => {
+        this.sharedData.setRepositories(repos);
+        this.router.navigate(['/repositories']);
+      });
+    });
+  }
+}
 
 
 }

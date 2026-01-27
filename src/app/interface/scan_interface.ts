@@ -11,19 +11,19 @@ export interface ScanResponseDTO {
   startedAt: string;                
   completedAt?: string;     
   qualityGate?: string | null;
-  metrics:  {
-  bugs: 0,
-  codeSmells: 0,
-  coverage: 0,
-  debtRatio: 0,
-  duplicatedLinesDensity: 0,
+  metrics?: {
+  bugs: number,
+  codeSmells: number,
+  coverage: number,
+  debtRatio: number,
+  duplicatedLinesDensity: number,
   maintainabilityRating?: string,
   reliabilityRating?: string,
-  securityHotspots: 0,
+  securityHotspots: number,
   securityRating?: string,
-  technicalDebtMinutes: 0,
-  vulnerabilities: 0,
-};
+  technicalDebtMinutes: number,
+  vulnerabilities: number,
+} | null;
   logFilePath?: string | null;
   issueData: [];     
 }

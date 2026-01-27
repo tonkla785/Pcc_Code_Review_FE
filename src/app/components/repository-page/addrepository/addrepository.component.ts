@@ -39,10 +39,6 @@ export class AddrepositoryComponent implements OnInit {
     );
   }
 
-  // private scanningProjectIds = new Set<string>();
-
-
-
   authMethod: 'usernamePassword' | 'accessToken' | null = null;
   isEditMode: boolean = false;
 
@@ -81,6 +77,7 @@ export class AddrepositoryComponent implements OnInit {
     if (projectId) {
       this.isEditMode = true;
       this.loadRepository(projectId);
+      console.log('Edit mode for projectId:', projectId);
     }
 
     // TODO: Get userId from token when available
@@ -100,12 +97,12 @@ export class AddrepositoryComponent implements OnInit {
         }
 
         const rawType = (repo.projectType || '').toLowerCase().trim();
-        let normalizedType: 'ANGULAR' | 'SPRING_BOOT' | undefined;
+        let normalizedType: 'ANGULAR' | 'SPRING BOOT' | undefined;
 
         if (rawType.includes('angular')) {
           normalizedType = 'ANGULAR';
         } else if (rawType.includes('spring')) {
-          normalizedType = 'SPRING_BOOT';
+          normalizedType = 'SPRING BOOT';
         } else {
           normalizedType = undefined;
         }
@@ -115,10 +112,10 @@ export class AddrepositoryComponent implements OnInit {
           user: repo.user || '',
           name: repo.name || '',
           repositoryUrl: repo.repositoryUrl || '',
-          projectType: normalizedType,
+          projectTypeLabel: normalizedType,
           sonarProjectKey: repo.sonarProjectKey || ''
         };
-        // console.log('RAW REPO FROM API:', this.gitRepository);
+        console.log('RAW REPO FROM API:', this.gitRepository);
         this.updateProjectKey();
       },
       error: (err) => console.error('Failed to load repository', err)
@@ -150,7 +147,7 @@ export class AddrepositoryComponent implements OnInit {
     const payload = {
       name: this.gitRepository.name,
       url: this.gitRepository.repositoryUrl,
-      type: this.gitRepository.projectType === 'ANGULAR'
+      type: this.gitRepository.projectTypeLabel === 'ANGULAR' //ทดสอบ
         ? 'ANGULAR'
         : 'SPRING_BOOT',
       username: this.credentials.username,
