@@ -7,8 +7,8 @@
     <!-- 1. Specific Date -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Specific Date:</label>
-      <input type="date" [(ngModel)]="searchDate" class="form-control form-control-sm" 
-             (ngModelChange)="onSearchDateChange()">
+      <input style="background-color: white"  type="date" [(ngModel)]="searchDate" class="form-control form-control-sm" 
+             (ngModelChange)="onSearchDateChange()" > 
     </div>
 
     <div class="vr"></div>
@@ -16,14 +16,18 @@
     <!-- 2. Date Range -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Range:</label>
-      <div class="date-wrapper">
-        <input type="date" [(ngModel)]="startDate" class="form-control form-control-sm" 
+      <div class="date-input">
+        <input style="background-color: white" type="date" [(ngModel)]="startDate" class="form-control form-control-sm " 
                (ngModelChange)="onStartDateChange()" placeholder="Start Date"/>
       </div>
       <span>-</span>
-      <div class="date-wrapper">
-        <input type="date" [(ngModel)]="endDate" class="form-control form-control-sm" 
-               [min]="minEndDate" placeholder="End Date"/>
+      <div class="date-input">
+        <input
+        style="background-color: white" 
+        type="date"
+        [(ngModel)]="endDate" 
+        class="form-control form-control-sm" 
+        [min]="minEndDate" placeholder="End Date"/>
       </div>
     </div>
 
