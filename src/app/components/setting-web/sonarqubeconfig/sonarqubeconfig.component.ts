@@ -10,6 +10,7 @@ import {
   QualityGates
 } from '../../../interface/sonarqube_interface';
 import Swal from 'sweetalert2';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 
 @Component({
   selector: 'app-sonarqubeconfig',
@@ -67,6 +68,7 @@ export class SonarqubeconfigComponent {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sonarQubeService: SonarQubeService,
+    private readonly sharedData: SharedDataService
   ) { }
 
   ngOnInit(): void {
@@ -151,7 +153,6 @@ export class SonarqubeconfigComponent {
   }
 
   resetSettings() {
-    if (!confirm('Reset settings to default?')) return;
     localStorage.removeItem(this.storageKey);
     this.serverUrl = 'https://code.pccth.com';
     this.authToken = '';
@@ -195,6 +196,8 @@ export class SonarqubeconfigComponent {
     };
 
     localStorage.setItem(this.storageKey, JSON.stringify(payload));
+    //แชร์ quality gates ให้ทั้งแอป
+    this.sharedData.setQualityGates(this.qualityGates);
     console.log('Saved settings:', payload);
     Swal.fire({
       icon: 'success',

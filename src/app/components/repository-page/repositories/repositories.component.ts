@@ -12,8 +12,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { WebSocketService, ScanEvent } from '../../../services/websocket/websocket.service';
 
-
-
 @Component({
   selector: 'app-repositories',
   standalone: true,
@@ -76,6 +74,30 @@ export class RepositoriesComponent implements OnInit {
       this.loadRepositories();
     }
 
+    // ฟังการเปลี่ยนแปลง Quality Gates
+    this.sharedData.qualityGates$
+      .subscribe(gates => {
+        if (!gates) return;
+
+        console.log('QualityGates updated:', gates);
+
+        //recalculated quality gate ใหม่
+        const recalculated = this.repositories.map(repo => {
+          if (!repo.metrics) return repo;
+
+          return {
+            ...repo,
+            qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
+          };
+        });
+
+        this.repositories = recalculated;
+        this.filteredRepositories = this.sortRepositories([...recalculated]);
+        this.updateSummaryStats();
+      });
+
+
+    // WebSocket รอฟังสถานะสแกน
     this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
       const mappedStatus = this.mapStatus(event.status);
 
