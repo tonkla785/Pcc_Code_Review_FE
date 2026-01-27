@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { NgApexchartsModule, ApexOptions } from 'ng-apexcharts';
+import { NgApexchartsModule, ApexOptions, ChartComponent } from 'ng-apexcharts';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
 import { SecurityIssueDTO } from '../../../interface/security_interface';
@@ -65,11 +65,15 @@ export class SecuritydashboardComponent implements OnInit {
   riskLevel = '';
 
   hotIssues: HotSecurityIssue[] = [];
+  chartReady = false;
+
+  @ViewChild('chart') chart!: ChartComponent;
 
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
-    private readonly securityService: SecurityService
+    private readonly securityService: SecurityService,
+    private readonly cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -87,6 +91,7 @@ export class SecuritydashboardComponent implements OnInit {
         this.calculateVulnerabilitiesBySeverity();
         this.calculateSecurityScore();
         this.calculateOwaspCoverage();
+        this.calculateTrend7Days();
       },
       error: (err: Error) => console.error('Failed to load security issues', err)
     });
@@ -156,20 +161,43 @@ export class SecuritydashboardComponent implements OnInit {
       status: this.getOwaspStatus(categoryCounts[cat.id])
     }));
 
-    this.calculateHotIssues(categoryCounts);
+    this.calculateHotIssues();
   }
 
-  calculateHotIssues(categoryCounts: Record<string, number>): void {
-    const a03Count = categoryCounts['A03'] || 0;
-    const sqlCount = Math.floor(a03Count / 2);
-    const xssCount = a03Count - sqlCount;
+  calculateHotIssues(): void {
+    const rulesMap: Record<string, string[]> = {
+      'SQL Injection': ['S3649'],
+      'XSS Vulnerability': ['S5131'],
+      'Hardcoded Secrets': ['S2068', 'S6418'],
+      'Weak Encryption': ['S327', 'S4423', 'S4426', 'S4790'],
+      'Path Traversal': ['S2083', 'S6096']
+    };
+
+    const counts: Record<string, number> = {
+      'SQL Injection': 0,
+      'XSS Vulnerability': 0,
+      'Hardcoded Secrets': 0,
+      'Weak Encryption': 0,
+      'Path Traversal': 0
+    };
+
+    for (const issue of this.securityIssues) {
+      const currentRule = this.extractRuleId(issue.ruleKey);
+
+      for (const [category, rules] of Object.entries(rulesMap)) {
+        if (rules.includes(currentRule)) {
+          counts[category]++;
+          break;
+        }
+      }
+    }
 
     this.hotIssues = [
-      { name: 'SQL Injection', count: sqlCount },
-      { name: 'XSS Vulnerability', count: xssCount },
-      { name: 'Hardcoded Secrets', count: categoryCounts['A07'] || 0 },
-      { name: 'Weak Encryption', count: categoryCounts['A02'] || 0 },
-      { name: 'Path Traversal', count: categoryCounts['A01'] || 0 }
+      { name: 'SQL Injection', count: counts['SQL Injection'] },
+      { name: 'XSS Vulnerability', count: counts['XSS Vulnerability'] },
+      { name: 'Hardcoded Secrets', count: counts['Hardcoded Secrets'] },
+      { name: 'Weak Encryption', count: counts['Weak Encryption'] },
+      { name: 'Path Traversal', count: counts['Path Traversal'] }
     ].sort((a, b) => b.count - a.count);
   }
 
@@ -192,11 +220,79 @@ export class SecuritydashboardComponent implements OnInit {
     return this.vulnerabilities.reduce((acc, v) => acc + v.count, 0);
   }
 
-  chartSeries = [{ name: 'Security Issues', data: [5, 10, 15, 20, 15, 10, 7] }];
+  calculateTrend7Days(): void {
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const dateCountMap = new Map<string, number>();
+
+    for (const issue of this.securityIssues) {
+      if (issue.createdAt) {
+        const created = new Date(issue.createdAt);
+        if (created >= sevenDaysAgo && created <= today) {
+          const key = this.formatDateKey(created);
+          dateCountMap.set(key, (dateCountMap.get(key) || 0) + 1);
+        }
+      }
+    }
+
+    const sortedDates = Array.from(dateCountMap.entries())
+      .filter(([_, count]) => count > 0)
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    const days: string[] = [];
+    const counts: number[] = [];
+
+    if (sortedDates.length === 0) {
+      days.push('Day 1');
+      counts.push(0);
+    } else {
+      sortedDates.forEach(([_, count], index) => {
+        days.push(`Day ${index + 1}`);
+        counts.push(count);
+      });
+    }
+
+    this.chartSeries = [{ name: 'Security Issues', data: counts }];
+
+    this.chartOptions = {
+      chart: { type: 'line', height: 200, toolbar: { show: false } },
+      stroke: { curve: 'smooth', width: 3 },
+      xaxis: {
+        categories: days,
+        type: 'category'
+      },
+      yaxis: { min: 0, forceNiceScale: true, decimalsInFloat: 0 },
+      dataLabels: { enabled: false },
+      tooltip: { enabled: true },
+      title: { text: 'Security Trend (7 Days)', align: 'left' },
+      colors: ['#008FFB']
+    };
+
+    this.chartReady = false;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.chartReady = true;
+      this.cdr.detectChanges();
+    }, 50);
+  }
+
+  private formatDateKey(date: Date): string {
+    let year = date.getFullYear();
+    if (year > 2400) {
+      year -= 543;
+    }
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  chartSeries = [{ name: 'Security Issues', data: [] as number[] }];
   chartOptions: ApexOptions = {
     chart: { type: 'line', height: 200, toolbar: { show: false } },
     stroke: { curve: 'smooth', width: 3 },
-    xaxis: { categories: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'] },
+    xaxis: { categories: [], type: 'category' },
     yaxis: { min: 0 },
     dataLabels: { enabled: false },
     tooltip: { enabled: true },

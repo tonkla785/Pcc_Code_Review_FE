@@ -24,7 +24,8 @@
               <span>{{v.count}}</span>
             </div>
             <div class="progress-bar-container">
-              <div class="progress-bar" [ngClass]="v.color" [style.width.%]="(v.count / totalVulnerabilities) * 100">
+              <div *ngIf="v.count > 0" class="progress-bar" [ngClass]="v.color"
+                [style.width.%]="(v.count / totalVulnerabilities) * 100">
               </div>
             </div>
           </div>
@@ -81,11 +82,14 @@
   <!-- Security Trend Chart -->
   <div class="card shadow-sm mt-3">
     <div class="card-body">
-      <apx-chart [series]="chartSeries" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
-        [stroke]="chartOptions.stroke!" [yaxis]="chartOptions.yaxis!" [colors]="chartOptions.colors!"
-        [dataLabels]="chartOptions.dataLabels!" [tooltip]="chartOptions.tooltip!" [title]="chartOptions.title!">
+      <apx-chart *ngIf="chartReady" #chart [series]="chartSeries" [chart]="chartOptions.chart!"
+        [xaxis]="chartOptions.xaxis!" [stroke]="chartOptions.stroke!" [yaxis]="chartOptions.yaxis!"
+        [colors]="chartOptions.colors!" [dataLabels]="chartOptions.dataLabels!" [tooltip]="chartOptions.tooltip!"
+        [title]="chartOptions.title!">
       </apx-chart>
-
+      <div *ngIf="!chartReady" class="text-center py-4">
+        <span class="spinner-border spinner-border-sm"></span> Loading chart...
+      </div>
 
     </div>
   </div>
