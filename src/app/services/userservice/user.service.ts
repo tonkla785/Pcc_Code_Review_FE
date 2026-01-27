@@ -6,6 +6,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { ScanResponseDTO } from '../../interface/scan_interface';
+
 export interface User{
   id : string;
   username: string;
@@ -51,9 +52,21 @@ export class UserService {
 //   return this.http.put<User>(`${this.base}/update-user-profile`, user, this.authOpts());
 // }
 
-changePassword(user: ChangePasswordData): Observable<User> {
-  return this.http.post<User>(`${this.base}/change-password`, user, this.authOpts());
+changePassword(data: ChangePasswordData) {
+  return this.http.put(
+    `${this.baseUrl}/user/change-password`,
+    {
+      currentPassword: data.oldPassword,
+      newPassword: data.newPassword,
+    },
+    {
+      ...this.authOpts(),
+      responseType: 'text' as const,
+    }
+  );
 }
+
+
 
 verifyEmail(email: string): Observable<User> {
   console.log(email);

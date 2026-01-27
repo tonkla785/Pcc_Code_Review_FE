@@ -50,7 +50,7 @@
           <input type="text" name="username" [(ngModel)]="credentials.username" required #username="ngModel">
           <div class="error" *ngIf="username.invalid && username.touched">Username required.</div>
 
-          <label for="password">Token <span class="required">*</span></label>
+          <label for="password">Password <span class="required">*</span></label>
           <input type="password" name="password" [(ngModel)]="credentials.password" required minlength="6"
             #password="ngModel">
           <div class="error" *ngIf="password.invalid && password.touched">Password min 6 chars.</div>
