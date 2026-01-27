@@ -186,16 +186,6 @@ export class RepositoryService {
   ): 'Passed' | 'Failed' {
     console.log('Evaluating quality gate with metrics:', metrics, 'and gates:', gates);
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-    // if (!gates.failOnError) {
-    //   return 'Passed';
-    // }
-
->>>>>>> dev
->>>>>>> dev
     if ((metrics.coverage ?? 0) > gates.coverageThreshold) {
       return 'Failed';
     }
@@ -309,14 +299,7 @@ export class RepositoryService {
               : (latestScan?.qualityGate
                 ? this.scanService.mapQualityStatus(latestScan.qualityGate)
                 : undefined),
-<<<<<<< HEAD
-=======
 
-<<<<<<< HEAD
-=======
->>>>>>> dev
-
->>>>>>> dev
             metrics: latestScan?.metrics
               ? {
                 bugs: latestScan.metrics.bugs,
