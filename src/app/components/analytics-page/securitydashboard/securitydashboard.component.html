@@ -13,7 +13,6 @@
   </div>
 
   <div class="row">
-    <!-- Vulnerabilities -->
     <div class="col-md-4 mb-3">
       <div class="card shadow-sm">
         <div class="card-header">Vulnerabilities by Severity</div>
@@ -35,9 +34,6 @@
       </div>
     </div>
 
-
-
-    <!-- OWASP Top 10 -->
     <div class="col-md-4 mb-3">
       <div class="card shadow-sm">
         <div class="card-header">OWASP Top 10 Coverage</div>
@@ -58,7 +54,6 @@
       </div>
     </div>
 
-    <!-- Hot Security Issues -->
     <div class="col-md-4 mb-3">
       <div class="card shadow-sm">
         <div class="card-header">Hot Security Issues</div>
@@ -73,16 +68,14 @@
             [queryParams]="{ type: 'security' }">
             View All Security Issues
           </button>
-
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Security Trend Chart -->
   <div class="card shadow-sm mt-3">
     <div class="card-body">
-      <apx-chart *ngIf="chartReady" #chart [series]="chartSeries" [chart]="chartOptions.chart!"
+      <apx-chart *ngIf="chartReady && hasChartData" #chart [series]="chartSeries" [chart]="chartOptions.chart!"
         [xaxis]="chartOptions.xaxis!" [stroke]="chartOptions.stroke!" [yaxis]="chartOptions.yaxis!"
         [colors]="chartOptions.colors!" [dataLabels]="chartOptions.dataLabels!" [tooltip]="chartOptions.tooltip!"
         [title]="chartOptions.title!">
@@ -90,7 +83,10 @@
       <div *ngIf="!chartReady" class="text-center py-4">
         <span class="spinner-border spinner-border-sm"></span> Loading chart...
       </div>
-
+      <div *ngIf="chartReady && !hasChartData" class="text-center py-4 text-muted">
+        <i class="bi bi-graph-up fs-1 mb-2 d-block"></i>
+        <p class="mb-0">No security trend data available for the past 7 days</p>
+      </div>
     </div>
   </div>
 

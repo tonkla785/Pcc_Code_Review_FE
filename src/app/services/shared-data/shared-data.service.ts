@@ -282,13 +282,23 @@ export class SharedDataService {
         this._qualityGates$.next(gates);
     }
 
-    
-    // ==================== SECURITY SCORE STATE ====================
-    private readonly securityScoreSubject = new BehaviorSubject<number>(0);
-    readonly securityScore = this.securityScoreSubject.asObservable();
 
-    private readonly riskLevelSubject = new BehaviorSubject<string>('');
-    readonly riskLevel = this.riskLevelSubject.asObservable();
+    // ==================== SECURITY DASHBOARD STATE  ====================
+    private readonly securityIssuesSubject = new BehaviorSubject<any[]>([]);
+    readonly securityIssues$ = this.securityIssuesSubject.asObservable();
+
+    private readonly securityScoreSubject = new BehaviorSubject<number>(0);
+    readonly securityScore$ = this.securityScoreSubject.asObservable();
+
+    private readonly riskLevelSubject = new BehaviorSubject<string>('SAFE');
+    readonly riskLevel$ = this.riskLevelSubject.asObservable();
+
+    private readonly hotIssuesSubject = new BehaviorSubject<{ name: string; count: number }[]>([]);
+    readonly hotIssues$ = this.hotIssuesSubject.asObservable();
+
+    get securityIssuesValue(): any[] {
+        return this.securityIssuesSubject.value;
+    }
 
     get securityScoreValue(): number {
         return this.securityScoreSubject.value;
@@ -298,9 +308,40 @@ export class SharedDataService {
         return this.riskLevelSubject.value;
     }
 
-    setSecurityScore(score: number, risk: string): void {
+    get hotIssuesValue(): { name: string; count: number }[] {
+        return this.hotIssuesSubject.value;
+    }
+
+    get hasSecurityIssuesCache(): boolean {
+        return this.securityIssuesSubject.value.length > 0;
+    }
+
+    setSecurityIssues(issues: any[]): void {
+        this.securityIssuesSubject.next(issues);
+    }
+
+    setSecurityScore(score: number): void {
         this.securityScoreSubject.next(score);
-        this.riskLevelSubject.next(risk);
+    }
+
+    setRiskLevel(level: string): void {
+        this.riskLevelSubject.next(level);
+    }
+
+    setHotIssues(issues: { name: string; count: number }[]): void {
+        this.hotIssuesSubject.next(issues);
+    }
+
+    updateSecurityState(data: {
+        issues?: any[];
+        score?: number;
+        riskLevel?: string;
+        hotIssues?: { name: string; count: number }[];
+    }): void {
+        if (data.issues) this.securityIssuesSubject.next(data.issues);
+        if (data.score !== undefined) this.securityScoreSubject.next(data.score);
+        if (data.riskLevel) this.riskLevelSubject.next(data.riskLevel);
+        if (data.hotIssues) this.hotIssuesSubject.next(data.hotIssues);
     }
 
 }

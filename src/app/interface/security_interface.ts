@@ -19,3 +19,27 @@ export interface SecurityIssueDTO {
         createdAt: string;
     }[];
 }
+
+export interface VulnerabilitySeverity {
+    severity: string;
+    count: number;
+    color: string;
+}
+
+export interface OwaspCategory {
+    name: string;
+    status: 'pass' | 'warning' | 'fail';
+    count: number;
+}
+
+export interface HotSecurityIssue {
+    name: string;
+    count: number;
+}
+
+export interface SecurityMetrics {
+    score: number;
+    riskLevel: string;
+    hotIssues: HotSecurityIssue[];
+    vulnerabilities: VulnerabilitySeverity[];
+}

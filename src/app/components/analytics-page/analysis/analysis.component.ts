@@ -1,17 +1,16 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
+import { WebSocketService } from '../../../services/websocket/websocket.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 
-interface SecurityIssue {
+interface HotSecurityIssue {
   name: string;
   count: number;
-  priority: string;
-  color: string;
 }
 
 interface DebtItem {
@@ -32,19 +31,13 @@ interface DebtItem {
 export class AnalysisComponent implements OnInit, OnDestroy {
 
   securityScore = 0;
-  technicalDebt = '45d';
+  technicalDebt = '0d';
   codeCoverage = 78;
   buildStatus = 'Passing';
   lintingIssues = 12;
   testCoverage = 80;
 
-  private subscriptions: Subscription[] = [];
-
-  topSecurityIssues: SecurityIssue[] = [
-    { name: 'SQL Injection', count: 3, priority: 'High', color: 'red' },
-    { name: 'XSS Vulnerability', count: 2, priority: 'Medium', color: 'orange' },
-    { name: 'Hardcoded Secrets', count: 2, priority: 'Low', color: 'yellow' }
-  ];
+  topSecurityIssues: HotSecurityIssue[] = [];
 
   topDebtItems: DebtItem[] = [
     { item: 'Refactor legacy module', time: '5d', cost: 150000, priority: 'High', color: 'red' },
@@ -52,12 +45,16 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     { item: 'Update dependencies', time: '2d', cost: 60000, priority: 'Medium', color: 'yellow' }
   ];
 
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
-    private readonly scanService: ScanService
+    private readonly ws: WebSocketService,
+    private readonly scanService: ScanService,
+    private readonly cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -65,37 +62,54 @@ export class AnalysisComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadSecurityScore();
+    this.loadSecurityData();
     this.loadTechnicalDebt();
+    this.subscribeWebSocket();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  loadSecurityScore(): void {
-    const sub = this.sharedData.securityScore.subscribe((score: number) => {
-      this.securityScore = score;
+  private subscribeWebSocket(): void {
+    const wsSub = this.ws.subscribeScanStatus().subscribe(event => {
+      if (event.status === 'SUCCESS') {
+        console.log('[Analysis] Scan SUCCESS, refreshing...');
+        this.refreshSecurityData();
+      }
     });
-    this.subscriptions.push(sub);
+    this.subscriptions.push(wsSub);
+  }
 
-    if (this.sharedData.securityScoreValue === 0) {
-      this.securityService.getSecurityIssues().subscribe({
-        next: (issues) => {
-          const deductionMap: Record<string, number> = {
-            'BLOCKER': 20, 'CRITICAL': 10, 'MAJOR': 5, 'MINOR': 1
-          };
-          let totalDeduction = 0;
-          for (const issue of issues) {
-            totalDeduction += deductionMap[issue.severity?.toUpperCase() || ''] || 0;
-          }
-          const score = Math.max(0, 100 - totalDeduction);
-          const risk = score >= 80 ? 'LOW' : score >= 60 ? 'MEDIUM' : score >= 40 ? 'HIGH' : 'CRITICAL';
-          this.sharedData.setSecurityScore(score, risk);
-        },
-        error: (err) => console.error('Failed to load security score', err)
-      });
-    }
+  loadSecurityData(): void {
+    const scoreSub = this.sharedData.securityScore$.subscribe(score => {
+      this.securityScore = score;
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.push(scoreSub);
+
+    const hotIssuesSub = this.sharedData.hotIssues$.subscribe(issues => {
+      this.topSecurityIssues = issues;
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.push(hotIssuesSub);
+
+    this.securityService.loadAndCalculate().subscribe({
+      error: (err) => console.error('Failed to load security data', err)
+    });
+  }
+
+  refreshSecurityData(): void {
+    console.log('[Analysis] Fetching fresh security issues...');
+    this.securityService.getSecurityIssues().subscribe({
+      next: (issues) => {
+        console.log('[Analysis] Got', issues.length, 'issues');
+        this.sharedData.setSecurityIssues(issues);
+        this.securityService.calculateAndStore(issues);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to refresh security issues', err)
+    });
   }
 
   loadTechnicalDebt(): void {
@@ -107,14 +121,15 @@ export class AnalysisComponent implements OnInit, OnDestroy {
         error: (err) => console.error('Failed to load scan history', err)
       });
     }
+
     const sub = this.sharedData.scansHistory$.subscribe(data => {
       if (data) {
         const totalMinutes = data.reduce((sum, p) => sum + (p.metrics?.technicalDebtMinutes || 0), 0);
         const days = Math.floor(totalMinutes / 480);
         this.technicalDebt = `${days}d`;
+        this.cdr.detectChanges();
       }
     });
-
     this.subscriptions.push(sub);
   }
 
