@@ -58,7 +58,7 @@ export class ForgotPasswordComponent {
     },
     error: () => {
       this.loading = false;
-      this.snack.open('Something went wrong. Please try againnnnn.', '', {
+      this.snack.open('Something went wrong. Please try again.', '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
