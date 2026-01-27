@@ -1,4 +1,5 @@
-import { Component } from '@angular/core'
+import { Component, OnDestroy } from '@angular/core';
+import { interval, Subscription } from 'rxjs';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -38,7 +39,7 @@ interface DebtItem {
   templateUrl: './technicaldebt.component.html',
   styleUrl: './technicaldebt.component.css'
 })
-export class TechnicaldebtComponent {
+export class TechnicaldebtComponent implements OnDestroy {
 
 
   // Meta (matches your text)
@@ -102,15 +103,27 @@ export class TechnicaldebtComponent {
   debtChartOptions: ApexOptions = {};
 
   ScanHistoy: ScanResponseDTO[] = [];
+  pollSubscription: Subscription = new Subscription();
+
   ngOnInit(): void {
     this.sharedData.scansHistory$.subscribe(data => { 
       this.ScanHistoy = this.latestScanPerProject(data ?? []);
       this.calculateTotalDebt();
       this.calculateProjectDebts();
     });
-    if(!this.sharedData.hasScansHistoryCache){
+    
+    // Initial Load
+    this.loadScanHistory();
+
+    // Poll every 30 seconds
+    this.pollSubscription = interval(30000).subscribe(() => {
       this.loadScanHistory();
-      console.log("No cache - load from server");
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollSubscription) {
+      this.pollSubscription.unsubscribe();
     }
   }
 

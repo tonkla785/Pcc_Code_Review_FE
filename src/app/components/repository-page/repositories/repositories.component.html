@@ -133,7 +133,14 @@
 
           <!-- Action Buttons -->
           <div class="d-flex gap-2">
-
+            <!-- delete -->
+             <button
+            class="btn btn-sm btn-outline-danger"
+              title="Delete repository"
+              (click)="onDelete(repo)">
+             <i class="bi bi-trash"></i>
+             </button>
+             
             <!-- Run -->
             <button class="btn btn-sm btn-outline-primary" title="RunScan" *ngIf="repo.status == 'Active'"
               (click)="runScan(repo)">
