@@ -32,13 +32,6 @@
           </select>
           <div class="error" *ngIf="type.invalid && type.touched">Project type required.</div>
         </div>
-
-        <!-- <div class="mb-3">
-          <label for="branch" class="form-label">Default Branch <span class="required">*</span></label>
-          <input type="text" class="form-control" name="branch"
-                 [(ngModel)]="gitRepository.branch" required #branch="ngModel">
-          <div class="error" *ngIf="branch.invalid && branch.touched">Branch required.</div>
-        </div> -->
       </fieldset>
 
       <!-- Authentication -->
@@ -84,8 +77,6 @@
           <input type="text" class="form-control" name="sonarProjectKey" [(ngModel)]="sonarConfig.projectKey"
             [disabled]="true" required #sonarProjectKey="ngModel">
 
-          <!-- <input type="text" class="form-control" name="sonarProjectKey"
-                 [(ngModel)]="gitRepository.sonarProjectKey" required #sonarProjectKey="ngModel" [disabled]="!isEditMode"> -->
           <div class="error" *ngIf="sonarProjectKey.invalid && sonarProjectKey.touched">Project key required.</div>
         </div>
 

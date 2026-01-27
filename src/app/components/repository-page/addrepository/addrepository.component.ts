@@ -147,7 +147,7 @@ export class AddrepositoryComponent implements OnInit {
     const payload = {
       name: this.gitRepository.name,
       url: this.gitRepository.repositoryUrl,
-      type: this.gitRepository.projectType === 'ANGULAR'
+      type: this.gitRepository.projectTypeLabel === 'ANGULAR' //ทดสอบ
         ? 'ANGULAR'
         : 'SPRING_BOOT',
       username: this.credentials.username,
