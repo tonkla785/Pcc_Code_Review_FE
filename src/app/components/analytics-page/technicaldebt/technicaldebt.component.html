@@ -17,7 +17,7 @@
       </div>
       <div class="col-md-6">
         <div class="p-3 border rounded bg-light">
-          <strong>Estimated Cost:</strong> {{ totalCosts() | currency:'THB':'symbol':'1.0-0' }}
+          <strong>Estimated Cost:</strong> {{ totalCosts() | currency:'THB ':'symbol':'1.0-0' }}
         </div>
       </div>
     </div>
@@ -31,20 +31,21 @@
         <div *ngFor="let p of ScanHistoy;" class="mb-3">
           <div class="d-flex justify-content-between">
             <span>{{ p.project.name }}</span>
-            <span>{{ toTechDebtDays(p.metrics.technicalDebtMinutes) }}d - {{ formatTHB(p.metrics.debtRatio) }}</span>
+            <span>{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} - {{ formatTHB(p.metrics?.debtRatio || 0) }}</span>
           </div>
           <div class="card p-3 mb-3 shadow-sm">
             <h6 class="card-title mb-2">{{ p.project.name }}</h6>
             
-            <div class="progress-wrapper">
-              <progress 
-                  class="progress-bar" 
-                  [value]="p.metrics.technicalDebtMinutes" 
-                  [max]="maxProjectDays">
-              </progress>
+            <div class="progress mb-2" style="height: 10px; background-color: #e9ecef;">
+              <div class="progress-bar" role="progressbar"
+                [style.width.%]="((p.metrics?.technicalDebtMinutes || 0) / (totalDebtMinutes || 1)) * 100"
+                [style.background-color]="toTechDebtDays(p.metrics?.technicalDebtMinutes || 0) <= 7 ? '#28a745' : 
+                                           toTechDebtDays(p.metrics?.technicalDebtMinutes || 0) <= 14 ? '#ffc107' : 
+                                           toTechDebtDays(p.metrics?.technicalDebtMinutes || 0) <= 21 ? '#fd7e14' : '#dc3545'">
+              </div>
             </div>
             
-            <small class="text-muted mt-1">{{ p.metrics.technicalDebtMinutes }} / {{ maxProjectDays }} days</small>
+            <small class="text-muted mt-1">{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} / {{ totalDebtMinutes | debtTime }} ({{ ((p.metrics?.technicalDebtMinutes || 0) / (totalDebtMinutes || 1)) | percent:'1.0-1' }})</small>
           </div>
           
         </div>
@@ -99,16 +100,16 @@
     <!-- Top Debt Items -->
     <div class="card mb-4">
       <div class="card-header">
-        <i class="bi bi-exclamation-triangle"></i> Top Debt Items
+        <i class="bi bi-exclamation-triangle"></i> Top Debt Project
       </div>
       <div class="card-body table-responsive">
         <table class="table table-bordered table-striped">
           <thead class="table-light">
             <tr>
-              <th>Priority</th>
-              <th>Item</th>
-              <th>Time</th>
-              <th>Cost</th>
+              <th class="py-3 px-4 text-left font-semibold">Priority</th>
+              <th class="py-3 px-4 text-left font-semibold">Project</th>
+              <th class="py-3 px-4 text-left font-semibold">Time</th>
+              <th class="py-3 px-4 text-right font-semibold">Cost (THB)</th>
             </tr>
           </thead>
           <tbody>
@@ -124,7 +125,7 @@
                 </span>
               </td>
               <td>{{ i.item }}</td>
-              <td>{{ i.time }}</td>
+              <td>{{ i.time | debtTime }}</td> 
               <td>{{ formatTHB(i.cost) }}</td>
             </tr>
           </tbody>

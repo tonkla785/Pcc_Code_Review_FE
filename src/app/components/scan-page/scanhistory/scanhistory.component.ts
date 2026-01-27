@@ -16,12 +16,15 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 })
 export class ScanhistoryComponent {
 
-startDate: string | null = null; // yyyy-MM-dd
-endDate: string | null = null;  
-minEndDate: string | null = null;
-  scans: ScanResponseDTO[] = [];
+  startDate: string | null = null; // yyyy-MM-dd
+  endDate: string | null = null;  
+  minEndDate: string | null = null;
+  
+  searchDate: string | null = null; // Specific date search
+  statusFilter: string = 'ALL'; // Status filter
 
-  filteredScans: ScanResponseDTO[] = [...this.scans];
+  scans: ScanResponseDTO[] = [];
+  filteredScans: ScanResponseDTO[] = [];
 
   // Pagination
   pageSize: number = 5;
@@ -43,6 +46,7 @@ minEndDate: string | null = null;
     this.sharedData.scansHistory$.subscribe(data => { 
        this.originalData = data || [];
        this.ScanHistory = [...this.originalData];
+       this.applyFilter();
     });
     if(!this.sharedData.hasScansHistoryCache){
       this.loadScanHistory();
@@ -63,39 +67,70 @@ loadScanHistory() {
   });
 }
 
-applyFilter() {
-  if (!this.startDate || !this.endDate) {
-    this.ScanHistory = [...this.originalData];
-    return;
+  applyFilter() {
+    let data = [...this.originalData];
+
+    // 1. Specific Date
+    if (this.searchDate) {
+      const searchDay = new Date(this.searchDate);
+      data = data.filter(item => {
+        const d = new Date(item.startedAt);
+        return d.getFullYear() === searchDay.getFullYear() &&
+               d.getMonth() === searchDay.getMonth() &&
+               d.getDate() === searchDay.getDate();
+      });
+    } 
+    // 2. Date Range (only if specific date is not set)
+    else if (this.startDate && this.endDate) {
+      const start = new Date(this.startDate);
+      const end = new Date(this.endDate);
+      end.setHours(23, 59, 59, 999);
+      data = data.filter(item => {
+         const d = new Date(item.startedAt);
+         return d >= start && d <= end;
+      });
+    }
+
+    // 3. Status Filter
+    if (this.statusFilter !== 'ALL') {
+      data = data.filter(item => item.status?.toUpperCase() === this.statusFilter);
+    }
+
+    this.ScanHistory = data;
+    this.filteredScans = data; 
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
-  const start = new Date(this.startDate);
-  const end = new Date(this.endDate);
-  end.setHours(23, 59, 59, 999); // รวมวันสุดท้าย
-
-  this.ScanHistory = this.originalData.filter(item => {
-    const scanDate = new Date(item.startedAt); // หรือ field วันที่ของคุณ
-    return scanDate >= start && scanDate <= end;
-  });
-}
-
-onStartDateChange() {
-  if (!this.startDate) {
-    this.minEndDate = null;
-    return;
-  }
-
-  const d = new Date(this.startDate);
-  d.setDate(d.getDate() + 1);
-
-  this.minEndDate = d.toISOString().split('T')[0];
-
-  if (this.endDate && this.endDate < this.minEndDate) {
+  resetFilters() {
+    this.searchDate = null;
+    this.startDate = null;
     this.endDate = null;
+    this.minEndDate = null;
+    this.statusFilter = 'ALL';
+    this.applyFilter();
   }
-}
+
+  onStartDateChange() {
+    if (this.startDate) {
+      this.searchDate = null; // Clear specific date if range is used
+      const d = new Date(this.startDate);
+      this.minEndDate = d.toISOString().split('T')[0];
+    } else {
+      this.minEndDate = null;
+    }
+  }
+
+  onSearchDateChange() {
+    if (this.searchDate) {
+      // Clear range if specific date is used
+      this.startDate = null;
+      this.endDate = null;
+    }
+  }
   updatePagination() {
-    this.totalPages = Math.ceil(this.filteredScans.length / this.pageSize);
+    this.totalPages = Math.ceil(this.ScanHistory.length / this.pageSize);
+    if(this.totalPages === 0) this.totalPages = 1;
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
     this.updatePagedScans();
   }
@@ -217,17 +252,17 @@ viewResult(scan: ScanResponseDTO) {
   selectedScans: ScanResponseDTO[] = [];
   showCompareModal = false;
 
-  toggleScanSelection(scan: ScanResponseDTO, event: Event): void {
-    event.stopPropagation();
+  toggleScanSelection(scan: ScanResponseDTO, event?: Event): void {
+    if(event) {
+        event.stopPropagation();
+    }
+    
+    // Toggle logic
     const index = this.selectedScans.findIndex(s => s.id === scan.id);
-
     if (index >= 0) {
       this.selectedScans.splice(index, 1);
-    } else if (this.selectedScans.length < 3) {
-      this.selectedScans.push(scan);
     } else {
-      alert("เลือกได้สูงสุดได้ 3 รายการ");
-      (event.target as HTMLInputElement).checked = false;
+        this.selectedScans.push(scan);
     }
   }
 
@@ -242,6 +277,10 @@ viewResult(scan: ScanResponseDTO) {
       alert("กรุณาเลือกอย่างน้อย 2 รายการ เพื่อเปรียบเทียบ");
       return;
     }
+    if (this.selectedScans.length > 3) {
+        alert("เปรียบเทียบได้สูงสุด 3 รายการ");
+        return;
+    }
     this.showCompareModal = true;
   }
 
@@ -250,15 +289,14 @@ viewResult(scan: ScanResponseDTO) {
     this.showCompareModal = false;
   }
 
-  clearLogs() {
-    this.startDate = '';
-    this.endDate = '';
-    this.filteredScans = [...this.scans];
-    this.currentPage = 1;
+  clearOldLogs() {
+    this.startDate = null;
+    this.endDate = null;
+    this.searchDate = null;
+    this.statusFilter = 'ALL';
     this.selectedScans = [];
-    this.updatePagination();
+    this.applyFilter();
   }
-
 
   // ฟังก์ชันช่วยแปลงเป็น dd/mm/yyyy
   private formatDate(dateStr: string): string {
@@ -270,7 +308,8 @@ viewResult(scan: ScanResponseDTO) {
   }
 
   allSelected(): boolean {
-    return this.filteredScans.length > 0 && this.filteredScans.every(scan => this.isSelected(scan));
+    // Check if ALL currently displayed (paged) items are selected
+    return this.pagedScans.length > 0 && this.pagedScans.every(scan => this.isSelected(scan));
   }
 
   // ✅ คลิก Select All
@@ -278,11 +317,17 @@ viewResult(scan: ScanResponseDTO) {
     const checked = (event.target as HTMLInputElement).checked;
 
     if (checked) {
-      // เลือกทั้งหมด (ถ้าอยากจำกัดเฉพาะหน้าให้เปลี่ยน filteredScans → pagedScans)
-      this.selectedScans = [...this.filteredScans];
+      // Add all currently visible items to selection if not already there
+      this.pagedScans.forEach(scan => {
+          if(!this.isSelected(scan)) {
+              this.selectedScans.push(scan);
+          }
+      });
     } else {
-      this.selectedScans = [];
+      // Remove all currently visible items from selection
+      this.selectedScans = this.selectedScans.filter(s => !this.pagedScans.some(p => p.id === s.id));
     }
   }
-
+  
 }
+
