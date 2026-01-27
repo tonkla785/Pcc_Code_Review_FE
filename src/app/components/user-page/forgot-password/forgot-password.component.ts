@@ -58,7 +58,7 @@ export class ForgotPasswordComponent {
     },
     error: () => {
       this.loading = false;
-      this.snack.open('Something went wrong. Please try again.', '', {
+      this.snack.open('Something went wrong. Please try againnnnn.', '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
@@ -72,7 +72,8 @@ export class ForgotPasswordComponent {
 
 
   goBack(): void {
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login']); 
+
   }
 
 }
