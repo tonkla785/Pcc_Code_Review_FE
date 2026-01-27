@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RepositoryService, Repository } from '../../../services/reposervice/repository.service';
 import { ExportreportService, ReportRequest } from '../../../services/exportreportservice/exportreport.service';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import * as XLSX from 'xlsx';
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, HeadingLevel, WidthType, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
@@ -63,8 +64,14 @@ export class GeneratereportComponent {
     // { name: 'Recommendations', selected: true }
   ];
 
-  constructor(private readonly route: ActivatedRoute, private readonly repositoryService: RepositoryService, private readonly exportreportService: ExportreportService, private readonly router: Router,
-    private readonly authService: AuthService) { }
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly repositoryService: RepositoryService,
+    private readonly exportreportService: ExportreportService,
+    private readonly router: Router,
+    private readonly authService: AuthService,
+    private readonly sharedDataService: SharedDataService
+  ) { }
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn) {
@@ -76,21 +83,23 @@ export class GeneratereportComponent {
         this.reportType = params['reportType'];
       }
     });
-    // this.repositoryService.getAllRepo().subscribe(repos => {
-    //   this.projects = repos.map(repo => ({
-    //     id: repo.projectId!,      // ต้องมี id ด้วย
-    //     name: repo.name,
-    //     selected: false
-    //   }));
-    // });
 
-    //จำลองมาก่อน
-    this.projects = [
-      { id: 'proj-001', name: 'Code Review App', selected: false },
-      { id: 'proj-002', name: 'E-Commerce Platform', selected: false },
-      { id: 'proj-003', name: 'Mobile Banking', selected: false },
-    ];
+    if (!this.sharedDataService.hasRepositoriesCache) {
+      this.repositoryService.getAllRepo().subscribe({
+        next: (repos) => {
+          this.sharedDataService.setRepositories(repos);
+        },
+        error: (err) => console.error('Failed to load repositories', err)
+      });
+    }
 
+    this.sharedDataService.repositories$.subscribe(repos => {
+      this.projects = repos.map(repo => ({
+        id: repo.projectId!,
+        name: repo.name,
+        selected: false
+      }));
+    });
   }
 
   onSelectProject(selected: Project) {
@@ -230,9 +239,9 @@ export class GeneratereportComponent {
 
       // Merge cells สำหรับหัวข้อ (A1:G1, A2:G2, A3:G3)
       worksheet['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }, 
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } }, 
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }, 
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
       ];
 
       // ปรับความกว้าง column
