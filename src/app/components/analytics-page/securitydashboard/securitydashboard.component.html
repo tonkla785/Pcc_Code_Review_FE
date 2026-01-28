@@ -62,7 +62,7 @@
             <li *ngFor="let issue of hotIssues">{{issue.name}} ({{issue.count}})</li>
           </ol>
           <ng-template #noHotIssues>
-            <p class="text-muted text-center">No security issues found</p>
+            <p class="text-muted text-center">No Top Security Issues is found</p>
           </ng-template>
           <button class="btn btn-outline-primary btn-sm w-100" [routerLink]="['/issue']"
             [queryParams]="{ type: 'security' }">

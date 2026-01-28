@@ -33,54 +33,6 @@ export class ReporthistoryComponent {
       generatedBy: 'Admin',
       generatedAt: new Date('2025-09-05T09:15:00'),
       format: 'PDF'
-    },
-    {
-      reportType: 'Detailed Analysis',
-      projects: ['Intelligent Farming'],
-      dateRange: '2025-07-15 to 2025-08-15',
-      generatedBy: 'Nut',
-      generatedAt: new Date('2025-09-04T14:20:00'),
-      format: 'Excel'
-    },
-    {
-      reportType: 'User Activity',
-      projects: ['Leave System'],
-      dateRange: '2025-08-20 to 2025-08-30',
-      generatedBy: 'Tester',
-      generatedAt: new Date('2025-09-03T11:45:00'),
-      format: 'Word'
-    },
-    {
-      reportType: 'Error Logs',
-      projects: ['Frontend Automate Code'],
-      dateRange: '2025-09-01 to 2025-09-02',
-      generatedBy: 'DevOps',
-      generatedAt: new Date('2025-09-02T20:10:00'),
-      format: 'Powerpoint'
-    },
-    {
-      reportType: 'System Health',
-      projects: ['Sleep Health Dataset'],
-      dateRange: '2025-08-25 to 2025-08-31',
-      generatedBy: 'System',
-      generatedAt: new Date('2025-09-01T08:30:00'),
-      format: 'PDF'
-    },
-    {
-      reportType: 'Financial Report',
-      projects: ['Commu T-POP', 'E-Commerce'],
-      dateRange: '2025-08-01 to 2025-08-31',
-      generatedBy: 'Finance',
-      generatedAt: new Date('2025-08-30T16:50:00'),
-      format: 'Excel'
-    },
-    {
-      reportType: 'Bug Report',
-      projects: ['Frontend Automate Code Review'],
-      dateRange: '2025-08-20 to 2025-08-28',
-      generatedBy: 'QA',
-      generatedAt: new Date('2025-08-29T10:05:00'),
-      format: 'PDF'
     }
   ];
 
