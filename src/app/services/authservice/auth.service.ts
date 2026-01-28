@@ -21,13 +21,27 @@ export class AuthService {
     private tokenStorage: TokenStorageService,
   ) {}
 
+
+
+
   get token() {
     return this.tokenStorage.getAccessToken();
   }
 
+
+
+  
   get isLoggedIn(): boolean {
     return this.tokenStorage.hasToken();
   }
+
+
+
+
+
+
+
+
 
   login(payload: LoginRequest) {
     return this.http
@@ -37,10 +51,15 @@ export class AuthService {
       .pipe(tap((res) => this.tokenStorage.setAccessToken(res.accessToken)));
   }
 
+
+
+
+
+
+
   register(payload: RegisterRequest) {
     return this.http.post(`${this.base}/user/register`, payload);
-  }
-
+}
   registerEmail(payload: { type: 'Register'; email: string; username: string }) {
   return this.http.post(`${this.base}/api/email`, payload);
 }
@@ -57,6 +76,15 @@ export class AuthService {
 
 
 
+
+
+
+
+
+
+
+
+
   refresh() {
     return this.http
       .post<RefreshResponse>(
@@ -67,6 +95,15 @@ export class AuthService {
       .pipe(tap((res) => this.tokenStorage.setAccessToken(res.accessToken)));
   }
 
+
+
+
+
+
+
+
+
+
   logout() {
     return this.http
       .post(
@@ -76,6 +113,7 @@ export class AuthService {
       )
       .pipe(tap(() => this.tokenStorage.clear()));
   }
+
   private userProfileSubject = new BehaviorSubject<UserInfo | null>(null);
   userProfile$ = this.userProfileSubject.asObservable();
 
