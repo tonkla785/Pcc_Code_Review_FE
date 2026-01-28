@@ -250,6 +250,7 @@ viewResult(scan: ScanResponseDTO) {
 
 
   selectedScans: ScanResponseDTO[] = [];
+  comparisonScans: ScanResponseDTO[] = []; // Data for the modal
   showCompareModal = false;
 
   toggleScanSelection(scan: ScanResponseDTO, event?: Event): void {
@@ -281,7 +282,9 @@ viewResult(scan: ScanResponseDTO) {
         alert("เปรียบเทียบได้สูงสุด 3 รายการ");
         return;
     }
+    this.comparisonScans = [...this.selectedScans];
     this.showCompareModal = true;
+    this.selectedScans = []; // Clear selection after opening modal
   }
 
 

@@ -337,7 +337,7 @@ export class TechnicaldebtComponent implements OnDestroy {
     // Use 8 hours (480 mins) for a "work day"
     this.totalDays = Math.floor(this.totalDebtMinutes / 480);
     this.totalHours = Math.floor((this.totalDebtMinutes % 480) / 60);
-
+    this.totalCost = this.totalCosts(); 
     this.calculateCategoryDebt();
   }
 

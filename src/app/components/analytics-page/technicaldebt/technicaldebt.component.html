@@ -45,7 +45,7 @@
               </div>
             </div>
             
-            <small class="text-muted mt-1">{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} / {{ totalDebtMinutes | debtTime }} ({{ ((p.metrics?.technicalDebtMinutes || 0) / (totalDebtMinutes || 1)) | percent:'1.0-1' }})</small>
+            <small class="text-muted mt-1 ">{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} / {{ totalDebtMinutes | debtTime }} ({{ ((p.metrics?.technicalDebtMinutes || 0) / (totalDebtMinutes || 1)) | percent:'1.0-1' }})</small>
           </div>
           
         </div>

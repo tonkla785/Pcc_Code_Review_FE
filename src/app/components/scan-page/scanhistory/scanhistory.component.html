@@ -5,9 +5,9 @@
   <div class="filter-row my-3 d-flex flex-wrap align-items-center gap-3">
     
     <!-- 1. Specific Date -->
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2   ">
       <label class="fw-bold">Specific Date:</label>
-      <input style="background-color: white"  type="date" [(ngModel)]="searchDate" class="form-control form-control-sm" 
+      <input type="date" [(ngModel)]="searchDate" class="form-control form-control-sm" 
              (ngModelChange)="onSearchDateChange()" > 
     </div>
 
@@ -17,13 +17,12 @@
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Range:</label>
       <div class="date-input">
-        <input style="background-color: white" type="date" [(ngModel)]="startDate" class="form-control form-control-sm " 
+        <input  type="date" [(ngModel)]="startDate" class="form-control form-control-sm " 
                (ngModelChange)="onStartDateChange()" placeholder="Start Date"/>
       </div>
       <span>-</span>
       <div class="date-input">
         <input
-        style="background-color: white" 
         type="date"
         [(ngModel)]="endDate" 
         class="form-control form-control-sm" 
@@ -34,9 +33,9 @@
     <div class="vr"></div>
 
     <!-- 3. Status -->
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 ">
       <label class="fw-bold">Status:</label>
-      <select class="form-select form-select-sm" [(ngModel)]="statusFilter" style="width: 120px;">
+      <select class="form-select form-select-sm " [(ngModel)]="statusFilter" style="width: 120px;">
         <option value="ALL">All</option>
         <option value="SUCCESS">Success</option>
         <option value="FAILED">Failed</option>
@@ -59,7 +58,7 @@
       <thead class="table-light">
         <tr>
           <th style="width: 40px;">
-            <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)" />
+            <!-- <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)" /> -->
           </th>
           <th>Date/Time</th>
           <th>Project</th>
@@ -114,6 +113,11 @@
           </td>
   
         </tr>
+        <tr *ngIf="pagedScans.length === 0">
+          <td colspan="7" class="text-center text-muted fw-bold p-4">
+            No Data Found
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>  
@@ -162,31 +166,31 @@
         <thead>
           <tr>
             <th>Metric</th>
-            <th *ngFor="let scan of selectedScans">{{scan.project?.name}} ({{scan.startedAt | date:'yyyy-MM-dd'}})</th>
+            <th *ngFor="let scan of comparisonScans">{{scan.project?.name}} ({{scan.startedAt | date:'yyyy-MM-dd'}})</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Grade</td>
-            <td *ngFor="let scan of selectedScans">{{scan.qualityGate}} </td>
+            <td *ngFor="let scan of comparisonScans">{{scan.qualityGate}} </td>
           </tr>
           <tr>
             <td>Bugs</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.bugs ?? 0 }}</td>
+            <td *ngFor="let scan of comparisonScans">{{ scan.metrics?.bugs ?? 0 }}</td>
           </tr>
            <tr>
             <td>Code Smells</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.codeSmells ?? 0 }}</td>
+            <td *ngFor="let scan of comparisonScans">{{ scan.metrics?.codeSmells ?? 0 }}</td>
           </tr>
 
           <tr>
             <td>Coverage (%)</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.coverage ?? 0 }}</td>
+            <td *ngFor="let scan of comparisonScans">{{ scan.metrics?.coverage ?? 0 }}</td>
           </tr>
 
           <tr>
             <td>Duplications</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.duplicatedLinesDensity ?? 0 }}</td>
+            <td *ngFor="let scan of comparisonScans">{{ scan.metrics?.duplicatedLinesDensity ?? 0 }}</td>
           </tr>
         </tbody>
       </table>
