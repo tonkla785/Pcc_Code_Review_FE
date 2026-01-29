@@ -8,7 +8,7 @@
   <!-- Header -->
   <div class="issue-header">
     <button title="Back to Issue" class="back-btn" (click)="goBack()"><i class="bi bi-arrow-left"></i></button>
-    <h2><i class="bi bi-shield-lock-fill"></i> {{ issue.type }} issue : {{ issue.title }}</h2>
+    <h2><i class="bi bi-shield-lock-fill"></i> {{ issuesResult?.type }} issue : {{ issuesResult?.message }}</h2>
     <!-- <span class="priority" [ngClass]="issue.priority.toLowerCase() || 'No priority'">
       {{ issue.priority || 'No priority' }}
     </span> -->
@@ -17,43 +17,43 @@
   <!-- Issue Info -->
   <div class="issue-info">
     <div class="info-row">
-      <div><strong>ID:</strong> {{ issue.id }}</div>
-      <div><strong>Type:</strong> {{ issue.type }}</div>
+      <div><strong>ID:</strong> {{ issuesResult?.id }}</div>
+      <div><strong>Type:</strong> {{ issuesResult?.type }}</div>
     </div>
 
     <div class="info-row">
       <div>
         <strong>Severity:</strong>
-        <span [ngClass]="['badge','severity',(issue.severity || '').toLowerCase()]">
-          {{ issue.severity }}
+        <span [ngClass]="['badge','severity',(issuesResult?.severity || '').toLowerCase()]">
+          {{ issuesResult?.severity }}
         </span>
       </div>
       <div>
         <strong>Status:</strong>
-        <span [ngClass]="['badge','status',(issue.status || '').toLowerCase()]">
-          {{ issue.status }}
+        <span [ngClass]="['badge','status',(issuesResult?.status || '').toLowerCase()]">
+          {{ issuesResult?.status }}
         </span>
       </div>
     </div>
 
     <div class="info-row">
-      <div><strong>Project:</strong> {{ issue.project }}</div>
-      <div><strong>File:</strong> {{ issue.file }}</div>
+      <!-- <div><strong>Project:</strong> {{ issuesResult?.project }}</div> -->
+      <div><strong>File:</strong> {{ issuesResult?.component }}</div>
     </div>
 
     <div class="info-row">
       <!-- <div><strong>Line:</strong> {{ issue.line }}</div> -->
-      <div><strong>Created:</strong> {{ issue.created | date:'dd/MM/yyyy, hh:mm a' }}</div>
+      <div><strong>Created:</strong> {{ issuesResult?.createdAt | date:'dd/MM/yyyy, hh:mm a' }}</div>
     </div>
 
     <div class="info-row">
       <strong>Assigned:</strong>
-      {{ issue.assignedName || 'No assignee' }}
+      {{ issuesResult?.assignedTo?.username || 'No assignee' }}
 
-      <div>
+      <!-- <div>
         <strong>Due Date:</strong>
-        {{ issue.dueDate | date:'dd/MM/yyyy' }}
-      </div>
+        {{ issuesResult?.dueDate | date:'dd/MM/yyyy' }}
+      </div> -->
     </div>
   </div>
 
@@ -75,7 +75,7 @@
       <i class="bi bi-x"></i>
     </button> -->
 
-    <app-issuemodal #assignModal (assignSubmit)="handleAssignSubmit($event)" (statusSubmit)="handleStatusSubmit($event)"
+    <app-issuemodal #assignModal [issue]="issueForModal" (assignSubmit)="handleAssignSubmit($event)" (statusSubmit)="handleStatusSubmit($event)"
       (closed)="{}">
     </app-issuemodal>
 
@@ -84,12 +84,12 @@
   </div>
 
   <!-- Description -->
-  <!-- <div class="issue-description">
+  <div class="issue-description">
     <h3>Description</h3>
-    <p>{{ issue.description }}</p>
-    <pre class="code-block">{{ issue.vulnerableCode }}</pre>
-    <p><strong>Recommended Fix:</strong> {{ issue.recommendedFix }}</p>
-  </div> -->
+    <p>{{ issuesDetails?.description }}</p>
+    <pre class="code-block">{{ issuesDetails?.vulnerableCode }}</pre>
+    <p><strong>Recommended Fix:</strong> {{ issuesDetails?.recommendedFix }}</p>
+  </div>
 
   <!-- Comments -->
   <!-- <div class="issue-comments">
@@ -124,7 +124,7 @@
   <!-- Comments -->
   <div class="issue-comments mt-4">
     <h3 class="d-flex align-items-center gap-2">
-      Comments &amp; Discussion
+    {{ issuesResult?.commentData?.length || 0 }} Comments
       <button class="btn-refresh" (click)="loadComments()" [disabled]="loadingComments" title="Refresh comments">
   <span *ngIf="!loadingComments">
     <i class="bi bi-arrow-clockwise me-1"></i> 
@@ -137,25 +137,25 @@
     </h3>
 
     <!-- รายการคอมเมนต์ -->
-    <div class="comment" *ngFor="let c of comments; trackBy: trackByComment">
+    <div class="comment" *ngFor="let c of (issuesResult?.commentData ?? []); trackBy: trackByComment">
       <p class="mb-1">
-        <strong>{{ c.userId }}</strong>
-        <span class="text-muted"> - {{ c.timestamp | date:'dd/MM/yyyy, hh:mm a' }}</span>
+        <strong>{{ c.user?.username }}</strong>
+        <span class="text-muted"> - {{ c.createdAt | date:'dd/MM/yyyy, hh:mm a' }}</span>
       </p>
       <p class="mb-2">{{ c.comment }}</p>
 
       <!-- แนบไฟล์ (รองรับ future use) -->
-      <div *ngIf="c.attachments?.length">
+      <!-- <div *ngIf="c.attachments?.length">
         <ul class="mb-2">
           <li *ngFor="let a of c.attachments">
             <a [href]="a.url" target="_blank" rel="noopener">📎 {{ a.filename }}</a>
           </li>
         </ul>
-      </div>
+      </div> -->
     </div>
 
     <!-- ว่าง -->
-    <div *ngIf="!comments?.length && !loadingComments" class="text-muted">
+    <div *ngIf="!issuesResult?.commentData?.length && !loadingComments" class="text-muted">
       No comments so far. Share your thoughts!
     </div>
 
