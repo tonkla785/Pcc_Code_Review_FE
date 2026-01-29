@@ -995,5 +995,19 @@ body.dark-mode .dashboard-container .recent-scans thead th:last-child {
   .dashboard-container .recent-scans thead th:nth-child(4),
   .dashboard-container .recent-scans tbody td:nth-child(4) { width: 22%; } /* Time */
 }
+.password-rules {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 6px;
+}
 
+.password-rules li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
 
+.password-rules li.pass {
+  color: #2e7d32; /* เขียว */
+}

@@ -1,3 +1,4 @@
+
 <div class="page-wrapper">
   <div class="form-card">
 
@@ -11,9 +12,9 @@
 
         <div class="mb-3">
           <label for="name" class="form-label">Repository Name <span class="required">*</span></label>
-          <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required minlength="5"
+          <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required 
             #name="ngModel" (ngModelChange)="onNameChange($event)">
-          <div class="error" *ngIf="name.invalid && name.touched">Name is required (min 5 chars).</div>
+          <div class="error" *ngIf="name.invalid && name.touched">Repository name is required</div>
         </div>
 
         <div class="mb-3">
@@ -43,7 +44,7 @@
           <input type="text" name="username" [(ngModel)]="credentials.username" required #username="ngModel">
           <div class="error" *ngIf="username.invalid && username.touched">Username required.</div>
 
-          <label for="password">Token <span class="required">*</span></label>
+          <label for="password">Password <span class="required">*</span></label>
           <input type="password" name="password" [(ngModel)]="credentials.password" required minlength="6"
             #password="ngModel">
           <div class="error" *ngIf="password.invalid && password.touched">Password min 6 chars.</div>
@@ -112,3 +113,4 @@
     </form>
   </div>
 </div>
+
