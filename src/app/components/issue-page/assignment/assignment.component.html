@@ -12,9 +12,9 @@
 
 
     </div>
-    <button type="button" class="btn btn-outline-primary" (click)="openAssignModal()" title="Change Assignee">
+    <!-- <button type="button" class="btn btn-outline-primary" (click)="openAssignModal()" title="Change Assignee">
       <i class="bi bi-person-check"></i> Assign Issue
-    </button>
+    </button> -->
   </div>
 
 
@@ -25,7 +25,7 @@
         <th class="text-center" >Assigned To</th>
         <th class="text-center">Issue</th>
         <th class="text-center">Severity</th>
-        <th class="text-center">Due Date</th>
+        <th class="text-center">Create Date</th>
         <th class="text-center">Status</th>
 
         <th class="text-center" *ngIf="hasActionColumn">Action</th>
@@ -33,8 +33,8 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let a of Assign" (click)="goToDetail(a.issueId)">
-        <td>{{ a.assignedToName }}</td>
+      <tr *ngFor="let a of issuesAll" (click)="goToDetail(a.id) " style="cursor:pointer;">
+        <td>{{ a.assignedTo.username }}</td>
         <td>{{ a.message }}</td>
         <td class="text-center">
           <span class="badge severity-badge" [ngStyle]="{
@@ -46,7 +46,7 @@
         </td>
 
 
-        <td class="text-center">{{ a.dueDate | date:'yyyy-MM-dd' }}</td>
+        <td class="text-center">{{ a.createdAt | date:'yyyy-MM-dd' }}</td>
         <td class="text-center"> 
           <span class="status-box" [ngClass]="statusClass(a.status)">
             {{ a.status }}
@@ -55,31 +55,31 @@
 
         <!-- <td>{{ a.resolution || '-' }}</td> -->
 
-        <td class="text-center" *ngIf="hasActionColumn">
+        <td class="text-center" >
           <!-- สำหรับ PENDING -->
-          <ng-container *ngIf="a.status === 'PENDING' ">
-            <button *ngIf="a.own==true" class="btn btn-success btn-sm me-1" (click)="updateStatus(a,'ACCEPT')">
+          <ng-container>
+            <button  class="btn btn-success btn-sm me-1" >
               <i class="bi bi-check-lg"></i>
             </button>
-            <button *ngIf="a.own==true" class="btn btn-danger btn-sm" (click)="updateStatus(a,'REJECT')">
+            <button class="btn btn-danger btn-sm">
               <i class="bi bi-x-lg"></i>
             </button>
           </ng-container>
 
           <!-- สำหรับ IN PROGRESS -->
           <ng-container *ngIf="a.status === 'IN PROGRESS'">
-            <button *ngIf="a.own==true" class="btn btn-primary btn-sm" (click)="updateStatus(a,'DONE')">
+            <!-- <button *ngIf="a.own==true" class="btn btn-primary btn-sm" (click)="updateStatus(a,'DONE')">
               <i class="bi bi-check2-square"></i> Done
-            </button>
+            </button> -->
           </ng-container>
 
         </td>
       </tr>
     </tbody>
   </table>
-  <app-issuemodal #assignModal (assignSubmit)="handleAssignSubmit($event)" (statusSubmit)="handleStatusSubmit($event)"
+  <!-- <app-issuemodal #assignModal (assignSubmit)="handleAssignSubmit($event)" (statusSubmit)="handleStatusSubmit($event)"
     (closed)="{}">
-  </app-issuemodal>
+  </app-issuemodal> -->
 
 </div>
 

@@ -13,7 +13,7 @@
       <!-- ปุ่ม Export -->
       <button class="export-btn" (click)="onExport()" title="Export">
         <i class="bi bi-download"></i>
-      </button>
+      </button> 
 
       <!-- ปุ่ม Notification -->
       <div class="notification-wrapper">
@@ -235,10 +235,10 @@
   <!-- Quality Trend -->
   <div class="quality-trend">
     <h4><i class="bi bi-graph-up"></i> Quality Trend (Last 30 Days)</h4>
-    <!-- <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!" [xaxis]="coverageChartOptions.xaxis!"
+    <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!" [xaxis]="coverageChartOptions.xaxis!"
     [stroke]="coverageChartOptions.stroke!" [markers]="coverageChartOptions.markers!"
     [colors]="coverageChartOptions.colors!" [yaxis]="coverageChartOptions.yaxis!">
-  </apx-chart> -->
+  </apx-chart>
   </div>
 
   <!-- Top Issues & Project Distribution -->
@@ -247,15 +247,15 @@
     <div class="col">
       <h4><i class="bi bi-exclamation-circle"></i> Top Issues</h4>
       <ul>
-        <li *ngFor="let i of topIssues">
+        <li *ngFor="let i of allIssues | slice:0:5">
           <div class="d-flex justify-content-between align-items-center">
             <span>{{ i.message }}</span>
-            <span class="badge bg-primary rounded-pill">{{ i.count }}</span>
+            <span class="badge bg-danger rounded-pill">{{ i.severity }}</span>
           </div>
         </li>
-        <li *ngIf="!topIssues || topIssues.length === 0" class="text-muted small">
+        <!-- <li *ngIf="!topIssues || topIssues.length === 0" class="text-muted small">
           No issues.
-        </li>
+        </li> -->
       </ul>
       <a [routerLink]="['/issue']" class="view-all-link">
         Manage Issues <i class="bi bi-arrow-right"></i>
@@ -269,7 +269,7 @@
 
       <div *ngFor="let p of projectDistribution" class="mb-2">
         <div class="d-flex justify-content-between">
-          <span>{{ p.type }}</span>
+          <span>{{ p.type }}( {{ p.count }} )</span>
           <span>{{ p.percent }}%</span>
         </div>
         <div class="progress" style="height: 20px;">

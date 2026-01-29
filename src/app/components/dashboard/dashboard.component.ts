@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { NgApexchartsModule, ApexOptions } from 'ng-apexcharts';
+import { NgApexchartsModule, ApexOptions, ApexYAxis, ApexMarkers, ApexStroke, ApexXAxis, ApexChart, ApexAxisChartSeries } from 'ng-apexcharts';
 import { DashboardService } from '../../services/dashboardservice/dashboard.service';
 import { ScanService, Scan } from '../../services/scanservice/scan.service';
 import { UserService, ChangePasswordData } from '../../services/userservice/user.service';
@@ -18,6 +18,8 @@ import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
+import { Repository, RepositoryService } from '../../services/reposervice/repository.service';
+import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
 interface TopIssue {
   message: string;
@@ -87,7 +89,15 @@ interface UserProfile {
   phoneNumber?: string;
   status: string;
 }
-
+export type ChartOptions = {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  stroke: ApexStroke;
+  markers: ApexMarkers;
+  yaxis:  ApexYAxis;
+  colors: string[];
+};
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -107,6 +117,7 @@ export class DashboardComponent {
     private readonly dashboardService: DashboardService,
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
+    private readonly repoService: RepositoryService,
   ) { }
 
   loading = true;
@@ -138,8 +149,7 @@ export class DashboardComponent {
   grade = '';
   gradePercent = 0;
 
-  coverageChartSeries: any[] = [];
-  coverageChartOptions: ApexOptions = {};
+
   recentScans: Scan[] = [];
   topIssues: { message: string; count: number }[] = [];
   maxTop = 5;
@@ -160,7 +170,11 @@ export class DashboardComponent {
   coverRateCount = 0;
   passedCount = 0;
   failedCount = 0;
-
+  coverageChartSeries!: ApexAxisChartSeries;
+  coverageChartOptions!: Partial<ChartOptions>;
+    repositories: Repository[] = [];
+  allIssues: IssuesResponseDTO[] = [];
+    filteredRepositories: Repository[] = [];
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
   AllScan: ScanResponseDTO[] = [];
@@ -169,6 +183,10 @@ export class DashboardComponent {
     if (!this.auth.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
+    }
+        if(!this.sharedData.hasScansHistoryCache){
+      console.log("@")
+      this.loadDashboard();
     }
       const user = this.tokenStorage.getLoginUser();
         if (user) {
@@ -179,16 +197,52 @@ export class DashboardComponent {
       this.countQualityGate();
       this.buildPieChart();
       this.countBug();
+      this.mockCoverageTrend();
     });
-       this.sharedData.LoginUser$.subscribe(data => {
+    this.sharedData.LoginUser$.subscribe(data => {
       this.UserLogin = data;
       console.log('User Login in Dashboard:', this.UserLogin);
     });
-    if(!this.sharedData.hasScansHistoryCache){
-      console.log("@")
-      this.loadDashboard();
+
+        // 1. Subscribe รับข้อมูลจาก SharedDataService
+    this.sharedData.repositories$.subscribe(repos => {
+      this.repositories = repos;
+      console.log('Repositories loaded from sharedData:', this.repositories);
+      this.calculateProjectDistribution();
+    });
+
+    // 2. เช็คว่ามีข้อมูลแล้วหรือยัง
+    if (!this.sharedData.hasRepositoriesCache) {
+      // 3. ถ้ายังไม่มี → Fetch API
+      this.loadRepositories();
     }
-    
+
+    this.sharedData.AllIssues$.subscribe(data => { 
+      const all = data ?? [];
+
+      this.allIssues = all.filter(issue => issue.severity == "CRITICAL");
+
+    });
+    if(!this.sharedData.hasIssuesCache){
+      console.log("No cache - load from server");
+      this.loadIssues();
+    }
+  }
+    loadRepositories() {
+    this.sharedData.setLoading(true);
+
+    this.repoService.getAllRepo().subscribe({
+      next: (repos) => {
+        // เก็บข้อมูลลง SharedDataService
+        this.sharedData.setRepositories(repos);
+        this.sharedData.setLoading(false);
+        console.log('Repositories loaded:', repos);
+      },
+      error: (err) => {
+        console.error('Failed to load repositories:', err);
+        this.sharedData.setLoading(false);
+      }
+    });
   }
   loadDashboard() {
     this.dashboardService.getDashboard().subscribe({
@@ -197,6 +251,7 @@ export class DashboardComponent {
         this.countQualityGate();
         this.buildPieChart();
         this.countBug();
+        this.mockCoverageTrend();
         console.log('Dashboard Data', this.DashboardData);
       },
       error: (err) => {
@@ -204,6 +259,18 @@ export class DashboardComponent {
       }
     });
   }
+  loadIssues() {
+
+  this.sharedData.setLoading(true);
+  this.issueService.getAllIssues().subscribe({
+    next: (data) => {
+      this.sharedData.IssuesShared = data;
+      this.sharedData.setLoading(false);
+      console.log('Issues loaded:', data);
+    },
+    error: () => this.sharedData.setLoading(false)
+  });
+}
   countQualityGate() {
   const scans = this.DashboardData ?? [];
   this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
@@ -218,6 +285,21 @@ export class DashboardComponent {
   this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
   console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
 }
+private dateTH(iso: string): string {
+  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+  // ได้ YYYY-MM-DD
+}
+
+countQuality(date: string): number {
+  return (this.DashboardData ?? []).filter(s => {
+    if (!s?.completedAt) return false;
+    const scanDate = this.dateTH(s.completedAt); 
+        console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
+    return scanDate === date && s.qualityGate === 'OK';
+
+  }).length;
+}
+
 buildPieChart() {
   this.pieChartOptions = {
     series: [this.passedCount, this.failedCount],
@@ -522,9 +604,9 @@ submitChangePassword(form: any) {
 
   calculateProjectDistribution() {
     const typeCounts: Record<string, number> = {};
-    const total = this.dashboardData.history.length || 1;
-    this.dashboardData.history.forEach((h) => {
-      typeCounts[h.typeproject] = (typeCounts[h.typeproject] || 0) + 1;
+    const total = this.repositories.length || 1;
+    this.repositories.forEach((h) => {
+      typeCounts[h.projectType??'Unknown'] = (typeCounts[h.projectType??'Unknown'] || 0) + 1;
     });
     this.projectDistribution = Object.entries(typeCounts).map(([type, count]) => ({
       type,
@@ -807,4 +889,62 @@ submitChangePassword(form: any) {
     this.sharedData.ScansDetail = scan;     
     this.router.navigate(['/scanresult', scan.id]);
   }
+   mockCoverageTrend() {
+    // mock วันที่ย้อนหลัง 30 วัน
+    const dates: string[] = [];
+    const coverageValues: number[] = [];
+
+
+for (let i = 29; i >= 0; i--) {
+  const d = new Date();
+  d.setDate(d.getDate() - i);
+
+  const dateKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
+
+
+  const label = d.toLocaleDateString('th-TH', {
+    day: '2-digit',
+    month: '2-digit',
+  });
+
+  dates.push(label);
+
+
+  coverageValues.push(
+    this.countQuality(dateKey)
+  );
 }
+    const maxY = Math.max(1,...coverageValues);
+    this.coverageChartSeries = [
+      {
+        name: 'Quality Grade',
+        data: coverageValues
+      }
+    ];
+
+    this.coverageChartOptions = {
+      chart: {
+        type: 'line',
+        height: 300,
+        toolbar: { show: false }
+      },
+      xaxis: {
+        categories: dates
+      },
+      yaxis: {
+        min: 0,
+         max: maxY,
+        title: { text: 'Quality Grade' }
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      markers: {
+        size: 4
+      },
+      colors: ['#0d6efd'] // bootstrap primary
+    };
+  }
+}
+
