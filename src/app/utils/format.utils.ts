@@ -215,3 +215,16 @@ export function capitalize(str: string): string {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+
+// ==================== ดึง Scan ล่าสุด ====================
+export function getLatestScan<T>(
+  scans: T[],
+  dateSelector: (scan: T) => Date | undefined
+): T | undefined {
+  return scans
+    .filter(s => dateSelector(s))
+    .sort((a, b) =>
+      (dateSelector(b)?.getTime() ?? 0) -
+      (dateSelector(a)?.getTime() ?? 0)
+    )[0];
+}

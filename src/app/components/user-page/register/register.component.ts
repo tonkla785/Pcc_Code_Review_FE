@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { catchError, finalize, of, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -64,65 +65,74 @@ export class RegisterComponent {
 
 
   onSubmit(form: NgForm) {
+  this.submitted = true;
 
-    this.submitted = true;
+  if (form.invalid || this.passwordsMismatch) {
+    this.snack.open('Registration failed', '', { duration: 2500, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['app-snack', 'app-snack-red'] });
+    return;
+  }
 
-    if (form.invalid || this.passwordsMismatch) {
+  this.loading = true;
+
+  const username = this.username.trim();
+  const email = this.email.trim();
+
+  this.auth.register({
+    username,
+    email,
+    phone: this.phoneNumber.trim(),
+    password: this.password.trim()
+  }).pipe(
+    tap(() => {
+      this.snack.open('Successfully registered!', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-blue'],
+      });
+      this.router.navigate(['/login']);
+    }),
+    switchMap(() =>
+      this.auth.registerEmail({
+        type: 'Register',
+        email,
+        username,
+      }).pipe(
+        catchError((e) => {
+          console.warn('Email webhook failed:', e);
+          return of(null);
+        })
+      )
+    ),
+    finalize(() => this.loading = false)
+  ).subscribe({
+    error: (err: HttpErrorResponse) => {
+      this.loading = false;
+
+      if (err.status === 409 && Array.isArray(err.error?.fields)) {
+        (err.error.fields as Array<'username' | 'email' | 'phoneNumber'>).forEach(f => {
+          const ctrl = form.controls[f];
+          ctrl?.setErrors({ ...(ctrl.errors || {}), duplicate: true });
+          ctrl?.markAsTouched();
+        });
+        return;
+      }
+
+      if (err.status === 409 && err.error?.message) {
+        const msg = String(err.error.message).toLowerCase();
+        if (msg.includes('username')) form.controls['username']?.setErrors({ ...(form.controls['username']?.errors || {}), duplicate: true });
+        if (msg.includes('email')) form.controls['email']?.setErrors({ ...(form.controls['email']?.errors || {}), duplicate: true });
+        if (msg.includes('phone')) form.controls['phoneNumber']?.setErrors({ ...(form.controls['phoneNumber']?.errors || {}), duplicate: true });
+      }
+
       this.snack.open('Registration failed', '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
         panelClass: ['app-snack', 'app-snack-red'],
       });
-      return;
     }
-
-    this.loading = true;
-
-    this.auth.register({
-      username: this.username.trim(),
-      email: this.email.trim(),
-      phone: this.phoneNumber.trim(),
-      password: this.password.trim()
-    }).subscribe({
-      next: (res: any) => {
-        this.loading = false;
-        this.snack.open('Successfully registered!', '', {
-          duration: 2500,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-blue'],
-        });
-        this.router.navigate(['/login']);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.loading = false;
-
-        // กรณี BE ส่ง { fields: [...] }
-        if (err.status === 409 && Array.isArray(err.error?.fields)) {
-          (err.error.fields as Array<'username' | 'email' | 'phoneNumber'>).forEach(f => {
-            const ctrl = form.controls[f];
-            ctrl?.setErrors({ ...(ctrl.errors || {}), duplicate: true });
-            ctrl?.markAsTouched();
-          });
-          return;
-        }
-
-        // กรณี BE ส่งแค่ { message: "Username already exists" } ไม่มี fields
-        if (err.status === 409 && err.error?.message) {
-          const msg = String(err.error.message).toLowerCase();
-          if (msg.includes('username')) form.controls['username']?.setErrors({ ...(form.controls['username']?.errors || {}), duplicate: true });
-          if (msg.includes('email')) form.controls['email']?.setErrors({ ...(form.controls['email']?.errors || {}), duplicate: true });
-          if (msg.includes('phone')) form.controls['phoneNumber']?.setErrors({ ...(form.controls['phoneNumber']?.errors || {}), duplicate: true });
-        }
-        this.snack.open('Registration failed', '', {
-          duration: 2500,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red'],
-        });
-      }
-    });
-  }
+  });
+}
 
 }

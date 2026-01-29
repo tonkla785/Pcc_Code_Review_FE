@@ -11,7 +11,7 @@ import { SseService } from '../../../services/scanservice/sse.service';        /
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { WebSocketService, ScanEvent } from '../../../services/websocket/websocket.service';
-
+import Swal from 'sweetalert2';
 
 
 @Component({
@@ -76,6 +76,37 @@ export class RepositoriesComponent implements OnInit {
       this.loadRepositories();
     }
 
+    // ฟังการเปลี่ยนแปลง Quality Gates
+    this.sharedData.qualityGates$
+      .subscribe(gates => {
+        if (!gates) return;
+
+        console.log('QualityGates updated:', gates);
+
+        if (!gates.failOnError) {
+          this.repoService.getAllRepo().subscribe(repos => {
+            this.sharedData.setRepositories(repos);
+          });
+          return;
+        }
+
+        //recalculated quality gate ใหม่
+        const recalculated = this.repositories.map(repo => {
+          if (!repo.metrics) return repo;
+
+          return {
+            ...repo,
+            qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
+          };
+        });
+
+        this.repositories = recalculated;
+        this.filteredRepositories = this.sortRepositories([...recalculated]);
+        this.updateSummaryStats();
+      });
+
+
+    // WebSocket รอฟังสถานะสแกน
     this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
       const mappedStatus = this.mapStatus(event.status);
 
@@ -174,9 +205,36 @@ export class RepositoriesComponent implements OnInit {
   }
 
   searchRepositories(event: Event): void {
-    this.searchText = (event.target as HTMLInputElement).value.toLowerCase();
-    this.applyFilters();
+    const keyword = (event.target as HTMLInputElement).value
+      .trim()
+      .toLowerCase();
+
+    if (!keyword) {
+      // ไม่ค้นหา แสดงตามปกติ
+      this.filteredRepositories = this.sortRepositories([...this.repositories]);
+      this.updateSummaryStats();
+      return;
+    }
+
+    const matched: Repository[] = [];
+    const others: Repository[] = [];
+
+    this.repositories.forEach(repo => {
+      if (repo.name.toLowerCase().includes(keyword)) {
+        matched.push(repo);
+      } else {
+        others.push(repo);
+      }
+    });
+
+    this.filteredRepositories = [
+      ...this.sortRepositories(matched),
+      ...this.sortRepositories(others)
+    ];
+
+    this.updateSummaryStats();
   }
+
 
   filterBy(framework: string): void {
     this.activeFilter = framework;
@@ -204,20 +262,42 @@ export class RepositoriesComponent implements OnInit {
     this.updateSummaryStats();
   }
 
-  countByFramework(framework: string): number {
-    return this.filteredRepositories.filter(repo =>
-      repo.projectType?.toLowerCase().includes(framework.toLowerCase())
+  countByType(framework: 'ANGULAR' | 'SPRING_BOOT'): number {
+    return this.repositories.filter(
+      repo => repo.projectType === framework
     ).length;
   }
 
+
   updateSummaryStats(): void {
     this.summaryStats = [
-      { label: 'Total Repositories', count: this.filteredRepositories.length, icon: 'bi bi-database', bg: 'bg-primary' },
-      { label: 'Active', count: this.filteredRepositories.filter(r => r.status === 'Active').length, icon: 'bi bi-check-circle-fill', bg: 'bg-success' },
-      { label: 'Scanning', count: this.filteredRepositories.filter(r => r.status === 'Scanning').length, icon: 'bi bi-arrow-repeat', bg: 'bg-info' },
-      { label: 'Error', count: this.filteredRepositories.filter(r => r.status === 'Error').length, icon: 'bi bi-exclamation-circle-fill', bg: 'bg-danger' }
+      {
+        label: 'Total Repositories',
+        count: this.repositories.length,
+        icon: 'bi bi-database',
+        bg: 'bg-primary'
+      },
+      {
+        label: 'Active',
+        count: this.repositories.filter(r => r.status === 'Active').length,
+        icon: 'bi bi-check-circle-fill',
+        bg: 'bg-success'
+      },
+      {
+        label: 'Scanning',
+        count: this.repositories.filter(r => r.status === 'Scanning').length,
+        icon: 'bi bi-arrow-repeat',
+        bg: 'bg-info'
+      },
+      {
+        label: 'Error',
+        count: this.repositories.filter(r => r.status === 'Error').length,
+        icon: 'bi bi-exclamation-circle-fill',
+        bg: 'bg-danger'
+      }
     ];
   }
+
 
   private mapStatus(
     wsStatus: string
@@ -340,6 +420,66 @@ export class RepositoriesComponent implements OnInit {
       return dateB - dateA; // ล่าสุด → เก่าสุด
     });
   }
+onDelete(repo: Repository) {
+  // กัน null / undefined แบบชัดเจน
+  if (!repo?.projectId) {
+    Swal.fire({
+      icon: 'error',
+      title: 'ข้อมูลไม่ถูกต้อง',
+      text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: 'ยืนยันการลบ Repository',
+    text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'ลบข้อมูล',
+    cancelButtonText: 'ยกเลิก',
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+
+      // loading ตอนกำลังลบ
+      Swal.fire({
+        title: 'กำลังลบข้อมูล...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      this.repoService.deleteRepo(repo.projectId!).subscribe({
+        next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'ลบสำเร็จ',
+            text: 'ลบ Repository เรียบร้อยแล้ว',
+            timer: 1800,
+            showConfirmButton: false
+          });
+
+          this.repoService.getAllRepo().subscribe(repos => {
+            this.sharedData.setRepositories(repos);
+            this.router.navigate(['/repositories']);
+          });
+        },
+        error: () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'ลบไม่สำเร็จ',
+            text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
+          });
+        }
+      });
+    }
+  });
+}
+
 
 
 }

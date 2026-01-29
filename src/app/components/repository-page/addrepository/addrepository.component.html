@@ -1,3 +1,4 @@
+
 <div class="page-wrapper">
   <div class="form-card">
 
@@ -25,20 +26,13 @@
 
         <div class="mb-3">
           <label for="type" class="form-label">Project Type <span class="required">*</span></label>
-          <select class="form-select" name="type" [(ngModel)]="gitRepository.projectType" required #type="ngModel">
+          <select class="form-select" name="type" [(ngModel)]="gitRepository.projectTypeLabel" required #type="ngModel">
             <option [ngValue]="undefined" disabled>-- Select Type --</option>
-            <option [ngValue]="'Angular'">Angular</option>
-            <option [ngValue]="'Spring Boot'">Spring Boot</option>
+            <option [ngValue]="'ANGULAR'">Angular</option>
+            <option [ngValue]="'SPRING BOOT'">Spring Boot</option>
           </select>
           <div class="error" *ngIf="type.invalid && type.touched">Project type required.</div>
         </div>
-
-        <!-- <div class="mb-3">
-          <label for="branch" class="form-label">Default Branch <span class="required">*</span></label>
-          <input type="text" class="form-control" name="branch"
-                 [(ngModel)]="gitRepository.branch" required #branch="ngModel">
-          <div class="error" *ngIf="branch.invalid && branch.touched">Branch required.</div>
-        </div> -->
       </fieldset>
 
       <!-- Authentication -->
@@ -50,7 +44,7 @@
           <input type="text" name="username" [(ngModel)]="credentials.username" required #username="ngModel">
           <div class="error" *ngIf="username.invalid && username.touched">Username required.</div>
 
-          <label for="password">Token <span class="required">*</span></label>
+          <label for="password">Password <span class="required">*</span></label>
           <input type="password" name="password" [(ngModel)]="credentials.password" required minlength="6"
             #password="ngModel">
           <div class="error" *ngIf="password.invalid && password.touched">Password min 6 chars.</div>
@@ -84,8 +78,6 @@
           <input type="text" class="form-control" name="sonarProjectKey" [(ngModel)]="sonarConfig.projectKey"
             [disabled]="true" required #sonarProjectKey="ngModel">
 
-          <!-- <input type="text" class="form-control" name="sonarProjectKey"
-                 [(ngModel)]="gitRepository.sonarProjectKey" required #sonarProjectKey="ngModel" [disabled]="!isEditMode"> -->
           <div class="error" *ngIf="sonarProjectKey.invalid && sonarProjectKey.touched">Project key required.</div>
         </div>
 
@@ -121,3 +113,4 @@
     </form>
   </div>
 </div>
+

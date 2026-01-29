@@ -70,8 +70,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let issue of paginatedIssues">
-          <td class="text-center"><input type="checkbox" [(ngModel)]="issue.selected"></td>
+        <tr *ngFor="let issue of issuesAll">
+          <td>sdad</td>
+          <!-- <td class="text-center"><input type="checkbox" [(ngModel)]="issue.selected"></td> -->
           <td><i class="bi me-1" [ngClass]="typeIcon(issue.type)"></i>{{ issue.type | titlecase }}</td>
           <td>
             <span class="severity-badge" [ngClass]="severityClass(issue.severity)">
@@ -81,10 +82,12 @@
           
           <td>
             <strong>{{ issue.message }}</strong><br>
-            <small class="text-muted">{{ issue.details }}</small>
+            <!-- <small class="text-muted">{{ issue.details }}</small> -->
           </td>
-          <td>{{ issue.projectName }}</td>
-          <td>{{ issue.assignee }}</td>
+          <!-- <td>{{ issue.projectName }}</td>
+          <td>{{ issue.assignee }}</td> -->
+          <td>Empty</td>
+                    <td>Empty</td>
           <td>
             <span class="status-badge" [ngClass]="statusClass(issue.status)">
               {{ issue.status | uppercase }}
@@ -92,9 +95,9 @@
           </td>
           
           <td class="text-center sticky-col">
-            <a *ngIf="issue?.issuesId" [routerLink]="['/issuedetail', issue.issuesId]" class="btn btn-info btn-sm">
+            <button *ngIf="issue?.id" (click)="viewResult(issue)" class="btn btn-info btn-sm">
               <i class="bi bi-eye"></i>
-            </a>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -118,12 +121,12 @@
   </div>
 
   <div class="bottom-action-buttons">
-    <!-- <button class="action-btn assign" (click)="assignDeveloper()" title="Assign Developer">
+    <button class="action-btn assign" (click)="assignDeveloper()" title="Assign Developer">
       <i class="bi bi-person-plus"></i>
     </button>
     <button class="action-btn status" (click)="changeStatus()" title="Update Status">
       <i class="bi bi-arrow-repeat"></i>
-    </button> -->
+    </button>
     <button class="action-btn export" (click)="exportData()" title="Export">
       <i class="bi bi-download"></i>
     </button>

@@ -1,3 +1,4 @@
+import { IssuesRequestDTO } from './../../interface/issues_interface';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
@@ -5,6 +6,10 @@ import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
+import { Issue } from '../issueservice/issue.service';
+import { IssuesResponseDTO } from '../../interface/issues_interface';
+import { commentRequestDTO, commentResponseDTO } from '../../interface/comment_interface';
+import { QualityGates } from '../../interface/sonarqube_interface';
 
 /**
  * SharedDataService - Central state management using RxJS BehaviorSubject
@@ -58,96 +63,178 @@ export class SharedDataService {
 
     // ==================== SCANS STATE ====================
     private readonly scansHistory =
-    new BehaviorSubject<ScanResponseDTO[] | null>(null);
+        new BehaviorSubject<ScanResponseDTO[] | null>(null);
 
     readonly scansHistory$ = this.scansHistory.asObservable();
 
     //เคยโหลดแล้วหรือยัง (ไม่สนว่าข้อมูลว่างไหม) 
     get hasScansHistoryLoaded(): boolean {
-    return this.scansHistory.value !== null;
+        return this.scansHistory.value !== null;
     }
     // มีข้อมูลจริง ๆ ไหม (length > 0) 
     get hasScansHistoryCache(): boolean {
-    const data = this.scansHistory.value;
-    return data !== null;
+        const data = this.scansHistory.value;
+        return data !== null;
     }
     //update cache 
     set Scans(data: ScanResponseDTO[]) {
-    this.scansHistory.next(data ?? []);
+        this.scansHistory.next(data ?? []);
     }
     get scanValue(): ScanResponseDTO[] {
-            return this.scansHistory.value ?? [];
-            }
+        return this.scansHistory.value ?? [];
+    }
     addScan(newScan: ScanResponseDTO) {
-            const next = [newScan, ...this.scanValue];
-            this.scansHistory.next(next);
-            }
+        const next = [newScan, ...this.scanValue];
+        this.scansHistory.next(next);
+    }
     private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
-        readonly selectedScan$ = this.selectedScan.asObservable();
-      
-        get hasScansDetailsLoaded(): boolean {
+    readonly selectedScan$ = this.selectedScan.asObservable();
+
+    get hasScansDetailsLoaded(): boolean {
         return this.selectedScan.value !== null;
-        }
-   
-        get hasScansDetailsCache(): boolean {
+    }
+
+    get hasScansDetailsCache(): boolean {
         const data = this.selectedScan.value;
         return data !== null;
-        }
-  
-        set ScansDetail(data: ScanResponseDTO) {
+    }
+
+    set ScansDetail(data: ScanResponseDTO) {
         this.selectedScan.next(data);
-        }
+    }
 
     private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
-        readonly AllUser$ = this.AllUser.asObservable();
-      
-        get hasUserLoaded(): boolean {
+    readonly AllUser$ = this.AllUser.asObservable();
+
+    get hasUserLoaded(): boolean {
         return this.AllUser.value !== null;
-        }
-   
-        get hasUserCache(): boolean {
+    }
+
+    get hasUserCache(): boolean {
         const data = this.AllUser.value;
         return data !== null;
-        }
-  
-        set UserShared(data: UserInfo[]) {
+    }
+
+    set UserShared(data: UserInfo[]) {
         this.AllUser.next(data);
-        }
+    }
 
-        get usersValue(): UserInfo[] {
-            return this.AllUser.value ?? [];
-            }
+    get usersValue(): UserInfo[] {
+        return this.AllUser.value ?? [];
+    }
 
-            updateUser(updated: UserInfo) {
-            const next = this.usersValue.map(u => u.id === updated.id ? updated : u);
-            this.AllUser.next(next);
-            }
+    updateUser(updated: UserInfo) {
+        const next = this.usersValue.map(u => u.id === updated.id ? updated : u);
+        this.AllUser.next(next);
+    }
 
-            addUser(newUser: UserInfo) {
-            const next = [newUser, ...this.usersValue];
-            this.AllUser.next(next);
-            }
+    addUser(newUser: UserInfo) {
+        const next = [newUser, ...this.usersValue];
+        this.AllUser.next(next);
+    }
 
-            removeUser(userId: string) {
+    removeUser(userId: string) {
             const next = this.usersValue.filter(u => u.id !== userId);
             this.AllUser.next(next);
 }
-
-private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
-        readonly LoginUser$ = this.LoginUser.asObservable();
+    private readonly AllIssues = new BehaviorSubject<IssuesResponseDTO[] | null>(null);
+        readonly AllIssues$ = this.AllIssues.asObservable();
       
-        get hasLoginUserLoaded(): boolean {
-        return this.LoginUser.value !== null;
+        get hasIssuesLoaded(): boolean {
+        return this.AllIssues.value !== null;
         }
    
-        get hasLoginUserCache(): boolean {
-        const data = this.LoginUser.value;
+        get hasIssuesCache(): boolean {
+        const data = this.AllIssues.value;
         return data !== null;
         }
   
-        set LoginUserShared(data: LoginUser) {
-        this.LoginUser.next(data);
+        set IssuesShared(data: IssuesResponseDTO[]) {
+        this.AllIssues.next(data ?? []);
         }
+
+        get issuesValue(): IssuesResponseDTO[] {
+            return this.AllIssues.value ?? [];
+            }
+
+            updateIssues(updated: IssuesResponseDTO) {
+            const next = this.issuesValue.map(u => u.id === updated.id ? updated : u);
+            this.AllIssues.next(next);
+            }
+
+            addIssues(newIssue: IssuesResponseDTO) {
+            const next = [newIssue, ...this.issuesValue];
+            this.AllIssues.next(next);
+            }
+
+            removeIssues(issueId: string) {
+            const next = this.issuesValue.filter(u => u.id !== issueId);
+            this.AllIssues.next(next);
+}
+    private readonly selectedIssues= new BehaviorSubject<IssuesResponseDTO | null>(null);
+        readonly selectedIssues$ = this.selectedIssues.asObservable();
+      
+        get hasSelectedIssuesLoaded(): boolean {
+        return this.selectedIssues.value !== null;
+        }
+   
+        get hasSelectedIssuesCache(): boolean {
+        const data = this.selectedIssues.value;
+        return data !== null;
+        }
+  
+        set SelectedIssues(data: IssuesResponseDTO) {
+        this.selectedIssues.next(data);
+        }
+        get issueValue(): IssuesResponseDTO {
+            return this.selectedIssues.value ?? null!;
+            }
+        updateIssue(patch: Partial<IssuesResponseDTO> & { id: string }) {
+            const current = this.issueValue;
+            if (!current) return;
+            if (current.id !== patch.id) return;
+
+            // merge ของเดิม + ของใหม่ แล้ว next -> ทุก component ที่ subscribe จะอัปเดตทันที
+            const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
+            this.selectedIssues.next(next);
+            }
+                addComments(newComment: commentResponseDTO) {
+                const current = this.issueValue;
+                if (!current) return;
+
+                // กันเผื่อ backend ส่ง issue เป็น id หรือ object
+                const issueId =
+                    typeof newComment.issue === 'string'
+                    ? newComment.issue
+                    : (newComment.issue as any)?.id;
+
+                if (current.id !== issueId) return;
+
+                const commentData = current.commentData ?? [];
+
+                const next: IssuesResponseDTO = {
+                    ...current,
+                    commentData: [...commentData, newComment],
+                };
+
+                this.selectedIssues.next(next);
+                }
+
+    private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
+    readonly LoginUser$ = this.LoginUser.asObservable();
+
+    get hasLoginUserLoaded(): boolean {
+        return this.LoginUser.value !== null;
+    }
+
+    get hasLoginUserCache(): boolean {
+        const data = this.LoginUser.value;
+        return data !== null;
+    }
+
+    set LoginUserShared(data: LoginUser) {
+        this.LoginUser.next(data);
+    }
 
 
     // ==================== LOADING STATE ====================
@@ -247,7 +334,7 @@ private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
     //     this._recentScans$.next([]);
     //     this._isLoading$.next(false);
     // }
-        updateRepoStatus(
+    updateRepoStatus(
         projectId: string,
         status: 'Active' | 'Scanning' | 'Error',
         scanningProgress?: number
@@ -269,4 +356,19 @@ private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
 
         this._repositories$.next(updated);
     }
+
+    // ==================== QUALITY GATES STATE ====================
+    private _qualityGates$ = new BehaviorSubject<QualityGates | null>(null);
+    readonly qualityGates$ = this._qualityGates$.asObservable();
+
+    get qualityGatesValue(): QualityGates | null {
+        return this._qualityGates$.getValue();
+    }
+
+    setQualityGates(gates: QualityGates): void {
+        this._qualityGates$.next(gates);
+    }
+
 }
+
+

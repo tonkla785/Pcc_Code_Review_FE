@@ -5,6 +5,7 @@ import { Repository, RepositoryService, ScanIssue } from '../../../services/repo
 import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import { Issue } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 
 
 @Component({
@@ -26,6 +27,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
   private scanInterval?: any;
 
   constructor(
+    private sharedData: SharedDataService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly repoService: RepositoryService,
@@ -51,6 +53,16 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
 
     this.loadRepositoryFull(this.repoId);
     this.loadScanIssues(this.scanId);
+
+    // ฟังการเปลี่ยนแปลง Quality Gates
+    this.sharedData.qualityGates$
+      .subscribe(gates => {
+        if (!gates) return;
+
+        // reload เฉพาะ repo นี้
+        this.loadRepositoryFull(this.repoId);
+      });
+
   }
 
 
@@ -77,18 +89,23 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
   loadScanIssues(scanId: string): void {
     this.scanService.getScanById(scanId).subscribe({
       next: (scan) => {
-        this.issues = (scan.issueData ?? []).map((i: any): ScanIssue => ({
-          id: i.id,
-          scanId: scan.id,
-          issueKey: i.issueKey,
-          type: i.type,
-          severity: i.severity,
-          component: i.component,
-          message: i.message,
-          status: i.status,
-          createdAt: i.createdAt,
-          assignedTo: i.assignedTo
-        }));
+        this.issues = (scan.issueData ?? [])
+          .filter((i: any) =>
+            i.type === 'BUG' || i.type === 'VULNERABILITY'
+          )
+          .map((i: any): ScanIssue => ({
+            id: i.id,
+            scanId: scan.id,
+            issueKey: i.issueKey,
+            type: i.type,
+            severity: i.severity,
+            component: i.component,
+            message: i.message,
+            status: i.status,
+            createdAt: i.createdAt,
+            assignedTo: i.assignedTo
+          }));
+
         console.log('Loaded scan issues:', this.issues);
       },
       error: (err) => {
@@ -96,6 +113,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
       }
     });
   }
+
 
 
   switchTab(tab: 'overview' | 'bugs' | 'history') {

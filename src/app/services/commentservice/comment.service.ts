@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from '../authservice/auth.service';
 import { environment } from '../../environments/environment';
+import { IssuesRequestDTO, IssuesResponseDTO } from '../../interface/issues_interface';
+import { commentRequestDTO, commentResponseDTO } from '../../interface/comment_interface';
 
 /** ของเดิมคุณ — เก็บไว้ได้ */
 export interface Comment {
@@ -34,7 +36,7 @@ export class CommentService {
   private readonly auth = inject(AuthService);
 
   /** ใช้ apiUrl ให้ตรงกับ ScanService */
-  private readonly baseUrl = `${environment.apiUrl}/issues`;
+  private readonly baseUrl = `${environment.apiUrl}`;
 
   /** รวม Auth + Content-Type ให้ถูกต้อง */
   private authHeaders(): HttpHeaders {
@@ -43,7 +45,12 @@ export class CommentService {
     if (token) headers = headers.set('Authorization', `Bearer ${token}`);
     return headers;
   }
-
+  private authOpts() {
+    const token = this.auth.token;
+    return token
+      ? { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) }
+      : {};
+  }
   /** ================== ISSUE COMMENTS API ================== */
 
   /** ดึงคอมเมนต์ทั้งหมดของ issue */
@@ -83,4 +90,11 @@ export class CommentService {
   //     { headers: this.authHeaders() }
   //   );
   // }
+      updateComments(comments : commentRequestDTO): Observable<commentResponseDTO> {
+        return this.http.post<commentResponseDTO>(
+          `${this.baseUrl}/api/comments`, comments,
+          this.authOpts(),
+        );
+
+      }
 }
