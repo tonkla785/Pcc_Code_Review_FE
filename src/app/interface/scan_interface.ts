@@ -11,12 +11,16 @@ export interface ScanResponseDTO {
   startedAt: string;                
   completedAt?: string;     
   qualityGate?: string | null;
-  metrics?: {
-  bugs: number,
-  codeSmells: number,
-  coverage: number,
-  debtRatio: number,
-  duplicatedLinesDensity: number,
+  metrics:  {
+  analysisLogs:[{
+    message: string,
+    timestamp: number
+  }]
+  bugs: 0,
+  codeSmells: 0,
+  coverage: 0,
+  debtRatio: 0,
+  duplicatedLinesDensity: 0,
   maintainabilityRating?: string,
   reliabilityRating?: string,
   securityHotspots: number,

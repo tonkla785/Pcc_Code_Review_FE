@@ -36,13 +36,11 @@ export class ScanresultComponent {
 
       console.log('scanId from route:', id);
 
-      // ถ้ามี cache และเป็น id เดียวกัน  ไม่ต้อง fetch
-      const cached = this.sharedData.ScansDetail;
-      if (cached?.id === id) {
-        console.log("NO FETCH")
-        return;
-      }
+    if(!this.sharedData.selectedScan$){
       this.loadScanDetails(id);
+      console.log("No cache - load from server");
+    }
+
     });
     }
 

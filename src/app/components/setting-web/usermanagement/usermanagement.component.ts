@@ -146,26 +146,36 @@ onSearchChange(value: string) {
     return true; // สำหรับ Add User ถ้ากรอกครบ
   }
 
-  onSubmitUser(user: UserInfo) {
+  onSubmitUser() {
+      const payload: UserInfo = {
+        id: this.modalData.id,
+        username: this.modalData.username,
+        email: this.modalData.email,
+        phone: this.modalData.phone,
+        role: this.modalData.role,
+        password: this.modalData.password
+      };
+      console.log('Submitting user payload:', payload);
+
     if(this.editingUser = true){
-      this.userDateService.EditUser(user).subscribe({
+      this.userDateService.EditUser(payload).subscribe({
         next: (updatedUser) => {
-            this.sharedData.updateUser(user);
+            this.sharedData.updateUser(payload);
           this.closeModal();
           console.log('User updated:', updatedUser);
         },
-        error: (err) => console.error(err,user)
+        error: (err) => console.error(err,payload)
       });
     }else{
-  this.userDateService.AddNewUser(user).subscribe({
+  this.userDateService.AddNewUser(payload).subscribe({
     next: (newUser) => {
       this.closeModal();
-        this.sharedData.addUser(user);
+        this.sharedData.addUser(payload);
     },
     error: (err) => console.error(err)
   });
 }
-}
+      };
 
 onDelete(projectId: string) {
   if (!confirm('ยืนยันการลบ?')) return;

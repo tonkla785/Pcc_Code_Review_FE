@@ -30,7 +30,7 @@
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Duration</span>
-          <span>{{  getDurationSeconds(scanResult?.startedAt, scanResult?.completedAt) }} seconds</span>
+          <span>{{  getDurationSeconds(scanResult?.startedAt, scanResult?.completedAt) }}</span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Scanner Type</span>
@@ -124,27 +124,147 @@
     </section>
 
     <!-- Details -->
-    <!-- <section class="mb-4">
+    <section class="mb-4">
       <h4><i class="bi bi-list-ul"></i> Details</h4>
       <ul class="list-group list-group-flush">
-        <li class="list-group-item" *ngFor="let d of log.content.details">{{ d }}</li>
-      </ul>
-    </section> -->
-
-    <!-- Warnings -->
-    <section class="mb-4" *ngIf="log.content.warnings?.length">
-      <h4><i class="bi bi-exclamation-triangle text-warning"></i> Warnings</h4>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item" *ngFor="let w of log.content.warnings">{{ w }}</li>
+        <li class="list-group-item" *ngFor="let d of scanResult?.metrics?.analysisLogs">{{ d.message }} - {{ d.timestamp | date:'dd/MM/yyyy HH:mm:ss':'Asia/Bangkok' }}</li>
       </ul>
     </section>
+
+<!-- Warnings -->
+<section class="mb-4" *ngIf="majorIssues?.length">
+  <h4 class="mb-3">
+    <i class="bi bi-exclamation-triangle text-warning"></i>
+    Warnings
+    <span class="badge bg-warning text-dark ms-2">
+      {{ majorIssues.length }}
+    </span>
+  </h4>
+<div class="table-responsive">
+  <table class="table table-sm table-bordered align-middle major-table">
+    <thead class="table-warning">
+      <tr>
+        <th class="col-no">#</th>
+        <th class="col-msg">Message</th>
+        <th class="col-comp">Component</th>
+        <th class="col-line">Line</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let w of pagedMajorIssues; let i = index">
+        <td class="text-center col-no">
+          {{ (currentPageMajor - 1) * pageSize + i + 1 }}
+        </td>
+
+        <td class="col-msg">
+          {{ w.message }}
+        </td>
+
+        <td class="col-comp text-truncate" [title]="w.component">
+          {{ w.component?.split('/').pop() }}
+        </td>
+
+        <td class="text-center col-line">
+          {{ w.line }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+  <!-- Pagination -->
+  <div class="d-flex justify-content-center align-items-center mt-2">
+    <button
+      class="btn btn-sm btn-outline-secondary me-2"
+      (click)="prevPageMajor()"
+      [disabled]="currentPageMajor === 1"
+    >
+        ก่อนหน้า
+    </button>
+
+    <span class="text-muted">
+     {{ currentPageMajor }} / {{ totalPagesMajor }}
+    </span>
+
+    <button
+      class="btn btn-sm btn-outline-secondary ms-2"
+      (click)="nextPageMajor()"
+      [disabled]="currentPageMajor === totalPagesMajor"
+    >
+       ถัดไป
+    </button>
+  </div>
+</section>
+
+
 
     <!-- Errors -->
-    <section class="mb-4" *ngIf="log.content.errors?.length">
-      <h4><i class="bi bi-bug text-danger"></i> Errors</h4>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item text-danger" *ngFor="let e of log.content.errors">{{ e }}</li>
-      </ul>
-    </section>
+<section class="mb-4" *ngIf="criticalIssues?.length">
+  <h4 class="mb-3">
+    <i class="bi bi-exclamation-triangle text-danger"></i>
+    Errors
+    <span class="badge bg-danger text-white  ms-2">
+      {{ criticalIssues.length }}
+    </span>
+  </h4>
+<div class="table-responsive">
+  <table class="table table-sm table-bordered align-middle major-table">
+    <thead class="table-danger">
+      <tr>
+        <th class="col-no">#</th>
+        <th class="col-msg">Message</th>
+        <th class="col-comp">Component</th>
+        <th class="col-line">Line</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let w of pagedCritical; let i = index">
+        <td class="text-center col-no">
+          {{ (currentPageCritical - 1) * pageSize + i + 1 }}
+        </td>
+
+        <td class="col-msg">
+          {{ w.message }}
+        </td>
+
+        <td class="col-comp text-truncate" [title]="w.component">
+          {{ w.component?.split('/').pop() }}
+        </td>
+
+        <td class="text-center col-line">
+          {{ w.line }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+  <!-- Pagination -->
+  <div class="d-flex justify-content-center align-items-center mt-2">
+    <button
+      class="btn btn-sm btn-outline-secondary me-2"
+      (click)="prevPageCritical()"
+      [disabled]="currentPageCritical === 1"
+    >
+        ก่อนหน้า
+    </button>
+
+    <span class="text-muted">
+     {{ currentPageCritical }} / {{ totalPagesCritical }}
+    </span>
+
+    <button
+      class="btn btn-sm btn-outline-secondary ms-2"
+      (click)="nextPageCritical()"
+      [disabled]="currentPageCritical === totalPagesCritical"
+    >
+       ถัดไป
+    </button>
+  </div>
+</section>
   </div>
 </div>

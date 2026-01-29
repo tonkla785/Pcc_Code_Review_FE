@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from '../authservice/auth.service';
 import { environment } from '../../environments/environment';
+import { IssuesDetailResponseDTO, IssuesRequestDTO, IssuesResponseDTO } from '../../interface/issues_interface';
+import { ScanResponseDTO } from '../../interface/scan_interface';
 
 export interface Issue {
   id: string;
@@ -41,7 +43,7 @@ export class IssueService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly base = environment.apiUrl + '/issues';
-
+  private baseUrl = environment.apiUrl;
   private authOpts() {
     const token = this.auth.token;
     return token
@@ -75,4 +77,28 @@ export class IssueService {
   getComments(issues_id: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.base}/${issues_id}/comments`);
   }
+     getAllIssues(): Observable<IssuesResponseDTO[]> {
+      return this.http.get<IssuesResponseDTO[]>(
+        `${this.baseUrl}/api/issues`,
+        this.authOpts()
+      );
+    }
+         getAllIssuesById(id: string): Observable<IssuesResponseDTO> {
+      return this.http.get<IssuesResponseDTO>(
+        `${this.baseUrl}/api/issues/${id}`,
+        this.authOpts()
+      );
+    }
+      updateIssues(issues: IssuesRequestDTO): Observable<IssuesResponseDTO> {
+      return this.http.post<IssuesResponseDTO>(
+        `${this.baseUrl}/api/issues/update`, issues,
+        this.authOpts()
+      );
+    }
+      getAllIssuesDetails(id: string): Observable<IssuesDetailResponseDTO> {
+      return this.http.get<IssuesDetailResponseDTO>(
+        `${this.baseUrl}/api/issue-details/${id}`,
+        this.authOpts()
+      );
+    }
 }
