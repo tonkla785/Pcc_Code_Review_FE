@@ -1,7 +1,6 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
@@ -28,7 +27,7 @@ interface DebtProject {
   templateUrl: './analysis.component.html',
   styleUrl: './analysis.component.css'
 })
-export class AnalysisComponent implements OnInit, OnDestroy {
+export class AnalysisComponent implements OnInit {
 
   securityScore = 0;
   technicalDebt = '0d';
@@ -40,7 +39,22 @@ export class AnalysisComponent implements OnInit, OnDestroy {
   topSecurityIssues: HotSecurityIssue[] = [];
   topDebtProjects: DebtProject[] = [];
 
-  private subscriptions: Subscription[] = [];
+  get summaryCards() {
+    return [
+      {
+        title: 'Security Score',
+        value: `${this.securityScore}`,
+        icon: 'bi bi-shield-check',
+        action: () => this.router.navigate(['/security-dashboard'])
+      },
+      {
+        title: 'Technical Debt',
+        value: this.technicalDebt,
+        icon: 'bi bi-clock-history',
+        action: () => this.router.navigate(['/technical-debt'])
+      }
+    ];
+  }
 
   constructor(
     private readonly router: Router,
@@ -60,26 +74,27 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     this.loadTechnicalDebt();
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-  }
-
   loadSecurityData(): void {
-    const scoreSub = this.sharedData.securityScore$.subscribe(score => {
+
+    this.sharedData.securityScore$.subscribe(score => {
       this.securityScore = score;
       this.cdr.detectChanges();
     });
-    this.subscriptions.push(scoreSub);
 
-    const hotIssuesSub = this.sharedData.hotIssues$.subscribe(issues => {
+    this.sharedData.hotIssues$.subscribe(issues => {
       this.topSecurityIssues = issues;
       this.cdr.detectChanges();
     });
-    this.subscriptions.push(hotIssuesSub);
 
-    this.securityService.loadAndCalculate().subscribe({
-      error: (err) => console.error('Failed to load security data', err)
-    });
+    if (!this.sharedData.hasSecurityIssuesCache) {
+      this.securityService.getSecurityIssues().subscribe({
+        next: (issues) => {
+          this.sharedData.setSecurityIssues(issues);
+          this.securityService.calculateAndStore(issues);
+        },
+        error: (err) => console.error('Failed to load security data:', err)
+      });
+    }
   }
 
   loadTechnicalDebt(): void {
@@ -98,85 +113,63 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     const totalMinutes = latestScans.reduce((sum, s) => sum + (s.metrics?.technicalDebtMinutes || 0), 0);
     this.technicalDebt = this.formatDebtTime(totalMinutes);
 
-    const sortedProjects = latestScans
-      .map(scan => {
-        const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
-        const cost = scan.metrics?.debtRatio || 0;
-        const days = debtMinutes / 480;
+    this.topDebtProjects = latestScans
+      .map(s => {
+        const minutes = s.metrics?.technicalDebtMinutes || 0;
+        const days = minutes / 480;
+        const cost = s.metrics?.debtRatio || 0;
+
         const score = (days * 2) + (cost / 50000);
+
         return {
-          projectName: scan.project?.name || scan.project?.projectName || 'Unknown',
-          debtMinutes,
-          cost,
-          score
+          projectName: s.project?.name || 'Unknown Project',
+          debtTime: this.formatDebtTime(minutes),
+          debtMinutes: minutes,
+          priority: this.getPriority(score),
+          color: this.getColor(score)
         };
       })
-      .filter(p => p.debtMinutes > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
-
-    this.topDebtProjects = sortedProjects.map(p => ({
-      projectName: p.projectName,
-      debtTime: this.formatDebtTime(p.debtMinutes),
-      debtMinutes: p.debtMinutes,
-      priority: this.getDebtPriority(p.score),
-      color: this.getDebtColor(p.score)
-    }));
+      .sort((a, b) => b.debtMinutes - a.debtMinutes) 
+      .slice(0, 5);
 
     this.cdr.detectChanges();
   }
 
   private latestScanPerProject(scans: ScanResponseDTO[]): ScanResponseDTO[] {
     const map = new Map<string, ScanResponseDTO>();
+    scans.forEach(s => {
+      const projectName = s.project?.name || 'Unknown';
+      const scanDate = new Date(s.startedAt || 0);
 
-    for (const scan of scans) {
-      const projectId = scan.project?.id || scan.project?.projectId;
-      if (!projectId) continue;
-
-      const existing = map.get(projectId);
-      if (!existing) {
-        map.set(projectId, scan);
-      } else {
-        const existingDate = new Date(existing.startedAt);
-        const scanDate = new Date(scan.startedAt);
-        if (scanDate > existingDate) {
-          map.set(projectId, scan);
-        }
+      if (!map.has(projectName) || scanDate > new Date(map.get(projectName)!.startedAt || 0)) {
+        map.set(projectName, s);
       }
-    }
-
+    });
     return Array.from(map.values());
   }
 
   private formatDebtTime(minutes: number): string {
-    if (minutes < 60) return `${minutes}m`;
-    if (minutes < 480) return `${Math.floor(minutes / 60)}h`;
-    const days = Math.floor(minutes / 480);
-    const hours = Math.floor((minutes % 480) / 60);
-    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const days = Math.floor(hours / 8);
+    const remainingHours = hours % 8;
+
+    if (days > 0) return `${days}d ${remainingHours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
   }
 
-  private getDebtPriority(score: number): string {
+
+  private getPriority(score: number): string {
     if (score >= 10) return 'High';
-    if (score >= 5) return 'Med';
+    if (score >= 5) return 'Medium'; 
     return 'Low';
   }
 
-  private getDebtColor(score: number): string {
-    if (score >= 10) return 'bg-danger';
-    if (score >= 5) return 'bg-warning';
-    return 'bg-success';
-  }
-
-  get summaryCards() {
-    return [
-      { title: 'Security Score', value: this.securityScore, icon: 'bi bi-shield-fill', action: () => this.goToSecurity() },
-      { title: 'Technical Debt', value: this.technicalDebt, icon: 'bi bi-clock', action: () => this.goToDebt() }
-    ];
-  }
-
-  goToSecurity(): void {
-    this.router.navigate(['/security-dashboard']);
+  private getColor(score: number): string {
+    if (score >= 10) return 'bg-danger';         
+    if (score >= 5) return 'bg-warning text-dark'; 
+    return 'bg-success';                         
   }
 
   goToDebt(): void {

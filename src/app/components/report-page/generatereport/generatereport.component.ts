@@ -15,6 +15,7 @@ import { SecurityIssueDTO } from '../../../interface/security_interface';
 import { ExcelService } from '../../../services/report-generator/excel/excel.service';
 import { WordService } from '../../../services/report-generator/word/word.service';
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
+import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 
 interface Project {
   id: string;
@@ -68,7 +69,8 @@ export class GeneratereportComponent implements OnInit {
     private readonly securityService: SecurityService,
     private readonly excelService: ExcelService,
     private readonly wordService: WordService,
-    private readonly pptService: PowerpointService
+    private readonly pptService: PowerpointService,
+    private readonly tokenStorageService: TokenStorageService
   ) { }
 
   ngOnInit(): void {
@@ -86,6 +88,7 @@ export class GeneratereportComponent implements OnInit {
       this.repositoryService.getAllRepo().subscribe({
         next: (repos) => {
           this.sharedDataService.setRepositories(repos);
+          console.log('Repositories loaded:', repos);
         },
         error: (err) => console.error('Failed to load repositories', err)
       });
@@ -273,10 +276,13 @@ export class GeneratereportComponent implements OnInit {
     try {
       if (this.outputFormat === 'Excel') {
         this.excelService.generateExcel(context);
+        this.saveReportHistory(projectName);
       } else if (this.outputFormat === 'Word') {
         this.wordService.generateWord(context);
+        this.saveReportHistory(projectName);
       } else if (this.outputFormat === 'PowerPoint') {
         this.pptService.generatePowerPoint(context);
+        this.saveReportHistory(projectName);
       } else if (this.outputFormat === 'PDF') {
         this.generatePdfReport(projectId);
         return;
@@ -289,6 +295,24 @@ export class GeneratereportComponent implements OnInit {
         this.loading = false;
       }
     }
+  }
+
+  private saveReportHistory(projectName: string) {
+    const user = this.tokenStorageService.getLoginUser();
+    const historyItem = {
+      project: projectName,
+      dateRange: `${this.dateFrom} to ${this.dateTo}`,
+      generatedBy: user ? user.username : 'Unknown',
+      email: user ? user.email : '',
+      role: user ? user.role : '',
+      generatedAt: new Date(),
+      format: this.outputFormat
+    };
+
+    const storageKey = 'report_history';
+    const currentHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    currentHistory.push(historyItem);
+    localStorage.setItem(storageKey, JSON.stringify(currentHistory));
   }
 
   private generatePdfReport(projectId: string) {
@@ -309,6 +333,11 @@ export class GeneratereportComponent implements OnInit {
         link.click();
         window.URL.revokeObjectURL(url);
         this.loading = false;
+
+        const selectedProject = this.projects.find(p => p.selected);
+        if (selectedProject) {
+          this.saveReportHistory(selectedProject.name);
+        }
       },
       error: (err) => {
         console.error('Generate PDF failed', err);

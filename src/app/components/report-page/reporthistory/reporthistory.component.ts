@@ -5,8 +5,7 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { Router } from '@angular/router';
 
 interface ReportHistory {
-  reportType: string;
-  projects: string[];
+  project: string;
   dateRange: string;
   generatedBy: string;
   generatedAt: Date;
@@ -24,17 +23,7 @@ export class ReporthistoryComponent {
   searchText: string = '';
 
 
-  // mock data ตัวอย่าง
-  reports = [
-    {
-      reportType: 'Executive Summary',
-      projects: ['Commu T-POP', 'Intelligent Music'],
-      dateRange: '2025-08-01 to 2025-08-31',
-      generatedBy: 'Admin',
-      generatedAt: new Date('2025-09-05T09:15:00'),
-      format: 'PDF'
-    }
-  ];
+  reports: ReportHistory[] = [];
 
   currentPage = 1;
   pageSize = 5;
@@ -43,18 +32,38 @@ export class ReporthistoryComponent {
     private readonly router: Router,
     private readonly authService: AuthService,
   ) { }
+
   ngOnInit(): void {
     if (!this.authService.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
+    }
+    this.loadHistory();
+  }
+
+  loadHistory() {
+    const storageKey = 'report_history';
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const data = JSON.parse(raw);
+      this.reports = data.map((item: any) => {
+        // Handle migration if needed, but primarily just get the fields we want
+        return {
+          project: item.project || (item.projects && item.projects.length ? item.projects[0] : '-'),
+          dateRange: item.dateRange,
+          generatedBy: item.generatedBy,
+          generatedAt: item.generatedAt,
+          format: item.format
+        };
+      });
+      this.reports.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
     }
   }
 
   filteredReports() {
     return this.reports.filter(r =>
       !this.searchText ||
-      r.reportType.toLowerCase().includes(this.searchText.toLowerCase()) ||
-      r.projects.some(p => p.toLowerCase().includes(this.searchText.toLowerCase()))
+      r.project.toLowerCase().includes(this.searchText.toLowerCase())
     );
   }
 
@@ -79,10 +88,7 @@ export class ReporthistoryComponent {
     }
   }
 
-
-
   downloadReport(report: ReportHistory) {
-    alert(`Download report: ${report.reportType} (${report.format})`);
-    // TODO: implement actual download logic
+
   }
 }
