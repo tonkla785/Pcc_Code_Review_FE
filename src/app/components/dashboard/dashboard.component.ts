@@ -1,24 +1,41 @@
-
 import { AuthService } from './../../services/authservice/auth.service';
 import { Dashboard } from './../../services/dashboardservice/dashboard.service';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { NgApexchartsModule, ApexOptions, ApexYAxis, ApexMarkers, ApexStroke, ApexXAxis, ApexChart, ApexAxisChartSeries } from 'ng-apexcharts';
+import {
+  NgApexchartsModule,
+  ApexOptions,
+  ApexYAxis,
+  ApexMarkers,
+  ApexStroke,
+  ApexXAxis,
+  ApexChart,
+  ApexAxisChartSeries,
+} from 'ng-apexcharts';
 import { DashboardService } from '../../services/dashboardservice/dashboard.service';
 import { ScanService, Scan } from '../../services/scanservice/scan.service';
-import { UserService, ChangePasswordData } from '../../services/userservice/user.service';
+import {
+  UserService,
+  ChangePasswordData,
+} from '../../services/userservice/user.service';
 import { forkJoin, scan } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
-import { NotificationService, Notification } from '../../services/notiservice/notification.service';
+import {
+  NotificationService,
+  Notification,
+} from '../../services/notiservice/notification.service';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
-import { Repository, RepositoryService } from '../../services/reposervice/repository.service';
+import {
+  Repository,
+  RepositoryService,
+} from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
 interface TopIssue {
@@ -53,7 +70,7 @@ interface ScanHistory {
   projectId: string;
   project: string;
   typeproject: 'Angular' | 'SpringBoot';
-  status: 'Passed' | 'Failed' | '';   // เผื่อว่าง
+  status: 'Passed' | 'Failed' | ''; // เผื่อว่าง
   grade: string | null;
   time: string;
   maintainabilityGate: string | null;
@@ -62,7 +79,7 @@ interface ScanHistory {
 interface DashboardData {
   id: string;
   name: string;
-  qualityGate: { status: 'OK' | 'ERROR'; conditions: Condition[]; };
+  qualityGate: { status: 'OK' | 'ERROR'; conditions: Condition[] };
   metrics: {
     bugs: number;
     vulnerabilities: number;
@@ -81,8 +98,6 @@ interface DashboardData {
 
 type NotificationTab = 'All' | 'Unread' | 'Repo' | 'scan' | 'Export';
 
-
-
 interface UserProfile {
   username: string;
   email: string;
@@ -95,7 +110,7 @@ export type ChartOptions = {
   xaxis: ApexXAxis;
   stroke: ApexStroke;
   markers: ApexMarkers;
-  yaxis:  ApexYAxis;
+  yaxis: ApexYAxis;
   colors: string[];
 };
 @Component({
@@ -103,7 +118,7 @@ export type ChartOptions = {
   standalone: true,
   imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent {
   constructor(
@@ -118,7 +133,7 @@ export class DashboardComponent {
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
-  ) { }
+  ) {}
 
   loading = true;
 
@@ -133,14 +148,14 @@ export class DashboardComponent {
       codeSmells: 0,
       coverage: 0,
       duplications: 0,
-      technicalDebt: '0'
+      technicalDebt: '0',
     },
     issues: [],
     securityHotspots: [],
     history: [],
     coverageHistory: [],
     maintainabilityGate: '',
-    days: []
+    days: [],
   };
 
   Data = { passedCount: 0, failedCount: 0 };
@@ -149,11 +164,9 @@ export class DashboardComponent {
   grade = '';
   gradePercent = 0;
 
-
   recentScans: Scan[] = [];
   topIssues: { message: string; count: number }[] = [];
   maxTop = 5;
-
 
   userProfile: UserInfo | null = null;
   user: any = {};
@@ -172,9 +185,9 @@ export class DashboardComponent {
   failedCount = 0;
   coverageChartSeries!: ApexAxisChartSeries;
   coverageChartOptions!: Partial<ChartOptions>;
-    repositories: Repository[] = [];
+  repositories: Repository[] = [];
   allIssues: IssuesResponseDTO[] = [];
-    filteredRepositories: Repository[] = [];
+  filteredRepositories: Repository[] = [];
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
   AllScan: ScanResponseDTO[] = [];
@@ -184,28 +197,28 @@ export class DashboardComponent {
       this.router.navigate(['/login']);
       return;
     }
-        if(!this.sharedData.hasScansHistoryCache){
-      console.log("@")
+    if (!this.sharedData.hasScansHistoryCache) {
+      console.log('@');
       this.loadDashboard();
     }
-      const user = this.tokenStorage.getLoginUser();
-        if (user) {
-          this.sharedData.LoginUserShared = user;
-        }
-      this.sharedData.scansHistory$.subscribe(data => { 
+    const user = this.tokenStorage.getLoginUser();
+    if (user) {
+      this.sharedData.LoginUserShared = user;
+    }
+    this.sharedData.scansHistory$.subscribe((data) => {
       this.DashboardData = data || [];
       this.countQualityGate();
       this.buildPieChart();
       this.countBug();
       this.mockCoverageTrend();
     });
-    this.sharedData.LoginUser$.subscribe(data => {
+    this.sharedData.LoginUser$.subscribe((data) => {
       this.UserLogin = data;
       console.log('User Login in Dashboard:', this.UserLogin);
     });
 
-        // 1. Subscribe รับข้อมูลจาก SharedDataService
-    this.sharedData.repositories$.subscribe(repos => {
+    // 1. Subscribe รับข้อมูลจาก SharedDataService
+    this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
       this.calculateProjectDistribution();
@@ -217,18 +230,17 @@ export class DashboardComponent {
       this.loadRepositories();
     }
 
-    this.sharedData.AllIssues$.subscribe(data => { 
+    this.sharedData.AllIssues$.subscribe((data) => {
       const all = data ?? [];
 
-      this.allIssues = all.filter(issue => issue.severity == "CRITICAL");
-
+      this.allIssues = all.filter((issue) => issue.severity == 'CRITICAL');
     });
-    if(!this.sharedData.hasIssuesCache){
-      console.log("No cache - load from server");
+    if (!this.sharedData.hasIssuesCache) {
+      console.log('No cache - load from server');
       this.loadIssues();
     }
   }
-    loadRepositories() {
+  loadRepositories() {
     this.sharedData.setLoading(true);
 
     this.repoService.getAllRepo().subscribe({
@@ -241,7 +253,7 @@ export class DashboardComponent {
       error: (err) => {
         console.error('Failed to load repositories:', err);
         this.sharedData.setLoading(false);
-      }
+      },
     });
   }
   loadDashboard() {
@@ -256,58 +268,83 @@ export class DashboardComponent {
       },
       error: (err) => {
         console.error('โหลด ประวัติการสแกน ล้มเหลว', err);
-      }
+      },
     });
   }
   loadIssues() {
-
-  this.sharedData.setLoading(true);
-  this.issueService.getAllIssues().subscribe({
-    next: (data) => {
-      this.sharedData.IssuesShared = data;
-      this.sharedData.setLoading(false);
-      console.log('Issues loaded:', data);
-    },
-    error: () => this.sharedData.setLoading(false)
-  });
-}
+    this.sharedData.setLoading(true);
+    this.issueService.getAllIssues().subscribe({
+      next: (data) => {
+        this.sharedData.IssuesShared = data;
+        this.sharedData.setLoading(false);
+        console.log('Issues loaded:', data);
+      },
+      error: () => this.sharedData.setLoading(false),
+    });
+  }
   countQualityGate() {
-  const scans = this.DashboardData ?? [];
-  this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
-  this.failedCount  = scans.filter(s => (s?.status ?? '').toUpperCase() === 'FAILED').length;
-  console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
-}
+    const scans = this.DashboardData ?? [];
+    this.passedCount = scans.filter(
+      (s) => (s?.status ?? '').toUpperCase() === 'SUCCESS',
+    ).length;
+    this.failedCount = scans.filter(
+      (s) => (s?.status ?? '').toUpperCase() === 'FAILED',
+    ).length;
+    console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
+  }
   countBug() {
-  const bugs = this.DashboardData ?? [];
-  this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0),0);
-  this.securityCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),0);
-  this.codeSmellCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0),0);
-  this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
-  console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
-}
-private dateTH(iso: string): string {
-  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-  // ได้ YYYY-MM-DD
-}
+    const bugs = this.DashboardData ?? [];
+    this.passedCountBug = bugs.reduce(
+      (sum, s) => sum + (s?.metrics?.bugs ?? 0),
+      0,
+    );
+    this.securityCount = bugs.reduce(
+      (sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),
+      0,
+    );
+    this.codeSmellCount = bugs.reduce(
+      (sum, s) => sum + (s?.metrics?.codeSmells ?? 0),
+      0,
+    );
+    this.coverRateCount = bugs.reduce(
+      (sum, s) => sum + (s?.metrics?.coverage ?? 0),
+      0,
+    );
+    console.log(
+      'Bug:',
+      this.passedCountBug,
+      'Security:',
+      this.securityCount,
+      'CodeSmells:',
+      this.codeSmellCount,
+      'Coverage:',
+      this.coverRateCount,
+    );
+  }
+  private dateTH(iso: string): string {
+    return new Date(iso).toLocaleDateString('sv-SE', {
+      timeZone: 'Asia/Bangkok',
+    });
+    // ได้ YYYY-MM-DD
+  }
 
-countQuality(date: string): number {
-  return (this.DashboardData ?? []).filter(s => {
-    if (!s?.completedAt) return false;
-    const scanDate = this.dateTH(s.completedAt); 
-        console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
-    return scanDate === date && s.qualityGate === 'OK';
+  countQuality(date: string): number {
+    return (this.DashboardData ?? []).filter((s) => {
+      if (!s?.completedAt) return false;
+      const scanDate = this.dateTH(s.completedAt);
+      console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
+      return scanDate === date && s.qualityGate === 'OK';
+    }).length;
+  }
 
-  }).length;
-}
-
-buildPieChart() {
-  this.pieChartOptions = {
-    series: [this.passedCount, this.failedCount],
-    labels: ['Success', 'Failed'],
-    chart: { type: 'pie' },
-    legend: { position: 'bottom' }
-  };
-}
+  buildPieChart() {
+    this.pieChartOptions = {
+      series: [this.passedCount, this.failedCount],
+      labels: ['Success', 'Failed'],
+      chart: { type: 'pie' },
+      legend: { position: 'bottom' },
+    };
+  }
   // ================== FETCH FROM SERVER ==================
   fetchFromServer(userId: string | number) {
     this.loading = true;
@@ -317,14 +354,14 @@ buildPieChart() {
       history: this.dash.getHistory(userId),
       trends: this.dash.getTrendsWithAvg(userId),
       scans: this.scanService.getAllScan(),
-      issues: this.issueService.getAllIssue(String(userId))   // ✅ เพิ่ม
+      issues: this.issueService.getAllIssue(String(userId)), // ✅ เพิ่ม
     }).subscribe({
       next: ({ overview, history, trends, scans, issues }) => {
         // 1) metrics จาก overview
         const metrics = this.dash.getMetricsSummary(overview);
         this.dashboardData.metrics = {
           ...metrics,
-          technicalDebt: this.dashboardData.metrics.technicalDebt ?? '0'
+          technicalDebt: this.dashboardData.metrics.technicalDebt ?? '0',
         };
         console.log('[overview] metrics summary:', metrics);
 
@@ -346,22 +383,39 @@ buildPieChart() {
           }, new Map<string, any>());
           const rows = Array.from(latestMap.values());
 
-          const scoreMap: Record<'A' | 'B' | 'C' | 'D' | 'E', number> = { A: 5, B: 4, C: 3, D: 2, E: 1 };
-          const score = (g: string) => scoreMap[(g || 'E').toUpperCase() as keyof typeof scoreMap] || 1;
+          const scoreMap: Record<'A' | 'B' | 'C' | 'D' | 'E', number> = {
+            A: 5,
+            B: 4,
+            C: 3,
+            D: 2,
+            E: 1,
+          };
+          const score = (g: string) =>
+            scoreMap[(g || 'E').toUpperCase() as keyof typeof scoreMap] || 1;
 
           const grades = rows
-            .map(r => (r.grade || 'E').toUpperCase())
-            .filter(g => this.isValidGateLetter(g));
+            .map((r) => (r.grade || 'E').toUpperCase())
+            .filter((g) => this.isValidGateLetter(g));
 
           const avgScore = grades.length
             ? grades.map(score).reduce((a, b) => a + b, 0) / grades.length
             : 1;
 
-          const revMap: Record<1 | 2 | 3 | 4 | 5, 'A' | 'B' | 'C' | 'D' | 'E'> = {
-            1: 'E', 2: 'D', 3: 'C', 4: 'B', 5: 'A'
-          };
+          const revMap: Record<1 | 2 | 3 | 4 | 5, 'A' | 'B' | 'C' | 'D' | 'E'> =
+            {
+              1: 'E',
+              2: 'D',
+              3: 'C',
+              4: 'B',
+              5: 'A',
+            };
 
-          const rounded = Math.max(1, Math.min(5, Math.round(avgScore))) as 1 | 2 | 3 | 4 | 5;
+          const rounded = Math.max(1, Math.min(5, Math.round(avgScore))) as
+            | 1
+            | 2
+            | 3
+            | 4
+            | 5;
           this.avgGateLetter = revMap[rounded];
           console.log('[fallback] avgGateLetter =', this.avgGateLetter);
         }
@@ -387,7 +441,12 @@ buildPieChart() {
         // 8) ✅ ตรงนี้คือของใหม่: คำนวณ Top Issues จากรายการ issues ที่ดึงมา
         this.buildTopIssues(issues);
 
-        console.log('[donut] pass/fail ->', this.Data, 'totalProjects =', this.totalProjects);
+        console.log(
+          '[donut] pass/fail ->',
+          this.Data,
+          'totalProjects =',
+          this.totalProjects,
+        );
         console.log('[donut] center =', this.avgGateLetter);
 
         this.loading = false;
@@ -395,9 +454,8 @@ buildPieChart() {
       error: (err) => {
         console.error('Error fetching dashboard data:', err);
         this.loading = false;
-      }
+      },
     });
-
   }
 
   private buildTopIssuesFromDashboard() {
@@ -442,7 +500,7 @@ buildPieChart() {
 
     this.topIssues = Object.entries(counter)
       .map(([message, count]) => ({ message, count }))
-      .sort((a, b) => b.count - a.count)  // มาก -> น้อย
+      .sort((a, b) => b.count - a.count) // มาก -> น้อย
       .slice(0, this.maxTop);
   }
 
@@ -455,7 +513,7 @@ buildPieChart() {
   passwordData: ChangePasswordData = {
     oldPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   };
   submitted = false;
 
@@ -469,35 +527,104 @@ buildPieChart() {
   }
 
   resetForm() {
-    this.passwordData = { oldPassword: '', newPassword: '', confirmPassword: '' };
+    this.passwordData = {
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    };
   }
 
-submitChangePassword(form: any) {
-  this.submitted = true;
-  if (form.invalid || this.passwordData.newPassword !== this.passwordData.confirmPassword) return;
+  // ==== NEW PASSWORD VALIDATION (Change Password Modal) ====
+  get newPasswordRules() {
+    const pwd = this.passwordData?.newPassword || '';
+    return {
+      minLength: pwd.length >= 8,
+      upper: /[A-Z]/.test(pwd),
+      lower: /[a-z]/.test(pwd),
+      number: /\d/.test(pwd),
+      special: /[!@#$%&*]/.test(pwd),
+    };
+  }
 
-  this.userService.changePassword(this.passwordData).subscribe({
-    next: () => {
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: 'Password changed successfully',
-        confirmButtonColor: '#3085d6',
-      }).then(() => {
-        this.closeChangePasswordModal();
-      });
-    },
-    error: (err) => {
+  get newPasswordValid() {
+    const r = this.newPasswordRules;
+    return r.minLength && r.upper && r.lower && r.number && r.special;
+  }
+
+  get newPasswordsMismatch() {
+    return (
+      !!this.passwordData?.newPassword &&
+      !!this.passwordData?.confirmPassword &&
+      this.passwordData.newPassword !== this.passwordData.confirmPassword
+    );
+  }
+
+  get newPasswordError() {
+    const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*]).{8,}$/;
+    const pwd = this.passwordData?.newPassword || '';
+    return pwd && !pattern.test(pwd)
+      ? 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character'
+      : '';
+  }
+
+  submitChangePassword(form: any) {
+    this.submitted = true;
+
+    if (form.invalid || this.newPasswordsMismatch || !this.newPasswordValid) {
       Swal.fire({
         icon: 'error',
-        title: 'Failed',
-        text: err.error?.message || err.message || 'Failed to change password',
+        title: 'Invalid password',
+        text: 'Please meet all password requirements.',
         confirmButtonColor: '#d33',
       });
+      return;
     }
-  });
-}
 
+    this.userService.changePassword(this.passwordData).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Password changed successfully',
+          confirmButtonColor: '#3085d6',
+        }).then(() => {
+          this.closeChangePasswordModal();
+        });
+      },
+      error: (err) => {
+        const backendMsg = (() => {
+          // 1) ถ้า backend ส่งเป็น object
+          if (
+            err?.error &&
+            typeof err.error === 'object' &&
+            err.error.message
+          ) {
+            return err.error.message;
+          }
+
+          // 2) ถ้าส่งเป็น string (เช่น JSON string)
+          if (typeof err?.error === 'string') {
+            try {
+              const parsed = JSON.parse(err.error);
+              if (parsed?.message) return parsed.message;
+            } catch (_) {}
+            // ถ้าไม่ใช่ JSON ก็ใช้ string ตรงๆ
+            return err.error;
+          }
+
+          // 3) fallback
+          return err?.message || 'Failed to change password';
+        })();
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: backendMsg,
+          confirmButtonColor: '#d33',
+        });
+      },
+    });
+  }
 
   // verifyEmail() {
   //   this.userService.verifyEmail(this.userProfile.email).subscribe({
@@ -518,20 +645,20 @@ submitChangePassword(form: any) {
     this.notificationService.getAllNotification().subscribe({
       next: (data) => {
         // แปลง createdAt เป็น Date object
-        this.notifications = data.map(n => ({
+        this.notifications = data.map((n) => ({
           ...n,
-          timestamp: new Date(n.createdAt) // ใช้ field timestamp ใน template
+          timestamp: new Date(n.createdAt), // ใช้ field timestamp ใน template
         }));
       },
       error: (err) => {
         console.error('Error loading notifications:', err);
-      }
+      },
     });
   }
 
-
   getTimeAgo(value: Date | string | number): string {
-    const t = value instanceof Date ? value.getTime() : new Date(value).getTime();
+    const t =
+      value instanceof Date ? value.getTime() : new Date(value).getTime();
     if (Number.isNaN(t)) return 'Just now';
     let diffSec = Math.floor((Date.now() - t) / 1000);
     if (diffSec < 0) diffSec = 0;
@@ -569,10 +696,9 @@ submitChangePassword(form: any) {
       },
       error: (err) => {
         console.error('Failed to mark as read:', err);
-      }
+      },
     });
   }
-
 
   get filteredNotifications() {
     let filtered = this.notifications;
@@ -581,7 +707,9 @@ submitChangePassword(form: any) {
     } else if (this.activeTab !== 'All') {
       filtered = filtered.filter((n) => n.typeNoti === this.activeTab);
     }
-    filtered = filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    filtered = filtered.sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    );
     return filtered.slice(0, this.displayCount);
   }
 
@@ -595,8 +723,10 @@ submitChangePassword(form: any) {
 
   get totalFilteredCount() {
     if (this.activeTab === 'All') return this.notifications.length;
-    if (this.activeTab === 'Unread') return this.notifications.filter((n) => !n.read).length;
-    return this.notifications.filter((n) => n.typeNoti === this.activeTab).length;
+    if (this.activeTab === 'Unread')
+      return this.notifications.filter((n) => !n.read).length;
+    return this.notifications.filter((n) => n.typeNoti === this.activeTab)
+      .length;
   }
 
   // ================== PROJECT DISTRIBUTION ==================
@@ -606,20 +736,22 @@ submitChangePassword(form: any) {
     const typeCounts: Record<string, number> = {};
     const total = this.repositories.length || 1;
     this.repositories.forEach((h) => {
-      typeCounts[h.projectType??'Unknown'] = (typeCounts[h.projectType??'Unknown'] || 0) + 1;
+      typeCounts[h.projectType ?? 'Unknown'] =
+        (typeCounts[h.projectType ?? 'Unknown'] || 0) + 1;
     });
-    this.projectDistribution = Object.entries(typeCounts).map(([type, count]) => ({
-      type,
-      count,
-      percent: Math.round((count / total) * 100)
-    }));
+    this.projectDistribution = Object.entries(typeCounts).map(
+      ([type, count]) => ({
+        type,
+        count,
+        percent: Math.round((count / total) * 100),
+      }),
+    );
   }
 
   // ================== ช่วยนับ passed / failed ==================
   /** ✅ แก้ตรงนี้ให้ normalize แล้ว */
   private recomputeStatusCountsFromHistory() {
     const norm = (s?: string) => (s || '').trim().toUpperCase();
-
 
     const passed = this.dashboardData.history.filter((h) => {
       const st = norm(h.status);
@@ -630,7 +762,6 @@ submitChangePassword(form: any) {
       const st = norm(h.status);
       return ['FAILED', 'ERROR', 'FAIL', 'FAILURE'].includes(st);
     }).length;
-
 
     this.Data = { passedCount: passed, failedCount: failed };
     this.totalProjects = passed + failed;
@@ -659,12 +790,18 @@ submitChangePassword(form: any) {
 
   private getGradeColor(grade: string): string {
     switch (grade?.toUpperCase()) {
-      case 'A': return '#10B981';      // เขียว
-      case 'B': return '#84CC16';
-      case 'C': return '#F59E0B';
-      case 'D': return '#FB923C';
-      case 'E': return '#EF4444';
-      default: return '#6B7280';      // เทา
+      case 'A':
+        return '#10B981'; // เขียว
+      case 'B':
+        return '#84CC16';
+      case 'C':
+        return '#F59E0B';
+      case 'D':
+        return '#FB923C';
+      case 'E':
+        return '#EF4444';
+      default:
+        return '#6B7280'; // เทา
     }
   }
 
@@ -695,12 +832,17 @@ submitChangePassword(form: any) {
     const ratio = finishedTotal > 0 ? passedCount / finishedTotal : 0;
 
     this.grade =
-      ratio >= 0.8 ? 'A' :
-        ratio >= 0.7 ? 'B' :
-          ratio >= 0.6 ? 'C' :
-            ratio >= 0.5 ? 'D' :
-              ratio >= 0.4 ? 'E' :
-                'F';
+      ratio >= 0.8
+        ? 'A'
+        : ratio >= 0.7
+          ? 'B'
+          : ratio >= 0.6
+            ? 'C'
+            : ratio >= 0.5
+              ? 'D'
+              : ratio >= 0.4
+                ? 'E'
+                : 'F';
 
     this.gradePercent = Math.round(ratio * 100);
 
@@ -708,7 +850,12 @@ submitChangePassword(form: any) {
     if (this.isValidGateLetter(this.avgGateLetter)) {
       centerLetter = this.avgGateLetter;
     } else {
-      centerLetter = (this.grade === 'F' ? 'E' : this.grade) as 'A' | 'B' | 'C' | 'D' | 'E';
+      centerLetter = (this.grade === 'F' ? 'E' : this.grade) as
+        | 'A'
+        | 'B'
+        | 'C'
+        | 'D'
+        | 'E';
     }
 
     this.pieChartOptions = {
@@ -738,10 +885,10 @@ submitChangePassword(form: any) {
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
-              }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       },
       dataLabels: { enabled: false },
 
@@ -750,24 +897,41 @@ submitChangePassword(form: any) {
     };
   }
 
-
   // ================== EXPORT PDF ==================
   onExport() {
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
     const margin = 12;
     let y = 15;
 
     pdf.setFontSize(20);
     pdf.setTextColor(33, 37, 41);
-    pdf.text('Dashboard Overview Report', pdf.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+    pdf.text(
+      'Dashboard Overview Report',
+      pdf.internal.pageSize.getWidth() / 2,
+      y,
+      { align: 'center' },
+    );
     y += 12;
 
     const today = new Date();
     const username = this.UserLogin?.username || 'Unknown User';
     pdf.setFontSize(11);
     pdf.setTextColor(85, 85, 85);
-    pdf.text(`Date: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`, margin, y);
-    pdf.text(`Username: ${username}`, pdf.internal.pageSize.getWidth() - margin, y, { align: 'right' });
+    pdf.text(
+      `Date: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`,
+      margin,
+      y,
+    );
+    pdf.text(
+      `Username: ${username}`,
+      pdf.internal.pageSize.getWidth() - margin,
+      y,
+      { align: 'right' },
+    );
     y += 10;
 
     pdf.setDrawColor(180);
@@ -797,7 +961,7 @@ submitChangePassword(form: any) {
     const scansRows = this.DashboardData.map((s) => [
       s.project.name || 'N/A',
       s.status || 'N/A',
-      new Date(s.completedAt ?? '').toLocaleString()
+      new Date(s.completedAt ?? '').toLocaleString(),
     ]);
 
     (autoTable as any)(pdf, {
@@ -806,9 +970,13 @@ submitChangePassword(form: any) {
       startY: y,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2 },
-      headStyles: { fillColor: [0, 123, 255], textColor: 255, halign: 'center' },
+      headStyles: {
+        fillColor: [0, 123, 255],
+        textColor: 255,
+        halign: 'center',
+      },
       bodyStyles: { textColor: 50 },
-      margin: { left: margin, right: margin }
+      margin: { left: margin, right: margin },
     });
 
     y = (pdf as any).lastAutoTable?.finalY + 8;
@@ -839,7 +1007,11 @@ submitChangePassword(form: any) {
     pdf.setTextColor(0);
     if (this.dashboardData.issues?.length > 0) {
       this.dashboardData.issues.forEach((i) => {
-        pdf.text(`- [${i.severity || 'N/A'}] ${i.type || 'Unknown'}: ${i.message || ''}`, margin, y);
+        pdf.text(
+          `- [${i.severity || 'N/A'}] ${i.type || 'Unknown'}: ${i.message || ''}`,
+          margin,
+          y,
+        );
         y += 5;
       });
     } else {
@@ -870,10 +1042,12 @@ submitChangePassword(form: any) {
       'Generated automatically by PCCTH Automate Code Review',
       pdf.internal.pageSize.getWidth() / 2,
       pageHeight - 10,
-      { align: 'center' }
+      { align: 'center' },
     );
 
-    const fileName = `Dashboard_Report_${today.getFullYear()}${(today.getMonth() + 1)
+    const fileName = `Dashboard_Report_${today.getFullYear()}${(
+      today.getMonth() + 1
+    )
       .toString()
       .padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}.pdf`;
     pdf.save(fileName);
@@ -885,66 +1059,60 @@ submitChangePassword(form: any) {
     this.fetchFromServer('');
   }
 
-  viewDetail(scan : ScanResponseDTO) {
-    this.sharedData.ScansDetail = scan;     
+  viewDetail(scan: ScanResponseDTO) {
+    this.sharedData.ScansDetail = scan;
     this.router.navigate(['/scanresult', scan.id]);
   }
-   mockCoverageTrend() {
+  mockCoverageTrend() {
     // mock วันที่ย้อนหลัง 30 วัน
     const dates: string[] = [];
     const coverageValues: number[] = [];
 
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
 
-for (let i = 29; i >= 0; i--) {
-  const d = new Date();
-  d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
 
-  const dateKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
+      const label = d.toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+      });
 
+      dates.push(label);
 
-  const label = d.toLocaleDateString('th-TH', {
-    day: '2-digit',
-    month: '2-digit',
-  });
-
-  dates.push(label);
-
-
-  coverageValues.push(
-    this.countQuality(dateKey)
-  );
-}
-    const maxY = Math.max(1,...coverageValues);
+      coverageValues.push(this.countQuality(dateKey));
+    }
+    const maxY = Math.max(1, ...coverageValues);
     this.coverageChartSeries = [
       {
         name: 'Quality Grade',
-        data: coverageValues
-      }
+        data: coverageValues,
+      },
     ];
 
     this.coverageChartOptions = {
       chart: {
         type: 'line',
         height: 300,
-        toolbar: { show: false }
+        toolbar: { show: false },
       },
       xaxis: {
-        categories: dates
+        categories: dates,
       },
       yaxis: {
         min: 0,
-         max: maxY,
-        title: { text: 'Quality Grade' }
+        max: maxY,
+        title: { text: 'Quality Grade' },
       },
       stroke: {
         curve: 'smooth',
-        width: 3
+        width: 3,
       },
       markers: {
-        size: 4
+        size: 4,
       },
-      colors: ['#0d6efd'] // bootstrap primary
+      colors: ['#0d6efd'], // bootstrap primary
     };
   }
 }
-

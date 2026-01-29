@@ -12,9 +12,9 @@
 
         <div class="mb-3">
           <label for="name" class="form-label">Repository Name <span class="required">*</span></label>
-          <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required minlength="5"
+          <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required 
             #name="ngModel" (ngModelChange)="onNameChange($event)">
-          <div class="error" *ngIf="name.invalid && name.touched">Name is required (min 5 chars).</div>
+          <div class="error" *ngIf="name.invalid && name.touched">Repository name is required</div>
         </div>
 
         <div class="mb-3">
