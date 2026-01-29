@@ -87,6 +87,12 @@ export class SharedDataService {
         const next = [newScan, ...this.scanValue];
         this.scansHistory.next(next);
     }
+    removeScansByProject(projectId: string): void {
+        const current = this.scanValue;
+        const next = current.filter(s => s.project?.id !== projectId && s.project.id );
+        this.scansHistory.next(next);
+    }
+
     private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
     readonly selectedScan$ = this.selectedScan.asObservable();
 
@@ -236,7 +242,6 @@ export class SharedDataService {
         this.LoginUser.next(data);
     }
 
-
     // ==================== LOADING STATE ====================
     private _isLoading$ = new BehaviorSubject<boolean>(false);
     readonly isLoading$ = this._isLoading$.asObservable();
@@ -284,6 +289,7 @@ export class SharedDataService {
     addRepository(repo: Repository): void {
         const current = this._repositories$.getValue();
         this._repositories$.next([repo, ...current]);
+        this.addScan
     }
 
     /** อัปเดต repository (หลัง update สำเร็จ) */
@@ -300,6 +306,7 @@ export class SharedDataService {
     removeRepository(projectId: string): void {
         const current = this._repositories$.getValue();
         this._repositories$.next(current.filter(r => r.projectId !== projectId));
+          this.removeScansByProject(projectId);
     }
 
     /** เซ็ต repository ที่เลือก (สำหรับหน้า detail) */
@@ -367,6 +374,68 @@ export class SharedDataService {
 
     setQualityGates(gates: QualityGates): void {
         this._qualityGates$.next(gates);
+    }
+
+
+    // ==================== SECURITY DASHBOARD STATE  ====================
+    private readonly securityIssuesSubject = new BehaviorSubject<any[]>([]);
+    readonly securityIssues$ = this.securityIssuesSubject.asObservable();
+
+    private readonly securityScoreSubject = new BehaviorSubject<number>(0);
+    readonly securityScore$ = this.securityScoreSubject.asObservable();
+
+    private readonly riskLevelSubject = new BehaviorSubject<string>('SAFE');
+    readonly riskLevel$ = this.riskLevelSubject.asObservable();
+
+    private readonly hotIssuesSubject = new BehaviorSubject<{ name: string; count: number }[]>([]);
+    readonly hotIssues$ = this.hotIssuesSubject.asObservable();
+
+    get securityIssuesValue(): any[] {
+        return this.securityIssuesSubject.value;
+    }
+
+    get securityScoreValue(): number {
+        return this.securityScoreSubject.value;
+    }
+
+    get riskLevelValue(): string {
+        return this.riskLevelSubject.value;
+    }
+
+    get hotIssuesValue(): { name: string; count: number }[] {
+        return this.hotIssuesSubject.value;
+    }
+
+    get hasSecurityIssuesCache(): boolean {
+        return this.securityIssuesSubject.value.length > 0;
+    }
+
+    setSecurityIssues(issues: any[]): void {
+        this.securityIssuesSubject.next(issues);
+    }
+
+    setSecurityScore(score: number): void {
+        this.securityScoreSubject.next(score);
+    }
+
+    setRiskLevel(level: string): void {
+        this.riskLevelSubject.next(level);
+    }
+
+    setHotIssues(issues: { name: string; count: number }[]): void {
+        this.hotIssuesSubject.next(issues);
+    }
+
+    updateSecurityState(data: {
+        issues?: any[];
+        score?: number;
+        riskLevel?: string;
+        hotIssues?: { name: string; count: number }[];
+    }): void {
+        if (data.issues) this.securityIssuesSubject.next(data.issues);
+        if (data.score !== undefined) this.securityScoreSubject.next(data.score);
+        if (data.riskLevel) this.riskLevelSubject.next(data.riskLevel);
+        if (data.hotIssues) this.hotIssuesSubject.next(data.hotIssues);
     }
 
 }

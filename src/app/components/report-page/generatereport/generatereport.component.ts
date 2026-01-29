@@ -1,28 +1,29 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { RepositoryService, Repository } from '../../../services/reposervice/repository.service';
+import { RepositoryService } from '../../../services/reposervice/repository.service';
 import { ExportreportService, ReportRequest } from '../../../services/exportreportservice/exportreport.service';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { ScanService } from '../../../services/scanservice/scan.service';
+import { SecurityService } from '../../../services/securityservice/security.service';
+import { IssueService } from '../../../services/issueservice/issue.service';
+import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { SecurityIssueDTO } from '../../../interface/security_interface';
+
+// Services
+import { ExcelService } from '../../../services/report-generator/excel/excel.service';
+import { WordService } from '../../../services/report-generator/word/word.service';
+import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
+import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 
 interface Project {
-  id: string;      // id จริงจาก backend
-  name: string;    // ชื่อโปรเจกต์
-  selected: boolean;
-}
-
-interface Section {
+  id: string;
   name: string;
   selected: boolean;
 }
-
-interface OutputFormat {
-  value: string;
-  label: string;
-  icon: string;
-}
-
 
 @Component({
   selector: 'app-generatereport',
@@ -31,28 +32,46 @@ interface OutputFormat {
   templateUrl: './generatereport.component.html',
   styleUrl: './generatereport.component.css'
 })
-export class GeneratereportComponent {
+export class GeneratereportComponent implements OnInit {
 
   reportType: string = '';
-  projects: Project[] = [];  // จะเติมมาจาก backend
+  projects: Project[] = [];
   dateFrom?: string;
   dateTo?: string;
   outputFormat: string = '';
-  email: string = '';
   loading = false;
 
-
   sections = [
-    { name: "Quality Gate Summary", key: "QualityGateSummary", selected: true },
-    { name: "Issue Breakdown", key: "IssueBreakdown", selected: true },
-    // { name: 'Security Analysis', selected: true },
-    // { name: 'Technical Debt', selected: true },
-    // { name: 'Trend Analysis', selected: true },
-    // { name: 'Recommendations', selected: true }
+    { name: "Quality Gate Summary", key: "QualityGateSummary", selected: false, disabled: false },
+    { name: "Issue Breakdown", key: "IssueBreakdown", selected: false, disabled: false },
+    { name: "Security Analysis", key: "SecurityAnalysis", selected: false, disabled: false },
   ];
 
-  constructor(private readonly route: ActivatedRoute, private readonly repositoryService: RepositoryService, private readonly exportreportService: ExportreportService, private readonly router: Router,
-    private readonly authService: AuthService) { }
+  formatMap: Record<string, string> = {
+    "PDF": "pdf",
+    "Excel": "xlsx",
+    "Word": "docx",
+    "PowerPoint": "pptx"
+  };
+
+  today: string = new Date().toISOString().split('T')[0];
+  noScanInRange: boolean = false;
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly repositoryService: RepositoryService,
+    private readonly exportreportService: ExportreportService,
+    private readonly router: Router,
+    private readonly authService: AuthService,
+    private readonly sharedDataService: SharedDataService,
+    private readonly scanService: ScanService,
+    private readonly securityService: SecurityService,
+    private readonly issueService: IssueService,
+    private readonly excelService: ExcelService,
+    private readonly wordService: WordService,
+    private readonly pptService: PowerpointService,
+    private readonly tokenStorageService: TokenStorageService
+  ) { }
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn) {
@@ -64,9 +83,20 @@ export class GeneratereportComponent {
         this.reportType = params['reportType'];
       }
     });
-    this.repositoryService.getAllRepo().subscribe(repos => {
+
+    if (!this.sharedDataService.hasRepositoriesCache) {
+      this.repositoryService.getAllRepo().subscribe({
+        next: (repos) => {
+          this.sharedDataService.setRepositories(repos);
+          console.log('Repositories loaded:', repos);
+        },
+        error: (err) => console.error('Failed to load repositories', err)
+      });
+    }
+
+    this.sharedDataService.repositories$.subscribe(repos => {
       this.projects = repos.map(repo => ({
-        id: repo.projectId!,      // ต้องมี id ด้วย
+        id: repo.projectId!,
         name: repo.name,
         selected: false
       }));
@@ -75,113 +105,78 @@ export class GeneratereportComponent {
 
   onSelectProject(selected: Project) {
     this.projects.forEach(p => {
-      // ให้เลือกได้เพียง 1 โปรเจกต์
       p.selected = (p === selected);
     });
+    this.checkScanInDateRange();
   }
 
   hasSelectedProjects(): boolean {
     return this.projects.some(p => p.selected);
   }
 
-  // selectAllProjects(select: boolean) {
-  //   this.projects.forEach(p => p.selected = select);
-  // }
-
-  today: string = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
-
   onDateFromChange() {
     if (this.dateTo && this.dateFrom! > this.dateTo) {
       this.dateTo = this.dateFrom;
     }
+    this.checkScanInDateRange();
   }
 
   onDateToChange() {
     if (this.dateFrom && this.dateTo! < this.dateFrom) {
       this.dateFrom = this.dateTo;
     }
+    this.checkScanInDateRange();
   }
 
+  checkScanInDateRange() {
+    if (!this.hasSelectedProjects() || !this.dateFrom || !this.dateTo) {
+      this.noScanInRange = false;
+      return;
+    }
 
+    const selectedProject = this.projects.find(p => p.selected);
+    if (!selectedProject) {
+      this.noScanInRange = false;
+      return;
+    }
+
+    const repo = this.sharedDataService.repositoriesValue.find(r => r.name === selectedProject.name);
+    if (!repo || !repo.scans) {
+      this.noScanInRange = true;
+      return;
+    }
+
+    const scans = repo.scans || [];
+    const filteredScans = scans.filter(scan => {
+      const scanDate = scan.startedAt ? new Date(scan.startedAt).toISOString().split('T')[0] : '';
+      return scanDate >= this.dateFrom! && scanDate <= this.dateTo!;
+    });
+
+    this.noScanInRange = filteredScans.length === 0;
+  }
 
   isFormValid(form: any): boolean {
     form.form.markAllAsTouched();
-    //if (!this.reportType) return false;
     if (!this.hasSelectedProjects()) return false;
     if (!this.dateFrom || !this.dateTo) return false;
     if (this.dateFrom > this.dateTo) return false;
-    if (this.dateFrom > this.today || this.dateTo > this.today) return false; // ป้องกันวันอนาคต
+    if (this.dateFrom > this.today || this.dateTo > this.today) return false;
     if (!this.outputFormat) return false;
-    //if (this.email && form.controls['email']?.invalid) return false;
+    if (this.noScanInRange) return false;
     return true;
   }
+
   cancel(form?: any) {
     if (form) {
-      form.resetForm();  // เคลียร์ค่าฟอร์ม
+      form.resetForm();
     }
-    //this.reportType = '';
     this.projects.forEach(p => p.selected = false);
-    this.sections.forEach(s => s.selected = true); // หรือ false ตาม default
+    this.sections.forEach(s => s.selected = true);
     this.dateFrom = '';
     this.dateTo = '';
     this.outputFormat = '';
-    //this.email = '';
-
     console.log('Form cancelled and cleared.');
   }
-
-
-
-
-  generateReport() {
-    if (this.hasSelectedProjects() && this.dateFrom && this.dateTo && this.outputFormat) {
-
-      const selectedProject = this.projects.find(p => p.selected);
-
-      const req: ReportRequest = {
-        projectId: selectedProject!.id,
-        dateFrom: this.dateFrom!,
-        dateTo: this.dateTo!,
-        outputFormat: this.formatMap[this.outputFormat]
-        , // map ให้ตรงกับ backend
-        includeSections: this.sections
-          .filter(s => s.selected)
-          .map(s => s.key) // ตาม mapping ที่เราทำก่อนหน้า
-      };
-
-
-      console.log('Request to backend:', req);
-      this.loading = true;
-
-      this.exportreportService.generateReport(req).subscribe({
-        next: (blob) => {
-          console.log('Generate report success', blob);
-          this.downloadFile(blob, `report-${req.projectId}.${req.outputFormat}`);
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Generate report failed', err);
-          this.loading = false;
-          alert('Failed to generate report');
-        }
-      });
-    }
-  }
-
-  private downloadFile(blob: Blob, filename: string) {
-    const ext = blob.type === 'application/zip' ? 'zip' : this.outputFormat;
-    const link = document.createElement('a');
-    const url = window.URL.createObjectURL(blob);
-    link.href = url;
-    link.download = `report-${filename}.${ext}`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-
-  // onPreview(form: any) {
-  //   // if (this.isFormValid(form)) this.previewReport();
-  // }
 
   onGenerate(form: NgForm) {
     if (this.isFormValid(form)) {
@@ -191,17 +186,183 @@ export class GeneratereportComponent {
     }
   }
 
-  formatMap: Record<string, string> = {
-    "PDF": "pdf",
-    "Excel": "xlsx",
-    "Word": "docx",
-    "PowerPoint": "pptx"
-  };
+  generateReport() {
+    if (this.hasSelectedProjects() && this.dateFrom && this.dateTo && this.outputFormat) {
+      this.loading = true;
 
+      this.securityService.loadAndCalculate().subscribe({
+        next: () => {
+          this.executeReportGeneration();
+        },
+        error: (err) => {
+          console.error('Failed to load security data', err);
+          this.loading = false;
+          alert('Failed to generate report: Security data unavailable');
+        }
+      });
+    }
+  }
 
+  private executeReportGeneration() {
+    const selectedProject = this.projects.find(p => p.selected);
+    const projectName = selectedProject!.name;
+    const projectId = selectedProject!.id;
 
+    const processScans = (allScans: ScanResponseDTO[]) => {
+      const projectScans = allScans.filter(s => s.project?.name === projectName || s.project?.id === projectId);
 
+      const filteredScans = projectScans.filter(scan => {
+        const scanDate = scan.startedAt ? new Date(scan.startedAt).toISOString().split('T')[0] : '';
+        return scanDate >= this.dateFrom! && scanDate <= this.dateTo!;
+      });
 
+      filteredScans.sort((a, b) => new Date(b.startedAt!).getTime() - new Date(a.startedAt!).getTime());
 
+      // 4. Fetch Issues for Issue Breakdown
+      this.issueService.getAllIssues().subscribe({
+        next: (allIssues: IssuesResponseDTO[]) => {
+          // Filter issues:
+          // - Must belong to one of the filtered scans (ensures correct Project & Date range)
+          // - Must be Type 'BUG' or 'VULNERABILITY'
+          const validScanIds = new Set(filteredScans.map(s => s.id));
 
+          const filteredIssues = allIssues.filter((issue: IssuesResponseDTO) => {
+            const isCorrectScan = validScanIds.has(issue.scanId);
+            const type = (issue.type || '').toUpperCase();
+            const isCorrectType = type === 'BUG' || type === 'VULNERABILITY';
+            return isCorrectScan && isCorrectType;
+          });
+
+          this.processReportGeneration(selectedProject!.id, projectName, filteredScans, filteredIssues);
+        },
+        error: (err: any) => {
+          console.error('Failed to load issues', err);
+          // Proceed without issues if failed
+          this.processReportGeneration(selectedProject!.id, projectName, filteredScans, []);
+        }
+      });
+    };
+
+    this.scanService.getScansHistory().subscribe({
+      next: (data) => {
+        this.sharedDataService.Scans = data;
+        processScans(data);
+      },
+      error: (err) => {
+        console.error('Failed to load scan history', err);
+        this.loading = false;
+        alert('Failed to load scan data');
+      }
+    });
+  }
+
+  private processReportGeneration(projectId: string, projectName: string, scans: ScanResponseDTO[], issues: any[]) {
+    let securityData: any = undefined;
+    const isSecuritySelected = this.sections.find(s => s.key === 'SecurityAnalysis')?.selected;
+
+    if (isSecuritySelected) {
+      const securityIssues = this.sharedDataService.securityIssuesValue as SecurityIssueDTO[];
+      if (securityIssues) {
+        const validScanIds = new Set(scans.map(s => s.id));
+        const filteredSecurityIssues = securityIssues.filter(issue => validScanIds.has(issue.scanId));
+
+        const metrics = this.securityService.calculate(filteredSecurityIssues);
+
+        securityData = {
+          metrics: metrics,
+          owaspCoverage: this.securityService.calculateOwaspCoverage(filteredSecurityIssues),
+          hotIssues: metrics.hotIssues
+        };
+      }
+    }
+
+    const selectedSections = {
+      qualityGate: this.sections.find(s => s.key === 'QualityGateSummary')?.selected ?? false,
+      issueBreakdown: this.sections.find(s => s.key === 'IssueBreakdown')?.selected ?? false,
+      securityAnalysis: this.sections.find(s => s.key === 'SecurityAnalysis')?.selected ?? false
+    };
+
+    const context = {
+      projectName,
+      dateFrom: this.dateFrom!,
+      dateTo: this.dateTo!,
+      scans,
+      issues,
+      securityData,
+      selectedSections
+    };
+
+    try {
+      if (this.outputFormat === 'Excel') {
+        this.excelService.generateExcel(context);
+        this.saveReportHistory(projectName);
+      } else if (this.outputFormat === 'Word') {
+        this.wordService.generateWord(context);
+        this.saveReportHistory(projectName);
+      } else if (this.outputFormat === 'PowerPoint') {
+        this.pptService.generatePowerPoint(context);
+        this.saveReportHistory(projectName);
+      } else if (this.outputFormat === 'PDF') {
+        this.generatePdfReport(projectId);
+        return;
+      }
+    } catch (e) {
+      console.error('Error generating report', e);
+      alert('Error generating report');
+    } finally {
+      if (this.outputFormat !== 'PDF') {
+        this.loading = false;
+      }
+    }
+  }
+
+  private saveReportHistory(projectName: string) {
+    const user = this.tokenStorageService.getLoginUser();
+    const historyItem = {
+      project: projectName,
+      dateRange: `${this.dateFrom} to ${this.dateTo}`,
+      generatedBy: user ? user.username : 'Unknown',
+      email: user ? user.email : '',
+      role: user ? user.role : '',
+      generatedAt: new Date(),
+      format: this.outputFormat
+    };
+
+    const storageKey = 'report_history';
+    const currentHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    currentHistory.push(historyItem);
+    localStorage.setItem(storageKey, JSON.stringify(currentHistory));
+  }
+
+  private generatePdfReport(projectId: string) {
+    const req: ReportRequest = {
+      projectId: projectId,
+      dateFrom: this.dateFrom!,
+      dateTo: this.dateTo!,
+      outputFormat: 'pdf',
+      includeSections: this.sections.filter(s => s.selected).map(s => s.key)
+    };
+
+    this.exportreportService.generateReport(req).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `report-${projectId}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.loading = false;
+
+        const selectedProject = this.projects.find(p => p.selected);
+        if (selectedProject) {
+          this.saveReportHistory(selectedProject.name);
+        }
+      },
+      error: (err) => {
+        console.error('Generate PDF failed', err);
+        this.loading = false;
+        alert('Failed to generate PDF');
+      }
+    });
+  }
 }

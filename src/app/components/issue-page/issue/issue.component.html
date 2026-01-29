@@ -12,22 +12,21 @@
 
   <!-- Filters & Search -->
   <div class="d-flex flex-wrap gap-2 mb-4 align-items-center filters">
-    <select class="form-select w-auto" [(ngModel)]="filterType">
+    <select class="form-select w-auto" [(ngModel)]="filterType" (ngModelChange)="applyFilter()">
       <option>All Types</option>
       <option value="bug">Bug</option>
       <option value="security">Security</option>
-      <option value="code-smell">Code Smell</option>
+      <option value="Code_smell">Code Smell</option>
     </select>
 
-    <select class="form-select w-auto" [(ngModel)]="filterSeverity">
+    <select class="form-select w-auto" [(ngModel)]="filterSeverity" (ngModelChange)="applyFilter()">
       <option>All Severity</option>
-      <option value="critical">Critical</option>
-      <option value="high">High</option>
-      <option value="medium">Medium</option>
-      <option value="low">Low</option>
+      <option value="critical">CRITICAL</option>
+      <option value="MAJOR">MAJOR</option>
+      <option value="MINOR">MINOR</option>
     </select>
 
-    <select class="form-select w-auto" [(ngModel)]="filterStatus">
+    <select class="form-select w-auto" [(ngModel)]="filterStatus" (ngModelChange)="applyFilter()">
       <option>All Status</option>
       <option value="open">Open</option>
       <option value="pending">Pending</option>
@@ -38,15 +37,14 @@
 
     <select class="form-select w-auto"
         [(ngModel)]="filterProject"
-        (change)="currentPage = 1">
+        (change)="applyFilter()">
   <option value="All Projects">All Projects</option>
   <option *ngFor="let project of projects"
           [value]="project.name">
     {{ project.name }}
   </option>
     </select>
-
-    <input class="form-control w-auto" type="text" placeholder="Search issues..." [(ngModel)]="searchText">
+    <input class="form-control w-auto" type="text" placeholder="Search issues..." [(ngModel)]="searchText" (ngModelChange)="onSearchChange($event)">
     <button class="btn btn-outline-primary" (click)="clearFilters()">Clear</button>
   </div>
 
@@ -57,7 +55,7 @@
       <thead>
         <tr>
           <th class="text-center">
-            <input type="checkbox" [checked]="isPageAllSelected()" (change)="selectAll($event)">
+            <!-- <input type="checkbox" [checked]="isPageAllSelected()" (change)="selectAll($event)"> -->
           </th>
 
           <th>Type</th>
@@ -70,7 +68,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let issue of issuesAll">
+        <tr *ngFor="let issue of paginatedIssues">
           <td>sdad</td>
           <!-- <td class="text-center"><input type="checkbox" [(ngModel)]="issue.selected"></td> -->
           <td><i class="bi me-1" [ngClass]="typeIcon(issue.type)"></i>{{ issue.type | titlecase }}</td>
@@ -108,14 +106,14 @@
 <!-- Footer -->
 <div class="footer-bar px-3 px-md-4">
   <div class="footer-left">
-    <strong>Selected:</strong> {{ selectedCount() }}
+    <!-- <strong>Selected:</strong> {{ selectedCount() }} -->
   </div>
   <div class="pagination d-flex align-items-center gap-3">
-    <button class="page-btn" [class.disabled]="currentPage === 1" (click)="prevPage()">
+    <button class="page-btn" [class.disabled]="currentPage === 1" [disabled]="currentPage === 1" (click)="prevPage()">
       <i class="bi bi-chevron-left"></i>
     </button>
-    <span class="page-label mb-0">Page {{ currentPage }}</span>
-    <button class="page-btn" [class.disabled]="currentPage === totalPages" (click)="nextPage()">
+    <span class="page-label mb-0">Page {{ currentPage }} / {{totalPages}}</span>
+    <button class="page-btn" [class.disabled]="currentPage === totalPages" [disabled]="currentPage === totalPages" (click)="nextPage()">
       <i class="bi bi-chevron-right"></i>
     </button>
   </div>
