@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import { filter } from 'rxjs/operators';
-=======
->>>>>>> dev
 import { scan } from 'rxjs';
 import { SharedDataService } from './../../../services/shared-data/shared-data.service';
 import { Component } from '@angular/core';
