@@ -425,6 +425,7 @@ onDelete(repo: Repository) {
 
   if (confirm('Are you sure to delete this repository?')) {
     this.repoService.deleteRepo(repo.projectId).subscribe(() => {
+    this.sharedData.removeRepository(repo.projectId!);
       this.snack.open('Deleted successfully!', '', {
         duration: 2500,
         horizontalPosition: 'right',

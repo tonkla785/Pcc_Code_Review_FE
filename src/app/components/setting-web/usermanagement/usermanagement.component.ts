@@ -182,8 +182,7 @@ onDelete(projectId: string) {
   
   this.userDateService.DeleteUser(projectId).subscribe({
     next: () => {
-      // หลัง API สำเร็จ → ลบออกจาก SharedDataService
-      this.sharedData.removeRepository(projectId);
+      this.sharedData.removeUser(projectId);
     },
     error: (err) => console.error(err)
   });

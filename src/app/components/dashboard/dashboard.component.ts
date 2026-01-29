@@ -19,7 +19,7 @@ import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
 import { Repository, RepositoryService } from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
-
+import { Subscription } from 'rxjs';
 interface TopIssue {
   message: string;
   count: number;
@@ -174,6 +174,8 @@ export class DashboardComponent {
     repositories: Repository[] = [];
   allIssues: IssuesResponseDTO[] = [];
     filteredRepositories: Repository[] = [];
+  latestScans = this.getLatestScanByProject();
+  private sub = new Subscription();
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
   AllScan: ScanResponseDTO[] = [];
@@ -191,24 +193,28 @@ export class DashboardComponent {
         if (user) {
           this.sharedData.LoginUserShared = user;
         }
-      this.sharedData.scansHistory$.subscribe(data => { 
-      this.DashboardData = data || [];
+
+     this.sub.add(
+      this.sharedData.scansHistory$.subscribe((data) => {
+        this.DashboardData = data || [];
       this.countQualityGate();
-      this.buildPieChart();
+      this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
-    });
+      console.log('Dashboard Data Updated SUBBBBBB:', this.DashboardData);
+      })
+    );
     this.sharedData.LoginUser$.subscribe(data => {
       this.UserLogin = data;
       console.log('User Login in Dashboard:', this.UserLogin);
     });
-
+   this.sub.add(
         // 1. Subscribe รับข้อมูลจาก SharedDataService
     this.sharedData.repositories$.subscribe(repos => {
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
       this.calculateProjectDistribution();
-    });
+    }));
 
     // 2. เช็คว่ามีข้อมูลแล้วหรือยัง
     if (!this.sharedData.hasRepositoriesCache) {
@@ -251,6 +257,7 @@ export class DashboardComponent {
         this.buildPieChart();
         this.countBug();
         this.mockCoverageTrend();
+        this.loadDashboardData();
         console.log('Dashboard Data', this.DashboardData);
       },
       error: (err) => {
@@ -271,20 +278,21 @@ export class DashboardComponent {
   });
 }
   countQualityGate() {
-  const scans = this.DashboardData ?? [];
+  const scans = this.getLatestScanByProject() ?? [];
   this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
   this.failedCount  = scans.filter(s => (s?.status ?? '').toUpperCase() === 'FAILED').length;
   console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
 }
   countBug() {
-  const bugs = this.DashboardData ?? [];
+  const bugs = this.getLatestScanByProject() ?? [];
   this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0),0);
   this.securityCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),0);
   this.codeSmellCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0),0);
   this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
-  console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
+  console.log('Bug:',this.passedCountBug , 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
 }
-private dateTH(iso: string): string {
+private dateTH(iso?: string): string {
+  if (!iso) return '';
   return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
   // ได้ YYYY-MM-DD
 }
@@ -294,10 +302,41 @@ countQuality(date: string): number {
     if (!s?.completedAt) return false;
     const scanDate = this.dateTH(s.completedAt); 
         console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
-    return scanDate === date && s.qualityGate === 'OK';
+        console.log('latestScans', this.getLatestScanByProject());
+    return scanDate === date && s.qualityGate === 'OK' ;
 
   }).length;
+  
 }
+getLatestScanByProject(): any[] {
+  const rows = (this.DashboardData ?? [])
+    .filter((s): s is any => typeof s?.completedAt === 'string')
+    .filter(s => !!(s?.project?.id ));
+
+  const latestByProject = new Map<string, any>();
+
+  for (const s of rows) {
+    const projectId = s.project?.id ?? s.projectId;
+
+    const prev = latestByProject.get(projectId);
+    if (!prev) {
+      latestByProject.set(projectId, s);
+      continue;
+    }
+
+    const prevTime = new Date(prev.completedAt).getTime();
+    const curTime  = new Date(s.completedAt).getTime();
+
+    if (curTime > prevTime) {
+      latestByProject.set(projectId, s);
+    }
+  }
+
+  return Array.from(latestByProject.values());
+}
+
+
+
 
 buildPieChart() {
   this.pieChartOptions = {
@@ -657,7 +696,7 @@ buildPieChart() {
 
   // ================== โหลดข้อมูลสำหรับโดนัทและการ์ด ==================
   loadDashboardData() {
-    const latest = this.getLatestPerProject(this.dashboardData.history);
+    const latest = this.getLatestScanByProject();
     const norm = (s?: string) => (s || '').trim().toUpperCase();
     const validLatest = latest.filter((s) => this.notEmpty(s.status));
 
@@ -701,8 +740,8 @@ buildPieChart() {
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
       series: [this.gradePercent, 100 - this.gradePercent],
-      labels: ['', ''],
-      colors: [this.getGradeColor(centerLetter), '#E5E7EB'],
+      labels: ['SUCCESS', 'FAILED'],
+      colors: [this.getGradeColor(centerLetter), '#EF4444'],
       plotOptions: {
         pie: {
           donut: {
@@ -730,10 +769,15 @@ buildPieChart() {
           }
         }
       },
-      dataLabels: { enabled: false },
+      dataLabels: { enabled: true },
 
-      legend: { show: false },
-      tooltip: { enabled: false },
+      legend: { show:  true },
+      tooltip: {
+        enabled: true,
+        y: {
+          formatter: (val: number) => `${Math.round(val)}%`
+        }
+      },
     };
   }
 
@@ -913,7 +957,8 @@ for (let i = 29; i >= 0; i--) {
       chart: {
         type: 'line',
         height: 300,
-        toolbar: { show: false }
+        toolbar: { show: false },
+        zoom: { enabled: false }
       },
       xaxis: {
         categories: dates
