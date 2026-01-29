@@ -6,6 +6,8 @@ import { IssuemodalComponent } from '../issuemodal/issuemodal.component';
 import { AssignHistory, AssignhistoryService, UpdateStatusRequest } from '../../../services/assignservice/assignhistory.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Issue, IssueService } from '../../../services/issueservice/issue.service';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { IssuesResponseDTO } from '../../../interface/issues_interface';
 
 interface StatusUpdate {
   issueId: string;
@@ -44,19 +46,44 @@ export class AssignmentComponent implements OnInit {
   showStatus = false; // สำหรับ modal status
   currentIssue: AssignHistory | null = null; // แทน issue สำหรับ modal
   remark = '';
-
+  issues:Issue [] = [];
+  issuesAll: IssuesResponseDTO[] = [];
+  originalData: IssuesResponseDTO[] = []; 
   constructor(
     private readonly router: Router,
     private readonly assignService: AssignhistoryService,
     private readonly auth: AuthService,
-    private readonly issue: IssueService
+    private readonly issue: IssueService,
+    private readonly issuesService: IssueService,
+    private readonly sharedData: SharedDataService,
   ) { }
 
 
-  ngOnInit() {
-    if (!this.auth.isLoggedIn) { this.router.navigate(['/login']); return; }
-    this.loadAssignments();
+  ngOnInit(): void {
+    this.sharedData.AllIssues$.subscribe(data => { 
+      const all = data ?? [];
+      this.originalData = all.filter(issue => issue.assignedTo !== null);
+       this.issuesAll = [...this.originalData];
+       console.log('Issues loaded Assignment from sharedData:', this.issuesAll);
+    });
+    if(!this.sharedData.hasIssuesCache){
+      console.log("No cache - load from server");
+      this.loadIssues();
+    }
+
   }
+
+loadIssues() {
+  this.sharedData.setLoading(true);
+  this.issuesService.getAllIssues().subscribe({
+    next: (data) => {
+      this.sharedData.IssuesShared = data;
+      this.sharedData.setLoading(false);
+      console.log('Issues loaded:', this.sharedData.IssuesShared);
+    },
+    error: () => this.sharedData.setLoading(false)
+  });
+}
 
   // ฟังก์ชันโหลดข้อมูล assignment ทั้งหมด
   loadAssignments() {
@@ -85,9 +112,9 @@ export class AssignmentComponent implements OnInit {
   }
 
 
-  openAssignModal() {
-    this.assignModal.openAddAssign();
-  }
+  // openAssignModal() {
+  //   this.assignModal.openAddAssign();
+  // }
 
   updateStatus(assign: AssignHistory, status: string) {
     this.assignModal.openStatus(assign, status);
