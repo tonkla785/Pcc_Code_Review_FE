@@ -933,4 +933,5 @@ for (let i = 29; i >= 0; i--) {
       colors: ['#0d6efd'] // bootstrap primary
     };
   }
+  
 }
