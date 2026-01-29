@@ -19,30 +19,30 @@ import { ActivatedRoute } from '@angular/router';
 export class ScanresultComponent {
 
   constructor(private readonly router: Router, private readonly scanService: ScanService,
-    private readonly authService: AuthService,private sharedData: SharedDataService,    private route: ActivatedRoute,) { }
+    private readonly authService: AuthService, private sharedData: SharedDataService, private route: ActivatedRoute,) { }
 
   goBack() { window.history.back(); }
 
   scanInfo: Scan | null = null;
   scanResult: ScanResponseDTO | null = null;
-  
+
   ngOnInit(): void {
-      this.sharedData.selectedScan$.subscribe(data => { 
-        this.scanResult = data;
-      });
+    this.sharedData.selectedScan$.subscribe(data => {
+      this.scanResult = data;
+    });
     this.route.paramMap.subscribe(pm => {
       const id = pm.get('scanId');
       if (!id) return;
 
       console.log('scanId from route:', id);
 
-    if(!this.sharedData.selectedScan$){
-      this.loadScanDetails(id);
-      console.log("No cache - load from server");
-    }
+      if (!this.sharedData.selectedScan$) {
+        this.loadScanDetails(id);
+        console.log("No cache - load from server");
+      }
 
     });
-    }
+  }
 
   loadScanDetails(scanId: string) {
     this.sharedData.setLoading(true);
@@ -150,5 +150,36 @@ export class ScanresultComponent {
 
   viewIssues() {
     this.router.navigate(['/issues', this.scanInfo?.scanId]);
+  }
+
+  // คำนวณค่าเฉลี่ย rating จาก reliability, security, maintainability
+  getAverageRating(): string {
+    const metrics = this.scanResult?.metrics;
+    if (!metrics) return '-';
+
+    const ratingToNumber = (rating: string | undefined): number | null => {
+      if (!rating) return null;
+      const map: { [key: string]: number } = { 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5 };
+      return map[rating.toUpperCase()] ?? null;
+    };
+
+    const numberToRating = (num: number): string => {
+      if (num <= 1.5) return 'A';
+      if (num <= 2.5) return 'B';
+      if (num <= 3.5) return 'C';
+      if (num <= 4.5) return 'D';
+      return 'E';
+    };
+
+    const ratings = [
+      ratingToNumber(metrics.reliabilityRating),
+      ratingToNumber(metrics.securityRating),
+      ratingToNumber(metrics.maintainabilityRating)
+    ].filter((r): r is number => r !== null);
+
+    if (ratings.length === 0) return '-';
+
+    const average = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+    return numberToRating(average);
   }
 }
