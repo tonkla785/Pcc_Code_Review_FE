@@ -241,12 +241,7 @@ nextPageCritical() {
 
 
 
-### SonarQube Results
-- **Quality Gate**: ${this.scanResult?.qualityGate ??'-'}
-- **Coverage**: ${this.scanResult?.metrics.coverage ?? 0}%
-- **Bugs**: ${this.scanResult?.metrics.bugs ?? 0}
-- **Vulnerabilities**: ${this.scanResult?.metrics.vulnerabilities ?? 0}
-- **Code Smells**: ${this.scanResult?.metrics.codeSmells ?? 0}
+//
 `;  }
 
 }
