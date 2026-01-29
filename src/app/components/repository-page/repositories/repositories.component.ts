@@ -11,6 +11,8 @@ import { SseService } from '../../../services/scanservice/sse.service';        /
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { WebSocketService, ScanEvent } from '../../../services/websocket/websocket.service';
+import Swal from 'sweetalert2';
+
 
 @Component({
   selector: 'app-repositories',
@@ -419,27 +421,65 @@ export class RepositoriesComponent implements OnInit {
     });
   }
 onDelete(repo: Repository) {
+  // กัน null / undefined แบบชัดเจน
   if (!repo?.projectId) {
+    Swal.fire({
+      icon: 'error',
+      title: 'ข้อมูลไม่ถูกต้อง',
+      text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
+    });
     return;
   }
 
-  if (confirm('Are you sure to delete this repository?')) {
-    this.repoService.deleteRepo(repo.projectId).subscribe(() => {
-    this.sharedData.removeRepository(repo.projectId!);
-      this.snack.open('Deleted successfully!', '', {
-        duration: 2500,
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-red'],
+  Swal.fire({
+    title: 'ยืนยันการลบ Repository',
+    text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'ลบข้อมูล',
+    cancelButtonText: 'ยกเลิก',
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+
+      // loading ตอนกำลังลบ
+      Swal.fire({
+        title: 'กำลังลบข้อมูล...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
       });
 
-      this.repoService.getAllRepo().subscribe(repos => {
-        this.sharedData.setRepositories(repos);
-        this.router.navigate(['/repositories']);
+      this.repoService.deleteRepo(repo.projectId!).subscribe({
+        next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'ลบสำเร็จ',
+            text: 'ลบ Repository เรียบร้อยแล้ว',
+            timer: 1800,
+            showConfirmButton: false
+          });
+
+          this.repoService.getAllRepo().subscribe(repos => {
+            this.sharedData.setRepositories(repos);
+            this.router.navigate(['/repositories']);
+          });
+        },
+        error: () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'ลบไม่สำเร็จ',
+            text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
+          });
+        }
       });
-    });
-  }
+    }
+  });
 }
+
 
 
 }
