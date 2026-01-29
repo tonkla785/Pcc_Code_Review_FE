@@ -108,10 +108,10 @@ export class IssuedetailComponent implements OnInit {
     this.route.paramMap.subscribe(pm => {
       const id = pm.get('issuesId');
       if (!id) return;
+      this.loadIssueDetails(id);
       console.log('scanId from route:', id);
       if(!this.sharedData.hasSelectedIssuesCache){
       this.loadIssueById(id);
-      this.loadIssueDetails(id);
           }
     });
       this.sharedData.selectedIssues$.subscribe(data => { 
