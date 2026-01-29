@@ -8,9 +8,14 @@ import { filter, map } from 'rxjs/operators';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { RepositoryService } from '../../../services/reposervice/repository.service';
 import { AssignhistoryService } from '../../../services/assignservice/assignhistory.service';
-
+import { LoginUser, UserInfo} from '../../../interface/user_interface';
+import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
+import { UserService } from '../../../services/userservice/user.service';
 /** === เพิ่มสำหรับคอมเมนต์ === */
-import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../../services/commentservice/comment';
+import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../../services/commentservice/comment.service';
+import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { IssuesDetailResponseDTO, IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
+import { commentRequestDTO } from '../../../interface/comment_interface';
 
 interface Attachment { filename: string; url: string; }
 interface IssueComment {
@@ -70,7 +75,12 @@ export class IssuedetailComponent implements OnInit {
   comments: IssueComment[] = [];
   loadingComments = false;
   sendingComment = false;
-
+  issuesResult: IssuesResponseDTO | null = null;
+  issueForModal: IssuesRequestDTO = { id: '', status: '', assignedTo: '' };
+  UserLogin: LoginUser | null = null; 
+  UserData: UserInfo[] = [];
+  filteredUsers: UserInfo[] = [];
+  issuesDetails: IssuesDetailResponseDTO | null = null;
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
@@ -79,11 +89,98 @@ export class IssuedetailComponent implements OnInit {
     private readonly assignService: AssignhistoryService,
     private readonly commentService: CommentService,
     private readonly authService: AuthService,
+    private readonly sharedData: SharedDataService,
+    private readonly issesService: IssueService,
+    private readonly tokenStorage: TokenStorageService,
+    private readonly userDataService: UserService
   ) { }
 
   ngOnInit(): void {
+           this.sharedData.AllUser$.subscribe(data => { 
+        this.UserData = data ?? [];
+        // this.applyFilter();
+        console.log('User loaded Modal from sharedData in issuedetail:', data);
+      });
+       if(!this.sharedData.hasUserCache){
+      this.loadUser();
+      console.log("No cache - load from server");
+       }
+    this.route.paramMap.subscribe(pm => {
+      const id = pm.get('issuesId');
+      if (!id) return;
+      console.log('scanId from route:', id);
+      if(!this.sharedData.hasSelectedIssuesCache){
+      this.loadIssueById(id);
+      this.loadIssueDetails(id);
+          }
+    });
+      this.sharedData.selectedIssues$.subscribe(data => { 
+        this.issuesResult = data;
+        if (data) {
+          this.issueForModal = {
+            id: data.id ?? '',
+            status: data.status ?? '',
+            assignedTo: data.assignedTo.id ?? ''
+          };
+        }
+        console.log('Issues Detail from sharedData:', this.issuesResult);
+        this.applyUserFilter();
+      });
+      const user = this.tokenStorage.getLoginUser();  
+              if (user) {
+                this.sharedData.LoginUserShared = user;
+        }
+      this.sharedData.LoginUser$.subscribe(data => {
+      this.UserLogin = data;
+      console.log('User Login in Issues:', this.UserLogin);
 
+    });
+    }
+
+  loadIssueById(issueId: string) {
+    this.sharedData.setLoading(true);
+    this.issesService.getAllIssuesById(issueId).subscribe({
+      next: (data) => {
+        this.sharedData.SelectedIssues = data;
+        this.sharedData.setLoading(false);
+        console.log('IssuesById loaded:', data);
+        this.applyUserFilter();
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
   }
+    loadIssueDetails(issueId: string) {
+    this.issesService.getAllIssuesDetails(issueId).subscribe({
+      next: (data) => {
+        this.issuesDetails = data;
+        console.log('Issues Detail loaded:', data);
+        this.applyUserFilter();
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
+
+  loadUser() {
+    this.sharedData.setLoading(true);
+    this.userDataService.getUser().subscribe({
+      next: (data) => {
+        this.sharedData.UserShared = data;
+        this.sharedData.setLoading(false);
+        console.log('User loaded Modal:', data);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
+applyUserFilter() {
+  if (!this.issuesResult || !this.UserData.length) {
+    return;
+  }
+    this.filteredUsers = this.UserData.filter(u =>
+      this.issuesResult?.commentData?.some(c => c.user.id === u.id)
+    );
+
+  console.log('Filtered Users:', this.filteredUsers);
+}
 
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
@@ -157,38 +254,24 @@ export class IssuedetailComponent implements OnInit {
 
 
   postComment() {
-    const text = (this.newComment.comment || '').trim();
-    if (!text || !this.issue?.id) return;
+  const payload: commentRequestDTO = {
+    issueId: this.issuesResult?.id,
+    userId: this.UserLogin?.id || '',   
+    comment: this.newComment.comment,
+  };
 
-    const userId = this.currentUserId;
-    if (!userId) { this.error = 'กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น'; return; }
+  console.log('Submitting issue assignment payload:', payload);
 
-    this.sendingComment = true;
-
-    // optimistic append
-    const temp: IssueComment = {
-      issueId: this.issue.id,
-      userId: this.currentUserName || userId,
-      comment: text,
-      timestamp: new Date()
-    };
-    this.comments = [...this.comments, temp];
-
-    const payload: AddIssueCommentPayload = { comment: text };
-    this.commentService.addIssueComment(this.issue.id, userId, payload).subscribe({
-      next: (saved: IssueCommentModel) => {
-        const mapped = this.mapComment(saved);
-        this.comments[this.comments.length - 1] = mapped;
-        this.comments = [...this.comments];
-        this.newComment.comment = '';
-      },
-      error: (e: unknown) => {
-        console.error('addComment error:', e);
-        this.comments = this.comments.slice(0, -1); // rollback
-      },
-      complete: () => (this.sendingComment = false),
-    });
-
+  this.commentService.updateComments(payload).subscribe({
+    next: (updated) => {
+      this.sharedData.addComments(updated)
+      console.log('Issue updated:', updated);
+    },
+    error: (err) => {
+      console.error('Update issue failed:', err);
+      console.error('Payload was:', payload);
+    }
+  });
   }
 
   onCommentKeydown(e: KeyboardEvent) {
@@ -205,14 +288,16 @@ export class IssuedetailComponent implements OnInit {
   showStatusModal = false;
 
   openAssignModal() {
-    if (this.issue.assignedTo) {
+    if (this.issuesResult?.assignedTo) {
       this.assignModal.openEditAssign({
-        issueId: this.issue.id,
-        assignedTo: this.issue.assignedTo,
-        dueDate: this.issue.dueDate
-      });
+        id: this.issuesResult.id,
+        status: this.issuesResult.status,
+        assignedTo: this.issuesResult.assignedTo.id,
+        });
     } else {
-      this.assignModal.openAddAssign(this.issue.id);
+      const issueId = this.issuesResult?.id || this.issue?.id;
+      if (!issueId) return;
+      this.assignModal.openAddAssign(issueId);
     }
   }
 

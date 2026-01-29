@@ -150,7 +150,7 @@
         <button
           class="btn btn-primary"
           [disabled]="!canSave() || isEmail"
-          (click)="onSubmitUser(modalData)"
+          (click)="onSubmitUser()"
         >
           {{ editingUser ? "Update" : "Add" }}
         </button>
