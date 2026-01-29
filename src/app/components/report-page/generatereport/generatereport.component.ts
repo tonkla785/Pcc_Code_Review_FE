@@ -8,6 +8,7 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
+import { IssueService } from '../../../services/issueservice/issue.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SecurityIssueDTO } from '../../../interface/security_interface';
 
@@ -15,6 +16,7 @@ import { SecurityIssueDTO } from '../../../interface/security_interface';
 import { ExcelService } from '../../../services/report-generator/excel/excel.service';
 import { WordService } from '../../../services/report-generator/word/word.service';
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
+import { IssuesResponseDTO } from '../../../interface/issues_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 
 interface Project {
@@ -40,12 +42,9 @@ export class GeneratereportComponent implements OnInit {
   loading = false;
 
   sections = [
-    { name: "Quality Gate Summary", key: "QualityGateSummary", selected: true, disabled: false },
-    { name: "Issue Breakdown", key: "IssueBreakdown", selected: false, disabled: true },
+    { name: "Quality Gate Summary", key: "QualityGateSummary", selected: false, disabled: false },
+    { name: "Issue Breakdown", key: "IssueBreakdown", selected: false, disabled: false },
     { name: "Security Analysis", key: "SecurityAnalysis", selected: false, disabled: false },
-    { name: "Technical Debt", key: "TechnicalDebt", selected: false, disabled: true },
-    { name: "Trend Analysis", key: "TrendAnalysis", selected: false, disabled: true },
-    { name: "Recommendations", key: "Recommendations", selected: false, disabled: true },
   ];
 
   formatMap: Record<string, string> = {
@@ -67,6 +66,7 @@ export class GeneratereportComponent implements OnInit {
     private readonly sharedDataService: SharedDataService,
     private readonly scanService: ScanService,
     private readonly securityService: SecurityService,
+    private readonly issueService: IssueService,
     private readonly excelService: ExcelService,
     private readonly wordService: WordService,
     private readonly pptService: PowerpointService,
@@ -206,53 +206,72 @@ export class GeneratereportComponent implements OnInit {
   private executeReportGeneration() {
     const selectedProject = this.projects.find(p => p.selected);
     const projectName = selectedProject!.name;
+    const projectId = selectedProject!.id;
 
-    const repo = this.sharedDataService.repositoriesValue.find(r => r.name === projectName);
-    if (!repo) {
-      this.loading = false;
-      alert('ไม่พบข้อมูลโปรเจกต์');
-      return;
-    }
+    const processScans = (allScans: ScanResponseDTO[]) => {
+      const projectScans = allScans.filter(s => s.project?.name === projectName || s.project?.id === projectId);
 
-    const scans = repo.scans || [];
-    const filteredScans = scans.filter(scan => {
-      const scanDate = scan.startedAt ? new Date(scan.startedAt).toISOString().split('T')[0] : '';
-      return scanDate >= this.dateFrom! && scanDate <= this.dateTo!;
-    });
+      const filteredScans = projectScans.filter(scan => {
+        const scanDate = scan.startedAt ? new Date(scan.startedAt).toISOString().split('T')[0] : '';
+        return scanDate >= this.dateFrom! && scanDate <= this.dateTo!;
+      });
 
-    const latestScan = filteredScans.length > 0
-      ? filteredScans.sort((a, b) => new Date(b.startedAt!).getTime() - new Date(a.startedAt!).getTime())[0]
-      : null;
+      filteredScans.sort((a, b) => new Date(b.startedAt!).getTime() - new Date(a.startedAt!).getTime());
 
-    if (!latestScan || !latestScan.scanId) {
-      this.processReportGeneration(selectedProject!.id, projectName, null, []);
-      return;
-    }
+      // 4. Fetch Issues for Issue Breakdown
+      this.issueService.getAllIssues().subscribe({
+        next: (allIssues: IssuesResponseDTO[]) => {
+          // Filter issues:
+          // - Must belong to one of the filtered scans (ensures correct Project & Date range)
+          // - Must be Type 'BUG' or 'VULNERABILITY'
+          const validScanIds = new Set(filteredScans.map(s => s.id));
 
-    this.scanService.getScanById(latestScan.scanId).subscribe({
-      next: (fullScan) => {
-        const issues = fullScan.issueData || [];
-        this.processReportGeneration(selectedProject!.id, projectName, fullScan, issues);
+          const filteredIssues = allIssues.filter((issue: IssuesResponseDTO) => {
+            const isCorrectScan = validScanIds.has(issue.scanId);
+            const type = (issue.type || '').toUpperCase();
+            const isCorrectType = type === 'BUG' || type === 'VULNERABILITY';
+            return isCorrectScan && isCorrectType;
+          });
+
+          this.processReportGeneration(selectedProject!.id, projectName, filteredScans, filteredIssues);
+        },
+        error: (err: any) => {
+          console.error('Failed to load issues', err);
+          // Proceed without issues if failed
+          this.processReportGeneration(selectedProject!.id, projectName, filteredScans, []);
+        }
+      });
+    };
+
+    this.scanService.getScansHistory().subscribe({
+      next: (data) => {
+        this.sharedDataService.Scans = data;
+        processScans(data);
       },
       error: (err) => {
-        console.error('Failed to fetch scan details', err);
+        console.error('Failed to load scan history', err);
         this.loading = false;
-        alert('Failed to generate report');
+        alert('Failed to load scan data');
       }
     });
   }
 
-  private processReportGeneration(projectId: string, projectName: string, scanData: ScanResponseDTO | null, issues: any[]) {
+  private processReportGeneration(projectId: string, projectName: string, scans: ScanResponseDTO[], issues: any[]) {
     let securityData: any = undefined;
     const isSecuritySelected = this.sections.find(s => s.key === 'SecurityAnalysis')?.selected;
 
     if (isSecuritySelected) {
       const securityIssues = this.sharedDataService.securityIssuesValue as SecurityIssueDTO[];
       if (securityIssues) {
+        const validScanIds = new Set(scans.map(s => s.id));
+        const filteredSecurityIssues = securityIssues.filter(issue => validScanIds.has(issue.scanId));
+
+        const metrics = this.securityService.calculate(filteredSecurityIssues);
+
         securityData = {
-          metrics: this.securityService.calculate(securityIssues),
-          owaspCoverage: this.securityService.calculateOwaspCoverage(securityIssues),
-          hotIssues: this.sharedDataService.hotIssuesValue
+          metrics: metrics,
+          owaspCoverage: this.securityService.calculateOwaspCoverage(filteredSecurityIssues),
+          hotIssues: metrics.hotIssues
         };
       }
     }
@@ -267,7 +286,7 @@ export class GeneratereportComponent implements OnInit {
       projectName,
       dateFrom: this.dateFrom!,
       dateTo: this.dateTo!,
-      scanData,
+      scans,
       issues,
       securityData,
       selectedSections

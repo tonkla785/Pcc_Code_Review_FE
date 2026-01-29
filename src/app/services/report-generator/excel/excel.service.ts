@@ -7,7 +7,7 @@ export interface ExcelReportContext {
     projectName: string;
     dateFrom: string;
     dateTo: string;
-    scanData: ScanResponseDTO | null;
+    scans: ScanResponseDTO[];
     issues: any[];
     securityData?: {
         metrics: SecurityMetrics;
@@ -52,81 +52,94 @@ export class ExcelService {
             [`Date Range: ${context.dateFrom} - ${context.dateTo}`],
             [`Generated: ${new Date().toLocaleString()}`],
             [],
-            ['Project Name', 'Status', 'Reliability', 'Security', 'Maintainability', 'Bugs', 'Vulnerabilities'],
+            ['Scan Date', 'Status', 'Quality Gate', 'Reliability', 'Security', 'Maintainability', 'Bugs', 'Vulnerabilities', 'Code Smells'],
         ];
 
-        if (context.scanData) {
-            const status = context.scanData.qualityGate === 'OK' ? 'Passed' : 'Failed';
-            summaryData.push([
-                context.projectName,
-                status,
-                this.formatRating(context.scanData.metrics?.reliabilityRating),
-                this.formatRating(context.scanData.metrics?.securityRating),
-                this.formatRating(context.scanData.metrics?.maintainabilityRating),
-                String(context.scanData.metrics?.bugs ?? 0),
-                String(context.scanData.metrics?.vulnerabilities ?? 0)
-            ]);
+        if (context.scans && context.scans.length > 0) {
+            context.scans.forEach(scan => {
+                const scanDate = this.formatScanDate(scan.startedAt);
+                const status = scan.status || '-';
+                let qualityGate = scan.qualityGate || 'N/A';
+                if (qualityGate === 'OK') qualityGate = 'Pass';
+                if (qualityGate === 'ERROR') qualityGate = 'Fail';
+                const metrics = scan.metrics;
+
+                summaryData.push([
+                    scanDate,
+                    status,
+                    qualityGate,
+                    metrics?.reliabilityRating || 'N/A',
+                    metrics?.securityRating || 'N/A',
+                    metrics?.maintainabilityRating || 'N/A',
+                    metrics?.bugs !== undefined ? metrics.bugs : 'N/A',
+                    metrics?.vulnerabilities !== undefined ? metrics.vulnerabilities : 'N/A',
+                    metrics?.codeSmells !== undefined ? metrics.codeSmells : 'N/A'
+                ]);
+            });
         } else {
-            summaryData.push([context.projectName, 'No scan data in range', 'N/A', 'N/A', 'N/A', '0', '0']);
+            summaryData.push(['No scans found in this date range', '-', '-', '-', '-', '-', '-', '-', '-']);
         }
 
         const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
         summarySheet['!merges'] = [
-            { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-            { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-            { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
-            { s: { r: 3, c: 0 }, e: { r: 3, c: 6 } },
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } },
+            { s: { r: 2, c: 0 }, e: { r: 2, c: 9 } },
+            { s: { r: 3, c: 0 }, e: { r: 3, c: 9 } },
         ];
         summarySheet['!cols'] = [
-            { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 15 }
+            { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
         ];
 
         XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
     }
 
-    private createIssueSheet(workbook: XLSX.WorkBook, context: ExcelReportContext) {
-        const filteredIssues = context.issues.filter(issue => {
-            if (issue.type !== 'Bug' && issue.type !== 'Vulnerability') return false;
-            const issueDate = issue.createdAt ? new Date(issue.createdAt).toISOString().split('T')[0] : '';
-            return issueDate >= context.dateFrom && issueDate <= context.dateTo;
+    private formatScanDate(date: string | undefined): string {
+        if (!date) return 'N/A';
+        return new Date(date).toLocaleString('en-GB', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
         });
+    }
 
-        const issuesData: any[][] = [
+    private createIssueSheet(workbook: XLSX.WorkBook, context: ExcelReportContext) {
+        const issueData: any[][] = [
             ['Code Review Report - Issue Breakdown'],
             [`Project: ${context.projectName}`],
             [`Date Range: ${context.dateFrom} - ${context.dateTo}`],
             [],
-            ['Project Name', 'Type', 'Severity', 'File Path', 'Line', 'Status'],
+            ['Type', 'Severity', 'Message', 'Created At'],
         ];
 
-        if (filteredIssues.length > 0) {
-            filteredIssues.forEach(issue => {
-                const filePath = issue.component || 'N/A';
-                const line = this.extractLineFromComponent(issue.component) || 'N/A';
-                issuesData.push([
-                    context.projectName,
-                    issue.type,
-                    issue.severity,
-                    filePath,
-                    line,
-                    issue.status
+        if (context.issues && context.issues.length > 0) {
+            context.issues.forEach((issue: any) => {
+                let type = (issue.type || '').toLowerCase();
+                if (type === 'bug') type = 'Bug';
+                if (type === 'vulnerability') type = 'Vulnerability';
+                if (type === 'code_smell') type = 'Code Smell';
+
+                issueData.push([
+                    type,
+                    issue.severity || '-',
+                    issue.message || '-',
+                    issue.createdAt ? new Date(issue.createdAt).toLocaleDateString('en-GB') : '-'
                 ]);
             });
         } else {
-            issuesData.push([context.projectName, 'No issues found', '-', '-', '-', '-']);
+            issueData.push(['No issues found matching criteria', '-', '-', '-']);
         }
 
-        const issuesSheet = XLSX.utils.aoa_to_sheet(issuesData);
+        const issuesSheet = XLSX.utils.aoa_to_sheet(issueData);
         issuesSheet['!merges'] = [
-            { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-            { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
-            { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+            { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
         ];
         issuesSheet['!cols'] = [
-            { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 60 }, { wch: 10 }, { wch: 15 }
+            { wch: 20 }, { wch: 15 }, { wch: 100 }, { wch: 15 }
         ];
 
-        XLSX.utils.book_append_sheet(workbook, issuesSheet, 'Issues_List');
+        XLSX.utils.book_append_sheet(workbook, issuesSheet, 'Issue Breakdown');
     }
 
     private createSecuritySheet(workbook: XLSX.WorkBook, context: ExcelReportContext) {

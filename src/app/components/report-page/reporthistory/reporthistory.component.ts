@@ -21,10 +21,7 @@ interface ReportHistory {
 export class ReporthistoryComponent {
 
   searchText: string = '';
-
-
   reports: ReportHistory[] = [];
-
   currentPage = 1;
   pageSize = 5;
 
@@ -47,7 +44,6 @@ export class ReporthistoryComponent {
     if (raw) {
       const data = JSON.parse(raw);
       this.reports = data.map((item: any) => {
-        // Handle migration if needed, but primarily just get the fields we want
         return {
           project: item.project || (item.projects && item.projects.length ? item.projects[0] : '-'),
           dateRange: item.dateRange,

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
@@ -16,6 +16,7 @@ interface DebtProject {
   projectName: string;
   debtTime: string;
   debtMinutes: number;
+  debtCost: string;
   priority: string;
   color: string;
 }
@@ -61,8 +62,7 @@ export class AnalysisComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
-    private readonly scanService: ScanService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly scanService: ScanService
   ) { }
 
   ngOnInit(): void {
@@ -78,12 +78,10 @@ export class AnalysisComponent implements OnInit {
 
     this.sharedData.securityScore$.subscribe(score => {
       this.securityScore = score;
-      this.cdr.detectChanges();
     });
 
     this.sharedData.hotIssues$.subscribe(issues => {
       this.topSecurityIssues = issues;
-      this.cdr.detectChanges();
     });
 
     if (!this.sharedData.hasSecurityIssuesCache) {
@@ -117,22 +115,21 @@ export class AnalysisComponent implements OnInit {
       .map(s => {
         const minutes = s.metrics?.technicalDebtMinutes || 0;
         const days = minutes / 480;
-        const cost = s.metrics?.debtRatio || 0;
-
-        const score = (days * 2) + (cost / 50000);
+        const costVal = days * 30000;
+        const costStr = `THB${Math.ceil(costVal).toLocaleString()}`;
+        const score = (days * 2) + (costVal / 50000);
 
         return {
           projectName: s.project?.name || 'Unknown Project',
           debtTime: this.formatDebtTime(minutes),
           debtMinutes: minutes,
+          debtCost: costStr,
           priority: this.getPriority(score),
           color: this.getColor(score)
         };
       })
-      .sort((a, b) => b.debtMinutes - a.debtMinutes) 
+      .sort((a, b) => b.debtMinutes - a.debtMinutes)
       .slice(0, 5);
-
-    this.cdr.detectChanges();
   }
 
   private latestScanPerProject(scans: ScanResponseDTO[]): ScanResponseDTO[] {
@@ -154,7 +151,9 @@ export class AnalysisComponent implements OnInit {
     const days = Math.floor(hours / 8);
     const remainingHours = hours % 8;
 
-    if (days > 0) return `${days}d ${remainingHours}h`;
+    if (days > 0) {
+      return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
+    }
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
   }
@@ -162,14 +161,14 @@ export class AnalysisComponent implements OnInit {
 
   private getPriority(score: number): string {
     if (score >= 10) return 'High';
-    if (score >= 5) return 'Medium'; 
+    if (score >= 5) return 'Medium';
     return 'Low';
   }
 
   private getColor(score: number): string {
-    if (score >= 10) return 'bg-danger';         
-    if (score >= 5) return 'bg-warning text-dark'; 
-    return 'bg-success';                         
+    if (score >= 10) return 'bg-danger';
+    if (score >= 5) return 'bg-warning text-dark';
+    return 'bg-success';
   }
 
   goToDebt(): void {

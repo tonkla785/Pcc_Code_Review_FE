@@ -7,7 +7,8 @@ export interface PptReportContext {
     projectName: string;
     dateFrom: string;
     dateTo: string;
-    scanData: ScanResponseDTO | null;
+    scans: ScanResponseDTO[];
+    issues: any[];
     securityData?: {
         metrics: SecurityMetrics;
         owaspCoverage: OwaspCategory[];
@@ -36,12 +37,19 @@ export class PowerpointService {
         slide1.addText(`Project: ${context.projectName}`, { x: 0.5, y: 3.2, w: '90%', h: 0.5, fontSize: 24, align: 'center' });
         slide1.addText(`Date Range: ${context.dateFrom} - ${context.dateTo}`, { x: 0.5, y: 3.8, w: '90%', h: 0.5, fontSize: 18, align: 'center' });
 
+        //qualityGate
         if (context.selectedSections.qualityGate) {
             this.addSummarySlide(pptx, context);
         }
 
+        //securityAnalysis
         if (context.selectedSections.securityAnalysis && context.securityData) {
             this.addSecuritySlide(pptx, context);
+        }
+
+        //issueBreakdown    
+        if (context.selectedSections.issueBreakdown) {
+            this.addIssueSlide(pptx, context);
         }
 
         const filename = `report-${context.projectName}-${context.dateFrom}-to-${context.dateTo}.pptx`;
@@ -52,23 +60,112 @@ export class PowerpointService {
         const slide = pptx.addSlide();
         slide.addText('Quality Gate Summary', { x: 0.5, y: 0.3, w: '90%', h: 0.5, fontSize: 28, bold: true });
 
-        const scanData = context.scanData;
-        const status = scanData?.qualityGate === 'OK' ? 'Passed' : (scanData ? 'Failed' : 'N/A');
+        const headers = ['Date', 'Status', 'QG', 'Rel', 'Sec', 'Main', 'Bugs', 'Vulns', 'Smells'];
+        const rows: any[] = [headers];
 
-        const rows: any[] = [
-            ['Status', status],
-            ['Reliability', this.formatRating(scanData?.metrics?.reliabilityRating)],
-            ['Security', this.formatRating(scanData?.metrics?.securityRating)],
-            ['Maintainability', this.formatRating(scanData?.metrics?.maintainabilityRating)],
-            ['Bugs', String(scanData?.metrics?.bugs ?? 0)],
-            ['Vulnerabilities', String(scanData?.metrics?.vulnerabilities ?? 0)]
-        ];
+        if (context.scans && context.scans.length > 0) {
+            const displayScans = context.scans.slice(0, 15);
 
-        slide.addTable(rows, { x: 1, y: 1.2, w: 8, h: 3, border: { type: 'solid', color: 'CFCFCF' } });
+            displayScans.forEach(scan => {
+                const scanDate = this.formatScanDate(scan.startedAt);
+                const status = scan.status || '-';
+                const qg = scan.qualityGate === 'OK' ? 'Pass' : (scan.qualityGate ? 'Fail' : 'N/A');
+                const m = scan.metrics;
+
+                rows.push([
+                    scanDate,
+                    status,
+                    qg,
+                    m?.reliabilityRating || '-',
+                    m?.securityRating || '-',
+                    m?.maintainabilityRating || '-',
+                    m?.bugs || 0,
+                    m?.vulnerabilities || 0,
+                    m?.codeSmells || 0
+                ]);
+            });
+        } else {
+            rows.push(['No scans found', '-', '-', '-', '-', '-', '-', '-', '-']);
+        }
+
+        slide.addTable(rows, {
+            x: 0.7, y: 1.0, w: 9.6, h: 1,
+            border: { type: 'solid', color: 'CFCFCF' },
+            fontSize: 10,
+            colW: [2.5, 1.2, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
+        });
+    }
+
+    private formatScanDate(date: string | undefined): string {
+        if (!date) return 'N/A';
+        return new Date(date).toLocaleString('en-GB', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    private addIssueSlide(pptx: any, context: PptReportContext) {
+        const issues = context.issues || [];
+
+        if (issues.length === 0) {
+            const slide = pptx.addSlide();
+            slide.addText('Issue Breakdown', { x: 0.5, y: 0.3, w: '90%', h: 0.5, fontSize: 24, bold: true });
+            slide.addText('Showing only Bugs and Vulnerabilities.', { x: 0.5, y: 0.8, w: '90%', h: 0.4, fontSize: 14, color: '666666' });
+            slide.addTable([['Type', 'Severity', 'Issue'], ['No issues found', '-', '-']], {
+                x: 0.5, y: 1.3, w: 9, h: 4,
+                border: { type: 'solid', color: 'CFCFCF' },
+                fontSize: 11,
+                colW: [1.5, 1.5, 6]
+            });
+            return;
+        }
+
+        const ITEMS_PER_SLIDE = 10;
+        const totalSlides = Math.ceil(issues.length / ITEMS_PER_SLIDE);
+
+        for (let i = 0; i < totalSlides; i++) {
+            const slide = pptx.addSlide();
+            const title = i === 0 ? 'Issue Breakdown' : 'Issue Breakdown (Cont.)';
+            slide.addText(title, { x: 0.5, y: 0.3, w: '90%', h: 0.5, fontSize: 24, bold: true });
+
+            let startY = 1.3;
+            if (i === 0) {
+                slide.addText('Showing only Bugs and Vulnerabilities.', { x: 0.5, y: 0.8, w: '90%', h: 0.4, fontSize: 14, color: '666666' });
+            } else {
+                startY = 1.0;
+            }
+
+            const headers = ['Type', 'Severity', 'Issue'];
+            const rows: any[] = [headers];
+
+            const startIdx = i * ITEMS_PER_SLIDE;
+            const endIdx = startIdx + ITEMS_PER_SLIDE;
+            const pageIssues = issues.slice(startIdx, endIdx);
+
+            pageIssues.forEach((issue: any) => {
+                let type = (issue.type || '').toLowerCase();
+                if (type === 'bug') type = 'Bug';
+                if (type === 'vulnerability') type = 'Vuln';
+
+                rows.push([
+                    type,
+                    issue.severity || '-',
+                    issue.message || '-'
+                ]);
+            });
+
+            slide.addTable(rows, {
+                x: 0.5, y: startY, w: 9,
+                border: { type: 'solid', color: 'CFCFCF' },
+                fontSize: 11,
+                colW: [1.5, 1.5, 6]
+            });
+        }
     }
 
     private addSecuritySlide(pptx: any, context: PptReportContext) {
         const { metrics, owaspCoverage, hotIssues } = context.securityData!;
+
         const slide = pptx.addSlide();
         slide.addText('Security Analysis', { x: 0.5, y: 0.3, w: '90%', h: 0.5, fontSize: 28, bold: true });
 
@@ -83,12 +180,16 @@ export class PowerpointService {
             : [['No hotspots', '-']];
         slide.addTable(hotRows, { x: 5, y: 1.5, w: 4, h: 1.5, border: { type: 'solid', color: 'CFCFCF' } });
 
-        slide.addText('OWASP Top 10 Issues', { x: 0.5, y: 3.5, w: '90%', h: 0.4, fontSize: 16, bold: true });
-        const owaspWithIssues = owaspCoverage.filter(o => o.count > 0);
-        const owaspRows: any[] = owaspWithIssues.length > 0
-            ? owaspWithIssues.map(o => [o.name, String(o.count), o.status === 'fail' ? 'FAIL' : 'WARN'])
-            : [['No OWASP issues', '-', 'PASS']];
-        slide.addTable(owaspRows, { x: 0.5, y: 4, w: 9, h: 1.5, border: { type: 'solid', color: 'CFCFCF' } });
+        const slide2 = pptx.addSlide();
+        slide2.addText('Security Analysis (OWASP)', { x: 0.5, y: 0.3, w: '90%', h: 0.5, fontSize: 28, bold: true });
+
+        slide2.addText('OWASP Top 10 Issues', { x: 0.5, y: 1.0, w: '90%', h: 0.4, fontSize: 16, bold: true });
+
+        const owaspRows: any[] = owaspCoverage.length > 0
+            ? owaspCoverage.map(o => [o.name, String(o.count), o.status === 'pass' ? 'PASS' : (o.status === 'fail' ? 'FAIL' : 'WARN')])
+            : [['No OWASP data', '-', '-']];
+
+        slide2.addTable(owaspRows, { x: 0.5, y: 1.5, w: 9, fontSize: 12, border: { type: 'solid', color: 'CFCFCF' } });
     }
 
     private formatRating(value: string | number | undefined): string {
