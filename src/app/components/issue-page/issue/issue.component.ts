@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { scan } from 'rxjs';
 import { SharedDataService } from './../../../services/shared-data/shared-data.service';
 import { Component } from '@angular/core';
@@ -44,6 +45,7 @@ export class IssueComponent {
   issues:Issue [] = [];
   issuesAll: IssuesResponseDTO[] = [];
   originalData: IssuesResponseDTO[] = [];
+  filteredIssue: IssuesResponseDTO[] = [];
   constructor(
     private readonly router: Router,
     private readonly issueApi: IssueService,
@@ -57,6 +59,7 @@ export class IssueComponent {
     this.sharedData.AllIssues$.subscribe(data => { 
        this.originalData = data || [];
        this.issuesAll = [...this.originalData];
+      this.applyFilter();
     });
     if(!this.sharedData.hasIssuesCache){
       console.log("No cache - load from server");
@@ -175,21 +178,37 @@ loadIssues() {
 
   // ---------- Filter / Page ----------
   filterIssues() {
-    return this.issues.filter(i =>
+    return this.issuesAll.filter(i =>
       (this.filterType === 'All Types' || i.type === this.filterType) &&
       (this.filterSeverity === 'All Severity' || i.severity === this.filterSeverity) &&
       (this.filterStatus === 'All Status' || i.status === this.filterStatus) &&
-      (
-        this.filterProject === 'All Projects' ||
-        i.projectName?.toLowerCase().trim() === this.filterProject.toLowerCase().trim()
-      ) &&
       (this.searchText === '' || i.message.toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
+  applyFilter() {
+    const keyword = this.searchText.trim().toLowerCase();
+    const matchType = (this.filterType || 'All Types').toLowerCase();
+    const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
+    const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
+    const matchProject = (this.filterProject || 'All Projects').toLowerCase();
 
-
+    this.filteredIssue = this.issuesAll.filter(i => {
+      const type = matchType === 'all types' || (i.type || '').toLowerCase() === matchType;
+      const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
+      const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
+      const projectName = (i.message || i.message || '').toString().toLowerCase();
+      const project = matchProject === 'all projects' || projectName === matchProject;
+      const messageOk = keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+      return type && severity && status && project && messageOk;
+    });
+    this.currentPage = 1;
+  }
+  onSearchChange(value: string) {
+  this.searchText = value;
+  this.applyFilter();
+}
   get filteredIssues() {
-    return this.filterIssues();
+    return this.filteredIssue;
   }
 
   get paginatedIssues() {
@@ -211,18 +230,18 @@ loadIssues() {
   }
 
   // ---------- Selection ----------
-  isPageAllSelected(): boolean {
-    return this.paginatedIssues.length > 0 && this.paginatedIssues.every(i => !!i.selected);
-  }
+  // isPageAllSelected(): boolean {
+  //   return this.paginatedIssues.length > 0 && this.paginatedIssues.every(i => !!i.selected);
+  // }
 
-  selectAll(event: any) {
-    const checked = event.target.checked;
-    this.paginatedIssues.forEach(i => i.selected = checked);
-  }
+  // selectAll(event: any) {
+  //   const checked = event.target.checked;
+  //   this.paginatedIssues.forEach(i => i.selected = checked);
+  // }
 
-  selectedCount() {
-    return this.issues.filter(i => i.selected).length;
-  }
+  // selectedCount() {
+  //   return this.issuesAll.filter(i => i.selected).length;
+  // }
 
   // ---------    //   const selectedIssues = this.issues.filter(i => i.selected);
     //   if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
@@ -307,6 +326,7 @@ loadIssues() {
     this.currentPage = 1;
     this.selectAllCheckbox = false;
     this.issues.forEach(i => i.selected = false);
+    this.applyFilter();
   }
 
   // ---------- Helpers (โครงเดิม) ----------

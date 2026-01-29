@@ -157,7 +157,7 @@ onSearchChange(value: string) {
       };
       console.log('Submitting user payload:', payload);
 
-    if(this.editingUser = true){
+    if(this.editingUser === true){
       this.userDateService.EditUser(payload).subscribe({
         next: (updatedUser) => {
             this.sharedData.updateUser(payload);
