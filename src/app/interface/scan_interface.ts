@@ -23,11 +23,11 @@ export interface ScanResponseDTO {
   duplicatedLinesDensity: 0,
   maintainabilityRating?: string,
   reliabilityRating?: string,
-  securityHotspots: 0,
+  securityHotspots: number,
   securityRating?: string,
-  technicalDebtMinutes: 0,
-  vulnerabilities: 0,
-};
+  technicalDebtMinutes: number,
+  vulnerabilities: number,
+} | null;
   logFilePath?: string | null;
   issueData: [];     
 }

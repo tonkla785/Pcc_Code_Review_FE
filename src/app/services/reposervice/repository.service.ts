@@ -5,7 +5,9 @@ import { ScanService, Scan } from '../scanservice/scan.service';
 import { IssueService, Issue } from '../issueservice/issue.service';
 import { AuthService } from '../authservice/auth.service';
 import { environment } from '../../environments/environment';
-
+import { QualityGates } from '../../interface/sonarqube_interface';
+import { SonarQubeService } from '../sonarqubeservice/sonarqube.service';
+import { getLatestScan } from '../../utils/format.utils';
 
 export interface Repository {
   id?: string;
@@ -13,7 +15,8 @@ export interface Repository {
   user?: string;// เทียบกับ user: string | undefined; มีก็ได้ไม่มีก็ได้
   name: string;
   repositoryUrl: string;
-  projectType?: 'Angular' | 'Spring Boot';
+  projectType?: 'ANGULAR' | 'SPRING_BOOT';
+  projectTypeLabel?: string;
   branch?: string;
   sonarProjectKey?: string;
   createdAt?: Date;
@@ -52,8 +55,6 @@ export interface ScanIssue {
   assignedTo?: string;
 }
 
-
-
 @Injectable({ providedIn: 'root' })
 export class RepositoryService {
 
@@ -69,6 +70,7 @@ export class RepositoryService {
   private readonly scanService = inject(ScanService);
   private readonly issueService = inject(IssueService);
   private readonly auth = inject(AuthService);
+  private readonly SonarQubeService = inject(SonarQubeService);
 
   // สร้าง interface สำหรับ request
   private getSonarConfigFromStorage() {
@@ -130,7 +132,6 @@ export class RepositoryService {
     );
   }
 
-
   // เพิ่ม repo
   addRepo(repo: Partial<Repository>): Observable<Repository> {
     return this.http.post<Repository>(`${environment.apiUrl}/repository/new-repository`, repo);
@@ -145,7 +146,6 @@ export class RepositoryService {
   deleteRepo(projectId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/repository/delete-repository/${projectId}`);
   }
-
 
   //เก็บ status ใน localstorage  
   private getCachedStatus(projectId: string): 'Active' | 'Scanning' | 'Error' | null {
@@ -174,6 +174,51 @@ export class RepositoryService {
     }
   }
 
+  //เทียบ config กับ metric qualityGate
+  evaluateQualityGate(
+    metrics: {
+      bugs?: number;
+      vulnerabilities?: number;
+      codeSmells?: number;
+      coverage?: number;
+    },
+    gates: QualityGates
+  ): 'Passed' | 'Failed' {
+    console.log('Evaluating quality gate with metrics:', metrics, 'and gates:', gates);
+
+    if ((metrics.coverage ?? 0) > gates.coverageThreshold) {
+      return 'Failed';
+    }
+
+    if ((metrics.bugs ?? 0) > gates.maxBugs) {
+      return 'Failed';
+    }
+
+    if ((metrics.vulnerabilities ?? 0) > gates.maxVulnerabilities) {
+      return 'Failed';
+    }
+
+    if ((metrics.codeSmells ?? 0) > gates.maxCodeSmells) {
+      return 'Failed';
+    }
+
+    return 'Passed';
+  }
+
+  private mapProjectTypeLabel(
+    type?: 'ANGULAR' | 'SPRING_BOOT'
+  ): string | undefined {
+    if (!type) return undefined;
+
+    switch (type) {
+      case 'SPRING_BOOT':
+        return 'SPRING BOOT';
+      case 'ANGULAR':
+        return 'ANGULAR';
+    }
+  }
+
+
   // ดึง repo ทั้งหมด
   getAllRepo(): Observable<Repository[]> {
     const opts = this.authOpts(); // ใส่ Authorization header อย่างเดียว
@@ -197,27 +242,33 @@ export class RepositoryService {
         // Map to Repository[]
         const repos: Repository[] = Array.from(projectMap.values()).map(({ project, scans }) => {
 
-          const sortedScans = scans
-            .slice()
-            .sort((a, b) => {
-              const aTime = a.startedAt ? new Date(a.startedAt).getTime() : 0;
-              const bTime = b.startedAt ? new Date(b.startedAt).getTime() : 0;
-              return bTime - aTime;
-            });
+          // map scans แปลง Date ให้เรียบร้อย
+          const mappedScans = scans.map(scan => ({
+            ...scan,
+            startedAt: scan.startedAt ? new Date(scan.startedAt) : undefined,
+            completedAt: scan.completedAt ? new Date(scan.completedAt) : undefined
+          }));
 
-          const latestScan = sortedScans[0];
+          // ใช้ util หา scan ล่าสุด
+          const latestScan = getLatestScan(
+            mappedScans,
+            s => s.startedAt
+          );
           const cachedStatus = this.getCachedStatus(project.id);
+          const gates = this.SonarQubeService.getQualityGates();
+          console.log('Repo QualityGates from config:', gates);
 
           return {
             projectId: project.id,
             name: project.name,
             repositoryUrl: project.repositoryUrl,
             projectType: project.projectType,
+            projectTypeLabel: this.mapProjectTypeLabel(project.projectType),
             sonarProjectKey: project.sonarProjectKey,
             createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
             scanId: latestScan?.id, //เอาไว้ส่งให้หน้า detailrepo
-            scans: sortedScans.map(scan => ({
+            scans: mappedScans.map(scan => ({
               scanId: scan.id,
               projectId: scan.project.id,
               projectName: scan.project.name,
@@ -239,14 +290,15 @@ export class RepositoryService {
             status: cachedStatus
               ?? this.deriveRepoStatusFromScan(latestScan),
 
+            lastScan: latestScan?.startedAt,
 
-            lastScan: latestScan?.startedAt
-              ? new Date(latestScan.startedAt)
-              : undefined,
-
-            qualityGate: latestScan
-              ? this.scanService.mapQualityStatus(latestScan.qualityGate ?? '')
-              : undefined,
+            qualityGate: gates.failOnError
+              ? (latestScan?.metrics
+                ? this.evaluateQualityGate(latestScan.metrics, gates)
+                : undefined)
+              : (latestScan?.qualityGate
+                ? this.scanService.mapQualityStatus(latestScan.qualityGate)
+                : undefined),
 
             metrics: latestScan?.metrics
               ? {
@@ -259,9 +311,6 @@ export class RepositoryService {
               : undefined
           };
         });
-
-        console.log('Mapped repositories:', repos);
-
         // Sort by lastScan or updatedAt
         return repos.sort((a, b) => {
           const aTime = a.lastScan?.getTime() ?? a.updatedAt?.getTime() ?? a.createdAt?.getTime() ?? 0;
@@ -282,11 +331,6 @@ export class RepositoryService {
         updatedAt: r.updatedAt ? new Date(r.updatedAt) : undefined
       }))
     );
-  }
-
-  /** ดึง repo ทั้งหมด + เติมสรุป scan ล่าสุด */
-  getRepositoriesWithScans(): Observable<Repository[]> {
-    return this.getAllRepo();
   }
 
   getFullRepository(projectId: string): Observable<Repository | undefined> {
@@ -314,17 +358,19 @@ export class RepositoryService {
           log_file_path: s.logFilePath
         }));
 
-        const latest = mappedScans
-          .filter(s => s.completedAt)
-          .sort((a, b) =>
-            (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0)
-          )[0];
+        const latest = getLatestScan(
+          mappedScans,
+          s => s.completedAt
+        );
+
+        const gates = this.SonarQubeService.getQualityGates();
 
         return {
           projectId: project.id,
           name: project.name,
           repositoryUrl: project.repositoryUrl,
           projectType: project.projectType,
+          projectTypeLabel: this.mapProjectTypeLabel(project.projectType),
           sonarProjectKey: project.sonarProjectKey,
           createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
           updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
@@ -333,7 +379,14 @@ export class RepositoryService {
 
           status: latest?.status ?? 'Active',
           lastScan: latest?.completedAt,
-          qualityGate: latest?.qualityGate,
+
+          qualityGate: gates.failOnError
+            ? (latest?.metrics
+              ? this.evaluateQualityGate(latest.metrics, gates)
+              : undefined)
+            : latest?.qualityGate,
+
+
           metrics: latest?.metrics
         } as Repository;
       })
