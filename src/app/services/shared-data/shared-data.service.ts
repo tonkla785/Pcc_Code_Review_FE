@@ -87,6 +87,12 @@ export class SharedDataService {
         const next = [newScan, ...this.scanValue];
         this.scansHistory.next(next);
     }
+    removeScansByProject(projectId: string): void {
+        const current = this.scanValue;
+        const next = current.filter(s => s.project?.id !== projectId && s.project.id );
+        this.scansHistory.next(next);
+    }
+
     private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
     readonly selectedScan$ = this.selectedScan.asObservable();
 
@@ -283,6 +289,7 @@ export class SharedDataService {
     addRepository(repo: Repository): void {
         const current = this._repositories$.getValue();
         this._repositories$.next([repo, ...current]);
+        this.addScan
     }
 
     /** อัปเดต repository (หลัง update สำเร็จ) */
@@ -299,6 +306,7 @@ export class SharedDataService {
     removeRepository(projectId: string): void {
         const current = this._repositories$.getValue();
         this._repositories$.next(current.filter(r => r.projectId !== projectId));
+          this.removeScansByProject(projectId);
     }
 
     /** เซ็ต repository ที่เลือก (สำหรับหน้า detail) */

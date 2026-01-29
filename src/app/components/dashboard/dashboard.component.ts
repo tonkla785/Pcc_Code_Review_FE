@@ -187,7 +187,9 @@ export class DashboardComponent {
   coverageChartOptions!: Partial<ChartOptions>;
   repositories: Repository[] = [];
   allIssues: IssuesResponseDTO[] = [];
-  filteredRepositories: Repository[] = [];
+    filteredRepositories: Repository[] = [];
+  latestScans = this.getLatestScanByProject();
+
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
   AllScan: ScanResponseDTO[] = [];
@@ -208,7 +210,7 @@ export class DashboardComponent {
     this.sharedData.scansHistory$.subscribe((data) => {
       this.DashboardData = data || [];
       this.countQualityGate();
-      this.buildPieChart();
+      this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
     });
@@ -264,6 +266,7 @@ export class DashboardComponent {
         this.buildPieChart();
         this.countBug();
         this.mockCoverageTrend();
+        this.loadDashboardData();
         console.log('Dashboard Data', this.DashboardData);
       },
       error: (err) => {
@@ -283,68 +286,74 @@ export class DashboardComponent {
     });
   }
   countQualityGate() {
-    const scans = this.DashboardData ?? [];
-    this.passedCount = scans.filter(
-      (s) => (s?.status ?? '').toUpperCase() === 'SUCCESS',
-    ).length;
-    this.failedCount = scans.filter(
-      (s) => (s?.status ?? '').toUpperCase() === 'FAILED',
-    ).length;
-    console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
-  }
+  const scans = this.getLatestScanByProject() ?? [];
+  this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
+  this.failedCount  = scans.filter(s => (s?.status ?? '').toUpperCase() === 'FAILED').length;
+  console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
+}
   countBug() {
-    const bugs = this.DashboardData ?? [];
-    this.passedCountBug = bugs.reduce(
-      (sum, s) => sum + (s?.metrics?.bugs ?? 0),
-      0,
-    );
-    this.securityCount = bugs.reduce(
-      (sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),
-      0,
-    );
-    this.codeSmellCount = bugs.reduce(
-      (sum, s) => sum + (s?.metrics?.codeSmells ?? 0),
-      0,
-    );
-    this.coverRateCount = bugs.reduce(
-      (sum, s) => sum + (s?.metrics?.coverage ?? 0),
-      0,
-    );
-    console.log(
-      'Bug:',
-      this.passedCountBug,
-      'Security:',
-      this.securityCount,
-      'CodeSmells:',
-      this.codeSmellCount,
-      'Coverage:',
-      this.coverRateCount,
-    );
-  }
-  private dateTH(iso: string): string {
-    return new Date(iso).toLocaleDateString('sv-SE', {
-      timeZone: 'Asia/Bangkok',
-    });
-    // ได้ YYYY-MM-DD
+  const bugs = this.getLatestScanByProject() ?? [];
+  this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0),0);
+  this.securityCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),0);
+  this.codeSmellCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0),0);
+  this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
+  console.log('Bug:',this.passedCountBug , 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
+}
+private dateTH(iso?: string): string {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+  // ได้ YYYY-MM-DD
+}
+
+countQuality(date: string): number {
+  return (this.DashboardData ?? []).filter(s => {
+    if (!s?.completedAt) return false;
+    const scanDate = this.dateTH(s.completedAt); 
+        console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
+        console.log('latestScans', this.getLatestScanByProject());
+    return scanDate === date && s.qualityGate === 'OK' ;
+
+  }).length;
+  
+}
+getLatestScanByProject(): any[] {
+  const rows = (this.DashboardData ?? [])
+    .filter((s): s is any => typeof s?.completedAt === 'string')
+    .filter(s => !!(s?.project?.id ));
+
+  const latestByProject = new Map<string, any>();
+
+  for (const s of rows) {
+    const projectId = s.project?.id ?? s.projectId;
+
+    const prev = latestByProject.get(projectId);
+    if (!prev) {
+      latestByProject.set(projectId, s);
+      continue;
+    }
+
+    const prevTime = new Date(prev.completedAt).getTime();
+    const curTime  = new Date(s.completedAt).getTime();
+
+    if (curTime > prevTime) {
+      latestByProject.set(projectId, s);
+    }
   }
 
-  countQuality(date: string): number {
-    return (this.DashboardData ?? []).filter((s) => {
-      if (!s?.completedAt) return false;
-      const scanDate = this.dateTH(s.completedAt);
-      console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
-      return scanDate === date && s.qualityGate === 'OK';
-    }).length;
-  }
+  return Array.from(latestByProject.values());
+}
 
-  buildPieChart() {
-    this.pieChartOptions = {
-      series: [this.passedCount, this.failedCount],
-      labels: ['Success', 'Failed'],
-      chart: { type: 'pie' },
-      legend: { position: 'bottom' },
-    };
-  }
+
+
+
+buildPieChart() {
+  this.pieChartOptions = {
+    series: [this.passedCount, this.failedCount],
+    labels: ['Success', 'Failed'],
+    chart: { type: 'pie' },
+    legend: { position: 'bottom' }
+  };
+}
   // ================== FETCH FROM SERVER ==================
   fetchFromServer(userId: string | number) {
     this.loading = true;
@@ -807,7 +816,7 @@ export class DashboardComponent {
 
   // ================== โหลดข้อมูลสำหรับโดนัทและการ์ด ==================
   loadDashboardData() {
-    const latest = this.getLatestPerProject(this.dashboardData.history);
+    const latest = this.getLatestScanByProject();
     const norm = (s?: string) => (s || '').trim().toUpperCase();
     const validLatest = latest.filter((s) => this.notEmpty(s.status));
 
@@ -861,8 +870,8 @@ export class DashboardComponent {
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
       series: [this.gradePercent, 100 - this.gradePercent],
-      labels: ['', ''],
-      colors: [this.getGradeColor(centerLetter), '#E5E7EB'],
+      labels: ['SUCCESS', 'FAILED'],
+      colors: [this.getGradeColor(centerLetter), '#EF4444'],
       plotOptions: {
         pie: {
           donut: {
@@ -890,10 +899,15 @@ export class DashboardComponent {
           },
         },
       },
-      dataLabels: { enabled: false },
+      dataLabels: { enabled: true },
 
-      legend: { show: false },
-      tooltip: { enabled: false },
+      legend: { show:  true },
+      tooltip: {
+        enabled: true,
+        y: {
+          formatter: (val: number) => `${Math.round(val)}%`
+        }
+      },
     };
   }
 
@@ -1096,6 +1110,7 @@ export class DashboardComponent {
         type: 'line',
         height: 300,
         toolbar: { show: false },
+        zoom: { enabled: false }
       },
       xaxis: {
         categories: dates,
@@ -1115,4 +1130,5 @@ export class DashboardComponent {
       colors: ['#0d6efd'], // bootstrap primary
     };
   }
+  
 }
