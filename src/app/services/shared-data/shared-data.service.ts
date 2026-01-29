@@ -1,3 +1,4 @@
+import { IssuesRequestDTO } from './../../interface/issues_interface';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
@@ -5,6 +6,9 @@ import { Repository } from '../reposervice/repository.service';
 import { Scan } from '../scanservice/scan.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
+import { Issue } from '../issueservice/issue.service';
+import { IssuesResponseDTO } from '../../interface/issues_interface';
+import { commentRequestDTO, commentResponseDTO } from '../../interface/comment_interface';
 
 /**
  * SharedDataService - Central state management using RxJS BehaviorSubject
@@ -132,6 +136,88 @@ export class SharedDataService {
             const next = this.usersValue.filter(u => u.id !== userId);
             this.AllUser.next(next);
 }
+    private readonly AllIssues = new BehaviorSubject<IssuesResponseDTO[] | null>(null);
+        readonly AllIssues$ = this.AllIssues.asObservable();
+      
+        get hasIssuesLoaded(): boolean {
+        return this.AllIssues.value !== null;
+        }
+   
+        get hasIssuesCache(): boolean {
+        const data = this.AllIssues.value;
+        return data !== null;
+        }
+  
+        set IssuesShared(data: IssuesResponseDTO[]) {
+        this.AllIssues.next(data ?? []);
+        }
+
+        get issuesValue(): IssuesResponseDTO[] {
+            return this.AllIssues.value ?? [];
+            }
+
+            updateIssues(updated: IssuesResponseDTO) {
+            const next = this.issuesValue.map(u => u.id === updated.id ? updated : u);
+            this.AllIssues.next(next);
+            }
+
+            addIssues(newIssue: IssuesResponseDTO) {
+            const next = [newIssue, ...this.issuesValue];
+            this.AllIssues.next(next);
+            }
+
+            removeIssues(issueId: string) {
+            const next = this.issuesValue.filter(u => u.id !== issueId);
+            this.AllIssues.next(next);
+}
+    private readonly selectedIssues= new BehaviorSubject<IssuesResponseDTO | null>(null);
+        readonly selectedIssues$ = this.selectedIssues.asObservable();
+      
+        get hasSelectedIssuesLoaded(): boolean {
+        return this.selectedIssues.value !== null;
+        }
+   
+        get hasSelectedIssuesCache(): boolean {
+        const data = this.selectedIssues.value;
+        return data !== null;
+        }
+  
+        set SelectedIssues(data: IssuesResponseDTO) {
+        this.selectedIssues.next(data);
+        }
+        get issueValue(): IssuesResponseDTO {
+            return this.selectedIssues.value ?? null!;
+            }
+        updateIssue(patch: Partial<IssuesResponseDTO> & { id: string }) {
+            const current = this.issueValue;
+            if (!current) return;
+            if (current.id !== patch.id) return;
+
+            // merge ของเดิม + ของใหม่ แล้ว next -> ทุก component ที่ subscribe จะอัปเดตทันที
+            const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
+            this.selectedIssues.next(next);
+            }
+                addComments(newComment: commentResponseDTO) {
+                const current = this.issueValue;
+                if (!current) return;
+
+                // กันเผื่อ backend ส่ง issue เป็น id หรือ object
+                const issueId =
+                    typeof newComment.issue === 'string'
+                    ? newComment.issue
+                    : (newComment.issue as any)?.id;
+
+                if (current.id !== issueId) return;
+
+                const commentData = current.commentData ?? [];
+
+                const next: IssuesResponseDTO = {
+                    ...current,
+                    commentData: [...commentData, newComment],
+                };
+
+                this.selectedIssues.next(next);
+                }
 
 private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
         readonly LoginUser$ = this.LoginUser.asObservable();

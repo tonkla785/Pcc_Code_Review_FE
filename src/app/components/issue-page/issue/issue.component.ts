@@ -1,3 +1,5 @@
+import { scan } from 'rxjs';
+import { SharedDataService } from './../../../services/shared-data/shared-data.service';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,6 +7,8 @@ import { RouterLink, Router } from '@angular/router';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
+import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { ScanService } from '../../../services/scanservice/scan.service';
 
 interface Issue {
   issuesId: string;
@@ -37,29 +41,44 @@ export class IssueComponent {
   repositories: Repository[] = [];
   filteredRepositories: Repository[] = [];
   projects: { name: string }[] = [];
-
+  issues:Issue [] = [];
+  issuesAll: IssuesResponseDTO[] = [];
+  originalData: IssuesResponseDTO[] = [];
   constructor(
     private readonly router: Router,
     private readonly issueApi: IssueService,
     private readonly auth: AuthService,
-    private readonly repositoryService: RepositoryService
+    private readonly repositoryService: RepositoryService,
+    private readonly sharedData: SharedDataService,
+    private readonly issuesService: IssueService,
   ) { }
 
   ngOnInit(): void {
-    if (!this.auth.isLoggedIn) { this.router.navigate(['/login']); return; }
-
-    // TODO: Get userId from token when available
-    const userId = '';
-    this.loadIssues(userId);
-    console.log(`Issue ID: ${this.issueId}`);
-
-    this.repositoryService.getAllRepo().subscribe(repos => {
-      const uniqueNames = Array.from(new Set(repos.map(repo => repo.name)));
-      this.projects = uniqueNames.map(name => ({ name }));
+    this.sharedData.AllIssues$.subscribe(data => { 
+       this.originalData = data || [];
+       this.issuesAll = [...this.originalData];
     });
-
+    if(!this.sharedData.hasIssuesCache){
+      console.log("No cache - load from server");
+      this.loadIssues();
+    }
 
   }
+
+loadIssues() {
+
+  this.sharedData.setLoading(true);
+  this.issuesService.getAllIssues().subscribe({
+    next: (data) => {
+      this.sharedData.IssuesShared = data;
+      this.sharedData.setLoading(false);
+      console.log('Issues loaded:', data);
+    },
+    error: () => this.sharedData.setLoading(false)
+  });
+}
+
+
 
   // ---------- Filters ----------
   filterType = 'All Types';
@@ -82,25 +101,10 @@ export class IssueComponent {
   errorMsg = '';
 
   // ดาต้าจริง (แทน mock)
-  issues: Issue[] = [];
+
 
   // ---------- Fetch ----------
-  private loadIssues(userId: string) {
-    this.loading = true; this.errorMsg = '';
-    this.issueApi.getAllIssue(userId).subscribe({
-      next: (rows) => {
-        this.issues = (rows || []).map(r => this.mapApiIssueToUi(r));
-        // 🔽 คำนวณ Top Issues ตรงนี้เลย
-        this.buildTopIssues();
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.errorMsg = 'Failed to load issues.';
-        this.loading = false;
-      }
-    });
-  }
+
 
   private buildTopIssues() {
     const counter: Record<string, number> = {};
@@ -220,9 +224,7 @@ export class IssueComponent {
     return this.issues.filter(i => i.selected).length;
   }
 
-  // ---------- Actions (ยังคงเค้าโครงเดิม) ----------
-  assignDeveloper() {
-    //   const selectedIssues = this.issues.filter(i => i.selected);
+  // ---------    //   const selectedIssues = this.issues.filter(i => i.selected);
     //   if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
 
     //   const developers = ['userA', 'userB', 'userC']; // สมมุติ user_id; ถ้ามี list จริงให้แทนที่
@@ -241,7 +243,9 @@ export class IssueComponent {
     //     });
     //   });
 
-    //   alert(`Sent assign requests for ${selectedIssues.length} issue(s).`); // แจ้งแบบง่าย ๆ
+    //   alert(`Sent assign requests for ${selectedIssues.length} issue(s).`); // แจ้งแบบง่าย ๆ- Actions (ยังคงเค้าโครงเดิม) ----------
+  assignDeveloper() {
+
   }
 
   changeStatus() {
@@ -335,5 +339,9 @@ export class IssueComponent {
       default: return '';
     }
   }
+  viewResult(issue : IssuesResponseDTO) {
+  this.sharedData.SelectedIssues = issue;   
+  this.router.navigate(['/issuedetail', issue.id]);
+}
 
 }

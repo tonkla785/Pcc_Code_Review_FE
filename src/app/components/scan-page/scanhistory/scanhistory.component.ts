@@ -40,14 +40,15 @@ minEndDate: string | null = null;
 
 
   ngOnInit(): void {
+        if(!this.sharedData.hasScansHistoryCache){
+      this.loadScanHistory();
+      console.log("No cache - load from server");
+    }
     this.sharedData.scansHistory$.subscribe(data => { 
        this.originalData = data || [];
        this.ScanHistory = [...this.originalData];
     });
-    if(!this.sharedData.hasScansHistoryCache){
-      this.loadScanHistory();
-      console.log("No cache - load from server");
-    }
+
   }
 
 loadScanHistory() {

@@ -12,6 +12,10 @@ export interface ScanResponseDTO {
   completedAt?: string;     
   qualityGate?: string | null;
   metrics:  {
+  analysisLogs:[{
+    message: string,
+    timestamp: number
+  }]
   bugs: 0,
   codeSmells: 0,
   coverage: 0,

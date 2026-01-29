@@ -250,5 +250,24 @@
   :host-context(.dark-mode) .log-card .log-date strong {
     color: var(--text-heading) !important;
   }
+  /* คุม layout ตารางให้บาลานซ์ */
+.major-table {
+  table-layout: fixed;   /* สำคัญมาก: ทำให้ width ที่กำหนดมีผลจริง */
+  width: 100%;
+}
+
+/* ความกว้างแต่ละคอลัมน์ */
+.col-no { width: 60px; }
+.col-line { width: 80px; }
+.col-msg { width: 60%; }
+.col-comp { width: 35%; }
+
+/* ทำ ellipsis ให้คอลัมน์ component */
+.col-comp {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
   
   

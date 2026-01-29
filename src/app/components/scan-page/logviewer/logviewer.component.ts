@@ -48,7 +48,9 @@ constructor(private sharedData: SharedDataService, private route: ActivatedRoute
   majorIssues: any[] = [];
   criticalIssues: any[] = [];
     scanResult: ScanResponseDTO | null = null;
-
+    pageSize = 5;
+    currentPageMajor = 1;
+    currentPageCritical = 1;
 
      ngOnInit(): void {
       this.sharedData.selectedScan$.subscribe(data => { 
@@ -98,15 +100,59 @@ constructor(private sharedData: SharedDataService, private route: ActivatedRoute
   }, { MAJOR: [], CRITICAL: [] });
 }
 
-  getDurationSeconds(startedAt?: string, completedAt?: string): number | null {
+  getDurationSeconds(startedAt?: string, completedAt?: string): string | null {
   if (!startedAt || !completedAt) return null;
 
-  const start = new Date(startedAt).getTime();
-  const end = new Date(completedAt).getTime();
+    const diffSec = Math.floor(
+      Math.abs(
+        new Date(completedAt).getTime() -
+        new Date(startedAt).getTime()
+      ) / 1000
+    );
 
-  const diff = Math.abs(end - start);
+    const minutes = Math.floor(diffSec / 60);
+    const seconds = diffSec % 60;
 
-  return Math.floor(diff / 1000);
+    return `${minutes} minutes :${seconds.toString().padStart(2, '0')} seconds `;
+}
+
+get totalPagesMajor(): number {
+  return Math.ceil(this.majorIssues.length / this.pageSize);
+}
+get totalPagesCritical(): number {
+  return Math.ceil(this.criticalIssues.length / this.pageSize);
+}
+
+get pagedMajorIssues() {
+  const start = (this.currentPageMajor - 1) * this.pageSize;
+  return this.majorIssues.slice(start, start + this.pageSize);
+}
+get pagedCritical() {
+  const start = (this.currentPageCritical - 1) * this.pageSize;
+  return this.criticalIssues.slice(start, start + this.pageSize);
+}
+
+prevPageMajor() {
+  if (this.currentPageMajor > 1) {
+    this.currentPageMajor--;
+  }
+}
+
+nextPageMajor() {
+  if (this.currentPageMajor < this.totalPagesMajor) {
+    this.currentPageMajor++;
+  }
+}
+prevPageCritical() {
+  if (this.currentPageCritical > 1) {
+    this.currentPageCritical--;
+  }
+}
+
+nextPageCritical() {
+  if (this.currentPageCritical < this.totalPagesCritical) {
+    this.currentPageCritical++;
+  }
 }
   log: ScanLog = {
     applicationName: 'Angular-App',
