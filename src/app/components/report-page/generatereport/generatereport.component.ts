@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { RepositoryService, Repository } from '../../../services/reposervice/repository.service';
+import { RepositoryService } from '../../../services/reposervice/repository.service';
+import { RepositoryAll } from '../../../interface/repository_interface';
 import { ExportreportService, ReportRequest } from '../../../services/exportreportservice/exportreport.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 
@@ -64,9 +65,9 @@ export class GeneratereportComponent {
         this.reportType = params['reportType'];
       }
     });
-    this.repositoryService.getAllRepo().subscribe(repos => {
-      this.projects = repos.map(repo => ({
-        id: repo.projectId!,      // ต้องมี id ด้วย
+    this.repositoryService.getAllRepositories().subscribe((repos: RepositoryAll[]) => {
+      this.projects = repos.map((repo: RepositoryAll) => ({
+        id: repo.id,      // ต้องมี id ด้วย
         name: repo.name,
         selected: false
       }));

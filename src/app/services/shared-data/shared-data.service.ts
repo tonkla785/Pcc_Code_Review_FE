@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
-import { Repository } from '../reposervice/repository.service';
+
 import { Scan } from '../scanservice/scan.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 import { QualityGates } from '../../interface/sonarqube_interface';
+import { RepositoryAll } from '../../interface/repository_interface';
 
 /**
  * SharedDataService - Central state management using RxJS BehaviorSubject
@@ -38,10 +39,10 @@ export class SharedDataService {
     }
 
     // ==================== REPOSITORIES STATE ====================
-    private _repositories$ = new BehaviorSubject<Repository[]>([]);
+    private _repositories$ = new BehaviorSubject<RepositoryAll[]>([]);
     readonly repositories$ = this._repositories$.asObservable();
 
-    get repositoriesValue(): Repository[] {
+    get repositoriesValue(): RepositoryAll[] {
         return this._repositories$.getValue();
     }
 
@@ -50,10 +51,10 @@ export class SharedDataService {
     }
 
     // ==================== SELECTED REPOSITORY ====================
-    private _selectedRepository$ = new BehaviorSubject<Repository | null>(null);
+    private _selectedRepository$ = new BehaviorSubject<RepositoryAll | null>(null);
     readonly selectedRepository$ = this._selectedRepository$.asObservable();
 
-    get selectedRepositoryValue(): Repository | null {
+    get selectedRepositoryValue(): RepositoryAll | null {
         return this._selectedRepository$.getValue();
     }
 
@@ -190,20 +191,20 @@ export class SharedDataService {
     // ==================== REPOSITORY METHODS ====================
 
     /** เซ็ตรายการ repositories ทั้งหมด (หลัง fetch API) */
-    setRepositories(repos: Repository[]): void {
+    setRepositories(repos: RepositoryAll[]): void {
         this._repositories$.next(repos);
     }
 
     /** เพิ่ม repository ใหม่ (หลัง create สำเร็จ) */
-    addRepository(repo: Repository): void {
+    addRepository(repo: RepositoryAll): void {
         const current = this._repositories$.getValue();
         this._repositories$.next([repo, ...current]);
     }
 
     /** อัปเดต repository (หลัง update สำเร็จ) */
-    updateRepository(projectId: string, updates: Partial<Repository>): void {
+    updateRepository(projectId: string, updates: Partial<RepositoryAll>): void {
         const current = this._repositories$.getValue();
-        const index = current.findIndex(r => r.projectId === projectId);
+        const index = current.findIndex(r => r.id === projectId);
         if (index >= 0) {
             current[index] = { ...current[index], ...updates };
             this._repositories$.next([...current]);
@@ -213,11 +214,11 @@ export class SharedDataService {
     /** ลบ repository (หลัง delete สำเร็จ) */
     removeRepository(projectId: string): void {
         const current = this._repositories$.getValue();
-        this._repositories$.next(current.filter(r => r.projectId !== projectId));
+        this._repositories$.next(current.filter(r => r.id !== projectId));
     }
 
     /** เซ็ต repository ที่เลือก (สำหรับหน้า detail) */
-    setSelectedRepository(repo: Repository | null): void {
+    setSelectedRepository(repo: RepositoryAll | null): void {
         this._selectedRepository$.next(repo);
     }
 
@@ -250,26 +251,19 @@ export class SharedDataService {
     // }
     updateRepoStatus(
         projectId: string,
-        status: 'Active' | 'Scanning' | 'Error',
-        scanningProgress?: number
+        status: 'Active' | 'Scanning' | 'Error'
     ): void {
         const current = this._repositories$.getValue();
 
         const updated = current.map(repo =>
-            repo.projectId === projectId
-                ? {
-                    ...repo,
-                    status,
-                    scanningProgress:
-                        scanningProgress !== undefined
-                            ? scanningProgress
-                            : repo.scanningProgress
-                }
+            repo.id === projectId
+                ? { ...repo, status }
                 : repo
         );
 
         this._repositories$.next(updated);
     }
+
 
     // ==================== QUALITY GATES STATE ====================
     private _qualityGates$ = new BehaviorSubject<QualityGates | null>(null);

@@ -72,44 +72,44 @@
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <h5 class="fw-bold mb-1">{{ repo.name }}</h5>
-            <p class="text-muted mb-2">{{ repo.projectTypeLabel }}</p>
+            <p class="text-muted mb-2">{{ getProjectTypeLabel(repo.projectType) }}</p>
             <a [href]="repo.repositoryUrl" target="_blank" class="repo-link">
               <i class="bi bi-link-45deg me-1"></i>{{ repo.repositoryUrl }}
             </a>
             <div>
-              <div *ngIf="repo.status === 'Scanning'">
+              <div *ngIf="getEffectiveRepoStatus(repo) === 'Scanning'">
                 <div class="scanning-text">
                   <i class="bi bi-arrow-repeat"></i> Scanning...
                 </div>
               </div>
 
-              <div *ngIf="repo.status !== 'Scanning'">
-                Last Scan: <strong>{{ repo.lastScan | date:'dd/MM/yyyy, hh:mm a' }}</strong>
+              <div *ngIf="getEffectiveRepoStatus(repo) !== 'Scanning'">
+                Last Scan: <strong>{{ getLastScanDate(repo) | date:'dd/MM/yyyy, hh:mm a' }}</strong>
               </div>
 
             </div>
 
             <!-- Quality Gate Badge -->
-            <div *ngIf="repo.status !== 'Scanning' && repo.qualityGate">
+            <div *ngIf="getEffectiveRepoStatus(repo) !== 'Scanning' && getQualityGateLabel(repo)">
               <span class="badge grade-badge" [ngClass]="{
-              'grade-a': repo.qualityGate === 'Passed',
-              'grade-e': repo.qualityGate === 'Failed'
+              'grade-a': getQualityGateLabel(repo) === 'Passed',
+              'grade-e': getQualityGateLabel(repo) === 'Failed'
               }">
                 <i class="bi me-1" [ngClass]="{
-                'bi-check-circle': repo.qualityGate === 'Passed',
-                'bi-x-circle': repo.qualityGate === 'Failed'
+                'bi-check-circle': getQualityGateLabel(repo) === 'Passed',
+                'bi-x-circle': getQualityGateLabel(repo) === 'Failed'
               }"></i>
-                Quality Gate: {{ repo.qualityGate }}
+                Quality Gate: {{ getQualityGateLabel(repo) }}
               </span>
             </div>
           </div>
 
           <span class="status-badge" [ngClass]="{
-            'bg-success': repo.status === 'Active',
-            'bg-info': repo.status === 'Scanning',
-            'bg-danger': repo.status === 'Error',
+            'bg-success': getEffectiveRepoStatus(repo) === 'Active',
+            'bg-info': getEffectiveRepoStatus(repo) === 'Scanning',
+            'bg-danger': getEffectiveRepoStatus(repo) === 'Error',
           }">
-            {{ repo.status }}
+            {{ getEffectiveRepoStatus(repo) }}
           </span>
         </div>
 
@@ -118,15 +118,15 @@
           <!-- Stats -->
           <div class="repo-stats">
             <span>
-              <i class="bi bi-bug me-1 text-danger"></i>{{ repo.metrics?.bugs }} Bugs
+              <i class="bi bi-bug me-1 text-danger"></i>{{ getLatestMetrics(repo)?.bugs }} Bugs
             </span>
 
             <span>
-              <i class="bi bi-shield-lock me-1 text-warning"></i>{{ repo.metrics?.vulnerabilities }} Vulnerabilities
+              <i class="bi bi-shield-lock me-1 text-warning"></i>{{ getLatestMetrics(repo)?.vulnerabilities }} Vulnerabilities
             </span>
 
             <span>
-              <i class="bi bi-graph-up me-1 text-success"></i>{{ repo.metrics?.coverage }}% Coverage
+              <i class="bi bi-graph-up me-1 text-success"></i>{{ getLatestMetrics(repo)?.coverage }}% Coverage
             </span>
 
           </div>
@@ -135,13 +135,13 @@
           <div class="d-flex gap-2">
 
             <!-- Run -->
-            <button class="btn btn-sm btn-outline-primary" title="RunScan" *ngIf="repo.status == 'Active'"
+            <button class="btn btn-sm btn-outline-primary" title="RunScan" *ngIf="getEffectiveRepoStatus(repo) == 'Active'"
               (click)="runScan(repo)">
               <i class="bi bi-play-circle"></i>
             </button>
 
             <!-- Resume (เฉพาะตอน Paused และ Scanning ไม่สำเร็จ) -->
-            <button class="btn btn-sm btn-outline-success" title="ResumeScan" *ngIf="repo.status === 'Error'"
+            <button class="btn btn-sm btn-outline-success" title="ResumeScan" *ngIf="getEffectiveRepoStatus(repo) === 'Error'"
               (click)="resumeScan(repo)">
               <i class="bi bi-arrow-clockwise"></i>
             </button>

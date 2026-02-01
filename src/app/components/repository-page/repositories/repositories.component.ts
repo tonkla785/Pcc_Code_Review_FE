@@ -2,15 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
+import { RepositoryService } from '../../../services/reposervice/repository.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { Issue, IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
-import { forkJoin } from 'rxjs';
-import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { WebSocketService, ScanEvent } from '../../../services/websocket/websocket.service';
+import { RepositoryAll } from '../../../interface/repository_interface';
+import { getLatestScanByStartedAt } from '../../../utils/format.utils';
+
 
 @Component({
   selector: 'app-repositories',
@@ -21,10 +22,10 @@ import { WebSocketService, ScanEvent } from '../../../services/websocket/websock
 })
 export class RepositoriesComponent implements OnInit {
   private wsSub?: any; //กัน subscribe ซ้ำ/ค้างเวลาเปลี่ยนหน้า
-  repositories: Repository[] = [];
 
-  filteredRepositories: Repository[] = [];
-  issues: Issue[] = [];
+  repositories: RepositoryAll[] = [];
+  filteredRepositories: RepositoryAll[] = [];
+
   summaryStats: { label: string; count: number; icon: string; bg: string }[] = [];
   searchText: string = '';
   activeFilter: string = 'all';
@@ -35,14 +36,15 @@ export class RepositoriesComponent implements OnInit {
     private sharedData: SharedDataService,
     private readonly router: Router,
     private readonly repoService: RepositoryService,
-    private readonly scanService: ScanService,
     private readonly authService: AuthService,
-    private readonly issueService: IssueService,
     private readonly snack: MatSnackBar,
-    private readonly ws: WebSocketService
+    private readonly ws: WebSocketService,
+    private readonly scanService: ScanService
   ) { }
 
   ngOnInit(): void {
+
+
     if (!this.authService.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
@@ -71,37 +73,38 @@ export class RepositoriesComponent implements OnInit {
     // 2. เช็คว่ามีข้อมูลแล้วหรือยัง
     if (!this.sharedData.hasRepositoriesCache) {
       // 3. ถ้ายังไม่มี → Fetch API
-      this.loadRepositories();
+      this.loadRepositoriesTest();
     }
 
+
     // ฟังการเปลี่ยนแปลง Quality Gates
-    this.sharedData.qualityGates$
-      .subscribe(gates => {
-        if (!gates) return;
+    // this.sharedData.qualityGates$
+    //   .subscribe(gates => {
+    //     if (!gates) return;
 
-        console.log('QualityGates updated:', gates);
+    //     console.log('QualityGates updated:', gates);
 
-        if (!gates.failOnError) {
-          this.repoService.getAllRepo().subscribe(repos => {
-            this.sharedData.setRepositories(repos);
-          });
-          return;
-        }
+    //     if (!gates.failOnError) {
+    //       this.repoService.getAllRepo().subscribe(repos => {
+    //         this.sharedData.setRepositories(repos);
+    //       });
+    //       return;
+    //     }
 
-        //recalculated quality gate ใหม่
-        const recalculated = this.repositories.map(repo => {
-          if (!repo.metrics) return repo;
+    //     //recalculated quality gate ใหม่
+    //     const recalculated = this.repositories.map(repo => {
+    //       if (!repo.metrics) return repo;
 
-          return {
-            ...repo,
-            qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
-          };
-        });
+    //       return {
+    //         ...repo,
+    //         qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
+    //       };
+    //     });
 
-        this.repositories = recalculated;
-        this.filteredRepositories = this.sortRepositories([...recalculated]);
-        this.updateSummaryStats();
-      });
+    //     this.repositories = recalculated;
+    //     this.filteredRepositories = this.sortRepositories([...recalculated]);
+    //     this.updateSummaryStats();
+    //   });
 
 
     // WebSocket รอฟังสถานะสแกน
@@ -117,29 +120,20 @@ export class RepositoriesComponent implements OnInit {
       //เก็บข้อมูลลง shared data
       this.sharedData.updateRepoStatus(
         event.projectId,
-        mappedStatus,
-        event.status === 'SCANNING'
-          ? 0
-          : event.status === 'SUCCESS'
-            ? 100
-            : undefined
+        mappedStatus
       );
+
 
       console.log('WS Scan Event:', event);
 
-      const updated = this.repositories.map(repo =>
-        repo.projectId === event.projectId
-          ? {
-            ...repo,
-            status: mappedStatus,
-            scanningProgress: event.status === 'SCANNING' ? 0 :
-              event.status === 'SUCCESS' ? 100 : 0
-          }
-          : repo
-      );
+      if (event.status === 'SCANNING') {
+        localStorage.setItem(`repo-status-${event.projectId}`, 'Scanning');
+        this.updateSummaryStats();
+      }
 
       // scan เสร็จ แจ้งผล
       if (event.status === 'SUCCESS' || event.status === 'FAILED') {
+        localStorage.removeItem(`repo-status-${event.projectId}`);
 
         this.snack.open(
           event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
@@ -155,47 +149,84 @@ export class RepositoriesComponent implements OnInit {
           }
         );
 
-        // ล้าง localStorage
-        localStorage.removeItem(`repo-status-${event.projectId}`);
+        this.repoService.getRepositoryWithScans(event.projectId).subscribe(fullRepo => {
+          if (!fullRepo) return;
 
-        // ดึงข้อมูลจริงมาแทน
-        this.repoService.getFullRepository(event.projectId).subscribe({
-          next: (fullRepo) => {
-            if (!fullRepo) return;
+          this.repositories = this.repositories.map(r =>
+            r.id === event.projectId ? fullRepo : r
+          );
 
-            const merged = this.sharedData.repositoriesValue.map(repo =>
-              repo.projectId === event.projectId
-                ? { ...repo, ...fullRepo }
-                : repo
-            );
-
-            this.sharedData.setRepositories(merged);
-          },
-          error: err => console.error('Failed to refresh full repo', err)
+          this.filteredRepositories = this.sortRepositories([...this.repositories]);
+          this.updateSummaryStats();
         });
       }
     });
-
   }
 
-  loadRepositories() {
-    this.sharedData.setLoading(true);
+  loadRepositoriesTest() {
+    this.loading = true;
 
-    this.repoService.getAllRepo().subscribe({
-      next: (repos) => {
-        // เก็บข้อมูลลง SharedDataService
+    this.repoService.getAllRepositories().subscribe({
+      next: repos => {
         this.sharedData.setRepositories(repos);
-        this.sharedData.setLoading(false);
-        console.log('Repositories loaded:', repos);
-
-        this.filteredRepositories = this.sortRepositories([...repos]);
-        this.updateSummaryStats();
+        this.loading = false;
       },
-      error: (err) => {
-        console.error('Failed to load repositories:', err);
-        this.sharedData.setLoading(false);
+      error: err => {
+        console.error(err);
+        this.loading = false;
       }
     });
+  }
+
+  getEffectiveRepoStatus(
+    repo: RepositoryAll
+  ): 'Active' | 'Scanning' | 'Error' {
+
+    const cached = localStorage.getItem(`repo-status-${repo.id}`);
+
+    switch (cached) {
+      case 'Scanning':
+        return 'Scanning';
+      case 'Error':
+        return 'Error';
+      case 'Active':
+      default:
+        return 'Active';
+    }
+  }
+
+
+  getLastScanDate(repo: RepositoryAll): Date | undefined {
+    return getLatestScanByStartedAt(repo.scanData)?.startedAt;
+  }
+
+  getLatestMetrics(repo: RepositoryAll) {
+    return getLatestScanByStartedAt(repo.scanData)?.metrics;
+  }
+
+  getQualityGate(repo: RepositoryAll) {
+    const latest = getLatestScanByStartedAt(repo.scanData);
+    return latest?.qualityGate;
+  }
+
+  getQualityGateLabel(repo: RepositoryAll) {
+    const latest = getLatestScanByStartedAt(repo.scanData);
+
+    if (!latest?.qualityGate) return undefined;
+    return this.scanService.mapQualityStatus(latest.qualityGate);
+  }
+
+  getProjectTypeLabel(type?: 'ANGULAR' | 'SPRING_BOOT'): string {
+    if (!type) return '-';
+
+    switch (type) {
+      case 'ANGULAR':
+        return 'ANGULAR';
+      case 'SPRING_BOOT':
+        return 'SPRING BOOT';
+      default:
+        return type;
+    }
   }
 
   goToAddRepository() {
@@ -203,36 +234,12 @@ export class RepositoriesComponent implements OnInit {
   }
 
   searchRepositories(event: Event): void {
-    const keyword = (event.target as HTMLInputElement).value
+    this.searchText = (event.target as HTMLInputElement).value
       .trim()
       .toLowerCase();
 
-    if (!keyword) {
-      // ไม่ค้นหา แสดงตามปกติ
-      this.filteredRepositories = this.sortRepositories([...this.repositories]);
-      this.updateSummaryStats();
-      return;
-    }
-
-    const matched: Repository[] = [];
-    const others: Repository[] = [];
-
-    this.repositories.forEach(repo => {
-      if (repo.name.toLowerCase().includes(keyword)) {
-        matched.push(repo);
-      } else {
-        others.push(repo);
-      }
-    });
-
-    this.filteredRepositories = [
-      ...this.sortRepositories(matched),
-      ...this.sortRepositories(others)
-    ];
-
-    this.updateSummaryStats();
+    this.applyFilters();
   }
-
 
   filterBy(framework: string): void {
     this.activeFilter = framework;
@@ -244,28 +251,45 @@ export class RepositoriesComponent implements OnInit {
   }
 
   private applyFilters(): void {
-    this.filteredRepositories = this.repositories.filter(repo =>
-      // 1. filter ตาม tab (framework)
-      (this.activeFilter === 'all' || repo.projectType?.toLowerCase().includes(this.activeFilter.toLowerCase())) &&
-      // 2. filter ตาม status
-      (this.selectedStatus === 'all' || repo.status === this.selectedStatus) &&
-      // 3. filter ตาม search text
-      (this.searchText === '' ||
-        repo.name.toLowerCase().includes(this.searchText) ||
-        repo.projectType?.toLowerCase().includes(this.searchText))
+    // 1. filter framework status
+    let result = this.repositories.filter(repo =>
+      (this.activeFilter === 'all'
+        || repo.projectType?.toLowerCase().includes(this.activeFilter.toLowerCase())) &&
+      (this.selectedStatus === 'all'
+        || this.getEffectiveRepoStatus(repo) === this.selectedStatus)
     );
 
-    this.filteredRepositories = this.sortRepositories(this.filteredRepositories);
+    // 2. reorder ตาม search
+    if (this.searchText) {
+      const matched: RepositoryAll[] = [];
+      const others: RepositoryAll[] = [];
 
+      result.forEach(repo => {
+        if (repo.name.toLowerCase().includes(this.searchText)) {
+          matched.push(repo);
+        } else {
+          others.push(repo);
+        }
+      });
+
+      result = [
+        ...this.sortRepositories(matched),
+        ...this.sortRepositories(others)
+      ];
+    } else {
+      result = this.sortRepositories(result);
+    }
+
+    this.filteredRepositories = result;
     this.updateSummaryStats();
   }
+
 
   countByType(framework: 'ANGULAR' | 'SPRING_BOOT'): number {
     return this.repositories.filter(
       repo => repo.projectType === framework
     ).length;
   }
-
 
   updateSummaryStats(): void {
     this.summaryStats = [
@@ -277,25 +301,24 @@ export class RepositoriesComponent implements OnInit {
       },
       {
         label: 'Active',
-        count: this.repositories.filter(r => r.status === 'Active').length,
+        count: this.repositories.filter(r => this.getEffectiveRepoStatus(r) === 'Active').length,
         icon: 'bi bi-check-circle-fill',
         bg: 'bg-success'
       },
       {
         label: 'Scanning',
-        count: this.repositories.filter(r => r.status === 'Scanning').length,
+        count: this.repositories.filter(r => this.getEffectiveRepoStatus(r) === 'Scanning').length,
         icon: 'bi bi-arrow-repeat',
         bg: 'bg-info'
       },
       {
         label: 'Error',
-        count: this.repositories.filter(r => r.status === 'Error').length,
+        count: this.repositories.filter(r => this.getEffectiveRepoStatus(r) === 'Error').length,
         icon: 'bi bi-exclamation-circle-fill',
         bg: 'bg-danger'
       }
     ];
   }
-
 
   private mapStatus(
     wsStatus: string
@@ -312,21 +335,15 @@ export class RepositoriesComponent implements OnInit {
     }
   }
 
+  runScan(repo: RepositoryAll) {
 
-  runScan(repo: Repository) {
-    if (repo.status === 'Scanning') return;
-
-    if (!repo.projectId) {
-      console.warn('No projectId for repo, cannot start scan');
-      return;
-    }
-
-    // update UI
-    repo.status = 'Scanning';
-    repo.scanningProgress = 0;
+    // trigger change detection
+    this.repositories = this.repositories.map(r =>
+      r.id === repo.id ? { ...r } : r
+    );
     this.updateSummaryStats();
 
-    this.repoService.startScan(repo.projectId, 'main').subscribe({
+    this.repoService.startScan(repo.id, 'main').subscribe({
       next: () => {
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,
@@ -334,14 +351,12 @@ export class RepositoriesComponent implements OnInit {
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-green']
         });
-
-        // ตอนนี้ยังไม่รู้ว่า scan เสร็จเมื่อไร
-        // ปล่อย status เป็น Scanning ไว้
       },
-      error: (err) => {
+      error: err => {
         console.error('Scan failed:', err);
-        repo.status = 'Error';
-        repo.scanningProgress = 0;
+
+        // rollback
+        localStorage.removeItem(`repo-status-${repo.id}`);
         this.updateSummaryStats();
 
         this.snack.open('Scan failed to start', '', {
@@ -354,18 +369,19 @@ export class RepositoriesComponent implements OnInit {
     });
   }
 
-  resumeScan(repo: Repository) {
+
+  resumeScan(repo: RepositoryAll) {
     this.runScan(repo);
   }
 
   //ตัวแปรใน class
   showScanModal: boolean = false;
-  selectedRepo: Repository | null = null;
+  selectedRepo: RepositoryAll | null = null;
   scanUsername: string = '';
   scanPassword: string = '';
 
   //เปิด modal
-  openScanModal(repo: Repository) {
+  openScanModal(repo: RepositoryAll) {
     this.selectedRepo = repo;
     this.scanUsername = '';
     this.scanPassword = '';
@@ -382,10 +398,6 @@ export class RepositoriesComponent implements OnInit {
   confirmScan(form: any) {
     if (!form.valid || !this.selectedRepo) return;
 
-    // กำหนด username/password ชั่วคราว
-    this.selectedRepo.username = this.scanUsername;
-    this.selectedRepo.password = this.scanPassword;
-
     // เรียก runScan
     this.runScan(this.selectedRepo);
 
@@ -394,30 +406,41 @@ export class RepositoriesComponent implements OnInit {
   }
 
 
-  editRepo(repo: Repository) {
-    this.router.navigate(['/settingrepo', repo.projectId]);
-    console.log('Editing repo:', repo.projectId);
+  editRepo(repo: RepositoryAll) {
+    this.router.navigate(['/settingrepo', repo.id]);
+    console.log('Editing repo:', repo.id);
   }
 
-  viewRepo(repo: Repository): void {
-    this.router.navigate(['/detailrepo', repo.projectId, repo.scanId]);
+  viewRepo(repo: RepositoryAll): void {
+    const latest = getLatestScanByStartedAt(repo.scanData);
+    this.router.navigate(['/detailrepo', repo.id, latest?.id]);
   }
 
-  sortRepositories(list: Repository[]): Repository[] {
+  sortRepositories(list: RepositoryAll[]): RepositoryAll[] {
     return [...list].sort((a, b) => {
-      const parseDate = (d?: string | Date): number => {
-        if (!d) return 0;
-        const dateStr = typeof d === 'string' ? d.split('.')[0] + 'Z' : d; // แก้ format
-        const parsed = new Date(dateStr).getTime();
-        return isNaN(parsed) ? 0 : parsed;
-      };
 
-      const dateA = parseDate(a.lastScan || a.createdAt);
-      const dateB = parseDate(b.lastScan || b.createdAt);
+      // อยู่ใน localStorage มาก่อน
+      const inLocalA = localStorage.getItem(`repo-status-${a.id}`) !== null;
+      const inLocalB = localStorage.getItem(`repo-status-${b.id}`) !== null;
 
-      return dateB - dateA; // ล่าสุด → เก่าสุด
+      if (inLocalA && !inLocalB) return -1;
+      if (!inLocalA && inLocalB) return 1;
+
+      // ถ้าทั้งคู่ไม่อยู่ (หรืออยู่ทั้งคู่) → เทียบเวลา scan ล่าสุดของ project
+      const timeA =
+        getLatestScanByStartedAt(a.scanData)?.startedAt?.getTime()
+        ?? a.createdAt.getTime();
+
+      const timeB =
+        getLatestScanByStartedAt(b.scanData)?.startedAt?.getTime()
+        ?? b.createdAt.getTime();
+
+      return timeB - timeA; // ล่าสุดอยู่บน
     });
   }
+
+
+
 
 
 }

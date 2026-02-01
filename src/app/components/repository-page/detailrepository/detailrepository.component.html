@@ -18,19 +18,19 @@
       {{ repo?.status }}
     </span> -->
 
-    <span [class]="getStatusClass(repo?.status)">{{ repo?.status }}</span>
+    <span [class]="getStatusClass(repoStatus)">{{ repoStatus }}</span>
 
   </div>
 
   <!-- Actions -->
   <div class="mb-4 d-flex gap-2 flex-wrap">
     <!-- Run Scan: แสดงเฉพาะ Active -->
-<!-- <button class="btn btn-primary" *ngIf="repo?.status === 'Active'" (click)="runScan(repo)">
+    <!-- <button class="btn btn-primary" *ngIf="repo?.status === 'Active'" (click)="runScan(repo)">
   <i class="bi bi-play-circle me-1"></i> Run Scan
 </button> -->
 
-<!-- Resume Scan: แสดงเฉพาะ Error -->
-<!-- <button class="btn btn-success" *ngIf="repo?.status === 'Error'" (click)="resumeScan(repo)">
+    <!-- Resume Scan: แสดงเฉพาะ Error -->
+    <!-- <button class="btn btn-success" *ngIf="repo?.status === 'Error'" (click)="resumeScan(repo)">
   <i class="bi bi-play-fill me-1"></i> Resume Scan
 </button> -->
 
@@ -58,22 +58,22 @@
       <div class="card-body">
         <h5 class="card-title">Scan & Quality Overview</h5>
 
-        <div *ngIf="repo?.status === 'Scanning'" class="mb-3">
-          <i class="bi bi-arrow-repeat me-1"></i> Scanning: {{ repo?.scanningProgress }}%
-          <progress class="custom-progress" [value]="repo?.scanningProgress" max="100">
-            {{ repo?.scanningProgress }}%
-          </progress>
+        <div *ngIf="false" class="mb-3">
+          <!-- Scanning Progress is currently not in RepositoryAll -->
         </div>
 
-        <p *ngIf="repo?.status === 'Active'"><i class="bi bi-clock me-1"></i> Last Scan: {{ repo?.lastScan |date:'dd/MM/yyyy HH:mm'}}</p>
-        <p *ngIf="repo?.qualityGate">Quality Gate:  <span class="status-badge" [ngClass]="getQualityGateClass(repo?.qualityGate|| '')">
-    {{ repo?.qualityGate }}
-  </span></p>
+        <p *ngIf="repoStatus === 'Active' && repo?.updatedAt">
+          <i class="bi bi-clock me-1"></i> Last Update: {{
+          repo?.updatedAt |date:'dd/MM/yyyy HH:mm'}}
+        </p>
+        <p *ngIf="false">Quality Gate: <span class="status-badge">
+            <!-- repo?.qualityGate not direct -->
+          </span></p>
 
 
-        <p *ngIf="repo?.metrics?.coverage !== undefined">
+        <p *ngIf="false">
           <i class="bi bi-bar-chart-fill me-1"></i> Coverage:
-          <span class="badge bg-info text-dark">{{ repo?.metrics?.coverage }}%</span>
+          <span class="badge bg-info text-dark">--%</span>
         </p>
       </div>
     </div>
@@ -85,8 +85,8 @@
       <div class="card-body">
         <h5 class="card-title">Bugs & Vulnerabilities</h5>
         <div class="repo-stats mb-3">
-          <span><i class="bi bi-bug me-1"></i>{{ repo?.metrics?.bugs }} Bugs</span>
-          <span><i class="bi bi-shield-lock me-1"></i>{{ repo?.metrics?.vulnerabilities }} Vulnerabilities</span>
+          <span><i class="bi bi-bug me-1"></i>-- Bugs</span>
+          <span><i class="bi bi-shield-lock me-1"></i>-- Vulnerabilities</span>
         </div>
 
         <table class="table table-sm table-hover">

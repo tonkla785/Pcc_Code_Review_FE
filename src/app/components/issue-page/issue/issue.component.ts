@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
-import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
+import { RepositoryAll } from '../../../interface/repository_interface';
+import { RepositoryService } from '../../../services/reposervice/repository.service';
 
 interface Issue {
   issuesId: string;
@@ -34,8 +35,8 @@ export class IssueComponent {
   maxTop = 5;   // อยากให้โชว์กี่อันดับ
 
   issueId: string | null = null;
-  repositories: Repository[] = [];
-  filteredRepositories: Repository[] = [];
+  repositories: RepositoryAll[] = [];
+  filteredRepositories: RepositoryAll[] = [];
   projects: { name: string }[] = [];
 
   constructor(
@@ -53,8 +54,8 @@ export class IssueComponent {
     this.loadIssues(userId);
     console.log(`Issue ID: ${this.issueId}`);
 
-    this.repositoryService.getAllRepo().subscribe(repos => {
-      const uniqueNames = Array.from(new Set(repos.map(repo => repo.name)));
+    this.repositoryService.getAllRepositories().subscribe((repos: RepositoryAll[]) => {
+      const uniqueNames = Array.from(new Set(repos.map((repo: RepositoryAll) => repo.name)));
       this.projects = uniqueNames.map(name => ({ name }));
     });
 

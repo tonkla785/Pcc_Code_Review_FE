@@ -25,7 +25,7 @@
 
         <div class="mb-3">
           <label for="type" class="form-label">Project Type <span class="required">*</span></label>
-          <select class="form-select" name="type" [(ngModel)]="gitRepository.projectTypeLabel" required #type="ngModel">
+          <select class="form-select" name="type" [(ngModel)]="gitRepository.projectType" required #type="ngModel">
             <option [ngValue]="undefined" disabled>-- Select Type --</option>
             <option [ngValue]="'ANGULAR'">Angular</option>
             <option [ngValue]="'SPRING BOOT'">Spring Boot</option>

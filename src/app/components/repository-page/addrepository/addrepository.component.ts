@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
+import { RepositoryService } from '../../../services/reposervice/repository.service';
+import { RepositoryAll } from '../../../interface/repository_interface';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
@@ -42,9 +43,8 @@ export class AddrepositoryComponent implements OnInit {
   authMethod: 'usernamePassword' | 'accessToken' | null = null;
   isEditMode: boolean = false;
 
-  gitRepository: Repository = {
-    projectId: undefined,
-    user: '',
+  gitRepository: Partial<RepositoryAll> = {
+    id: undefined,
     name: '',
     projectType: undefined,
     repositoryUrl: ''
@@ -80,15 +80,13 @@ export class AddrepositoryComponent implements OnInit {
       console.log('Edit mode for projectId:', projectId);
     }
 
-    // TODO: Get userId from token when available
-    this.gitRepository.user = '';
     this.updateProjectKey();
   }
 
   loadRepository(projectId: string) {
-    this.repositoryService.getByIdRepo(projectId).subscribe({
+    this.repositoryService.getRepositoryWithScans(projectId).subscribe({
 
-      next: (repo) => {
+      next: (repo: RepositoryAll) => {
         // console.log('RAW REPO FROM API:', repo);
 
         if (!repo) {
@@ -97,28 +95,27 @@ export class AddrepositoryComponent implements OnInit {
         }
 
         const rawType = (repo.projectType || '').toLowerCase().trim();
-        let normalizedType: 'ANGULAR' | 'SPRING BOOT' | undefined;
+        let normalizedType: 'ANGULAR' | 'SPRING_BOOT' | undefined;
 
         if (rawType.includes('angular')) {
           normalizedType = 'ANGULAR';
         } else if (rawType.includes('spring')) {
-          normalizedType = 'SPRING BOOT';
+          normalizedType = 'SPRING_BOOT';
         } else {
           normalizedType = undefined;
         }
 
         this.gitRepository = {
-          projectId: repo.projectId || repo.id,
-          user: repo.user || '',
+          id: repo.id,
           name: repo.name || '',
           repositoryUrl: repo.repositoryUrl || '',
-          projectTypeLabel: normalizedType,
+          projectType: normalizedType,
           sonarProjectKey: repo.sonarProjectKey || ''
         };
         console.log('RAW REPO FROM API:', this.gitRepository);
         this.updateProjectKey();
       },
-      error: (err) => console.error('Failed to load repository', err)
+      error: (err: any) => console.error('Failed to load repository', err)
     });
   }
 
@@ -147,20 +144,19 @@ export class AddrepositoryComponent implements OnInit {
     const payload = {
       name: this.gitRepository.name,
       url: this.gitRepository.repositoryUrl,
-      type: this.gitRepository.projectTypeLabel === 'ANGULAR' //ทดสอบ
+      type: this.gitRepository.projectType === 'ANGULAR'
         ? 'ANGULAR'
         : 'SPRING_BOOT',
-      username: this.credentials.username,
-      password: this.credentials.password
     };
 
     const saveOrUpdate$ = this.isEditMode
-      ? this.repositoryService.updateRepo(this.gitRepository.projectId!, payload)
+      ? this.repositoryService.updateRepo(this.gitRepository.id!, payload)
       : this.repositoryService.addRepo(payload);
 
     saveOrUpdate$.subscribe({
       next: (savedRepo) => {
         console.log('[ADD REPO RESPONSE]', savedRepo);
+        console.log('[ADD REPO RESPONSE]', savedRepo.id);
 
         // แจ้งผลเพิ่ม/แก้ repo
         this.snack.open(
@@ -177,30 +173,20 @@ export class AddrepositoryComponent implements OnInit {
         );
 
         // เรียก start scan ทันที API ใหม่
-        if (savedRepo?.projectId) {
+        if (savedRepo?.id) {
 
-          this.repositoryService.startScan(savedRepo.projectId, 'main').subscribe({
+          this.repositoryService.startScan(savedRepo.id, 'main').subscribe({
             next: () => {
 
               // แค่รีเฟรช list แล้วกลับหน้า repo
-              this.repositoryService.getAllRepo().subscribe(repos => {
-                this.repositoryService.getAllRepo().subscribe(repos => {
+              this.repositoryService.getAllRepositories().subscribe(repos => {
 
-                  repos.forEach(r => {
-                    if (r.projectId === savedRepo.projectId) {
-                      r.status = 'Scanning';
-                      r.scanningProgress = 0;
-                    }
-                  });
+                this.sharedData.setRepositories(repos);
+                this.sharedData.setLoading(true);
 
-                  this.sharedData.setRepositories(repos);
-                  this.sharedData.setLoading(true);
-
-                  this.router.navigate(['/repositories'], {
-                    state: { message: 'Scan started successfully!' }
-                  });
+                this.router.navigate(['/repositories'], {
+                  state: { message: 'Scan started successfully!' }
                 });
-
               });
             },
 
@@ -218,7 +204,7 @@ export class AddrepositoryComponent implements OnInit {
 
         else {
           // fallback: ไม่มี projectId ก็กลับหน้า list
-          this.repositoryService.getAllRepo().subscribe(repos => {
+          this.repositoryService.getAllRepositories().subscribe(repos => {
             this.sharedData.setRepositories(repos);
             this.router.navigate(['/repositories']);
           });
@@ -242,14 +228,14 @@ export class AddrepositoryComponent implements OnInit {
 
   onDelete() {
     if (confirm('Are you sure to delete this repository?')) {
-      this.repositoryService.deleteRepo(this.gitRepository.projectId!).subscribe(() => {
+      this.repositoryService.deleteRepo(this.gitRepository.id!).subscribe(() => {
         this.snack.open('Deleted successfully!', '', {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-red'],
         });
-        this.repositoryService.getAllRepo().subscribe(repos => {
+        this.repositoryService.getAllRepositories().subscribe(repos => {
           this.sharedData.setRepositories(repos);
           this.router.navigate(['/repositories']);
         });
@@ -259,8 +245,7 @@ export class AddrepositoryComponent implements OnInit {
 
   clearForm(form?: NgForm) {
     this.gitRepository = {
-      projectId: undefined,
-      user: '',
+      id: undefined,
       name: '',
       projectType: undefined,
       repositoryUrl: '',

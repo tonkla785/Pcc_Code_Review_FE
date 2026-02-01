@@ -2,6 +2,8 @@
  * Utility functions สำหรับใช้ซ้ำทั้งโปรเจค
  */
 
+import { ScanData } from "../interface/repository_interface";
+
 // ==================== DATE & TIME ====================
 
 /**
@@ -227,4 +229,22 @@ export function getLatestScan<T>(
       (dateSelector(b)?.getTime() ?? 0) -
       (dateSelector(a)?.getTime() ?? 0)
     )[0];
+}
+
+// ==================== ดึง Scan ล่าสุด ตัวใหม่นะจ๊ะ ====================
+export function getLatestScanByStartedAt(
+  scans?: ScanData[]
+): ScanData | undefined {
+
+  if (!scans || scans.length === 0) {
+    return undefined;
+  }
+
+  return scans.reduce((latest, current) => {
+    if (!latest) return current;
+
+    return current.startedAt > latest.startedAt
+      ? current
+      : latest;
+  });
 }
