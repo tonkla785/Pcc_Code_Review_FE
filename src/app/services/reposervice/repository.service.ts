@@ -400,7 +400,9 @@ export class RepositoryService {
             ? ((latest as any)?.metrics
               ? this.evaluateQualityGate((latest as any).metrics, gates)
               : undefined)
-            : (latest as any)?.qualityGate,
+            : ((latest as any)?.qualityGate
+              ? this.scanService.mapQualityStatus((latest as any).qualityGate)
+              : undefined),
 
 
           metrics: (latest as any)?.metrics

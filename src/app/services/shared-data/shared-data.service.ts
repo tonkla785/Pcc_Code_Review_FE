@@ -327,6 +327,23 @@ export class SharedDataService {
         if (index >= 0) {
             current[index] = { ...current[index], ...updates };
             this._repositories$.next([...current]);
+
+            // Sync changes to Scans History (e.g. Project Name change)
+            if (this.hasScansHistoryCache) {
+                const currentScans = this.scanValue;
+                const updatedScans = currentScans.map(scan => {
+                    // Check ID map (sometimes scan.project has id or projectId)
+                    const p = scan.project;
+                    if (p && (p.id === projectId || p.projectId === projectId)) {
+                        return {
+                            ...scan,
+                            project: { ...p, ...updates } // Sync Reponame/Type changes
+                        };
+                    }
+                    return scan;
+                });
+                this.scansHistory.next(updatedScans);
+            }
         }
     }
 
