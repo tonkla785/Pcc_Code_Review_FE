@@ -7,6 +7,7 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import * as XLSX from 'xlsx';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-scanhistory',
@@ -52,7 +53,6 @@ export class ScanhistoryComponent {
       this.ScanHistory = [...this.originalData];
       this.applyFilter();
     });
-
   }
 
   loadScanHistory() {
@@ -144,7 +144,7 @@ export class ScanhistoryComponent {
     switch (status) {
       case 'SUCCESS': return 'text-success';
       case 'FAILED': return 'text-danger';
-      case 'Scanning': return 'text-warning';
+      case 'PENDING': return 'text-warning';
       default: return '';
     }
   }
@@ -153,7 +153,7 @@ export class ScanhistoryComponent {
     switch (status) {
       case 'SUCCESS': return 'bi-check-circle';
       case 'FAILED': return 'bi-x-circle';
-      case 'Scanning': return 'bi-exclamation-circle';
+      case 'PENDING': return 'bi-exclamation-circle';
       default: return '';
     }
   }
@@ -172,7 +172,12 @@ export class ScanhistoryComponent {
   exportHistory(): void {
 
     if (!this.selectedScans || this.selectedScans.length === 0) {
-      alert('กรุณาเลือกอย่างน้อย 1 รายการสำหรับ Export');
+      Swal.fire({
+        icon: 'warning',
+        title: 'กรุณาเลือกรายการ',
+        text: 'กรุณาเลือกอย่างน้อย 1 รายการสำหรับ Export',
+        confirmButtonText: 'ตกลง'
+      });
       return;
     }
 
@@ -182,7 +187,7 @@ export class ScanhistoryComponent {
       // แปลง qualityGate: OK → Pass, ERROR → Fail
       let grade = scan.qualityGate ?? '';
       if (grade === 'OK') grade = 'Pass';
-      else if (grade === 'ERROR') grade = 'Fail';
+      else grade = 'Fail';
 
       return {
         No: index + 1,
@@ -201,7 +206,12 @@ export class ScanhistoryComponent {
     });
 
     if (flatData.length === 0) {
-      alert('ไม่มีข้อมูลสำหรับ export');
+      Swal.fire({
+        icon: 'info',
+        title: 'ไม่มีข้อมูล',
+        text: 'ไม่มีข้อมูลสำหรับ export',
+        confirmButtonText: 'ตกลง'
+      });
       return;
     }
 
@@ -272,11 +282,21 @@ export class ScanhistoryComponent {
 
   compareScans() {
     if (this.selectedScans.length < 2) {
-      alert("กรุณาเลือกอย่างน้อย 2 รายการ เพื่อเปรียบเทียบ");
+      Swal.fire({
+        icon: 'warning',
+        title: 'เลือกรายการไม่เพียงพอ',
+        text: 'กรุณาเลือกอย่างน้อย 2 รายการ เพื่อเปรียบเทียบ',
+        confirmButtonText: 'ตกลง'
+      });
       return;
     }
     if (this.selectedScans.length > 3) {
-      alert("เปรียบเทียบได้สูงสุด 3 รายการ");
+      Swal.fire({
+        icon: 'warning',
+        title: 'เลือกรายการเกินกำหนด',
+        text: 'เปรียบเทียบได้สูงสุด 3 รายการ',
+        confirmButtonText: 'ตกลง'
+      });
       return;
     }
     this.showCompareModal = true;
