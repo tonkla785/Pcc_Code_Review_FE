@@ -11,10 +11,10 @@
       <div class="card text-center h-100">
         <div class="card-body">
           <h5 class="card-title">
-            Quality Gate: {{ scanResult?.qualityGate === 'OK' ? 'Pass' : scanResult?.qualityGate }}
+            Quality Gate: {{ scanResult?.qualityGate === 'OK' ? 'Pass' : 'Fail' }}
             <i class="bi" [ngClass]="{
-                 'bi-check-circle-fill text-success': scanResult?.qualityGate === 'SUCCESS',
-                 'bi-x-circle-fill text-danger': scanResult?.qualityGate === 'ERROR'
+                 'bi-check-circle-fill text-success': scanResult?.qualityGate === 'OK',
+                 'bi-x-circle-fill text-danger': scanResult?.qualityGate === null
                }"></i>
           </h5>
           <!-- <p>OwerScan: <strong>{{ scanInfo.owerscan }}</strong></p> -->
@@ -34,7 +34,7 @@
     </div>
   </div>
 
-  <div *ngIf="scanResult">
+  <div *ngIf="scanResult && scanResult.metrics; else noDataTemplate">
     <!-- Over all Code -->
     <h4 class="mb-3 mt-4">Overall Gates</h4>
     <table class="table table-bordered table-striped">
@@ -101,6 +101,13 @@
       </div>
     </div>
   </div>
+
+  <!-- No Data Template -->
+  <ng-template #noDataTemplate>
+    <div class="alert alert-info text-center mt-4">
+      <i class="bi bi-info-circle"></i> No result available
+    </div>
+  </ng-template>
 
 
   <!-- Technical Debt & Estimated Cost -->
