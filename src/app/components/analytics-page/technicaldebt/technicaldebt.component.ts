@@ -343,41 +343,104 @@ export class TechnicaldebtComponent implements OnDestroy {
   }
 
   calculateCategoryDebt() {
-    let totalSecurityScore = 0;
-    let totalQualityScore = 0;
-    let totalTestScore = 0;
-    let totalArchScore = 0;
-    let totalDocScore = 0; 
+    let sumSecurity = 0;
+    let sumQuality = 0;
+    let sumTest = 0;
+    let sumArch = 0;
+    let sumDoc = 0; 
+    let count = 0;
 
     // Aggregate metrics from all latest scans
     this.ScanHistoy.forEach(scan => {
       const m = scan.metrics;
+      // If no metrics, skip this scan from the average
       if (!m) return;
-      totalSecurityScore += (m.vulnerabilities || 0) * 10 
-                          + (m.securityHotspots || 0) * 3;
-      totalQualityScore += (m.bugs || 0) * 5 
-                         + (m.codeSmells || 0) * 1;
-      const coverageGap = 100 - (m.coverage || 0);
-      if (coverageGap > 0) {
-        totalTestScore += coverageGap * 5;
-      }
-      totalArchScore += (m.duplicatedLinesDensity || 0) * 5;
+      
+      count++;
+
+      // 1. Security (Vulnerabilities & Hotspots)
+      // A: vuln=0, hs<=1 (0) | B: vuln=0, hs<=3 (20) | C: vuln 1-2 (40) | D: vuln 3-5 (60) | E: vuln >5 (80)
+      let secScore = 0;
+      const v = m.vulnerabilities || 0;
+      const hs = m.securityHotspots || 0;
+
+      if (v === 0 && hs <= 1) secScore = 0;
+      else if (v === 0 && hs <= 3) secScore = 20;
+      else if (v <= 2) secScore = 40;
+      else if (v <= 5) secScore = 60;
+      else secScore = 80;
+
+      sumSecurity += secScore;
+
+      // 2. Architecture (Duplicated Lines %)
+      // A <= 3 (0), B <= 8 (20), C <= 15 (40), D <= 25 (60), E > 25 (80)
+      const dup = m.duplicatedLinesDensity || 0;
+      let archScore = 0;
+      if (dup <= 3) archScore = 0;
+      else if (dup <= 8) archScore = 20;
+      else if (dup <= 15) archScore = 40;
+      else if (dup <= 25) archScore = 60;
+      else archScore = 80;
+
+      sumArch += archScore;
+
+      // 3. Documentation (Code Smells -> Maintainability)
+      // A <= 10 (0), B <= 25 (20), C <= 40 (40), D <= 60 (60), E > 60 (80)
+      const smells = m.codeSmells || 0;
+      let docScore = 0;
+      if (smells <= 10) docScore = 0;
+      else if (smells <= 25) docScore = 20;
+      else if (smells <= 40) docScore = 40;
+      else if (smells <= 60) docScore = 60;
+      else docScore = 80;
+
+      sumDoc += docScore;
+
+      // 4. Test Coverage (Coverage %)
+      // 0-20 (80), 21-40 (60), 41-60 (40), 61-80 (20), 81-100 (0)
+      const cov = m.coverage || 0;
+      let testScore = 0;
+      if (cov <= 20) testScore = 80;
+      else if (cov <= 40) testScore = 60;
+      else if (cov <= 60) testScore = 40;
+      else if (cov <= 80) testScore = 20;
+      else testScore = 0;
+
+      sumTest += testScore;
+
+      // 5. Code Quality (Bugs -> Inferred Score)
+      // A: 0 (0), B: <=2 (20), C: <=5 (40), D: <=10 (60), E: >10 (80)
+      const bugs = m.bugs || 0;
+      let qualScore = 0;
+      if (bugs === 0) qualScore = 0;
+      else if (bugs <= 2) qualScore = 20;
+      else if (bugs <= 5) qualScore = 40;
+      else if (bugs <= 10) qualScore = 60;
+      else qualScore = 80;
+
+      sumQuality += qualScore;
     });
 
-    if (this.ScanHistoy.length > 0) {
-       totalDocScore = this.ScanHistoy.length * 10; 
-    }
+    if (count === 0) return;
 
-    const totalScore = totalSecurityScore + totalQualityScore + totalTestScore + totalArchScore + totalDocScore;
+    // Calculate Averages
+    const avgSec = sumSecurity / count;
+    const avgArch = sumArch / count;
+    const avgDoc = sumDoc / count;
+    const avgTest = sumTest / count;
+    const avgQual = sumQuality / count;
 
-    if (totalScore === 0) return; 
+    const totalAvg = avgSec + avgArch + avgDoc + avgTest + avgQual;
 
+    if (totalAvg === 0) return;
+
+    // Normalize to 100%
     this.categories = [
-       { name: ' Documentation', percent: Math.round((totalDocScore / totalScore) * 100), icon: 'bi bi-journal-text' },
-       { name: ' Architecture', percent: Math.round((totalArchScore / totalScore) * 100), icon: 'bi bi-diagram-3' },
-       { name: ' Code Quality', percent: Math.round((totalQualityScore / totalScore) * 100), icon: 'bi bi-wrench-adjustable' },
-       { name: ' Test Coverage', percent: Math.round((totalTestScore / totalScore) * 100), icon: 'bi-clipboard-check' },
-       { name: ' Security', percent: Math.round((totalSecurityScore / totalScore) * 100), icon: 'bi bi-shield-lock' },
+       { name: ' Documentation', percent: Number(((avgDoc / totalAvg) * 100).toFixed(1)), icon: 'bi bi-journal-text' },
+       { name: ' Architecture', percent: Number(((avgArch / totalAvg) * 100).toFixed(1)), icon: 'bi bi-diagram-3' },
+       { name: ' Code Quality', percent: Number(((avgQual / totalAvg) * 100).toFixed(1)), icon: 'bi bi-wrench-adjustable' },
+       { name: ' Test Coverage', percent: Number(((avgTest / totalAvg) * 100).toFixed(1)), icon: 'bi-clipboard-check' },
+       { name: ' Security', percent: Number(((avgSec / totalAvg) * 100).toFixed(1)), icon: 'bi bi-shield-lock' },
     ];
   }
 
