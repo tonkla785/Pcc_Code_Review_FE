@@ -831,7 +831,7 @@ buildPieChart() {
       const st = norm(s.status);
       return !(st === 'PASSED' || st === 'OK' || st === 'SUCCESS');
     }).length;
-
+    console.log('Passed Count:', passedCount, 'Failed Count:', failedCount);
     // ใช้เฉพาะที่จบแล้ว (pass+fail) มาหาร
     const finishedTotal = passedCount + failedCount;
 
@@ -882,7 +882,7 @@ buildPieChart() {
               value: {
                 show: true,
                 // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => centerLetter,
+                formatter: () => this.grade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
@@ -890,7 +890,7 @@ buildPieChart() {
               total: {
                 show: true,
                 // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => centerLetter,
+                formatter: () => this.grade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',

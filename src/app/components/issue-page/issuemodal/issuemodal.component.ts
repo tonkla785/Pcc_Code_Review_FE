@@ -84,6 +84,7 @@ onSubmitUser() {
   this.issuesService.updateIssues(payload).subscribe({
     next: (updated) => {
         this.sharedData.updateIssue(updated)
+        this.sharedData.updateIssues(updated)
       this.closeModal();
       console.log('Issue updated:', updated);
     },

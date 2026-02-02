@@ -322,6 +322,7 @@ applyUserFilter() {
       this.issue.dueDate
     ).subscribe({
       next: (res: any) => {
+        this.sharedData.updateIssue(res);
         console.log('Assigned successfully:', res);
       },
       error: (err: any) => console.error('Error:', err),
