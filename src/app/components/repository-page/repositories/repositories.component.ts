@@ -70,9 +70,8 @@ export class RepositoriesComponent implements OnInit {
       this.updateSummaryStats();
     });
 
-    // 2. เช็คว่ามีข้อมูลแล้วหรือยัง
+    // 2. ถ้ายังไม่มี data Cache Fetch API ใหม่ (ถ้ามีแล้วใช้ของเดิม เพื่อรักษา Status 'Scanning')
     if (!this.sharedData.hasRepositoriesCache) {
-      // 3. ถ้ายังไม่มี → Fetch API
       this.loadRepositories();
     }
 
@@ -106,77 +105,7 @@ export class RepositoriesComponent implements OnInit {
       });
 
 
-    // WebSocket รอฟังสถานะสแกน
-    this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
-      const mappedStatus = this.mapStatus(event.status);
-
-      //เก็บข้อมูลลง localstorage
-      localStorage.setItem(
-        `repo-status-${event.projectId}`,
-        mappedStatus
-      );
-
-      //เก็บข้อมูลลง shared data
-      this.sharedData.updateRepoStatus(
-        event.projectId,
-        mappedStatus,
-        event.status === 'SCANNING'
-          ? 0
-          : event.status === 'SUCCESS'
-            ? 100
-            : undefined
-      );
-
-      console.log('WS Scan Event:', event);
-
-      const updated = this.repositories.map(repo =>
-        repo.projectId === event.projectId
-          ? {
-            ...repo,
-            status: mappedStatus,
-            scanningProgress: event.status === 'SCANNING' ? 0 :
-              event.status === 'SUCCESS' ? 100 : 0
-          }
-          : repo
-      );
-
-      // scan เสร็จ แจ้งผล
-      if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-
-        this.snack.open(
-          event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
-          '',
-          {
-            duration: 2500,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-            panelClass: [
-              'app-snack',
-              event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red'
-            ]
-          }
-        );
-
-        // ล้าง localStorage
-        localStorage.removeItem(`repo-status-${event.projectId}`);
-
-        // ดึงข้อมูลจริงมาแทน
-        this.repoService.getFullRepository(event.projectId).subscribe({
-          next: (fullRepo) => {
-            if (!fullRepo) return;
-
-            const merged = this.sharedData.repositoriesValue.map(repo =>
-              repo.projectId === event.projectId
-                ? { ...repo, ...fullRepo }
-                : repo
-            );
-
-            this.sharedData.setRepositories(merged);
-          },
-          error: err => console.error('Failed to refresh full repo', err)
-        });
-      }
-    });
+    // WebSocket logic moved to AppComponent for global updates
 
   }
 
@@ -298,7 +227,6 @@ export class RepositoriesComponent implements OnInit {
     ];
   }
 
-
   private mapStatus(
     wsStatus: string
   ): 'Active' | 'Scanning' | 'Error' {
@@ -313,7 +241,6 @@ export class RepositoriesComponent implements OnInit {
         return 'Active'; // fallback ที่ปลอดภัย
     }
   }
-
 
   runScan(repo: Repository) {
     if (repo.status === 'Scanning') return;
@@ -384,17 +311,12 @@ export class RepositoriesComponent implements OnInit {
   confirmScan(form: any) {
     if (!form.valid || !this.selectedRepo) return;
 
-    // กำหนด username/password ชั่วคราว
-    this.selectedRepo.username = this.scanUsername;
-    this.selectedRepo.password = this.scanPassword;
-
     // เรียก runScan
     this.runScan(this.selectedRepo);
 
     // ปิด modal
     this.closeScanModal();
   }
-
 
   editRepo(repo: Repository) {
     this.router.navigate(['/settingrepo', repo.projectId]);
@@ -420,65 +342,65 @@ export class RepositoriesComponent implements OnInit {
       return dateB - dateA; // ล่าสุด → เก่าสุด
     });
   }
-onDelete(repo: Repository) {
-  // กัน null / undefined แบบชัดเจน
-  if (!repo?.projectId) {
-    Swal.fire({
-      icon: 'error',
-      title: 'ข้อมูลไม่ถูกต้อง',
-      text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
-    });
-    return;
-  }
-
-  Swal.fire({
-    title: 'ยืนยันการลบ Repository',
-    text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'ลบข้อมูล',
-    cancelButtonText: 'ยกเลิก',
-    reverseButtons: true
-  }).then((result) => {
-    if (result.isConfirmed) {
-
-      // loading ตอนกำลังลบ
+  onDelete(repo: Repository) {
+    // กัน null / undefined แบบชัดเจน
+    if (!repo?.projectId) {
       Swal.fire({
-        title: 'กำลังลบข้อมูล...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
+        icon: 'error',
+        title: 'ข้อมูลไม่ถูกต้อง',
+        text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
       });
-
-      this.repoService.deleteRepo(repo.projectId!).subscribe({
-        next: () => {
-          this.sharedData.removeRepository(repo.projectId!);
-          Swal.fire({
-            icon: 'success',
-            title: 'ลบสำเร็จ',
-            text: 'ลบ Repository เรียบร้อยแล้ว',
-            timer: 1800,
-            showConfirmButton: false
-          });
-          this.repoService.getAllRepo().subscribe(repos => {
-            this.sharedData.setRepositories(repos);
-            this.router.navigate(['/repositories']);
-          });
-        },
-        error: () => {
-          Swal.fire({
-            icon: 'error',
-            title: 'ลบไม่สำเร็จ',
-            text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
-          });
-        }
-      });
+      return;
     }
-  });
-}
+
+    Swal.fire({
+      title: 'ยืนยันการลบ Repository',
+      text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ลบข้อมูล',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+
+        // loading ตอนกำลังลบ
+        Swal.fire({
+          title: 'กำลังลบข้อมูล...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.repoService.deleteRepo(repo.projectId!).subscribe({
+          next: () => {
+            this.sharedData.removeRepository(repo.projectId!);
+            Swal.fire({
+              icon: 'success',
+              title: 'ลบสำเร็จ',
+              text: 'ลบ Repository เรียบร้อยแล้ว',
+              timer: 1800,
+              showConfirmButton: false
+            });
+            this.repoService.getAllRepo().subscribe(repos => {
+              this.sharedData.setRepositories(repos);
+              this.router.navigate(['/repositories']);
+            });
+          },
+          error: () => {
+            Swal.fire({
+              icon: 'error',
+              title: 'ลบไม่สำเร็จ',
+              text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
+            });
+          }
+        });
+      }
+    });
+  }
 
 
 
