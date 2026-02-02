@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { EmailService } from '../../../services/emailservice/email.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { catchError, finalize, of, switchMap, tap } from 'rxjs';
@@ -25,9 +26,10 @@ export class RegisterComponent {
 
   constructor(
     private readonly auth: AuthService,
+    private readonly emailService: EmailService,
     private readonly router: Router,
     private readonly snack: MatSnackBar,
-  ) {}
+  ) { }
   emailPattern = '^[^@\\s]+@[^@\\s]+\\.[a-zA-Z]{2,}$';
   phonePattern = '^[0-9]{10,15}$';
 
@@ -123,7 +125,7 @@ export class RegisterComponent {
           this.router.navigate(['/login']);
         }),
         switchMap(() =>
-          this.auth
+          this.emailService
             .registerEmail({
               type: 'Register',
               email,

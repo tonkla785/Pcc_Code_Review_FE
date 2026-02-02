@@ -231,10 +231,11 @@ export class LogviewerComponent {
 
   // ปุ่มส่งอีเมล (mailto)
   sendEmail(): void {
-    const subject = `Scan Report: ${this.log.applicationName}`;
-    const body = encodeURIComponent(this.generateMarkdown());
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  }
+  const subject = `Scan Report: ${this.log.applicationName}`;
+  const body = encodeURIComponent(this.generateMarkdown());
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
 
   // ปุ่มปริ้น
   printLog(): void {
@@ -296,4 +297,5 @@ ${detailsAnalysis}
 `;
   }
 
+  
 }
