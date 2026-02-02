@@ -153,7 +153,8 @@ export class GeneratereportComponent implements OnInit {
     const scans = repo.scans || [];
     const filteredScans = scans.filter(scan => {
       const scanDate = scan.startedAt ? new Date(scan.startedAt).toISOString().split('T')[0] : '';
-      return scanDate >= this.dateFrom! && scanDate <= this.dateTo!;
+      const isSuccess = (scan.status as string) === 'SUCCESS';
+      return scanDate >= this.dateFrom! && scanDate <= this.dateTo! && isSuccess;
     });
 
     this.noScanInRange = filteredScans.length === 0;
@@ -217,7 +218,8 @@ export class GeneratereportComponent implements OnInit {
 
       const filteredScans = projectScans.filter(scan => {
         const scanDate = scan.startedAt ? new Date(scan.startedAt).toISOString().split('T')[0] : '';
-        return scanDate >= this.dateFrom! && scanDate <= this.dateTo!;
+        const isSuccess = (scan.status as string) === 'SUCCESS';
+        return scanDate >= this.dateFrom! && scanDate <= this.dateTo! && isSuccess;
       });
 
       filteredScans.sort((a, b) => new Date(b.startedAt!).getTime() - new Date(a.startedAt!).getTime());

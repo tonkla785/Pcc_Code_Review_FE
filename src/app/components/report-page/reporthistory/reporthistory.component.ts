@@ -8,6 +8,7 @@ import { ExcelService } from '../../../services/report-generator/excel/excel.ser
 import { WordService } from '../../../services/report-generator/word/word.service';
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
 import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface ReportHistory {
   project: string;
@@ -38,7 +39,8 @@ export class ReporthistoryComponent {
     private readonly excelService: ExcelService,
     private readonly wordService: WordService,
     private readonly pptService: PowerpointService,
-    private readonly pdfService: PdfService
+    private readonly pdfService: PdfService,
+    private readonly snack: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -98,13 +100,29 @@ export class ReporthistoryComponent {
 
   downloadReport(report: ReportHistory) {
     if (!report.snapshotId) {
-      alert('ไม่สามารถดาวน์โหลดได้ เนื่องจากไม่มีข้อมูลสำรอง');
+      this.snack.open('Cant download report','close',
+        {
+          duration: 2000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red'],
+        }
+
+      )
       return;
     }
 
     const snapshot = this.historyDataService.getReportSnapshotById(report.snapshotId);
     if (!snapshot) {
-      alert('ไม่พบข้อมูลรายงานนี้แล้ว (อาจถูกลบไปแล้ว)');
+      this.snack.open('Cant download report','close',
+        {
+          duration: 2000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red'],
+        }
+
+      )
       return;
     }
 
@@ -133,7 +151,16 @@ export class ReporthistoryComponent {
         this.pdfService.generatePdf(context);
         break;
       default:
-        alert('รูปแบบไม่รองรับ');
+        this.snack.open('Format not supported','close',
+          {
+            duration: 2000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red'],
+          }
+
+        )
+        break;
     }
   }
 }
