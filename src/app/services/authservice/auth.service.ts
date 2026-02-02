@@ -19,7 +19,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private tokenStorage: TokenStorageService,
-  ) {}
+  ) { }
 
   get token() {
     return this.tokenStorage.getAccessToken();
@@ -41,18 +41,9 @@ export class AuthService {
     return this.http.post(`${this.base}/user/register`, payload);
   }
 
-  registerEmail(payload: { type: 'Register'; email: string; username: string }) {
-  return this.http.post(`${this.base}/api/email`, payload);
-}
-  passwordResetEmail(payload: { type: 'PasswordReset'; email: string;  link: string  }) {
-  return this.http.post(`${this.base}/api/email`, payload);
-}
   resetPassword(payload: { token: string; newPassword: string }) {
-  return this.http.post(`${this.base}/user/reset-password`, payload);
-}
-  requestPasswordReset(email: string) {
-  return this.http.post(`${this.base}/user/forgot-password`, { email });
-}
+    return this.http.post(`${this.base}/user/reset-password`, payload);
+  }
 
 
 
