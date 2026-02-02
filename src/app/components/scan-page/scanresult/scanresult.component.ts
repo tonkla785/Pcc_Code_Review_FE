@@ -118,20 +118,8 @@ export class ScanresultComponent {
     return doc;
   }
 
-  /** ✅ ปุ่มดาวน์โหลด PDF */
   downloadReport() {
-    if (!this.scanInfo) {
-      alert('No scan data available');
-      return;
-    }
-    const doc = this.generatePDF();
-    const projectName = this.scanInfo.projectName?.replace(/\s+/g, '_') ?? 'project';
-    const scanDate = new Date(this.scanInfo.completedAt ?? new Date());
-    const formattedDate = `${scanDate.getFullYear()}${(scanDate.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}${scanDate.getDate().toString().padStart(2, '0')}`;
-    const fileName = `scan_report_${projectName}_${formattedDate}.pdf`;
-    doc.save(fileName);
+    this.router.navigate(['/generatereport']);
   }
 
   /** ✅ ปุ่มส่ง Email (จำลอง) */
