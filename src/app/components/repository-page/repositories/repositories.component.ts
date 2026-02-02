@@ -455,6 +455,7 @@ onDelete(repo: Repository) {
 
       this.repoService.deleteRepo(repo.projectId!).subscribe({
         next: () => {
+          this.sharedData.removeRepository(repo.projectId!);
           Swal.fire({
             icon: 'success',
             title: 'ลบสำเร็จ',
@@ -462,7 +463,6 @@ onDelete(repo: Repository) {
             timer: 1800,
             showConfirmButton: false
           });
-
           this.repoService.getAllRepo().subscribe(repos => {
             this.sharedData.setRepositories(repos);
             this.router.navigate(['/repositories']);
