@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Router } from '@angular/router';
+import { HistoryDataService } from '../../../services/shared-data/history-data.service';
+import { ExcelService } from '../../../services/report-generator/excel/excel.service';
+import { WordService } from '../../../services/report-generator/word/word.service';
+import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
+import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 
 interface ReportHistory {
   project: string;
@@ -10,6 +15,7 @@ interface ReportHistory {
   generatedBy: string;
   generatedAt: Date;
   format: string;
+  snapshotId?: string;
 }
 @Component({
   selector: 'app-reporthistory',
@@ -28,6 +34,11 @@ export class ReporthistoryComponent {
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
+    private readonly historyDataService: HistoryDataService,
+    private readonly excelService: ExcelService,
+    private readonly wordService: WordService,
+    private readonly pptService: PowerpointService,
+    private readonly pdfService: PdfService
   ) { }
 
   ngOnInit(): void {
@@ -49,7 +60,8 @@ export class ReporthistoryComponent {
           dateRange: item.dateRange,
           generatedBy: item.generatedBy,
           generatedAt: item.generatedAt,
-          format: item.format
+          format: item.format,
+          snapshotId: item.snapshotId
         };
       });
       this.reports.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
@@ -85,6 +97,43 @@ export class ReporthistoryComponent {
   }
 
   downloadReport(report: ReportHistory) {
+    if (!report.snapshotId) {
+      alert('ไม่สามารถดาวน์โหลดได้ เนื่องจากไม่มีข้อมูลสำรอง');
+      return;
+    }
 
+    const snapshot = this.historyDataService.getReportSnapshotById(report.snapshotId);
+    if (!snapshot) {
+      alert('ไม่พบข้อมูลรายงานนี้แล้ว (อาจถูกลบไปแล้ว)');
+      return;
+    }
+
+    const context = {
+      projectName: snapshot.metadata.project,
+      dateFrom: snapshot.metadata.dateFrom,
+      dateTo: snapshot.metadata.dateTo,
+      scans: snapshot.data.scans,
+      issues: snapshot.data.issues,
+      securityData: snapshot.data.securityData,
+      selectedSections: snapshot.data.selectedSections,
+      generatedBy: snapshot.metadata.generatedBy
+    };
+
+    switch (report.format) {
+      case 'Excel':
+        this.excelService.generateExcel(context);
+        break;
+      case 'Word':
+        this.wordService.generateWord(context);
+        break;
+      case 'PowerPoint':
+        this.pptService.generatePowerPoint(context);
+        break;
+      case 'PDF':
+        this.pdfService.generatePdf(context);
+        break;
+      default:
+        alert('รูปแบบไม่รองรับ');
+    }
   }
 }

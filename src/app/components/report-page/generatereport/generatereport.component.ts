@@ -16,8 +16,10 @@ import { SecurityIssueDTO } from '../../../interface/security_interface';
 import { ExcelService } from '../../../services/report-generator/excel/excel.service';
 import { WordService } from '../../../services/report-generator/word/word.service';
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
+import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
+import { HistoryDataService, ReportSnapshot } from '../../../services/shared-data/history-data.service';
 
 interface Project {
   id: string;
@@ -70,7 +72,9 @@ export class GeneratereportComponent implements OnInit {
     private readonly excelService: ExcelService,
     private readonly wordService: WordService,
     private readonly pptService: PowerpointService,
-    private readonly tokenStorageService: TokenStorageService
+    private readonly pdfService: PdfService,
+    private readonly tokenStorageService: TokenStorageService,
+    private readonly historyDataService: HistoryDataService
   ) { }
 
   ngOnInit(): void {
@@ -218,12 +222,8 @@ export class GeneratereportComponent implements OnInit {
 
       filteredScans.sort((a, b) => new Date(b.startedAt!).getTime() - new Date(a.startedAt!).getTime());
 
-      // 4. Fetch Issues for Issue Breakdown
       this.issueService.getAllIssues().subscribe({
         next: (allIssues: IssuesResponseDTO[]) => {
-          // Filter issues:
-          // - Must belong to one of the filtered scans (ensures correct Project & Date range)
-          // - Must be Type 'BUG' or 'VULNERABILITY'
           const validScanIds = new Set(filteredScans.map(s => s.id));
 
           const filteredIssues = allIssues.filter((issue: IssuesResponseDTO) => {
@@ -237,7 +237,6 @@ export class GeneratereportComponent implements OnInit {
         },
         error: (err: any) => {
           console.error('Failed to load issues', err);
-          // Proceed without issues if failed
           this.processReportGeneration(selectedProject!.id, projectName, filteredScans, []);
         }
       });
@@ -292,18 +291,43 @@ export class GeneratereportComponent implements OnInit {
       selectedSections
     };
 
+    const snapshotId = Date.now().toString();
+    const user = this.tokenStorageService.getLoginUser();
+
+    const snapshot: ReportSnapshot = {
+      id: snapshotId,
+      metadata: {
+        project: projectName,
+        dateFrom: this.dateFrom!,
+        dateTo: this.dateTo!,
+        format: this.outputFormat,
+        generatedBy: user?.username || 'Unknown',
+        generatedAt: new Date().toISOString()
+      },
+      data: {
+        scans,
+        issues,
+        securityData,
+        selectedSections
+      }
+    };
+
+    this.historyDataService.saveReportSnapshot(snapshot);
+
     try {
       if (this.outputFormat === 'Excel') {
         this.excelService.generateExcel(context);
-        this.saveReportHistory(projectName);
+        this.saveReportHistory(projectName, snapshotId);
       } else if (this.outputFormat === 'Word') {
         this.wordService.generateWord(context);
-        this.saveReportHistory(projectName);
+        this.saveReportHistory(projectName, snapshotId);
       } else if (this.outputFormat === 'PowerPoint') {
         this.pptService.generatePowerPoint(context);
-        this.saveReportHistory(projectName);
+        this.saveReportHistory(projectName, snapshotId);
       } else if (this.outputFormat === 'PDF') {
-        this.generatePdfReport(projectId);
+        this.pdfService.generatePdf({ ...context, generatedBy: user?.username });
+        this.saveReportHistory(projectName, snapshotId);
+        this.loading = false;
         return;
       }
     } catch (e) {
@@ -316,7 +340,7 @@ export class GeneratereportComponent implements OnInit {
     }
   }
 
-  private saveReportHistory(projectName: string) {
+  private saveReportHistory(projectName: string, snapshotId: string) {
     const user = this.tokenStorageService.getLoginUser();
     const historyItem = {
       project: projectName,
@@ -325,44 +349,13 @@ export class GeneratereportComponent implements OnInit {
       email: user ? user.email : '',
       role: user ? user.role : '',
       generatedAt: new Date(),
-      format: this.outputFormat
+      format: this.outputFormat,
+      snapshotId: snapshotId
     };
 
     const storageKey = 'report_history';
     const currentHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
     currentHistory.push(historyItem);
     localStorage.setItem(storageKey, JSON.stringify(currentHistory));
-  }
-
-  private generatePdfReport(projectId: string) {
-    const req: ReportRequest = {
-      projectId: projectId,
-      dateFrom: this.dateFrom!,
-      dateTo: this.dateTo!,
-      outputFormat: 'pdf',
-      includeSections: this.sections.filter(s => s.selected).map(s => s.key)
-    };
-
-    this.exportreportService.generateReport(req).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `report-${projectId}.pdf`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-        this.loading = false;
-
-        const selectedProject = this.projects.find(p => p.selected);
-        if (selectedProject) {
-          this.saveReportHistory(selectedProject.name);
-        }
-      },
-      error: (err) => {
-        console.error('Generate PDF failed', err);
-        this.loading = false;
-        alert('Failed to generate PDF');
-      }
-    });
   }
 }
