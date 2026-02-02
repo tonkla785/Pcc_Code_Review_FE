@@ -21,4 +21,14 @@ export class EmailService {
   requestPasswordReset(email: string) {
     return this.http.post(`${this.base}/user/forgot-password`, { email });
   }
+  scanReportEmail(payload: {
+  type: 'ScanReport';
+  email: string;
+  applicationName: string;
+  subject: string;
+  html: string;
+}) {
+  return this.http.post(`${this.base}/api/email`, payload);
+}
+
 }

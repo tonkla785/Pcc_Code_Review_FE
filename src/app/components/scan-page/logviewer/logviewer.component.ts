@@ -6,18 +6,29 @@ import { ActivatedRoute } from '@angular/router';
 import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import { DebtTimePipe } from '../../../pipes/debt-time.pipe';
 import { ThbCurrencyPipe } from '../../../pipes/thb-currency.pipe';
-import { ScannerType, ScanLog, Severity, GroupedIssues } from '../../../interface/scan_page_interface';
+import {
+  ScannerType,
+  ScanLog,
+  Severity,
+  GroupedIssues,
+} from '../../../interface/scan_page_interface';
+import { LoginUser } from '../../../interface/user_interface';
+import { EmailService } from '../../../services/emailservice/email.service';
 
 @Component({
   selector: 'app-logviewer',
   standalone: true,
   imports: [CommonModule, DebtTimePipe, ThbCurrencyPipe],
   templateUrl: './logviewer.component.html',
-  styleUrl: './logviewer.component.css'
+  styleUrl: './logviewer.component.css',
 })
 export class LogviewerComponent {
-  constructor(private sharedData: SharedDataService, private route: ActivatedRoute, private readonly scanService: ScanService) { }
-
+  constructor(
+    private sharedData: SharedDataService,
+    private route: ActivatedRoute,
+    private readonly scanService: ScanService,
+    private readonly emailService: EmailService,
+  ) {}
 
   groupedIssues!: GroupedIssues;
   majorIssues: any[] = [];
@@ -26,10 +37,16 @@ export class LogviewerComponent {
   pageSize = 5;
   currentPageMajor = 1;
   currentPageCritical = 1;
+  currentUser: LoginUser | null = null;
 
   ngOnInit(): void {
+    // Subscribe to LoginUser for current user data
+    this.sharedData.LoginUser$.subscribe((user) => {
+      this.currentUser = user;
+    });
+
     // Subscribe to selected scan for real-time updates
-    this.sharedData.selectedScan$.subscribe(data => {
+    this.sharedData.selectedScan$.subscribe((data) => {
       this.scanResult = data;
       if (data) {
         this.groupedIssues = this.countIssues(data.issueData ?? []);
@@ -39,11 +56,11 @@ export class LogviewerComponent {
     });
 
     // Subscribe to scans history for real-time updates when new scans are added
-    this.sharedData.scansHistory$.subscribe(scans => {
+    this.sharedData.scansHistory$.subscribe((scans) => {
       if (!scans || !this.scanResult?.id) return;
 
       // Check if current scan was updated in history
-      const updatedScan = scans.find(s => s.id === this.scanResult?.id);
+      const updatedScan = scans.find((s) => s.id === this.scanResult?.id);
       if (updatedScan && updatedScan !== this.scanResult) {
         this.scanResult = updatedScan;
         this.sharedData.ScansDetail = updatedScan;
@@ -53,7 +70,7 @@ export class LogviewerComponent {
       }
     });
 
-    this.route.paramMap.subscribe(pm => {
+    this.route.paramMap.subscribe((pm) => {
       const id = pm.get('scanId');
       if (!id) return;
 
@@ -83,18 +100,21 @@ export class LogviewerComponent {
         this.majorIssues = this.groupedIssues.MAJOR;
         this.criticalIssues = this.groupedIssues.CRITICAL;
       },
-      error: () => this.sharedData.setLoading(false)
+      error: () => this.sharedData.setLoading(false),
     });
   }
 
   countIssues(issues: any[]): GroupedIssues {
-    return issues.reduce<GroupedIssues>((acc, issue) => {
-      const sev = issue.severity as Severity;
-      if (sev === 'MAJOR') acc.MAJOR.push(issue);
-      if (sev === 'CRITICAL') acc.CRITICAL.push(issue);
+    return issues.reduce<GroupedIssues>(
+      (acc, issue) => {
+        const sev = issue.severity as Severity;
+        if (sev === 'MAJOR') acc.MAJOR.push(issue);
+        if (sev === 'CRITICAL') acc.CRITICAL.push(issue);
 
-      return acc;
-    }, { MAJOR: [], CRITICAL: [] });
+        return acc;
+      },
+      { MAJOR: [], CRITICAL: [] },
+    );
   }
 
   getDurationSeconds(startedAt?: string, completedAt?: string): string | null {
@@ -102,9 +122,8 @@ export class LogviewerComponent {
 
     const diffSec = Math.floor(
       Math.abs(
-        new Date(completedAt).getTime() -
-        new Date(startedAt).getTime()
-      ) / 1000
+        new Date(completedAt).getTime() - new Date(startedAt).getTime(),
+      ) / 1000,
     );
 
     const minutes = Math.floor(diffSec / 60);
@@ -155,7 +174,7 @@ export class LogviewerComponent {
    * Compute log dynamically from SharedDataService
    * scannerType is determined by:
    * - ANGULAR → 'npm sonar'
-   * - SPRING_BOOT with maven → 'mvn sonar'  
+   * - SPRING_BOOT with maven → 'mvn sonar'
    * - SPRING_BOOT with gradle → 'gradle sonar'
    */
   get log(): ScanLog {
@@ -180,8 +199,8 @@ export class LogviewerComponent {
       timestamp: scan?.startedAt ? new Date(scan.startedAt) : new Date(),
       filename: `${(repo?.name || scan?.project?.name || 'scan').replace(/\s+/g, '-')}-log${this.formatDateForFilename(scan?.startedAt)}.md`,
       content: {
-        scannerType
-      }
+        scannerType,
+      },
     };
   }
 
@@ -229,13 +248,45 @@ export class LogviewerComponent {
     window.URL.revokeObjectURL(url);
   }
 
-  // ปุ่มส่งอีเมล (mailto)
   sendEmail(): void {
-  const subject = `Scan Report: ${this.log.applicationName}`;
-  const body = encodeURIComponent(this.generateMarkdown());
-  window.location.href = `mailto:?subject=${subject}&body=${body}`;
-}
+    const toEmail = this.currentUser?.email;
+    if (!toEmail) {
+      console.error('No recipient email');
+      return;
+    }
 
+    const applicationName = this.log.applicationName;
+    const subject = `Scan Report: ${applicationName}`;
+
+    const md = this.generateMarkdown();
+    const html = this.wrapAsPre(md);
+
+    this.emailService
+      .scanReportEmail({
+        type: 'ScanReport',
+        email: toEmail,
+        applicationName,
+        subject,
+        html,
+      })
+      .subscribe({
+        next: () => console.log('Scan report email queued'),
+        error: (err) => console.error('Send email failed', err),
+      });
+  }
+  private wrapAsPre(md: string): string {
+    const esc = md
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+
+    return `
+  <pre style="white-space: pre-wrap; font-family: ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace;">
+${esc}
+  </pre>`;
+  }
 
   // ปุ่มปริ้น
   printLog(): void {
@@ -264,15 +315,22 @@ export class LogviewerComponent {
     };
 
     // Quality Gate: แปลง OK → Passed
-    const qualityGate = scan?.qualityGate === 'OK' ? 'Passed' : (scan?.qualityGate === 'ERROR' ? 'Failed' : scan?.qualityGate ?? '-');
+    const qualityGate =
+      scan?.qualityGate === 'OK'
+        ? 'Passed'
+        : scan?.qualityGate === 'ERROR'
+          ? 'Failed'
+          : (scan?.qualityGate ?? '-');
 
     // Details Analysis logs
     let detailsAnalysis = '';
     if (metrics?.analysisLogs && metrics.analysisLogs.length > 0) {
-      detailsAnalysis = metrics.analysisLogs.map(log => {
-        const timestamp = log.timestamp ? formatDate(log.timestamp) : '';
-        return `- ${log.message} (${timestamp})`;
-      }).join('\n');
+      detailsAnalysis = metrics.analysisLogs
+        .map((log) => {
+          const timestamp = log.timestamp ? formatDate(log.timestamp) : '';
+          return `- ${log.message} (${timestamp})`;
+        })
+        .join('\n');
     } else {
       detailsAnalysis = 'No analysis logs available.';
     }
@@ -296,6 +354,4 @@ export class LogviewerComponent {
 ${detailsAnalysis}
 `;
   }
-
-  
 }
