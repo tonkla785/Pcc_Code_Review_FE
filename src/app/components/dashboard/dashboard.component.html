@@ -406,18 +406,16 @@
               required
               minlength="8"
               #newpassRef="ngModel"
+              (focus)="isNewPasswordFocused = true"
               [class.is-invalid]="
-                (newpassRef.invalid && (newpassRef.touched || submitted)) ||
-                ((newpassRef.touched || submitted) && !newPasswordValid)
+                isNewPasswordFocused &&
+                (newpassRef.invalid || !newPasswordValid)
               "
             />
 
             <!-- Checklist -->
-            <ul class="password-rules" *ngIf="newpassRef.touched || submitted">
-              <li
-                [class.pass]="newPasswordRules.minLength"
-                [class.text-danger]="!newPasswordRules.minLength"
-              >
+            <ul class="password-rules" *ngIf="isNewPasswordFocused">
+              <li [class.error-message]="newPasswordRules.minLength">
                 <i
                   class="bi"
                   [ngClass]="
@@ -425,14 +423,12 @@
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
                   "
-                ></i>
+                >
+                </i>
                 At least 8 characters
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.upper"
-                [class.text-danger]="!newPasswordRules.upper"
-              >
+              <li [class.pass]="newPasswordRules.upper">
                 <i
                   class="bi"
                   [ngClass]="
@@ -440,14 +436,12 @@
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
                   "
-                ></i>
-                Contains an uppercase letter (A-Z)
+                >
+                </i>
+                Contains an uppercase letter
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.lower"
-                [class.text-danger]="!newPasswordRules.lower"
-              >
+              <li [class.pass]="newPasswordRules.lower">
                 <i
                   class="bi"
                   [ngClass]="
@@ -455,14 +449,12 @@
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
                   "
-                ></i>
-                Contains a lowercase letter (a-z)
+                >
+                </i>
+                Contains a lowercase letter
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.number"
-                [class.text-danger]="!newPasswordRules.number"
-              >
+              <li [class.pass]="newPasswordRules.number">
                 <i
                   class="bi"
                   [ngClass]="
@@ -470,14 +462,12 @@
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
                   "
-                ></i>
-                Contains a number (0-9)
+                >
+                </i>
+                Contains a number
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.special"
-                [class.text-danger]="!newPasswordRules.special"
-              >
+              <li [class.pass]="newPasswordRules.special">
                 <i
                   class="bi"
                   [ngClass]="
@@ -485,8 +475,9 @@
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
                   "
-                ></i>
-                Contains a special character (!&#64;#$%&*)
+                >
+                </i>
+                Contains a special character
               </li>
             </ul>
           </div>
