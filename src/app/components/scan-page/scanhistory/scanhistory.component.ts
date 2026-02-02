@@ -174,9 +174,9 @@ export class ScanhistoryComponent {
     if (!this.selectedScans || this.selectedScans.length === 0) {
       Swal.fire({
         icon: 'warning',
-        title: 'กรุณาเลือกรายการ',
-        text: 'กรุณาเลือกอย่างน้อย 1 รายการสำหรับ Export',
-        confirmButtonText: 'ตกลง'
+        title: 'Please select items',
+        text: 'Please select at least 1 item to export',
+        confirmButtonText: 'OK'
       });
       return;
     }
@@ -208,9 +208,9 @@ export class ScanhistoryComponent {
     if (flatData.length === 0) {
       Swal.fire({
         icon: 'info',
-        title: 'ไม่มีข้อมูล',
-        text: 'ไม่มีข้อมูลสำหรับ export',
-        confirmButtonText: 'ตกลง'
+        title: 'No data',
+        text: 'No data available for export',
+        confirmButtonText: 'OK'
       });
       return;
     }
@@ -284,18 +284,18 @@ export class ScanhistoryComponent {
     if (this.selectedScans.length < 2) {
       Swal.fire({
         icon: 'warning',
-        title: 'เลือกรายการไม่เพียงพอ',
-        text: 'กรุณาเลือกอย่างน้อย 2 รายการ เพื่อเปรียบเทียบ',
-        confirmButtonText: 'ตกลง'
+        title: 'Not enough items selected',
+        text: 'Please select at least 2 items to compare',
+        confirmButtonText: 'OK'
       });
       return;
     }
     if (this.selectedScans.length > 3) {
       Swal.fire({
         icon: 'warning',
-        title: 'เลือกรายการเกินกำหนด',
-        text: 'เปรียบเทียบได้สูงสุด 3 รายการ',
-        confirmButtonText: 'ตกลง'
+        title: 'Too many items selected',
+        text: 'You can compare up to 3 items maximum',
+        confirmButtonText: 'OK'
       });
       return;
     }
