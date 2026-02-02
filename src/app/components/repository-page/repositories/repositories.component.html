@@ -53,7 +53,8 @@
 
     <!-- Search + Status -->
     <div class="d-flex flex-wrap gap-2 ms-auto mb-2 search-box">
-      <input type="text" class="form-control" placeholder="Search Name Repositories..." (input)="searchRepositories($event)">
+      <input type="text" class="form-control" placeholder="Search Name Repositories..."
+        (input)="searchRepositories($event)">
 
       <select class="form-select" [(ngModel)]="selectedStatus" (change)="filterByStatus()">
         <option value="all">All Status</option>
@@ -134,13 +135,10 @@
           <!-- Action Buttons -->
           <div class="d-flex gap-2">
             <!-- delete -->
-             <button
-            class="btn btn-sm btn-outline-danger"
-              title="Delete repository"
-              (click)="onDelete(repo)">
-             <i class="bi bi-trash"></i>
-             </button>
-             
+            <button class="btn btn-sm btn-outline-danger" title="Delete repository" (click)="onDelete(repo)">
+              <i class="bi bi-trash"></i>
+            </button>
+
             <!-- Run -->
             <button class="btn btn-sm btn-outline-primary" title="RunScan" *ngIf="repo.status == 'Active'"
               (click)="runScan(repo)">
