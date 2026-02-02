@@ -64,17 +64,17 @@
           </td>
 
           <td>
-            {{scan.completedAt | date:'dd/MM/yyyy'}} <br /> {{scan.completedAt | date:'HH:mm'}}
+            {{ scan.startedAt | date:'dd/MM/yyyy' }} <br /> {{ scan.startedAt | date:'HH:mm' }}
           </td>
 
           <td>
             {{scan.project.name}} <br />
             <span [ngClass]="statusClass(scan.status)">
-              <i [ngClass]="statusIcon(scan.status)"></i> {{scan.status}}
+              <i [ngClass]="statusIcon(scan.status)"></i> {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
             </span>
           </td>
           <!-- <td>{{scan.ownerScan}}</td> -->
-          <td>{{ scan.qualityGate === 'OK' ? 'Pass' : scan.qualityGate }}</td>
+          <td>{{ scan.qualityGate === 'OK' ? 'Pass' : 'Fail' }}</td>
 
           <td>
             <span *ngIf="scan.metrics?.bugs !== undefined"><i class="bi bi-bug"></i> {{scan.metrics?.bugs}}</span>
