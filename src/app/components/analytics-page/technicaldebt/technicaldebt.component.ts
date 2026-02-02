@@ -258,9 +258,9 @@ export class TechnicaldebtComponent implements OnDestroy {
     let runningTotal = 0;
     const dataPoints: { x: string, y: number, added: number, dateStr: string }[] = [];
 
-    // Add a starting point? (Optional, but good for line chart to start at 0 if no projects)
+    // Add a starting point
     if(projects.length > 0) {
-        // dataPoints.push({ x: 'Start', y: 0, added: 0, dateStr: '' }); 
+        dataPoints.push({ x: 'Start', y: 0, added: 0, dateStr: 'Initial' }); 
     }
 
     projects.forEach(p => {
@@ -300,6 +300,7 @@ export class TechnicaldebtComponent implements OnDestroy {
         }
       },
       yaxis: {
+        min: 0, 
         title: { text: 'Cumulative Cost (THB)' },
         labels: {
             formatter: (val: number) => this.formatTHB(val)
