@@ -1,22 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { WebSocketService, NotificationEvent } from '../websocket/websocket.service';
+import { NotificationDataService } from '../shared-data/notification-data.service';
+import { Notification } from '../../interface/notification_interface';
 
-export interface Notification {
-  id: string;
-  userId: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: Date;
-  relatedProjectId?: string;
-  relatedScanId?: string;
-  relatedIssueId?: string;
-  relatedCommentId?: string;
-}
+// Re-export interfaces for convenience
+export type { Notification, NotificationRequest } from '../../interface/notification_interface';
 
 @Injectable({
   providedIn: 'root'
@@ -24,11 +15,8 @@ export interface Notification {
 export class NotificationService {
   private readonly http = inject(HttpClient);
   private readonly webSocketService = inject(WebSocketService);
+  private readonly notificationData = inject(NotificationDataService);
   private readonly base = environment.apiUrl + '/notifications';
-
-  // Store notifications locally for real-time updates
-  private notifications = new BehaviorSubject<Notification[]>([]);
-  private unreadCount = new BehaviorSubject<number>(0);
 
   constructor() {
     this.subscribeToWebSocket();
@@ -40,7 +28,7 @@ export class NotificationService {
   private subscribeToWebSocket(): void {
     this.webSocketService.subscribeNotifications().subscribe({
       next: (event: NotificationEvent) => {
-        // Add new notification to the list
+        // Add new notification to shared data
         const notification: Notification = {
           id: event.id,
           userId: event.userId,
@@ -54,13 +42,7 @@ export class NotificationService {
           relatedIssueId: event.relatedIssueId,
           relatedCommentId: event.relatedCommentId
         };
-
-        const currentNotifications = this.notifications.value;
-        this.notifications.next([notification, ...currentNotifications]);
-
-        if (!notification.isRead) {
-          this.unreadCount.next(this.unreadCount.value + 1);
-        }
+        this.notificationData.addNotification(notification);
       },
       error: (err) => console.error('WebSocket notification error:', err)
     });
@@ -74,72 +56,47 @@ export class NotificationService {
   }
 
   /**
-   * Get all notifications (local observable)
-   */
-  getNotifications$(): Observable<Notification[]> {
-    return this.notifications.asObservable();
-  }
-
-  /**
-   * Get unread count (local observable)
-   */
-  getUnreadCount$(): Observable<number> {
-    return this.unreadCount.asObservable();
-  }
-
-  /**
-   * Fetch all notifications from API
+   * Fetch all notifications from API and store in shared data
    */
   getAllNotifications(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.base}`);
+    this.notificationData.setLoading(true);
+    return this.http.get<Notification[]>(`${this.base}`)
+      .pipe(
+        tap({
+          next: (notifications) => {
+            this.notificationData.setNotifications(notifications);
+            this.notificationData.setLoading(false);
+          },
+          error: () => this.notificationData.setLoading(false)
+        })
+      );
   }
 
   /**
-   * Fetch unread notifications from API
-   */
-  getUnreadNotifications(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.base}/unread`);
-  }
-
-  /**
-   * Get unread count from API
-   */
-  getUnreadCountFromApi(): Observable<number> {
-    return this.http.get<number>(`${this.base}/unread/count`);
-  }
-
-  /**
-   * Load notifications from API and update local state
+   * Load notifications from API
    */
   loadNotifications(): void {
-    this.getAllNotifications().subscribe({
-      next: (notifications) => {
-        this.notifications.next(notifications);
-        this.unreadCount.next(notifications.filter(n => !n.isRead).length);
-      },
-      error: (err) => console.error('Failed to load notifications:', err)
-    });
+    this.getAllNotifications().subscribe();
   }
 
   /**
    * Mark notification as read
    */
   markAsRead(id: string): Observable<void> {
-    return this.http.patch<void>(`${this.base}/${id}/read`, {});
+    return this.http.patch<void>(`${this.base}/${id}/read`, {})
+      .pipe(
+        tap(() => this.notificationData.markAsRead(id))
+      );
   }
 
   /**
    * Mark all notifications as read
    */
   markAllAsRead(): Observable<void> {
-    return this.http.patch<void>(`${this.base}/read-all`, {});
-  }
-
-  /**
-   * Delete notification
-   */
-  deleteNotification(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+    return this.http.patch<void>(`${this.base}/read-all`, {})
+      .pipe(
+        tap(() => this.notificationData.markAllAsRead())
+      );
   }
 
   /**
@@ -149,4 +106,3 @@ export class NotificationService {
     this.webSocketService.disconnect();
   }
 }
-

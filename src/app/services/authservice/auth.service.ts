@@ -12,6 +12,11 @@ import {
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 import { BehaviorSubject } from 'rxjs';
 import { NotificationService } from '../notiservice/notification.service';
+import { UserSettingsDataService } from '../shared-data/user-settings-data.service';
+import { ReportHistoryDataService } from '../shared-data/report-history-data.service';
+import { NotificationDataService } from '../shared-data/notification-data.service';
+import { UserSettingService } from '../usersettingservice/user-setting.service';
+import { ReportHistoryService } from '../reporthistoryservice/report-history.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -20,7 +25,12 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private tokenStorage: TokenStorageService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private userSettingsData: UserSettingsDataService,
+    private reportHistoryData: ReportHistoryDataService,
+    private notificationData: NotificationDataService,
+    private userSettingService: UserSettingService,
+    private reportHistoryService: ReportHistoryService
   ) { }
 
   get token() {
@@ -43,10 +53,28 @@ export class AuthService {
           const userId = this.getUserIdFromToken(res.accessToken);
           if (userId) {
             this.notificationService.connectWebSocket(userId);
-            this.notificationService.loadNotifications();
+            // Load all user data after login
+            this.loadAllUserData();
           }
         })
       );
+  }
+
+  /**
+   * Load all user data after login
+   */
+  private loadAllUserData(): void {
+    // Load notifications
+    this.notificationService.loadNotifications();
+
+    // Load user settings (notification settings + sonarqube config)
+    this.userSettingService.loadAllSettings();
+
+    // Load report history
+    this.reportHistoryService.loadReportHistory();
+
+    // Load user profile
+    this.loadMyProfile().subscribe();
   }
 
   /**
@@ -92,6 +120,12 @@ export class AuthService {
         tap(() => {
           // Disconnect WebSocket on logout
           this.notificationService.disconnect();
+
+          // Clear all shared data
+          this.userSettingsData.clearAll();
+          this.reportHistoryData.clearAll();
+          this.notificationData.clearAll();
+
           this.tokenStorage.clear();
         })
       );
@@ -111,7 +145,7 @@ export class AuthService {
   }
 
   /**
-   * Reconnect WebSocket (call this if user was already logged in on page load)
+   * Reconnect WebSocket and reload all data (call this if user was already logged in on page load)
    */
   reconnectWebSocket(): void {
     const token = this.tokenStorage.getAccessToken();
@@ -119,9 +153,11 @@ export class AuthService {
       const userId = this.getUserIdFromToken(token);
       if (userId) {
         this.notificationService.connectWebSocket(userId);
-        this.notificationService.loadNotifications();
+        // Load all user data
+        this.loadAllUserData();
       }
     }
   }
 }
+
 

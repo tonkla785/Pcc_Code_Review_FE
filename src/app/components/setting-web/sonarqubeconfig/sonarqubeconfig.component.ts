@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SonarQubeService } from '../../../services/sonarqubeservice/sonarqube.service';
+import { UserSettingService } from '../../../services/usersettingservice/user-setting.service';
+import { UserSettingsDataService, SonarQubeConfig } from '../../../services/shared-data/user-settings-data.service';
 import {
   AngularSettings,
   SpringSettings,
@@ -19,12 +22,13 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
   templateUrl: './sonarqubeconfig.component.html',
   styleUrl: './sonarqubeconfig.component.css'
 })
-export class SonarqubeconfigComponent {
+export class SonarqubeconfigComponent implements OnInit, OnDestroy {
   serverUrl = 'https://code.pccth.com';
   authToken = '';
   organization = 'PCCTH';
   showToken = false;
   isTestingConnection = false;
+  isSaving = false;
 
   angularSettings: AngularSettings = {
     runNpm: false,
@@ -62,13 +66,15 @@ export class SonarqubeconfigComponent {
 
   qualityGates: QualityGates = { ...this.DEFAULT_QUALITY_GATES };
 
-  private storageKey = 'sonarConfig_v1';
+  private subscription?: Subscription;
 
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sonarQubeService: SonarQubeService,
-    private readonly sharedData: SharedDataService
+    private readonly sharedData: SharedDataService,
+    private readonly userSettingService: UserSettingService,
+    private readonly userSettingsData: UserSettingsDataService
   ) { }
 
   ngOnInit(): void {
@@ -76,7 +82,47 @@ export class SonarqubeconfigComponent {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadFromLocal();
+
+    // Subscribe to shared data for SonarQube config
+    this.subscription = this.userSettingsData.sonarQubeConfig$.subscribe(config => {
+      if (config) {
+        this.loadFromConfig(config);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
+  }
+
+  /**
+   * Load settings from SonarQubeConfig
+   */
+  private loadFromConfig(config: SonarQubeConfig): void {
+    this.serverUrl = config.serverUrl || this.serverUrl;
+    this.organization = config.organization || this.organization;
+
+    this.angularSettings = {
+      runNpm: config.angularRunNpm,
+      coverage: config.angularCoverage,
+      tsFiles: config.angularTsFiles,
+      exclusions: config.angularExclusions || this.angularSettings.exclusions
+    };
+
+    this.springSettings = {
+      runTests: config.springRunTests,
+      jacoco: config.springJacoco,
+      buildTool: config.springBuildTool || 'maven',
+      jdkVersion: config.springJdkVersion || 21
+    };
+
+    this.qualityGates = {
+      failOnError: config.qgFailOnError,
+      coverageThreshold: config.qgCoverageThreshold,
+      maxBugs: config.qgMaxBugs,
+      maxVulnerabilities: config.qgMaxVulnerabilities,
+      maxCodeSmells: config.qgMaxCodeSmells
+    };
   }
 
   toggleShowToken() {
@@ -153,7 +199,6 @@ export class SonarqubeconfigComponent {
   }
 
   resetSettings() {
-    localStorage.removeItem(this.storageKey);
     this.serverUrl = 'https://code.pccth.com';
     this.authToken = '';
     this.organization = 'PCCTH';
@@ -179,63 +224,48 @@ export class SonarqubeconfigComponent {
   }
 
   saveSettings() {
-    // ไม่เก็บ jdkVersion ลง localStorage
-    const springSettingsToSave = {
-      runTests: this.springSettings.runTests,
-      jacoco: this.springSettings.jacoco,
-      buildTool: this.springSettings.buildTool
-    };
+    this.isSaving = true;
 
-    const payload = {
+    const payload: Partial<SonarQubeConfig> = {
       serverUrl: this.serverUrl,
-      authToken: this.authToken,
       organization: this.organization,
-      angularSettings: this.angularSettings,
-      springSettings: springSettingsToSave,
-      qualityGates: this.qualityGates
+      angularRunNpm: this.angularSettings.runNpm,
+      angularCoverage: this.angularSettings.coverage,
+      angularTsFiles: this.angularSettings.tsFiles,
+      angularExclusions: this.angularSettings.exclusions,
+      springRunTests: this.springSettings.runTests,
+      springJacoco: this.springSettings.jacoco,
+      springBuildTool: this.springSettings.buildTool,
+      springJdkVersion: this.springSettings.jdkVersion,
+      qgFailOnError: this.qualityGates.failOnError,
+      qgCoverageThreshold: this.qualityGates.coverageThreshold,
+      qgMaxBugs: this.qualityGates.maxBugs,
+      qgMaxVulnerabilities: this.qualityGates.maxVulnerabilities,
+      qgMaxCodeSmells: this.qualityGates.maxCodeSmells
     };
 
-    localStorage.setItem(this.storageKey, JSON.stringify(payload));
-    //แชร์ quality gates ให้ทั้งแอป
-    this.sharedData.setQualityGates(this.qualityGates);
-    console.log('Saved settings:', payload);
-    Swal.fire({
-      icon: 'success',
-      title: 'Settings Saved',
-      text: 'Settings have been saved successfully.',
-      confirmButtonColor: '#28a745'
+    this.userSettingService.updateSonarQubeConfig(payload).subscribe({
+      next: () => {
+        this.isSaving = false;
+        // Share quality gates with the app
+        this.sharedData.setQualityGates(this.qualityGates);
+        Swal.fire({
+          icon: 'success',
+          title: 'Settings Saved',
+          text: 'Settings have been saved successfully.',
+          confirmButtonColor: '#28a745'
+        });
+      },
+      error: (error) => {
+        this.isSaving = false;
+        console.error('Failed to save settings:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Save Failed',
+          text: 'Failed to save settings. Please try again.',
+          confirmButtonColor: '#dc3545'
+        });
+      }
     });
   }
-
-  private loadFromLocal() {
-    try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (!raw) return;
-      const obj = JSON.parse(raw);
-      this.serverUrl = obj.serverUrl ?? this.serverUrl;
-      this.authToken = obj.authToken ?? this.authToken;
-      this.organization = obj.organization ?? this.organization;
-      this.angularSettings = obj.angularSettings ?? this.angularSettings;
-
-      // โหลด springSettings แต่ไม่เอา jdkVersion (ใช้ค่า default)
-      if (obj.springSettings) {
-        this.springSettings = {
-          ...this.springSettings,
-          runTests: obj.springSettings.runTests ?? this.springSettings.runTests,
-          jacoco: obj.springSettings.jacoco ?? this.springSettings.jacoco,
-          buildTool: obj.springSettings.buildTool ?? this.springSettings.buildTool
-        };
-      }
-
-      // โหลด qualityGates
-      if (obj.qualityGates) {
-        this.qualityGates = obj.qualityGates;
-      } else {
-        this.qualityGates = { ...this.DEFAULT_QUALITY_GATES };
-      }
-    } catch (e) {
-      console.warn('Failed to load sonar config from localStorage', e);
-    }
-  }
-
 }
