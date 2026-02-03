@@ -6,9 +6,6 @@ import { NotificationSettings, SonarQubeConfig } from '../../interface/user_sett
 import { UserSettingsDataService } from '../shared-data/user-settings-data.service';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 
-// Re-export interfaces for convenience
-export type { NotificationSettings, SonarQubeConfig } from '../../interface/user_settings_interface';
-
 @Injectable({
     providedIn: 'root'
 })

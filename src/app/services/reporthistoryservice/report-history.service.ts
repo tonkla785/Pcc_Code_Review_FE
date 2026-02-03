@@ -4,9 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ReportHistory, ReportHistoryRequest } from '../../interface/report_history_interface';
 import { ReportHistoryDataService } from '../shared-data/report-history-data.service';
-
-// Re-export interfaces for convenience
-export type { ReportHistory, ReportHistoryRequest } from '../../interface/report_history_interface';
+import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 
 @Injectable({
     providedIn: 'root'
@@ -16,15 +14,22 @@ export class ReportHistoryService {
 
     constructor(
         private http: HttpClient,
-        private reportHistoryData: ReportHistoryDataService
+        private reportHistoryData: ReportHistoryDataService,
+        private tokenStorage: TokenStorageService
     ) { }
 
+    private getUserId(): string {
+        const user = this.tokenStorage.getLoginUser();
+        return user?.id || '';
+    }
+
     /**
-     * Get all report history and store in shared data
+     * Get all report history by user ID and store in shared data
      */
     getAllReportHistory(): Observable<ReportHistory[]> {
+        const userId = this.getUserId();
         this.reportHistoryData.setLoading(true);
-        return this.http.get<ReportHistory[]>(this.baseUrl)
+        return this.http.get<ReportHistory[]>(`${this.baseUrl}/${userId}`)
             .pipe(
                 tap({
                     next: (reports) => {
@@ -37,45 +42,23 @@ export class ReportHistoryService {
     }
 
     /**
-     * Get report history by ID
-     */
-    getReportById(id: string): Observable<ReportHistory> {
-        return this.http.get<ReportHistory>(`${this.baseUrl}/${id}`);
-    }
-
-    /**
-     * Get report history by project ID
-     */
-    getReportsByProject(projectId: string): Observable<ReportHistory[]> {
-        return this.http.get<ReportHistory[]>(`${this.baseUrl}/project/${projectId}`);
-    }
-
-    /**
-     * Search report history by project name
+     * Search report history by project name for a specific user
      */
     searchByProjectName(keyword: string): Observable<ReportHistory[]> {
-        return this.http.get<ReportHistory[]>(`${this.baseUrl}/search`, {
+        const userId = this.getUserId();
+        return this.http.get<ReportHistory[]>(`${this.baseUrl}/search/${userId}`, {
             params: { keyword }
         });
     }
 
     /**
-     * Create new report history
+     * Create new report history for a specific user
      */
     createReportHistory(request: ReportHistoryRequest): Observable<ReportHistory> {
-        return this.http.post<ReportHistory>(this.baseUrl, request)
+        const userId = this.getUserId();
+        return this.http.post<ReportHistory>(`${this.baseUrl}/create/${userId}`, request)
             .pipe(
                 tap((newReport) => this.reportHistoryData.addReport(newReport))
-            );
-    }
-
-    /**
-     * Delete report history
-     */
-    deleteReportHistory(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/${id}`)
-            .pipe(
-                tap(() => this.reportHistoryData.removeReport(id))
             );
     }
 

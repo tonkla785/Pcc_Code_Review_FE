@@ -7,9 +7,6 @@ import { NotificationDataService } from '../shared-data/notification-data.servic
 import { Notification } from '../../interface/notification_interface';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 
-// Re-export interfaces for convenience
-export type { Notification, NotificationRequest } from '../../interface/notification_interface';
-
 @Injectable({
   providedIn: 'root'
 })
