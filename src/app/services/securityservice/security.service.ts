@@ -66,8 +66,8 @@ const ruleToOwasp: Record<string, string> = {
     S4792: 'A04', S5804: 'A04', S125: 'A04', S2259: 'A04',  S3338: 'A04',
     S3330: 'A05', S1523: 'A05', S5332: 'A05', S2096: 'A05', S4507: 'A05', S1313: 'A05',
     S2078: 'A06', S6362: 'A06',
-    S4433: 'A07', S3403: 'A07', S3011: 'A07', 
-    S5042: 'A08', S2658: 'A08', 
+    S4433: 'A07', S3403: 'A07', S3011: 'A07',
+    S5042: 'A08', S2658: 'A08',
     S2250: 'A09', S2228: 'A09', S1148: 'A09', S2139: 'A09',
     S5144: 'A10', S9301: 'A10', S6289: 'A10',
 };
@@ -78,6 +78,19 @@ export class SecurityService {
     private readonly auth = inject(AuthService);
     private readonly sharedData = inject(SharedDataService);
     private readonly baseUrl = environment.apiUrl;
+
+    constructor() {
+        this.sharedData.securityIssues$.subscribe(issues => {
+            if (issues) {
+                const metrics = this.calculate(issues);
+                this.sharedData.updateSecurityState({
+                    score: metrics.score,
+                    riskLevel: metrics.riskLevel,
+                    hotIssues: metrics.hotIssues
+                });
+            }
+        });
+    }
 
     private authOpts() {
         const token = this.auth.token;

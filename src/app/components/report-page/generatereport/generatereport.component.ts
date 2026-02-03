@@ -47,6 +47,9 @@ export class GeneratereportComponent implements OnInit {
     { name: "Quality Gate Summary", key: "QualityGateSummary", selected: false, disabled: false },
     { name: "Issue Breakdown", key: "IssueBreakdown", selected: false, disabled: false },
     { name: "Security Analysis", key: "SecurityAnalysis", selected: false, disabled: false },
+    { name: "Technical Debt", key: "TechnicalDebt", selected: false, disabled: false },
+    { name: "Trend Analysis", key: "TrendAnalysis", selected: false, disabled: false },
+    { name: "Recommendations", key: "Recommendations", selected: false, disabled: false }
   ];
 
   formatMap: Record<string, string> = {
