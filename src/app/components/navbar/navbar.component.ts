@@ -102,14 +102,14 @@ export class NavbarComponent implements OnInit {
 
   logout(): void {
     Swal.fire({
-      title: 'ออกจากระบบ?',
-      text: 'คุณต้องการออกจากระบบใช่หรือไม่',
+      title: 'Logout?',
+      text: 'Are you sure you want to logout?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'ออกจากระบบ',
-      cancelButtonText: 'ยกเลิก'
+      confirmButtonText: 'Logout',
+      cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
         this.authService.logout().subscribe({
@@ -119,8 +119,8 @@ export class NavbarComponent implements OnInit {
           error: () => {
             Swal.fire({
               icon: 'error',
-              title: 'Logout ไม่สำเร็จ',
-              text: 'กรุณาลองใหม่อีกครั้ง'
+              title: 'Logout Failed',
+              text: 'Please try again.'
             });
           }
         });

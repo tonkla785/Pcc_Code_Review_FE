@@ -21,7 +21,6 @@ export class UserSettingService {
     private getUserId(): string {
         const user = this.tokenStorage.getLoginUser();
         const userId = user?.id || '';
-        console.log('[UserSettingService] getUserId:', userId, 'user:', user);
         return userId;
     }
 
