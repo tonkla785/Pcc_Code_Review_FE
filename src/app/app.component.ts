@@ -99,77 +99,73 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  // แยกฟังก์ชันดึงข้อมูลออกมา เพื่อให้เรียกใช้ได้ 2 รอบ ตอนเริ่ม และ ตอนจบ
+  // แยกฟังก์ชันดึงข้อมูลออกมา เพื่อให้เรียกใช้ได้ 2 รอบ (ตอนเริ่ม และ ตอนจบ Scan)
   private fetchScanData(projectId: string, wsStatus: string) {
-    // หน่วงเวลา 1 วิ เผื่อ DB Backend commit ช้า
-    setTimeout(() => {
-      this.repoService.getFullRepository(projectId).subscribe({
-        next: (fullRepo) => {
-          if (!fullRepo) {
-            console.warn('[AppComponent] Full Repo is null for project:', projectId);
-            return;
+    // ไม่ต้องหน่วงเวลาแล้ว (Backend ส่ง Event หลังจาก Commit แล้ว)
+    this.repoService.getFullRepository(projectId).subscribe({
+      next: (fullRepo) => {
+        if (!fullRepo) {
+          console.warn('[AppComponent] Full Repo is null for project:', projectId);
+          return;
+        }
+        console.log('[AppComponent] Full Repo fetched:', fullRepo);
+
+        // 1. อัปเดตข้อมูล Repository ในหน้า List
+        const merged = this.sharedData.repositoriesValue.map(repo => {
+          if (repo.projectId === projectId) {
+            return {
+              ...repo,
+              ...fullRepo,
+              status: this.mapStatus(wsStatus) // ใช้ Status ล่าสุดจาก WebSocket
+            };
           }
-          console.log('[AppComponent] Full Repo fetched:', fullRepo);
+          return repo;
+        });
+        this.sharedData.setRepositories(merged);
 
-          // Update Repository List 
-          const merged = this.sharedData.repositoriesValue.map(repo => {
-            if (repo.projectId === projectId) {
-              return {
-                ...repo,
-                ...fullRepo,
-                status: this.mapStatus(wsStatus) // บังคับใช้ Status จาก WebSocket ล่าสุด
-              };
-            }
-            return repo;
-          });
-          this.sharedData.setRepositories(merged);
+        // 2. อัปเดตประวัติการสแกน (Scan History) โดยดึงจาก list ล่าสุด
+        if (fullRepo.scans && fullRepo.scans.length > 0) {
+          const latestScan = fullRepo.scans.reduce((prev, current) =>
+            (new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()) ? current : prev
+          );
 
-          // Update Scan History (Directly from latest scan in list - No extra API call)
-          if (fullRepo.scans && fullRepo.scans.length > 0) {
-            const latestScan = fullRepo.scans.reduce((prev, current) =>
-              (new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()) ? current : prev
-            );
-
-            // แก้ไข Race condition: ถ้า DB ยังไม่อัปเดตสถานะ -> เราแก้ค่าให้ตรงกับ WS
-            if (latestScan.status === 'PENDING' && (wsStatus === 'SUCCESS' || wsStatus === 'FAILED')) {
-              latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
-            }
-
-            // ปเดต scanId ของ Repo ให้ชี้ไปที่ Scan ล่าสุดเสมอ (ไม่งั้นหน้า List จะ Link ไปผิดอัน)
-            const repoIndex = this.sharedData.repositoriesValue.findIndex(r => r.projectId === projectId);
-            if (repoIndex >= 0) {
-              const currentRepos = this.sharedData.repositoriesValue;
-              currentRepos[repoIndex] = {
-                ...currentRepos[repoIndex],
-                scanId: latestScan.id // อัปเดตตรงนี้
-              };
-              this.sharedData.setRepositories(currentRepos);
-            }
-
-            // ส่งเข้า SharedData (เพื่ออัปเดตหน้า History)
-            this.sharedData.upsertScan(latestScan);
-            console.log('[AppComponent] Upserted latest scan from list:', latestScan);
-          } else {
-            console.warn('[AppComponent] No scans found in fullRepo list for project:', projectId);
+          // แก้ไข Race condition เผื่อไว้ (ถ้า DB status ยังไม่อัปเดต ให้เชื่อ WebSocket)
+          if (latestScan.status === 'PENDING' && (wsStatus === 'SUCCESS' || wsStatus === 'FAILED')) {
+            latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
           }
-        },
-        error: err => console.error('Failed to refresh full repo', err)
-      });
-    }, 1000);
+
+          // [สำคัญ] อัปเดต scanId ของ Repo ให้ชี้ไปที่ Scan ล่าสุดเสมอ
+          const repoIndex = this.sharedData.repositoriesValue.findIndex(r => r.projectId === projectId);
+          if (repoIndex >= 0) {
+            const currentRepos = this.sharedData.repositoriesValue;
+            currentRepos[repoIndex] = {
+              ...currentRepos[repoIndex],
+              scanId: latestScan.id // อัปเดต scanId ให้ลิงก์ไปหน้า Detail ถูกต้อง
+            };
+            this.sharedData.setRepositories(currentRepos);
+          }
+
+          // ส่งข้อมูล Scan ล่าสุดเข้า SharedData
+          this.sharedData.upsertScan(latestScan);
+          console.log('[AppComponent] Upserted latest scan from list:', latestScan);
+        } else {
+          console.warn('[AppComponent] No scans found in fullRepo list for project:', projectId);
+        }
+      },
+      error: err => console.error('Failed to refresh full repo', err)
+    });
   }
 
-  // ดึง Issue ทั้งหมด แล้วเอาไปทับใน SharedData เลย (ตาม Requirement ใหม่)
+  // ดึง Issue ทั้งหมด แล้วเอาไปทับใน SharedData เลย (สำหรับอัปเดตหน้า Issue แบบ Real-time)
   private fetchAndOverwriteIssues() {
-    // หน่วงเวลา 1.5 วิ (ให้ช้ากว่า repo นิดนึง เพื่อความชัวร์ของ Database)
-    setTimeout(() => {
-      this.issueService.getAllIssues().subscribe({
-        next: (allIssues) => {
-          console.log('[AppComponent] Fetched all issues, overwriting SharedData...');
-          this.sharedData.IssuesShared = allIssues; // ทับข้อมูลเดิมเลย
-        },
-        error: (err) => console.error('[AppComponent] Failed to fetch issues', err)
-      });
-    }, 1000);
+    // ไม่ต้องหน่วงเวลาแล้ว
+    this.issueService.getAllIssues().subscribe({
+      next: (allIssues) => {
+        console.log('[AppComponent] Fetched all issues, overwriting SharedData...');
+        this.sharedData.IssuesShared = allIssues; // ทับข้อมูลเดิมทั้งหมด
+      },
+      error: (err) => console.error('[AppComponent] Failed to fetch issues', err)
+    });
   }
 
   ngOnDestroy() {
@@ -186,24 +182,16 @@ export class AppComponent implements OnInit, OnDestroy {
       default: return 'Active';
     }
   }
-  // ngOnInit() {
-  //   // Check localStorage on load / ตรวจสอบค่าจาก localStorage เมื่อโหลดหน้าเว็บ
-  //   const savedTheme = localStorage.getItem('theme');
-  //   if (savedTheme === 'dark') {
-  //     this.darkMode = true;
-  //     document.body.classList.add('dark-mode');
-  //   }
-  // }
 
   toggleTheme() {
     this.darkMode = !this.darkMode;
 
     if (this.darkMode) {
       document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark'); // Save to localStorage / บันทึกลง localStorage
+      localStorage.setItem('theme', 'dark'); // บันทึกลง localStorage
     } else {
       document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light'); // Save to localStorage / บันทึกลง localStorage
+      localStorage.setItem('theme', 'light'); // บันทึกลง localStorage
     }
   }
 
