@@ -27,6 +27,7 @@ import { SecuritydashboardComponent } from './components/analytics-page/security
 import { TechnicaldebtComponent } from './components/analytics-page/technicaldebt/technicaldebt.component';
 import { Component } from '@angular/core';
 import { roleGuard } from './services/authservice/role.guard';
+import { VerifyEmailComponent } from './components/user-page/verify-email/verify-email.component';
 
 export const routes: Routes = [
 
@@ -35,6 +36,7 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'verify-email', component: VerifyEmailComponent }, // ✅ เพิ่มอันนี้
   { path: 'verify-success', component: VerifySuccessComponent },
   { path: 'verify-failed', component: VerifyFailedComponent },
 

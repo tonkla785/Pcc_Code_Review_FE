@@ -1075,6 +1075,43 @@ export class DashboardComponent {
     // TODO: Get userId from token when available
     this.fetchFromServer('');
   }
+  sendVerifyEmail() {
+    const userId = (this.UserLogin as any)?.id; // ถ้า type LoginUser ยังไม่มี id
+    if (!userId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing userId',
+        text: 'Cannot send verification email (userId not found).',
+        confirmButtonColor: '#d33',
+      });
+      return;
+    }
+
+    this.userService.sendVerifyEmail(userId).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sent',
+          text: 'Verification email has been sent. Please check your inbox.',
+          confirmButtonColor: '#3085d6',
+        });
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.error ||
+          err?.message ||
+          'Failed to send verification email';
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: msg,
+          confirmButtonColor: '#d33',
+        });
+      },
+    });
+  }
 
   viewDetail(scan: ScanResponseDTO) {
     this.sharedData.ScansDetail = scan;
