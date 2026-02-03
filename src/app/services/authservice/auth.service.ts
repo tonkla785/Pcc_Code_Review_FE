@@ -11,6 +11,7 @@ import {
 } from '../../interface/user_interface';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 import { BehaviorSubject } from 'rxjs';
+import { NotificationService } from '../notiservice/notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private tokenStorage: TokenStorageService,
+    private notificationService: NotificationService
   ) { }
 
   get token() {
@@ -34,7 +36,31 @@ export class AuthService {
       .post<LoginResponse>(`${this.base}/user/login`, payload, {
         withCredentials: true,
       })
-      .pipe(tap((res) => this.tokenStorage.setAccessToken(res.accessToken)));
+      .pipe(
+        tap((res) => {
+          this.tokenStorage.setAccessToken(res.accessToken);
+          // Connect WebSocket after login
+          const userId = this.getUserIdFromToken(res.accessToken);
+          if (userId) {
+            this.notificationService.connectWebSocket(userId);
+            this.notificationService.loadNotifications();
+          }
+        })
+      );
+  }
+
+  /**
+   * Extract user ID from JWT token
+   */
+  private getUserIdFromToken(token: string): string | null {
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      return decoded.sub || decoded.userId || null;
+    } catch (e) {
+      console.error('Failed to decode token:', e);
+      return null;
+    }
   }
 
   register(payload: RegisterRequest) {
@@ -44,9 +70,6 @@ export class AuthService {
   resetPassword(payload: { token: string; newPassword: string }) {
     return this.http.post(`${this.base}/user/reset-password`, payload);
   }
-
-
-
 
   refresh() {
     return this.http
@@ -65,8 +88,15 @@ export class AuthService {
         {},
         { withCredentials: true, responseType: 'text' as const },
       )
-      .pipe(tap(() => this.tokenStorage.clear()));
+      .pipe(
+        tap(() => {
+          // Disconnect WebSocket on logout
+          this.notificationService.disconnect();
+          this.tokenStorage.clear();
+        })
+      );
   }
+
   private userProfileSubject = new BehaviorSubject<UserInfo | null>(null);
   userProfile$ = this.userProfileSubject.asObservable();
 
@@ -79,4 +109,19 @@ export class AuthService {
   get userProfile(): UserInfo | null {
     return this.userProfileSubject.value;
   }
+
+  /**
+   * Reconnect WebSocket (call this if user was already logged in on page load)
+   */
+  reconnectWebSocket(): void {
+    const token = this.tokenStorage.getAccessToken();
+    if (token) {
+      const userId = this.getUserIdFromToken(token);
+      if (userId) {
+        this.notificationService.connectWebSocket(userId);
+        this.notificationService.loadNotifications();
+      }
+    }
+  }
 }
+
