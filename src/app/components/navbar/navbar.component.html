@@ -59,8 +59,9 @@
             (click)="closeNavbar()"> <i class="bi bi-gear"></i>Sonarqube Config</a></li>
         <li><a routerLink="/notificationsetting" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
             (click)="closeNavbar()"><i class="bi bi-bell"></i> Notification Setting</a></li>
-        <li><a routerLink="/usermanagement" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeNavbar()"><i class="bi bi-people"></i>User Management</a></li>
+        <li *ngIf="isAdmin"><a routerLink="/usermanagement" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-people"></i>User
+            Management</a></li>
       </ul>
 
       <a class="nav-link" (click)="logout(); closeNavbar()">
