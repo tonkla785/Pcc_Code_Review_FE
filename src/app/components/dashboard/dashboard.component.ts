@@ -1,3 +1,4 @@
+import { QualityGates } from './../../interface/sonarqube_interface';
 import { AuthService } from './../../services/authservice/auth.service';
 import { Dashboard } from './../../services/dashboardservice/dashboard.service';
 import { Component } from '@angular/core';
@@ -288,8 +289,9 @@ export class DashboardComponent {
   }
   countQualityGate() {
   const scans = this.getLatestScanByProject() ?? [];
-  this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
-  this.failedCount  = scans.filter(s => (s?.status ?? '').toUpperCase() === 'FAILED').length;
+  console.log('Latest Scans for Quality Gate Count:', scans);
+  this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
+  this.failedCount  = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'FAILED').length;
   console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
 }
   countBug() {
@@ -340,7 +342,7 @@ getLatestScanByProject(): any[] {
       latestByProject.set(projectId, s);
     }
   }
-
+  console.log('Latest by Project:', Array.from(latestByProject.values()));
   return Array.from(latestByProject.values());
 }
 
@@ -832,7 +834,7 @@ buildPieChart() {
       const st = norm(s.status);
       return !(st === 'PASSED' || st === 'OK' || st === 'SUCCESS');
     }).length;
-
+    console.log('Passed Count:', passedCount, 'Failed Count:', failedCount);
     // ใช้เฉพาะที่จบแล้ว (pass+fail) มาหาร
     const finishedTotal = passedCount + failedCount;
 
@@ -883,7 +885,7 @@ buildPieChart() {
               value: {
                 show: true,
                 // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => centerLetter,
+                formatter: () => this.grade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
@@ -891,7 +893,7 @@ buildPieChart() {
               total: {
                 show: true,
                 // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => centerLetter,
+                formatter: () => this.grade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',

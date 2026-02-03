@@ -45,6 +45,14 @@
           <i class="bi bi-exclamation-triangle-fill"></i>
           {{ issuesResult?.severity }}
         </span>
+        
+      </div>
+            <div class="info-item">
+        <span class="info-label">Line</span>
+        <span>
+          <i class="bi bi-circle-fill"></i>
+          {{ issuesResult?.line}}
+        </span>
       </div>
       <div class="info-item">
         <span class="info-label">Status</span>
@@ -82,6 +90,31 @@
         <button type="button" class="btn btn-assign" (click)="openAssignModal()" title="Add Assignee">
           <i class="bi bi-person-plus-fill"></i>
           Assign / Update
+        </button>
+      </div>
+    </div>
+     <!-- Card 4: Status -->
+       <div class="info-card">
+      <h4 class="card-title"><i class="bi bi-person-fill"></i> Status</h4>
+      <div class="info-item">
+        <span class="info-label">Status</span>
+        <span class="info-value" *ngIf="issuesResult?.status">
+          <div class="">
+        <span [ngClass]="['badge','badge-status','status-'+(issuesResult?.status || '').toLowerCase()]">
+          <i class="bi bi-circle-fill"></i>
+          {{ issuesResult?.status }}
+        </span>
+          </div>
+        </span>
+        <span class="info-value text-muted" *ngIf="!issuesResult?.status">
+          <i class="bi bi-person-dash"></i>
+          No Status
+        </span>
+      </div>
+      <div class="info-item mt-3">
+        <button type="button" class="btn btn-assign" (click)="openStatusModal()" title="Add Status">
+          <i class="bi bi-person-plus-fill"></i>
+          Status
         </button>
       </div>
     </div>
@@ -150,6 +183,11 @@
           </div>
           <p class="comment-text">{{ c.comment }}</p>
         </div>
+         <div class="comment-actions">
+      <button type="button" class="btn btn-link p-0" (click)="startReply(c)">
+        Reply
+      </button>
+    </div>
       </div>
 
       <!-- Empty State -->
@@ -160,29 +198,42 @@
     </div>
 
     <!-- Add Comment -->
-    <div class="add-comment-box">
-      <div class="comment-input-wrapper">
-        <i class="bi bi-chat-dots input-icon"></i>
-        <input 
-          type="text" 
-          placeholder="Write a comment..." 
-          [(ngModel)]="newComment.comment"
-          class="comment-input" 
-          title="Write your comment"
-          (keyup.enter)="newComment.comment.trim() && postComment()" 
-        />
-        <button 
-          class="btn-send" 
-          type="button" 
-          title="Post comment" 
-          (click)="postComment()"
-          [disabled]="!newComment.comment?.trim() || sendingComment"
-        >
-          <i class="bi bi-send-fill" *ngIf="!sendingComment"></i>
-          <span class="spinner-border spinner-border-sm" *ngIf="sendingComment"></span>
-        </button>
-      </div>
-    </div>
+<div class="add-comment-box">
+
+  <!-- Replying banner -->
+  <div class="replying-banner" *ngIf="replyTo">
+    <span>Replying to <b>{{ replyTo.username }}</b></span>
+    <button type="button" class="btn btn-sm btn-light" (click)="cancelReply()">
+      Cancel
+    </button>
+  </div>
+
+  <div class="comment-input-wrapper">
+    <i class="bi bi-chat-dots input-icon"></i>
+
+    <input 
+      type="text" 
+      [placeholder]="replyTo ? 'Write a reply...' : 'Write a comment...'" 
+      [(ngModel)]="newComment.comment"
+      name="commentText"
+      class="comment-input" 
+      title="Write your comment"
+      (keyup.enter)="newComment.comment.trim() && postComment()"
+    />
+
+    <button 
+      class="btn-send" 
+      type="button" 
+      title="Post comment" 
+      (click)="postComment()"
+      [disabled]="!newComment.comment?.trim() || sendingComment"
+    >
+      <i class="bi bi-send-fill" *ngIf="!sendingComment"></i>
+      <span class="spinner-border spinner-border-sm" *ngIf="sendingComment"></span>
+    </button>
+  </div>
+</div>
+
   </div>
 
   <!-- Modal -->

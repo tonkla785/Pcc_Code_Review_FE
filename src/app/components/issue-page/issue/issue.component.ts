@@ -46,6 +46,7 @@ export class IssueComponent {
   issuesAll: IssuesResponseDTO[] = [];
   originalData: IssuesResponseDTO[] = [];
   filteredIssue: IssuesResponseDTO[] = [];
+  selectedIssues: IssuesResponseDTO[] = [];
   constructor(
     private readonly router: Router,
     private readonly issueApi: IssueService,
@@ -363,5 +364,20 @@ loadIssues() {
   this.sharedData.SelectedIssues = issue;   
   this.router.navigate(['/issuedetail', issue.id]);
 }
-
+  isSelected(issue: IssuesResponseDTO): boolean {
+    return this.selectedIssues.some(s => s.id === issue.id);
+  } 
+    toggleIssueSelection(issue: IssuesResponseDTO, event?: Event): void {
+      if (event) {
+        event.stopPropagation();
+      }
+  
+      // Toggle logic
+      const index = this.selectedIssues.findIndex(s => s.id === issue.id);
+      if (index >= 0) {
+        this.selectedIssues.splice(index, 1);
+      } else {
+        this.selectedIssues.push(issue);
+      }
+    }
 }
