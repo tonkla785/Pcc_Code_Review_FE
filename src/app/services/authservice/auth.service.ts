@@ -72,9 +72,6 @@ export class AuthService {
 
     // Load report history
     this.reportHistoryService.loadReportHistory();
-
-    // Load user profile
-    this.loadMyProfile().subscribe();
   }
 
   /**
@@ -134,12 +131,6 @@ export class AuthService {
   private userProfileSubject = new BehaviorSubject<UserInfo | null>(null);
   userProfile$ = this.userProfileSubject.asObservable();
 
-  loadMyProfile() {
-    return this.http
-      .get<UserInfo>(`${this.base}/user/search-user`)
-      .pipe(tap((profile) => this.userProfileSubject.next(profile)));
-  }
-
   get userProfile(): UserInfo | null {
     return this.userProfileSubject.value;
   }
@@ -159,5 +150,4 @@ export class AuthService {
     }
   }
 }
-
 

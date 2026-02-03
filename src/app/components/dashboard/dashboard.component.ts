@@ -819,7 +819,7 @@ export class DashboardComponent {
     const hasData = this.totalProjects > 0;
     const displayGrade = hasData ? this.grade : 'E';
     const displayPercent = hasData ? this.gradePercent : 0;
-    const successColor = hasData ? this.getGradeColor(centerLetter) : '#9CA3AF'; // grey-400
+    const successColor = hasData ? this.getGradeColor(centerLetter) : this.getGradeColor(centerLetter); // grey-400
     const failedColor = hasData ? '#EF4444' : '#E5E7EB'; // grey-200 when no data
 
     this.pieChartOptions = {
@@ -853,7 +853,12 @@ export class DashboardComponent {
         },
       },
       dataLabels: { enabled: true },
-      legend: { show: true },
+      legend: {
+        show: true,
+        markers: {
+          fillColors: [this.getGradeColor(centerLetter), '#EF4444']
+        }
+      },
       tooltip: {
         enabled: true,
         y: {

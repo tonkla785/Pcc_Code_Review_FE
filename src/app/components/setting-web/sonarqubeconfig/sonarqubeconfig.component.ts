@@ -1,12 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SonarQubeService } from '../../../services/sonarqubeservice/sonarqube.service';
-import { UserSettingService } from '../../../services/usersettingservice/user-setting.service';
-import { UserSettingsDataService, SonarQubeConfig } from '../../../services/shared-data/user-settings-data.service';
 import {
   AngularSettings,
   SpringSettings,
@@ -14,6 +11,10 @@ import {
 } from '../../../interface/sonarqube_interface';
 import Swal from 'sweetalert2';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { UserSettingService } from '../../../services/usersettingservice/user-setting.service';
+import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
+import { SonarQubeConfig } from '../../../interface/user_settings_interface';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-sonarqubeconfig',
@@ -28,7 +29,6 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
   organization = 'PCCTH';
   showToken = false;
   isTestingConnection = false;
-  isSaving = false;
 
   angularSettings: AngularSettings = {
     runNpm: false,
@@ -66,7 +66,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
 
   qualityGates: QualityGates = { ...this.DEFAULT_QUALITY_GATES };
 
-  private subscription?: Subscription;
+  private destroy$ = new Subscription();
 
   constructor(
     private readonly router: Router,
@@ -83,46 +83,21 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Subscribe to shared data for SonarQube config
-    this.subscription = this.userSettingsData.sonarQubeConfig$.subscribe(config => {
-      if (config) {
-        this.loadFromConfig(config);
-      }
-    });
+    // Subscribe to user settings
+    this.destroy$.add(
+      this.userSettingsData.sonarQubeConfig$.subscribe((config) => {
+        if (config) {
+          this.loadFromConfig(config);
+        } else {
+          // First time load or no config, try to fetch
+          this.userSettingService.getSonarQubeConfig().subscribe();
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
-  }
-
-  /**
-   * Load settings from SonarQubeConfig
-   */
-  private loadFromConfig(config: SonarQubeConfig): void {
-    this.serverUrl = config.serverUrl || this.serverUrl;
-    this.organization = config.organization || this.organization;
-
-    this.angularSettings = {
-      runNpm: config.angularRunNpm,
-      coverage: config.angularCoverage,
-      tsFiles: config.angularTsFiles,
-      exclusions: config.angularExclusions || this.angularSettings.exclusions
-    };
-
-    this.springSettings = {
-      runTests: config.springRunTests,
-      jacoco: config.springJacoco,
-      buildTool: config.springBuildTool || 'maven',
-      jdkVersion: config.springJdkVersion || 21
-    };
-
-    this.qualityGates = {
-      failOnError: config.qgFailOnError,
-      coverageThreshold: config.qgCoverageThreshold,
-      maxBugs: config.qgMaxBugs,
-      maxVulnerabilities: config.qgMaxVulnerabilities,
-      maxCodeSmells: config.qgMaxCodeSmells
-    };
+    this.destroy$.unsubscribe();
   }
 
   toggleShowToken() {
@@ -218,26 +193,27 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     Swal.fire({
       icon: 'success',
       title: 'Reset Complete',
-      text: 'Settings have been reset to default.',
+      text: 'Settings have been reset to default (unsaved). Click Save to persist.',
       confirmButtonColor: '#3085d6'
     });
   }
 
   saveSettings() {
-    this.isSaving = true;
-
-    const payload: Partial<SonarQubeConfig> = {
+    const config: Partial<SonarQubeConfig> = {
       serverUrl: this.serverUrl,
       authToken: this.authToken,
       organization: this.organization,
+
       angularRunNpm: this.angularSettings.runNpm,
       angularCoverage: this.angularSettings.coverage,
       angularTsFiles: this.angularSettings.tsFiles,
       angularExclusions: this.angularSettings.exclusions,
+
       springRunTests: this.springSettings.runTests,
       springJacoco: this.springSettings.jacoco,
       springBuildTool: this.springSettings.buildTool,
       springJdkVersion: this.springSettings.jdkVersion,
+
       qgFailOnError: this.qualityGates.failOnError,
       qgCoverageThreshold: this.qualityGates.coverageThreshold,
       qgMaxBugs: this.qualityGates.maxBugs,
@@ -245,10 +221,8 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       qgMaxCodeSmells: this.qualityGates.maxCodeSmells
     };
 
-    this.userSettingService.updateSonarQubeConfig(payload).subscribe({
-      next: () => {
-        this.isSaving = false;
-        // Share quality gates with the app
+    this.userSettingService.updateSonarQubeConfig(config).subscribe({
+      next: (updatedConfig) => {
         this.sharedData.setQualityGates(this.qualityGates);
         Swal.fire({
           icon: 'success',
@@ -257,16 +231,51 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
           confirmButtonColor: '#28a745'
         });
       },
-      error: (error) => {
-        this.isSaving = false;
-        console.error('Failed to save settings:', error);
+      error: (err) => {
+        console.error('Failed to save settings:', err);
         Swal.fire({
           icon: 'error',
           title: 'Save Failed',
-          text: 'Failed to save settings. Please try again.',
+          text: 'Could not save settings to the server.',
           confirmButtonColor: '#dc3545'
         });
       }
     });
+  }
+
+  private loadFromConfig(config: SonarQubeConfig) {
+    if (!config) return;
+
+    console.log('SonarQube Config Loaded:', config);
+    console.log('AuthToken field check:', config.authToken);
+
+    this.serverUrl = config.serverUrl || 'https://code.pccth.com';
+    this.authToken = config.authToken || '';
+    this.organization = config.organization || 'PCCTH';
+
+    this.angularSettings = {
+      runNpm: config.angularRunNpm,
+      coverage: config.angularCoverage,
+      tsFiles: config.angularTsFiles,
+      exclusions: config.angularExclusions || '**/node_modules/**, **/*.spec.ts'
+    };
+
+    this.springSettings = {
+      runTests: config.springRunTests,
+      jacoco: config.springJacoco,
+      buildTool: config.springBuildTool || 'maven',
+      jdkVersion: config.springJdkVersion || 21
+    };
+
+    this.qualityGates = {
+      failOnError: config.qgFailOnError,
+      coverageThreshold: config.qgCoverageThreshold,
+      maxBugs: config.qgMaxBugs,
+      maxVulnerabilities: config.qgMaxVulnerabilities,
+      maxCodeSmells: config.qgMaxCodeSmells
+    };
+
+    // Update SharedData for other components
+    this.sharedData.setQualityGates(this.qualityGates);
   }
 }
