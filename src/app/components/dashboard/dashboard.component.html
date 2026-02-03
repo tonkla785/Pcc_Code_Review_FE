@@ -101,9 +101,15 @@
           </button>
 
           <!-- ปุ่ม Verify Email เฉพาะตอน Pending -->
-          <!-- <button *ngIf="userProfile?.status === 'PENDING_VERIFICATION'" class="btn-verify" (click)="verifyEmail()">
+          <button *ngIf="(UserLogin?.status || '').toUpperCase() !== 'ACTIVE'" class="btn-verify" type="button"
+            (click)="sendVerifyEmail()">
             Verify Email
-          </button> -->
+          </button>
+
+          <!-- ถ้า ACTIVE แล้ว แสดงเป็นข้อความ -->
+          <small *ngIf="(UserLogin?.status || '').toUpperCase() === 'ACTIVE'" class="text-success">
+            Email verified ✔
+          </small>
         </div>
       </div>
     </div>
@@ -321,7 +327,7 @@
 
             <!-- Checklist -->
             <ul class="password-rules" *ngIf="isNewPasswordFocused">
-              <li [class.error-message]="newPasswordRules.minLength">
+              <li [class.pass]="newPasswordRules.minLength" [class.fail]="!newPasswordRules.minLength">
                 <i class="bi" [ngClass]="
                     newPasswordRules.minLength
                       ? 'bi-check-circle-fill'
@@ -331,7 +337,7 @@
                 At least 8 characters
               </li>
 
-              <li [class.pass]="newPasswordRules.upper">
+              <li [class.pass]="newPasswordRules.upper" [class.fail]="!newPasswordRules.upper">
                 <i class="bi" [ngClass]="
                     newPasswordRules.upper
                       ? 'bi-check-circle-fill'
@@ -341,7 +347,7 @@
                 Contains an uppercase letter
               </li>
 
-              <li [class.pass]="newPasswordRules.lower">
+              <li [class.pass]="newPasswordRules.lower" [class.fail]="!newPasswordRules.lower">
                 <i class="bi" [ngClass]="
                     newPasswordRules.lower
                       ? 'bi-check-circle-fill'
@@ -351,7 +357,7 @@
                 Contains a lowercase letter
               </li>
 
-              <li [class.pass]="newPasswordRules.number">
+              <li [class.pass]="newPasswordRules.number" [class.fail]="!newPasswordRules.number">
                 <i class="bi" [ngClass]="
                     newPasswordRules.number
                       ? 'bi-check-circle-fill'
@@ -361,7 +367,7 @@
                 Contains a number
               </li>
 
-              <li [class.pass]="newPasswordRules.special">
+              <li [class.pass]="newPasswordRules.special" [class.fail]="!newPasswordRules.special">
                 <i class="bi" [ngClass]="
                     newPasswordRules.special
                       ? 'bi-check-circle-fill'
