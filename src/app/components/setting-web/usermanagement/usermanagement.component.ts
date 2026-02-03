@@ -27,12 +27,6 @@ export class UsermanagementComponent {
 
   searchText: string = '';
 
-  users: User[] = [
-    { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'Admin', active: true },
-    { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'Admin', active: false },
-    { id: 3, name: 'Charlie Brown', email: 'charlie@example.com', role: 'User', active: true },
-  ];
-
   modalOpen: boolean = false;
   editingUser: boolean = false;
   modalData: UserInfo = this.emptyUser();
@@ -42,7 +36,7 @@ export class UsermanagementComponent {
   isEmail: boolean = false;
   filteredUsers: UserInfo[] = [];
   emptyUser(): UserInfo {
-    return { id: "0", username: '',password:'', email: '', role: 'USER' };
+    return { id: "0", username: '', password: '', email: '', role: 'USER', status: '' };
   }
 
   // filteredUsers(): User[] {
@@ -59,12 +53,12 @@ export class UsermanagementComponent {
     private readonly userDateService: UserService
   ) { }
 
-  ngOnInit(){
-       this.sharedData.AllUser$.subscribe(data => { 
-        this.UserData = data ?? [];
-        this.applyFilter();
-      });
-       if(!this.sharedData.hasUserCache){
+  ngOnInit() {
+    this.sharedData.AllUser$.subscribe(data => {
+      this.UserData = data ?? [];
+      this.applyFilter();
+    });
+    if (!this.sharedData.hasUserCache) {
       this.loadUser();
       console.log("No cache - load from server");
     }
@@ -82,23 +76,23 @@ export class UsermanagementComponent {
     });
   }
   applyFilter() {
-  const keyword = this.searchText.trim().toLowerCase();
+    const keyword = this.searchText.trim().toLowerCase();
 
-  if (keyword == null || keyword === '') {
-    this.filteredUsers = [...this.UserData];
-    return;
+    if (keyword == null || keyword === '') {
+      this.filteredUsers = [...this.UserData];
+      return;
+    }
+
+    this.filteredUsers = this.UserData.filter(u =>
+      (u.username ?? '').toLowerCase().startsWith(keyword)
+      // (u.email ?? '').toLowerCase().includes(keyword) ||
+      // (u.role ?? '').toLowerCase().includes(keyword)
+    );
   }
-
-  this.filteredUsers = this.UserData.filter(u =>
-    (u.username ?? '').toLowerCase().startsWith(keyword) 
-    // (u.email ?? '').toLowerCase().includes(keyword) ||
-    // (u.role ?? '').toLowerCase().includes(keyword)
-  );
-}
-onSearchChange(value: string) {
-  this.searchText = value;
-  this.applyFilter();
-}
+  onSearchChange(value: string) {
+    this.searchText = value;
+    this.applyFilter();
+  }
 
   openAddUser() {
     this.modalData = this.emptyUser();
@@ -116,14 +110,14 @@ onSearchChange(value: string) {
   }
 
   checkEmail() {
-      const email = this.modalData.email?.trim().toLowerCase();
+    const email = this.modalData.email?.trim().toLowerCase();
     if (email === this.originalEmail?.toLowerCase()) {
-    this.isEmail = false;
-    return;
-  }
-  this.isEmail = this.UserData.some(
-    u => u.email.toLowerCase() === email && u.id !== this.modalData.id
-  );
+      this.isEmail = false;
+      return;
+    }
+    this.isEmail = this.UserData.some(
+      u => u.email.toLowerCase() === email && u.id !== this.modalData.id
+    );
 
   }
 
@@ -139,7 +133,7 @@ onSearchChange(value: string) {
       return !(
         this.modalData.username === this.originalData.username &&
         this.modalData.email === this.originalData.email &&
-        this.modalData.role === this.originalData.role 
+        this.modalData.role === this.originalData.role
       );
     }
 
@@ -147,44 +141,45 @@ onSearchChange(value: string) {
   }
 
   onSubmitUser() {
-      const payload: UserInfo = {
-        id: this.modalData.id,
-        username: this.modalData.username,
-        email: this.modalData.email,
-        phone: this.modalData.phone,
-        role: this.modalData.role,
-        password: this.modalData.password
-      };
-      console.log('Submitting user payload:', payload);
+    const payload: UserInfo = {
+      id: this.modalData.id,
+      username: this.modalData.username,
+      email: this.modalData.email,
+      phone: this.modalData.phone,
+      role: this.modalData.role,
+      status: this.modalData.status,
+      password: this.modalData.password
+    };
+    console.log('Submitting user payload:', payload);
 
-    if(this.editingUser === true){
+    if (this.editingUser === true) {
       this.userDateService.EditUser(payload).subscribe({
         next: (updatedUser) => {
-            this.sharedData.updateUser(payload);
+          this.sharedData.updateUser(payload);
           this.closeModal();
           console.log('User updated:', updatedUser);
         },
-        error: (err) => console.error(err,payload)
+        error: (err) => console.error(err, payload)
       });
-    }else{
-  this.userDateService.AddNewUser(payload).subscribe({
-    next: (newUser) => {
-      this.closeModal();
-        this.sharedData.addUser(payload);
-    },
-    error: (err) => console.error(err)
-  });
-}
-      };
+    } else {
+      this.userDateService.AddNewUser(payload).subscribe({
+        next: (newUser) => {
+          this.closeModal();
+          this.sharedData.addUser(payload);
+        },
+        error: (err) => console.error(err)
+      });
+    }
+  };
 
-onDelete(projectId: string) {
-  if (!confirm('ยืนยันการลบ?')) return;
-  
-  this.userDateService.DeleteUser(projectId).subscribe({
-    next: () => {
-      this.sharedData.removeUser(projectId);
-    },
-    error: (err) => console.error(err)
-  });
-}
+  onDelete(projectId: string) {
+    if (!confirm('ยืนยันการลบ?')) return;
+
+    this.userDateService.DeleteUser(projectId).subscribe({
+      next: () => {
+        this.sharedData.removeUser(projectId);
+      },
+      error: (err) => console.error(err)
+    });
   }
+}

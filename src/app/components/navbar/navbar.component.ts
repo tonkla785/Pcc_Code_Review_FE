@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/authservice/auth.service';
+import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
 import Swal from 'sweetalert2';
 
 interface SubmenuItem {
@@ -26,7 +27,7 @@ interface MenuItem {
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
 
   navbarOpen = false;
   submenuOpen: { [key: string]: boolean } = {};
@@ -58,7 +59,11 @@ export class NavbarComponent {
     { label: 'Logout', icon: 'bi-box-arrow-right', link: '/' }
   ];
 
-  constructor(private readonly router: Router, public readonly authService: AuthService) {
+  constructor(
+    private readonly router: Router,
+    public readonly authService: AuthService,
+    private readonly tokenStorage: TokenStorageService
+  ) {
 
 
     // ตั้ง submenu ให้เปิดตาม URL ตอนโหลดและเปลี่ยน route
@@ -71,6 +76,16 @@ export class NavbarComponent {
         });
       }
     });
+  }
+
+  ngOnInit(): void {
+    // ไม่ต้องเรียก API - ใช้ข้อมูลจาก localStorage ที่เก็บตอน login แทน
+  }
+
+  // ตรวจสอบว่าเป็น ADMIN หรือไม่ - ดึงจาก localStorage
+  get isAdmin(): boolean {
+    const loginUser = this.tokenStorage.getLoginUser();
+    return loginUser?.role === 'ADMIN';
   }
 
   toggleNavbar() {
@@ -99,12 +114,6 @@ export class NavbarComponent {
       if (result.isConfirmed) {
         this.authService.logout().subscribe({
           next: () => {
-            Swal.fire({
-              icon: 'success',
-              title: 'ออกจากระบบแล้ว',
-              showConfirmButton: false,
-              timer: 1200
-            });
             this.router.navigate(['/']);
           },
           error: () => {
