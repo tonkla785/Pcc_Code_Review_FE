@@ -26,6 +26,7 @@ import { AnalysisComponent } from './components/analytics-page/analysis/analysis
 import { SecuritydashboardComponent } from './components/analytics-page/securitydashboard/securitydashboard.component';
 import { TechnicaldebtComponent } from './components/analytics-page/technicaldebt/technicaldebt.component';
 import { Component } from '@angular/core';
+import { roleGuard } from './services/authservice/role.guard';
 
 export const routes: Routes = [
 
@@ -34,8 +35,8 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path:'verify-success',component:VerifySuccessComponent}, 
-  { path:'verify-failed',component:VerifyFailedComponent}, 
+  { path: 'verify-success', component: VerifySuccessComponent },
+  { path: 'verify-failed', component: VerifyFailedComponent },
 
   {
     path: '',
@@ -59,7 +60,7 @@ export const routes: Routes = [
       { path: 'reporthistory', component: ReporthistoryComponent },
       { path: 'sonarqubeconfig', component: SonarqubeconfigComponent },
       { path: 'notificationsetting', component: NotificationsettingComponent },
-      { path: 'usermanagement', component: UsermanagementComponent },
+      { path: 'usermanagement', component: UsermanagementComponent, canActivate: [roleGuard(['ADMIN'])] },
     ]
   },
 
