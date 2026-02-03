@@ -48,12 +48,24 @@ export class AuthService {
       })
       .pipe(
         tap((res) => {
+          // Store token first
           this.tokenStorage.setAccessToken(res.accessToken);
+
+          // Store user data BEFORE loading user data (fix race condition)
+          this.tokenStorage.setLoginUser({
+            id: res.id,
+            username: res.username,
+            email: res.email,
+            phone: res.phone,
+            role: res.role,
+            status: res.status
+          });
+
           // Connect WebSocket after login
-          const userId = this.getUserIdFromToken(res.accessToken);
+          const userId = res.id || this.getUserIdFromToken(res.accessToken);
           if (userId) {
             this.notificationService.connectWebSocket(userId);
-            // Load all user data after login
+            // Load all user data after login (now user is available in localStorage)
             this.loadAllUserData();
           }
         })

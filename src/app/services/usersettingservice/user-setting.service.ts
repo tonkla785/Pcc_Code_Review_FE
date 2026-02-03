@@ -20,7 +20,8 @@ export class UserSettingService {
 
     private getUserId(): string {
         const user = this.tokenStorage.getLoginUser();
-        return user?.id || '';
+        const userId = user?.id || '';
+        return userId;
     }
 
     /**
