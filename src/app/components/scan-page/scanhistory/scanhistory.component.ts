@@ -281,24 +281,24 @@ export class ScanhistoryComponent {
 
 
   compareScans() {
-    if (this.selectedScans.length < 2) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Not enough items selected',
-        text: 'Please select at least 2 items to compare',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-    if (this.selectedScans.length > 3) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Too many items selected',
-        text: 'You can compare up to 3 items maximum',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
+    // if (this.selectedScans.length < 2) {
+    //   Swal.fire({
+    //     icon: 'warning',
+    //     title: 'Not enough items selected',
+    //     text: 'Please select at least 2 items to compare',
+    //     confirmButtonText: 'OK'
+    //   });
+    //   return;
+    // }
+    // if (this.selectedScans.length > 3) {
+    //   Swal.fire({
+    //     icon: 'warning',
+    //     title: 'Too many items selected',
+    //     text: 'You can compare up to 3 items maximum',
+    //     confirmButtonText: 'OK'
+    //   });
+    //   return;
+    // }
     this.showCompareModal = true;
   }
 
