@@ -37,26 +37,6 @@
     </label>
   </div>
 
-  <!-- ช่องทาง -->
-  <div class="card">
-    <h4>Delivery Channel</h4>
-    <select [(ngModel)]="settings.channel" class="form-control">
-      <option value="push">Push (ใน Dashboard)</option>
-      <option value="email">Email</option>
-      <option value="slack">Slack</option>
-    </select>
-  </div>
-
-  <!-- ความถี่ -->
-  <div class="card">
-    <h4>Frequency</h4>
-    <select [(ngModel)]="settings.frequency" class="form-control">
-      <option value="immediate">Immediately</option>
-      <option value="daily">Daily Summary</option>
-      <option value="weekly">Weekly Summary</option>
-    </select>
-  </div>
-
   <!-- ปุ่ม -->
   <div class="actions">
     <button class="btn primary" (click)="saveSettings()" [disabled]="saving">
