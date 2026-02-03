@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Repository, RepositoryService, ScanIssue } from '../../../services/reposervice/repository.service';
 import { Scan, ScanService } from '../../../services/scanservice/scan.service';
+import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { Issue } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
@@ -21,7 +22,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
   scanId!: string;
   repoId!: string;
   repo!: Repository;
-  scans: Scan[] = [];
+  scans: ScanResponseDTO[] = [];
   activeTab: 'overview' | 'bugs' | 'history' = 'overview';
   loading: boolean = true;
   private scanInterval?: any;
@@ -54,6 +55,29 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     this.loadRepositoryFull(this.repoId);
     this.loadScanIssues(this.scanId);
 
+    // Subscribe to SharedData for real-time updates
+    this.sharedData.repositories$.subscribe(repos => {
+      const currentRepo = repos.find(r => r.projectId === this.repoId);
+      if (currentRepo) {
+        // Updated repo found (e.g. from global WS update)
+        // Only update if we already have data or if it's the first load
+        if (this.repo) {
+          this.repo = { ...this.repo, ...currentRepo };
+          // Update logic for scans if needed, or rely on reload
+          if (this.repo.status !== 'Scanning' && currentRepo.status !== 'Scanning') {
+            // If status changed to non-scanning, we might want to refresh history
+            // But sharedData might not have full history unless we fetch it.
+            // AppComponent fetches full repo on success, so currentRepo SHOULD have full data if it was just merged.
+            if (currentRepo.scans) {
+              this.scans = (currentRepo.scans ?? [])
+                .filter(scan => scan.completedAt)
+                .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
+            }
+          }
+        }
+      }
+    });
+
     // ฟังการเปลี่ยนแปลง Quality Gates
     this.sharedData.qualityGates$
       .subscribe(gates => {
@@ -76,6 +100,15 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
             .filter(scan => scan.completedAt)
             .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
           this.issues = repo.issues ?? [];
+
+          // Sync with SharedData to ensure AppComponent can update it later
+          const currentRepos = this.sharedData.repositoriesValue;
+          const exists = currentRepos.find(r => r.projectId === repo.projectId);
+          if (exists) {
+            this.sharedData.updateRepository(repo.projectId!, repo);
+          } else {
+            this.sharedData.addRepository(repo);
+          }
         }
         this.loading = false;
       },

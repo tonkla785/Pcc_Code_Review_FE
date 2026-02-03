@@ -15,12 +15,7 @@
 
       <!-- ปุ่ม Notification -->
       <div class="notification-wrapper">
-        <button
-          class="notification-wrapper"
-          (click)="toggleNotifications()"
-          title="Notification"
-          type="button"
-        >
+        <button class="notification-wrapper" (click)="toggleNotifications()" title="Notification" type="button">
           <!-- ไอคอนกระดิ่ง -->
           <i class="bi bi-bell-fill notification-icon"></i>
 
@@ -31,73 +26,39 @@
         </button>
 
         <!-- Panel แสดง Notifications -->
-        <div
-          class="notifications-panel"
-          *ngIf="showNotifications"
-          (mousedown)="$event.stopPropagation()"
-        >
+        <div class="notifications-panel" *ngIf="showNotifications" (mousedown)="$event.stopPropagation()">
           <!-- Header -->
           <div class="notifications-header">
-            <span
-              ><i class="bi bi-bell-fill notification-icon"></i>
-              Notifications</span
-            >
-            <button
-              class="close-btn"
-              (click)="closeNotifications()"
-              type="button"
-            >
+            <span><i class="bi bi-bell-fill notification-icon"></i>
+              Notifications</span>
+            <button class="close-btn" (click)="closeNotifications()" type="button">
               ✕
             </button>
           </div>
 
           <!-- Tabs -->
           <div class="notification-tabs">
-            <button
-              [class.active]="activeTab === 'All'"
-              (click)="selectTab('All')"
-              type="button"
-            >
+            <button [class.active]="activeTab === 'All'" (click)="selectTab('All')" type="button">
               All
             </button>
-            <button
-              [class.active]="activeTab === 'Unread'"
-              (click)="selectTab('Unread')"
-              type="button"
-            >
+            <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')" type="button">
               Unread
             </button>
-            <button
-              [class.active]="activeTab === 'Repo'"
-              (click)="selectTab('Repo')"
-              type="button"
-            >
+            <button [class.active]="activeTab === 'Repo'" (click)="selectTab('Repo')" type="button">
               Repo
             </button>
-            <button
-              [class.active]="activeTab === 'scan'"
-              (click)="selectTab('scan')"
-              type="button"
-            >
+            <button [class.active]="activeTab === 'scan'" (click)="selectTab('scan')" type="button">
               Scan
             </button>
-            <button
-              [class.active]="activeTab === 'Export'"
-              (click)="selectTab('Export')"
-              type="button"
-            >
+            <button [class.active]="activeTab === 'Export'" (click)="selectTab('Export')" type="button">
               Export
             </button>
             <!-- <button class="mark-all" (click)="markAllRead()" type="button">Mark All Read</button> -->
           </div>
 
           <!-- รายการ Notifications -->
-          <div
-            class="notification-item"
-            *ngFor="let n of filteredNotifications"
-            [class.read]="n.read"
-            (click)="viewNotification(n)"
-          >
+          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.read"
+            (click)="viewNotification(n)">
             <div class="item-header">
               <!-- <span>{{ n.icon }} {{ n.title }}</span> -->
               <span class="item-time">{{ getTimeAgo(n.timestamp) }}</span>
@@ -106,12 +67,7 @@
           </div>
 
           <!-- ปุ่ม Load More -->
-          <button
-            *ngIf="displayCount < totalFilteredCount"
-            class="load-more"
-            (click)="loadMore()"
-            type="button"
-          >
+          <button *ngIf="displayCount < totalFilteredCount" class="load-more" (click)="loadMore()" type="button">
             Load More...
           </button>
         </div>
@@ -170,16 +126,10 @@
       <div>
         <div class="chart-container">
           <div *ngIf="pieChartOptions">
-            <apx-chart
-              [series]="pieChartOptions.series!"
-              [chart]="pieChartOptions.chart!"
-              [labels]="pieChartOptions.labels!"
-              [plotOptions]="pieChartOptions.plotOptions!"
-              [colors]="pieChartOptions.colors!"
-              [dataLabels]="pieChartOptions.dataLabels!"
-              [legend]="pieChartOptions.legend!"
-              [tooltip]="pieChartOptions.tooltip!"
-            >
+            <apx-chart [series]="pieChartOptions.series!" [chart]="pieChartOptions.chart!"
+              [labels]="pieChartOptions.labels!" [plotOptions]="pieChartOptions.plotOptions!"
+              [colors]="pieChartOptions.colors!" [dataLabels]="pieChartOptions.dataLabels!"
+              [legend]="pieChartOptions.legend!" [tooltip]="pieChartOptions.tooltip!">
             </apx-chart>
           </div>
         </div>
@@ -220,12 +170,10 @@
           <tbody>
             <tr *ngFor="let scan of DashboardData | slice: 0 : 5">
               <td>{{ scan.project.name }}</td>
-              <td
-                [ngClass]="{
+              <td [ngClass]="{
                   'status-cell status--passed': scan.status === 'SUCCESS',
                   'status-cell status--failed': scan.status === 'FAILED',
-                }"
-              >
+                }">
                 {{ scan.status }}
               </td>
               <!-- <td [ngClass]="{
@@ -237,12 +185,8 @@
             }">{{ scan.grade }}</td> -->
               <td>{{ scan.completedAt | date: "dd/MM/yyyy, hh:mm a" }}</td>
               <td>
-                <button
-                  class="btn btn-primary btn-sm text-white"
-                  title="View scan detail"
-                  type="button"
-                  (click)="viewDetail(scan)"
-                >
+                <button class="btn btn-primary btn-sm text-white" title="View scan detail" type="button"
+                  (click)="viewDetail(scan)">
                   <i class="bi bi-eye"></i>
                 </button>
               </td>
@@ -293,15 +237,10 @@
   <!-- Quality Trend -->
   <div class="quality-trend">
     <h4><i class="bi bi-graph-up"></i> Quality Trend (Last 30 Days)</h4>
-    <apx-chart
-      [series]="coverageChartSeries!"
-      [chart]="coverageChartOptions.chart!"
-      [xaxis]="coverageChartOptions.xaxis!"
-      [stroke]="coverageChartOptions.stroke!"
-      [markers]="coverageChartOptions.markers!"
-      [colors]="coverageChartOptions.colors!"
-      [yaxis]="coverageChartOptions.yaxis!"
-    >
+    <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!"
+      [xaxis]="coverageChartOptions.xaxis!" [stroke]="coverageChartOptions.stroke!"
+      [markers]="coverageChartOptions.markers!" [colors]="coverageChartOptions.colors!"
+      [yaxis]="coverageChartOptions.yaxis!">
     </apx-chart>
   </div>
 
@@ -336,15 +275,10 @@
           <span>{{ p.percent }}%</span>
         </div>
         <div class="progress" style="height: 20px">
-          <progress
-            class="progress-bar"
-            [value]="p.percent"
-            max="100"
-            [ngClass]="{
+          <progress class="progress-bar" [value]="p.percent" max="100" [ngClass]="{
               'bg-primary': p.type === 'Angular',
               'bg-success': p.type === 'SpringBoot',
-            }"
-          >
+            }">
             {{ p.percent }}%
           </progress>
         </div>
@@ -354,143 +288,85 @@
 </div>
 
 <!-- Change Password Modal -->
-<div
-  class="modal-backdrop-custom"
-  *ngIf="showChangePasswordModal"
-  (mousedown)="closeChangePasswordModal()"
->
+<div class="modal-backdrop-custom" *ngIf="showChangePasswordModal" (mousedown)="closeChangePasswordModal()">
   <div class="modal-dialog-custom" (mousedown)="$event.stopPropagation()">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Change Password</h5>
-        <button
-          class="btn-close"
-          (mousedown)="closeChangePasswordModal()"
-        ></button>
+        <button class="btn-close" (mousedown)="closeChangePasswordModal()"></button>
       </div>
 
-      <form
-        #passwordForm="ngForm"
-        (ngSubmit)="submitChangePassword(passwordForm)"
-      >
+      <form #passwordForm="ngForm" (ngSubmit)="submitChangePassword(passwordForm)">
         <div class="modal-body">
           <!-- Old Password -->
           <div class="form-group mb-3">
             <label>Old Password</label>
-            <input
-              type="password"
-              class="form-control"
-              name="oldPassword"
-              [(ngModel)]="passwordData.oldPassword"
-              required
-              #oldpassRef="ngModel"
-              [class.is-invalid]="
+            <input type="password" class="form-control" name="oldPassword" [(ngModel)]="passwordData.oldPassword"
+              required #oldpassRef="ngModel" [class.is-invalid]="
                 (oldpassRef.touched || submitted) && !passwordData.oldPassword
-              "
-            />
+              " />
             <div *ngIf="oldpassRef.dirty || oldpassRef.touched || submitted">
-              <small *ngIf="oldpassRef.errors?.['required']" class="text-danger"
-                >Old password is required</small
-              >
+              <small *ngIf="oldpassRef.errors?.['required']" class="text-danger">Old password is required</small>
             </div>
           </div>
 
           <!-- New Password -->
           <div class="form-group mb-3">
             <label>New Password</label>
-            <input
-              type="password"
-              class="form-control"
-              name="newPassword"
-              [(ngModel)]="passwordData.newPassword"
-              required
-              minlength="8"
-              #newpassRef="ngModel"
-              (focus)="isNewPasswordFocused = true"
-              [class.is-invalid]="
+            <input type="password" class="form-control" name="newPassword" [(ngModel)]="passwordData.newPassword"
+              required minlength="8" #newpassRef="ngModel" (focus)="isNewPasswordFocused = true" [class.is-invalid]="
                 isNewPasswordFocused &&
                 (newpassRef.invalid || !newPasswordValid)
-              "
-            />
+              " />
 
             <!-- Checklist -->
             <ul class="password-rules" *ngIf="isNewPasswordFocused">
-              <li
-                [class.pass]="newPasswordRules.minLength"
-                [class.fail]="!newPasswordRules.minLength"
-              >
-                <i
-                  class="bi"
-                  [ngClass]="
+              <li [class.pass]="newPasswordRules.minLength" [class.fail]="!newPasswordRules.minLength">
+                <i class="bi" [ngClass]="
                     newPasswordRules.minLength
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
-                  "
-                >
+                  ">
                 </i>
                 At least 8 characters
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.upper"
-                [class.fail]="!newPasswordRules.upper"
-              >
-                <i
-                  class="bi"
-                  [ngClass]="
+              <li [class.pass]="newPasswordRules.upper" [class.fail]="!newPasswordRules.upper">
+                <i class="bi" [ngClass]="
                     newPasswordRules.upper
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
-                  "
-                >
+                  ">
                 </i>
                 Contains an uppercase letter
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.lower"
-                [class.fail]="!newPasswordRules.lower"
-              >
-                <i
-                  class="bi"
-                  [ngClass]="
+              <li [class.pass]="newPasswordRules.lower" [class.fail]="!newPasswordRules.lower">
+                <i class="bi" [ngClass]="
                     newPasswordRules.lower
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
-                  "
-                >
+                  ">
                 </i>
                 Contains a lowercase letter
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.number"
-                [class.fail]="!newPasswordRules.number"
-              >
-                <i
-                  class="bi"
-                  [ngClass]="
+              <li [class.pass]="newPasswordRules.number" [class.fail]="!newPasswordRules.number">
+                <i class="bi" [ngClass]="
                     newPasswordRules.number
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
-                  "
-                >
+                  ">
                 </i>
                 Contains a number
               </li>
 
-              <li
-                [class.pass]="newPasswordRules.special"
-                [class.fail]="!newPasswordRules.special"
-              >
-                <i
-                  class="bi"
-                  [ngClass]="
+              <li [class.pass]="newPasswordRules.special" [class.fail]="!newPasswordRules.special">
+                <i class="bi" [ngClass]="
                     newPasswordRules.special
                       ? 'bi-check-circle-fill'
                       : 'bi-x-circle-fill'
-                  "
-                >
+                  ">
                 </i>
                 Contains a special character
               </li>
@@ -501,31 +377,21 @@
         <!-- Confirm Password -->
         <div class="form-group mb-3">
           <label>Confirm Password</label>
-          <input
-            type="password"
-            class="form-control"
-            name="confirmPassword"
-            [(ngModel)]="passwordData.confirmPassword"
-            required
-            #confRef="ngModel"
-            [class.is-invalid]="
+          <input type="password" class="form-control" name="confirmPassword" [(ngModel)]="passwordData.confirmPassword"
+            required #confRef="ngModel" [class.is-invalid]="
               (confRef.touched || submitted) &&
               (!passwordData.confirmPassword ||
                 passwordData.confirmPassword !== passwordData.newPassword)
-            "
-          />
+            " />
 
           <div *ngIf="confRef.dirty || confRef.touched || submitted">
             <small *ngIf="confRef.errors?.['required']" class="text-danger">
               Confirm password is required
             </small>
-            <small
-              *ngIf="
+            <small *ngIf="
                 passwordData.confirmPassword &&
                 passwordData.confirmPassword !== passwordData.newPassword
-              "
-              class="text-danger"
-            >
+              " class="text-danger">
               Passwords do not match
             </small>
           </div>
@@ -533,11 +399,7 @@
 
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary">Change Password</button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            (click)="closeChangePasswordModal()"
-          >
+          <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">
             Cancel
           </button>
         </div>
