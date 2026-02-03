@@ -283,6 +283,7 @@ export class SharedDataService {
         email: string;
         phone?: string;
         role: string;
+        status: string;
     }): void {
         const user: UserInfo = {
             id: response.id,
@@ -290,13 +291,10 @@ export class SharedDataService {
             password: response.password || '',
             email: response.email,
             phone: response.phone,
+            status: response.status,
             role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
         };
         this._currentUser$.next(user);
-    }
-
-    clearUser(): void {
-        this._currentUser$.next(null);
     }
 
     // ==================== REPOSITORY METHODS ====================

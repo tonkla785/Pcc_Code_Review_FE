@@ -116,9 +116,9 @@ loadIssues() {
   //   this.assignModal.openAddAssign();
   // }
 
-  updateStatus(assign: AssignHistory, status: string) {
-    this.assignModal.openStatus(assign, status);
-  }
+  // updateStatus(assign: AssignHistory, status: string) {
+  //   this.assignModal.openStatus(assign, status);
+  // }
 
   // ส่ง assignment ไป backend
   handleAssignSubmit(data: { issue: Partial<Issue>, isEdit: boolean }) {

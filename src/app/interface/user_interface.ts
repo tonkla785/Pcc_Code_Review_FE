@@ -7,6 +7,7 @@ export interface UserInfo {
   password: string;
   email: string;
   phone?: string;
+  status: string;
   role: 'USER' | 'ADMIN';
 }
 export interface LoginUser {
@@ -15,6 +16,7 @@ export interface LoginUser {
   email: string;
   phone?: string;
   role: string;
+  status: string;
 }
 
 /**
@@ -32,6 +34,7 @@ export interface LoginResponse {
   email: string;
   phone: string;
   role: string;
+  status:string;
 }
 
 export interface RefreshResponse {
