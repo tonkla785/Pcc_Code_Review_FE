@@ -158,6 +158,7 @@ export class DashboardComponent {
     maintainabilityGate: '',
     days: [],
   };
+  isNewPasswordFocused = false;
 
   Data = { passedCount: 0, failedCount: 0 };
   pieChartOptions!: ApexOptions;
