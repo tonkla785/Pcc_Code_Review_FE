@@ -318,7 +318,6 @@ export class GeneratereportComponent implements OnInit {
       return of([]);
     }
 
-    // Fetch details for each issue
     const detailsRequests = topIssues.map(issue =>
       this.issueService.getAllIssuesDetails(issue.id).pipe(
         map((details: IssuesDetailResponseDTO) => ({
@@ -384,7 +383,6 @@ export class GeneratereportComponent implements OnInit {
         this.pdfService.generatePdf(context);
       }
 
-      // Save report history to API
       this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections);
 
     } catch (e) {
