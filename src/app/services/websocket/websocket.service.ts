@@ -15,6 +15,7 @@ function mapToUiStatus(status: BackendScanStatus): UiScanStatus {
 
 export interface ScanEvent {
   projectId: string;
+  scanId: string;    // เพิ่ม scanId
   status: UiScanStatus;
 }
 
@@ -45,14 +46,17 @@ export class WebSocketService {
 
         this.client.subscribe('/topic/scan-status', (message: any) => {
           try {
-            const raw = JSON.parse(message.body) as { //รับข้อมูลมา
+            const raw = JSON.parse(message.body) as {
               projectId: string;
+              scanId?: string;  // อาจจะมีหรือไม่มีก็ได้
+              id?: string;      // เผื่อบางทีส่งเป็น id
               status: BackendScanStatus;
             };
 
             const event: ScanEvent = {
               projectId: raw.projectId,
-              status: mapToUiStatus(raw.status) //เรียกใช้ฟังก์ชัน เมื่อมันเจอ PENDING จะเปลี่ยนเป็น SCANNING
+              scanId: raw.scanId || raw.id || '', // fallback
+              status: mapToUiStatus(raw.status)
             };
 
             console.log('WS event:', event);

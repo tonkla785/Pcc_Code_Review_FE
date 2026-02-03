@@ -44,6 +44,7 @@
             <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')" type="button">
               Unread
             </button>
+<<<<<<< HEAD
             <button [class.active]="activeTab === 'Repo'" (click)="selectTab('Repo')" type="button">
               Repo
             </button>
@@ -52,8 +53,18 @@
             </button>
             <button [class.active]="activeTab === 'Export'" (click)="selectTab('Export')" type="button">
               Export
+=======
+            <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')" type="button">
+              Scans
             </button>
-            <!-- <button class="mark-all" (click)="markAllRead()" type="button">Mark All Read</button> -->
+            <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')" type="button">
+              Issues
+            </button>
+            <button [class.active]="activeTab === 'System'" (click)="selectTab('System')" type="button">
+              System
+>>>>>>> dev
+            </button>
+            <button class="mark-all" (click)="markAllRead()" type="button">Mark All Read</button>
           </div>
 
           <!-- รายการ Notifications -->
@@ -321,7 +332,11 @@
 
             <!-- Checklist -->
             <ul class="password-rules" *ngIf="isNewPasswordFocused">
+<<<<<<< HEAD
               <li [class.pass]="newPasswordRules.minLength" [class.fail]="!newPasswordRules.minLength">
+=======
+              <li [class.error-message]="newPasswordRules.minLength">
+>>>>>>> dev
                 <i class="bi" [ngClass]="
                     newPasswordRules.minLength
                       ? 'bi-check-circle-fill'
@@ -331,7 +346,11 @@
                 At least 8 characters
               </li>
 
+<<<<<<< HEAD
               <li [class.pass]="newPasswordRules.upper" [class.fail]="!newPasswordRules.upper">
+=======
+              <li [class.pass]="newPasswordRules.upper">
+>>>>>>> dev
                 <i class="bi" [ngClass]="
                     newPasswordRules.upper
                       ? 'bi-check-circle-fill'
@@ -341,7 +360,11 @@
                 Contains an uppercase letter
               </li>
 
+<<<<<<< HEAD
               <li [class.pass]="newPasswordRules.lower" [class.fail]="!newPasswordRules.lower">
+=======
+              <li [class.pass]="newPasswordRules.lower">
+>>>>>>> dev
                 <i class="bi" [ngClass]="
                     newPasswordRules.lower
                       ? 'bi-check-circle-fill'
@@ -351,7 +374,11 @@
                 Contains a lowercase letter
               </li>
 
+<<<<<<< HEAD
               <li [class.pass]="newPasswordRules.number" [class.fail]="!newPasswordRules.number">
+=======
+              <li [class.pass]="newPasswordRules.number">
+>>>>>>> dev
                 <i class="bi" [ngClass]="
                     newPasswordRules.number
                       ? 'bi-check-circle-fill'
@@ -361,7 +388,11 @@
                 Contains a number
               </li>
 
+<<<<<<< HEAD
               <li [class.pass]="newPasswordRules.special" [class.fail]="!newPasswordRules.special">
+=======
+              <li [class.pass]="newPasswordRules.special">
+>>>>>>> dev
                 <i class="bi" [ngClass]="
                     newPasswordRules.special
                       ? 'bi-check-circle-fill'

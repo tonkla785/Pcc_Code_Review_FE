@@ -97,7 +97,7 @@ interface DashboardData {
   days: number[];
 }
 
-type NotificationTab = 'All' | 'Unread' | 'Repo' | 'scan' | 'Export';
+type NotificationTab = 'All' | 'Unread' | 'Scans' | 'Issues' | 'System';
 
 interface UserProfile {
   username: string;
@@ -134,7 +134,7 @@ export class DashboardComponent {
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
-  ) {}
+  ) { }
 
   loading = true;
 
@@ -189,7 +189,7 @@ export class DashboardComponent {
   coverageChartOptions!: Partial<ChartOptions>;
   repositories: Repository[] = [];
   allIssues: IssuesResponseDTO[] = [];
-    filteredRepositories: Repository[] = [];
+  filteredRepositories: Repository[] = [];
   latestScans = this.getLatestScanByProject();
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
@@ -288,75 +288,75 @@ export class DashboardComponent {
     });
   }
   countQualityGate() {
-  const scans = this.getLatestScanByProject() ?? [];
-  console.log('Latest Scans for Quality Gate Count:', scans);
-  this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
-  this.failedCount  = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'FAILED').length;
-  console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
-}
-  countBug() {
-  const bugs = this.getLatestScanByProject() ?? [];
-  this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0),0);
-  this.securityCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),0);
-  this.codeSmellCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0),0);
-  this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
-  console.log('Bug:',this.passedCountBug , 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
-}
-private dateTH(iso?: string): string {
-  if (!iso) return '';
-  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-  // ได้ YYYY-MM-DD
-}
-
-countQuality(date: string): number {
-  return (this.DashboardData ?? []).filter(s => {
-    if (!s?.completedAt) return false;
-    const scanDate = this.dateTH(s.completedAt); 
-        console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
-        console.log('latestScans', this.getLatestScanByProject());
-    return scanDate === date && s.qualityGate === 'OK' ;
-
-  }).length;
-  
-}
-getLatestScanByProject(): any[] {
-  const rows = (this.DashboardData ?? [])
-    .filter((s): s is any => typeof s?.completedAt === 'string')
-    .filter(s => !!(s?.project?.id ));
-
-  const latestByProject = new Map<string, any>();
-
-  for (const s of rows) {
-    const projectId = s.project?.id ?? s.projectId;
-
-    const prev = latestByProject.get(projectId);
-    if (!prev) {
-      latestByProject.set(projectId, s);
-      continue;
-    }
-
-    const prevTime = new Date(prev.completedAt).getTime();
-    const curTime  = new Date(s.completedAt).getTime();
-
-    if (curTime > prevTime) {
-      latestByProject.set(projectId, s);
-    }
+    const scans = this.getLatestScanByProject() ?? [];
+    console.log('Latest Scans for Quality Gate Count:', scans);
+    this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
+    this.failedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'FAILED').length;
+    console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
   }
-  console.log('Latest by Project:', Array.from(latestByProject.values()));
-  return Array.from(latestByProject.values());
-}
+  countBug() {
+    const bugs = this.getLatestScanByProject() ?? [];
+    this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
+    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0), 0);
+    this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
+    this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
+    console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
+  }
+  private dateTH(iso?: string): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+    // ได้ YYYY-MM-DD
+  }
+
+  countQuality(date: string): number {
+    return (this.DashboardData ?? []).filter(s => {
+      if (!s?.completedAt) return false;
+      const scanDate = this.dateTH(s.completedAt);
+      console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
+      console.log('latestScans', this.getLatestScanByProject());
+      return scanDate === date && s.qualityGate === 'OK';
+
+    }).length;
+
+  }
+  getLatestScanByProject(): any[] {
+    const rows = (this.DashboardData ?? [])
+      .filter((s): s is any => typeof s?.completedAt === 'string')
+      .filter(s => !!(s?.project?.id));
+
+    const latestByProject = new Map<string, any>();
+
+    for (const s of rows) {
+      const projectId = s.project?.id ?? s.projectId;
+
+      const prev = latestByProject.get(projectId);
+      if (!prev) {
+        latestByProject.set(projectId, s);
+        continue;
+      }
+
+      const prevTime = new Date(prev.completedAt).getTime();
+      const curTime = new Date(s.completedAt).getTime();
+
+      if (curTime > prevTime) {
+        latestByProject.set(projectId, s);
+      }
+    }
+    console.log('Latest by Project:', Array.from(latestByProject.values()));
+    return Array.from(latestByProject.values());
+  }
 
 
 
 
-buildPieChart() {
-  this.pieChartOptions = {
-    series: [this.passedCount, this.failedCount],
-    labels: ['Success', 'Failed'],
-    chart: { type: 'pie' },
-    legend: { position: 'bottom' }
-  };
-}
+  buildPieChart() {
+    this.pieChartOptions = {
+      series: [this.passedCount, this.failedCount],
+      labels: ['Success', 'Failed'],
+      chart: { type: 'pie' },
+      legend: { position: 'bottom' }
+    };
+  }
   // ================== FETCH FROM SERVER ==================
   fetchFromServer(userId: string | number) {
     this.loading = true;
@@ -414,13 +414,13 @@ buildPieChart() {
             : 1;
 
           const revMap: Record<1 | 2 | 3 | 4 | 5, 'A' | 'B' | 'C' | 'D' | 'E'> =
-            {
-              1: 'E',
-              2: 'D',
-              3: 'C',
-              4: 'B',
-              5: 'A',
-            };
+          {
+            1: 'E',
+            2: 'D',
+            3: 'C',
+            4: 'B',
+            5: 'A',
+          };
 
           const rounded = Math.max(1, Math.min(5, Math.round(avgScore))) as
             | 1
@@ -619,7 +619,7 @@ buildPieChart() {
             try {
               const parsed = JSON.parse(err.error);
               if (parsed?.message) return parsed.message;
-            } catch (_) {}
+            } catch (_) { }
             // ถ้าไม่ใช่ JSON ก็ใช้ string ตรงๆ
             return err.error;
           }
@@ -691,9 +691,9 @@ buildPieChart() {
     this.showNotifications = false;
   }
 
-  // markAllRead() {
-  //   this.notifications.forEach((n) => (n.read = true));
-  // }
+  markAllRead() {
+    this.notifications.forEach((n) => (n.read = true));
+  }
 
   selectTab(tab: NotificationTab) {
     this.activeTab = tab;
@@ -904,7 +904,7 @@ buildPieChart() {
       },
       dataLabels: { enabled: true },
 
-      legend: { show:  true },
+      legend: { show: true },
       tooltip: {
         enabled: true,
         y: {
@@ -1133,5 +1133,5 @@ buildPieChart() {
       colors: ['#0d6efd'], // bootstrap primary
     };
   }
-  
+
 }
