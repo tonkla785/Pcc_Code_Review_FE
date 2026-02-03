@@ -135,6 +135,17 @@ export class AppComponent implements OnInit, OnDestroy {
               latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
             }
 
+            // ปเดต scanId ของ Repo ให้ชี้ไปที่ Scan ล่าสุดเสมอ (ไม่งั้นหน้า List จะ Link ไปผิดอัน)
+            const repoIndex = this.sharedData.repositoriesValue.findIndex(r => r.projectId === projectId);
+            if (repoIndex >= 0) {
+              const currentRepos = this.sharedData.repositoriesValue;
+              currentRepos[repoIndex] = {
+                ...currentRepos[repoIndex],
+                scanId: latestScan.id // อัปเดตตรงนี้
+              };
+              this.sharedData.setRepositories(currentRepos);
+            }
+
             // ส่งเข้า SharedData (เพื่ออัปเดตหน้า History)
             this.sharedData.upsertScan(latestScan);
             console.log('[AppComponent] Upserted latest scan from list:', latestScan);
