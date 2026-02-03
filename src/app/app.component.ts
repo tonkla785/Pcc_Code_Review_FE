@@ -5,6 +5,7 @@ import { WebSocketService } from './services/websocket/websocket.service';
 import { SharedDataService } from './services/shared-data/shared-data.service';
 import { RepositoryService } from './services/reposervice/repository.service';
 import { ScanService } from './services/scanservice/scan.service';
+import { IssueService } from './services/issueservice/issue.service'; // Import IssueService
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 
@@ -25,6 +26,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private sharedData: SharedDataService,
     private repoService: RepositoryService,
     private scanService: ScanService,
+    private issueService: IssueService, // Inject IssueService
     private snack: MatSnackBar
   ) { }
 
@@ -40,7 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-     // Check localStorage on load / ตรวจสอบค่าจาก localStorage เมื่อโหลดหน้าเว็บ
+    // Check localStorage on load / ตรวจสอบค่าจาก localStorage เมื่อโหลดหน้าเว็บ
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkMode = true;
@@ -88,6 +90,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
         // 3. ดึงข้อมูลรอบสอง (เพื่อเอาผลลัพธ์สุดท้ายมาโชว์)
         this.fetchScanData(event.projectId, event.status);
+
+        // 4. ดึง Issues ใหม่มาทับ (ถ้า Success หรือ Failed)
+        if (event.status === 'SUCCESS' || event.status === 'FAILED') {
+          this.fetchAndOverwriteIssues();
+        }
       }
     });
   }
@@ -140,6 +147,20 @@ export class AppComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
+  // ดึง Issue ทั้งหมด แล้วเอาไปทับใน SharedData เลย (ตาม Requirement ใหม่)
+  private fetchAndOverwriteIssues() {
+    // หน่วงเวลา 1.5 วิ (ให้ช้ากว่า repo นิดนึง เพื่อความชัวร์ของ Database)
+    setTimeout(() => {
+      this.issueService.getAllIssues().subscribe({
+        next: (allIssues) => {
+          console.log('[AppComponent] Fetched all issues, overwriting SharedData...');
+          this.sharedData.IssuesShared = allIssues; // ทับข้อมูลเดิมเลย
+        },
+        error: (err) => console.error('[AppComponent] Failed to fetch issues', err)
+      });
+    }, 1000);
+  }
+
   ngOnDestroy() {
     if (this.wsSub) {
       this.wsSub.unsubscribe();
@@ -163,7 +184,7 @@ export class AppComponent implements OnInit, OnDestroy {
   //   }
   // }
 
- toggleTheme() {
+  toggleTheme() {
     this.darkMode = !this.darkMode;
 
     if (this.darkMode) {
