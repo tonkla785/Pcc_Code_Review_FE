@@ -55,10 +55,8 @@ export class LoginComponent {
         });
         console.log('Token:', this.auth.token);
         console.log('Logged in user:', user);
-              console.log('Logged in user:', jwtDecode(this.auth.token!));
-              this.sharedDataService.LoginUserShared = user;  
-                this.tokenStorage.setLoginUser(user);
-          this.router.navigate(['/dashboard']);
+        // Note: user data is already saved in auth.service.ts tap() before this callback
+        this.router.navigate(['/dashboard']);
       },
       error: () => {
         this.loading = false;

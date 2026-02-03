@@ -298,7 +298,21 @@ export class DashboardComponent {
       series: [this.passedCount, this.failedCount],
       labels: ['Success', 'Failed'],
       chart: { type: 'pie' },
-      legend: { position: 'bottom' }
+      legend: { position: 'bottom' },
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+            value: 0.15
+          }
+        },
+        active: {
+          filter: {
+            type: 'darken',
+            value: 0.2
+          }
+        }
+      }
     };
   }
   // ================== FETCH FROM SERVER ==================
@@ -827,6 +841,20 @@ export class DashboardComponent {
       series: hasData ? [displayPercent, 100 - displayPercent] : [0, 100],
       labels: ['SUCCESS', 'FAILED'],
       colors: [successColor, failedColor],
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+            value: 0.15
+          }
+        },
+        active: {
+          filter: {
+            type: 'darken',
+            value: 0.2
+          }
+        }
+      },
       plotOptions: {
         pie: {
           donut: {
