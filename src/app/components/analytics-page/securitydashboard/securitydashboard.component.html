@@ -75,11 +75,15 @@
 
   <div class="card shadow-sm mt-3">
     <div class="card-body">
-      <apx-chart [series]="chartSeries" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
-        [stroke]="chartOptions.stroke!" [yaxis]="chartOptions.yaxis!" [colors]="chartOptions.colors!"
-        [dataLabels]="chartOptions.dataLabels!" [tooltip]="chartOptions.tooltip!" [title]="chartOptions.title!">
-      </apx-chart>
-
+      <ng-container *ngIf="trendDataLoaded; else loadingChart">
+        <apx-chart [series]="chartSeries" [chart]="chartOptions.chart!" [xaxis]="chartOptions.xaxis!"
+          [stroke]="chartOptions.stroke!" [yaxis]="chartOptions.yaxis!" [colors]="chartOptions.colors!"
+          [dataLabels]="chartOptions.dataLabels!" [tooltip]="chartOptions.tooltip!" [title]="chartOptions.title!">
+        </apx-chart>
+      </ng-container>
+      <ng-template #loadingChart>
+        <p class="text-muted text-center">Loading trend data...</p>
+      </ng-template>
     </div>
   </div>
 </div>

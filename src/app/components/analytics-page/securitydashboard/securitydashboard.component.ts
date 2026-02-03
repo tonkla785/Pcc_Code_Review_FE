@@ -1,10 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { NgApexchartsModule, ApexOptions, ChartComponent } from 'ng-apexcharts';
+import { NgApexchartsModule, ApexOptions, ChartComponent, ApexYAxis } from 'ng-apexcharts';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
+import { ScanService } from '../../../services/scanservice/scan.service';
+import { ScanResponseDTO } from '../../../interface/scan_interface';
 import {
   SecurityIssueDTO,
   VulnerabilitySeverity,
@@ -31,6 +33,7 @@ export class SecuritydashboardComponent implements OnInit {
 
   chartReady = false;
   hasChartData = false;
+  trendDataLoaded = false;
   chartSeries = [{ name: 'Security Issues', data: [] as number[] }];
   chartOptions: ApexOptions = this.getDefaultChartOptions();
 
@@ -41,7 +44,7 @@ export class SecuritydashboardComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly scanService: ScanService
   ) { }
 
   ngOnInit(): void {
@@ -60,6 +63,8 @@ export class SecuritydashboardComponent implements OnInit {
     if (!this.sharedData.hasSecurityIssuesCache) {
       this.loadSecurityData();
     }
+
+    this.loadTrendData();
   }
 
   loadSecurityData(): void {
@@ -68,6 +73,15 @@ export class SecuritydashboardComponent implements OnInit {
         this.sharedData.setSecurityIssues(issues);
       },
       error: (err) => console.error('Failed to load security issues:', err)
+    });
+  }
+
+  loadTrendData(): void {
+    this.scanService.getScansHistory().subscribe({
+      next: (scans) => {
+        this.calculateTrend7Days(scans);
+      },
+      error: (err) => console.error('Failed to load scan history for trend:', err)
     });
   }
 
@@ -80,17 +94,89 @@ export class SecuritydashboardComponent implements OnInit {
     this.vulnerabilities = metrics.vulnerabilities;
 
     this.owaspCoverage = this.securityService.calculateOwaspCoverage(this.securityIssues);
-    // this.calculateTrend7Days();
   }
 
+  private calculateTrend7Days(scans: ScanResponseDTO[]): void {
+    const today = new Date();
+    const dates: Date[] = [];
+    const categories: string[] = [];
 
-  private toDateKey(date: Date): string {
-    let year = date.getFullYear();
-    if (year > 2400) year -= 543;
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      d.setHours(23, 59, 59, 999);
+      dates.push(d);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      categories.push(`${day}/${month}`);
+    }
 
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const dataSeries: number[] = [];
+
+    const projectIds = new Set(scans.map(s => s.project?.id).filter(id => !!id));
+
+    dates.forEach(date => {
+      let dailyTotal = 0;
+
+      projectIds.forEach(pid => {
+        const projectScans = scans.filter(s => s.project?.id === pid);
+
+        const validScans = projectScans.filter(s => {
+          const scanDate = this.parseDate(s.startedAt);
+          return scanDate && scanDate <= date;
+        });
+
+        if (validScans.length > 0) {
+          validScans.sort((a, b) => {
+            const da = this.parseDate(a.startedAt)?.getTime() || 0;
+            const db = this.parseDate(b.startedAt)?.getTime() || 0;
+            return db - da;
+          });
+          const latestScan = validScans[0];
+          const vulns = latestScan.metrics?.vulnerabilities || 0;
+          dailyTotal += vulns;
+        }
+      });
+
+      dataSeries.push(dailyTotal);
+    });
+
+    const maxValue = Math.max(...dataSeries, 0);
+
+    this.chartOptions = {
+      ...this.chartOptions,
+      xaxis: { ...this.chartOptions.xaxis, categories: categories },
+      yaxis: {
+        ...this.chartOptions.yaxis as ApexYAxis,
+        min: 0,
+        max: maxValue + 1,
+        forceNiceScale: true,
+        decimalsInFloat: 0
+      }
+    };
+
+    this.chartSeries = [{ name: 'Security Issues', data: dataSeries }];
+
+    this.hasChartData = true;
+    this.chartReady = true;
+    this.trendDataLoaded = true;
+  }
+
+  private parseDate(val: any): Date | null {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+
+    let dateStr = String(val).trim().replace(' ', 'T');
+
+    if (dateStr.includes('.')) {
+      const parts = dateStr.split('.');
+      if (parts[1].length > 3) {
+        dateStr = `${parts[0]}.${parts[1].substring(0, 3)}`;
+      }
+    }
+
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? null : d;
   }
 
   private getDefaultChartOptions(): ApexOptions {

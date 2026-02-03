@@ -20,7 +20,7 @@
     <!-- 3. Status -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Status:</label>
-      <select class="form-select form-select-sm" [(ngModel)]="statusFilter" style="width: 120px;">
+      <select class="form-control form-control-sm" [(ngModel)]="statusFilter" style="width: 120px;">
         <option value="ALL">All</option>
         <option value="SUCCESS">Success</option>
         <option value="FAILED">Failed</option>
@@ -57,6 +57,11 @@
       </thead>
 
       <tbody>
+        <tr *ngIf="pagedScans.length === 0">
+          <td colspan="7" class="text-center text-muted py-4">
+            <i class="bi bi-inbox"></i> No Data
+          </td>
+        </tr>
         <tr *ngFor="let scan of pagedScans" style="cursor: pointer;" (click)="toggleScanSelection(scan)">
           <td (click)="$event.stopPropagation()">
             <!-- Checkbox needs to stop propagation to prevent double toggle from TR click -->
