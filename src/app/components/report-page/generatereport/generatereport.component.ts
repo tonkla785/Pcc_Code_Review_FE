@@ -20,7 +20,9 @@ import { PowerpointService } from '../../../services/report-generator/powerpoint
 import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 import { IssuesDetailResponseDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
-import { HistoryDataService, ReportSnapshot } from '../../../services/shared-data/history-data.service';
+import { ReportHistoryService } from '../../../services/reporthistoryservice/report-history.service';
+import { ReportHistoryRequest } from '../../../interface/report_history_interface';
+
 
 interface Project {
   id: string;
@@ -77,7 +79,7 @@ export class GeneratereportComponent implements OnInit {
     private readonly pptService: PowerpointService,
     private readonly pdfService: PdfService,
     private readonly tokenStorageService: TokenStorageService,
-    private readonly historyDataService: HistoryDataService
+    private readonly reportHistoryService: ReportHistoryService
   ) { }
 
   ngOnInit(): void {
@@ -358,6 +360,7 @@ export class GeneratereportComponent implements OnInit {
     selectedSections: any,
     recommendationsData: any[]
   ) {
+    const user = this.tokenStorageService.getLoginUser();
     const context = {
       projectName,
       dateFrom: this.dateFrom!,
@@ -366,75 +369,69 @@ export class GeneratereportComponent implements OnInit {
       issues,
       securityData,
       selectedSections,
-      recommendationsData
+      recommendationsData,
+      generatedBy: user?.username || 'Unknown'
     };
-
-    const snapshotId = Date.now().toString();
-    const user = this.tokenStorageService.getLoginUser();
-
-    const snapshot: ReportSnapshot = {
-      id: snapshotId,
-      metadata: {
-        project: projectName,
-        dateFrom: this.dateFrom!,
-        dateTo: this.dateTo!,
-        format: this.outputFormat,
-        generatedBy: user?.username || 'Unknown',
-        generatedAt: new Date().toISOString()
-      },
-      data: {
-        scans,
-        issues,
-        securityData,
-        selectedSections,
-        recommendationsData
-      }
-    };
-
-    this.historyDataService.saveReportSnapshot(snapshot);
 
     try {
       if (this.outputFormat === 'Excel') {
         this.excelService.generateExcel(context);
-        this.saveReportHistory(projectName, snapshotId);
       } else if (this.outputFormat === 'Word') {
         this.wordService.generateWord(context);
-        this.saveReportHistory(projectName, snapshotId);
       } else if (this.outputFormat === 'PowerPoint') {
         this.pptService.generatePowerPoint(context);
-        this.saveReportHistory(projectName, snapshotId);
       } else if (this.outputFormat === 'PDF') {
-        this.pdfService.generatePdf({ ...context, generatedBy: user?.username });
-        this.saveReportHistory(projectName, snapshotId);
-        this.loading = false;
-        return;
+        this.pdfService.generatePdf(context);
       }
+
+      // Save report history to API
+      this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections);
+
     } catch (e) {
       console.error('Error generating report', e);
       alert('Error generating report');
     } finally {
-      if (this.outputFormat !== 'PDF') {
-        this.loading = false;
-      }
+      this.loading = false;
     }
   }
 
-  private saveReportHistory(projectName: string, snapshotId: string) {
+  private saveReportHistoryToApi(
+    projectId: string,
+    projectName: string,
+    scans: ScanResponseDTO[],
+    issues: any[],
+    securityData: any,
+    selectedSections: any
+  ): void {
     const user = this.tokenStorageService.getLoginUser();
-    const historyItem = {
-      project: projectName,
-      dateRange: `${this.dateFrom} to ${this.dateTo}`,
-      generatedBy: user ? user.username : 'Unknown',
-      email: user ? user.email : '',
-      role: user ? user.role : '',
-      generatedAt: new Date(),
+
+    const request: ReportHistoryRequest = {
+      projectId: projectId,
+      projectName: projectName,
+      dateFrom: this.dateFrom!,
+      dateTo: this.dateTo!,
       format: this.outputFormat,
-      snapshotId: snapshotId
+      generatedBy: user?.username || 'Unknown',
+      includeQualityGate: selectedSections.qualityGate,
+      includeIssueBreakdown: selectedSections.issueBreakdown,
+      includeSecurityAnalysis: selectedSections.securityAnalysis,
+      snapshotData: {
+        scans: scans,
+        issues: issues,
+        securityData: securityData,
+        selectedSections: selectedSections
+      },
+      fileSizeBytes: 0
     };
 
-    const storageKey = 'report_history';
-    const currentHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    currentHistory.push(historyItem);
-    localStorage.setItem(storageKey, JSON.stringify(currentHistory));
+    this.reportHistoryService.createReportHistory(request).subscribe({
+      next: (result) => {
+        console.log('Report history saved successfully:', result.id);
+      },
+      error: (err) => {
+        console.error('Failed to save report history:', err);
+      }
+    });
   }
+
 }
