@@ -10,47 +10,8 @@ import { SonarQubeService } from '../sonarqubeservice/sonarqube.service';
 import { getLatestScan } from '../../utils/format.utils';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 
-export interface Repository {
-  id?: string;
-  projectId?: string;// UUID (string)
-  user?: string;// เทียบกับ user: string | undefined; มีก็ได้ไม่มีก็ได้
-  name: string;
-  repositoryUrl: string;
-  projectType?: 'ANGULAR' | 'SPRING_BOOT';
-  projectTypeLabel?: string;
-  branch?: string;
-  sonarProjectKey?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  scans?: ScanResponseDTO[];
-  scanId?: string;
-  status?: 'Active' | 'Scanning' | 'Error';
-  lastScan?: Date;
-  scanningProgress?: number;
-  qualityGate?: string;
-  metrics?: {
-    bugs?: number;
-    vulnerabilities?: number;
-    codeSmells?: number;
-    coverage?: number;
-    duplications?: number;
-  };
-  issues?: Issue[];
-}
-
-//ตัว test lssue
-export interface ScanIssue {
-  id: string;
-  scanId: string;
-  issueKey: string;
-  type: 'Bug' | 'Vulnerability' | 'Code Smell';
-  severity: 'Blocker' | 'Critical' | 'Major' | 'Minor';
-  component: string;
-  message: string;
-  status: 'OPEN' | 'PENDING' | 'IN PROGRESS' | 'DONE' | 'REJECT';
-  createdAt: Date | string;
-  assignedTo?: string;
-}
+import { Repository, ScanIssue } from '../../interface/repository_interface';
+export type { Repository, ScanIssue };
 
 @Injectable({ providedIn: 'root' })
 export class RepositoryService {
@@ -267,9 +228,9 @@ export class RepositoryService {
             scans: mappedScans.map(scan => ({
               id: scan.id,
               project: scan.project,
-              status: scan.status as 'PENDING' | 'SUCCESS' | 'FAILED', // Cast status to match ScanResponseDTO
-              startedAt: scan.startedAt ? scan.startedAt.toISOString() : '', // Convert Date to string
-              completedAt: scan.completedAt ? scan.completedAt.toISOString() : undefined, // Convert Date to string
+              status: scan.status as 'PENDING' | 'SUCCESS' | 'FAILED',
+              startedAt: scan.startedAt ? scan.startedAt.toISOString() : '',
+              completedAt: scan.completedAt ? scan.completedAt.toISOString() : undefined,
               qualityGate: scan.qualityGate,
               metrics: {
                 bugs: scan.metrics?.bugs ?? 0,
@@ -278,14 +239,14 @@ export class RepositoryService {
                 coverage: scan.metrics?.coverage ?? 0,
                 debtRatio: 0,
                 duplicatedLinesDensity: scan.metrics?.duplicatedLinesDensity ?? 0,
-                maintainabilityRating: '',
-                reliabilityRating: '',
+                maintainabilityRating: scan.metrics?.maintainabilityRating ?? scan.metrics?.sqale_rating ?? '',
+                reliabilityRating: scan.metrics?.reliabilityRating ?? scan.metrics?.reliability_rating ?? '',
                 securityHotspots: 0,
-                securityRating: '',
+                securityRating: scan.metrics?.securityRating ?? scan.metrics?.security_rating ?? '',
                 technicalDebtMinutes: 0,
                 analysisLogs: []
               },
-              logFilePath: scan.logFilePath ?? scan.log_file_path, // Handle fallback mapping if needed
+              logFilePath: scan.logFilePath ?? scan.log_file_path,
               issueData: []
             } as ScanResponseDTO)),
 
@@ -369,6 +330,7 @@ export class RepositoryService {
           sonarProjectKey: project.sonarProjectKey,
           createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
           updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
+          scanId: latest?.id, // Explicitly return latest scan ID for navigation support
 
           // Map to ScanResponseDTO for output
           scans: logicalScans.map((s: any) => ({
@@ -387,6 +349,9 @@ export class RepositoryService {
               duplicatedLinesDensity: s.metrics.duplicatedLinesDensity ?? 0,
               securityHotspots: 0,
               technicalDebtMinutes: 0,
+              maintainabilityRating: s.metrics.maintainabilityRating ?? s.metrics.sqale_rating ?? '',
+              reliabilityRating: s.metrics.reliabilityRating ?? s.metrics.reliability_rating ?? '',
+              securityRating: s.metrics.securityRating ?? s.metrics.security_rating ?? '',
               analysisLogs: []
             } : null,
             logFilePath: s.logFilePath ?? s.log_file_path,
