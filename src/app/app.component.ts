@@ -5,7 +5,8 @@ import { WebSocketService } from './services/websocket/websocket.service';
 import { SharedDataService } from './services/shared-data/shared-data.service';
 import { RepositoryService } from './services/reposervice/repository.service';
 import { ScanService } from './services/scanservice/scan.service';
-import { IssueService } from './services/issueservice/issue.service'; // Import IssueService
+import { IssueService } from './services/issueservice/issue.service';
+import { AuthService } from './services/authservice/auth.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 
@@ -26,7 +27,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private sharedData: SharedDataService,
     private repoService: RepositoryService,
     private scanService: ScanService,
-    private issueService: IssueService, // Inject IssueService
+    private issueService: IssueService,
+    private authService: AuthService,
     private snack: MatSnackBar
   ) { }
 
@@ -47,6 +49,11 @@ export class AppComponent implements OnInit, OnDestroy {
     if (savedTheme === 'dark') {
       this.darkMode = true;
       document.body.classList.add('dark-mode');
+    }
+
+    // Reconnect WebSocket if already logged in (e.g., after page refresh)
+    if (this.authService.isLoggedIn) {
+      this.authService.reconnectWebSocket();
     }
 
     // Global WebSocket Listener

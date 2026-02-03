@@ -25,10 +25,8 @@ import { forkJoin, scan } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
-import {
-  NotificationService,
-  Notification,
-} from '../../services/notiservice/notification.service';
+import { NotificationService } from '../../services/notiservice/notification.service';
+import { Notification } from '../../interface/notification_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
@@ -39,72 +37,17 @@ import {
 } from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
-interface TopIssue {
-  message: string;
-  count: number;
-}
+import {
+  TopIssue,
+  Condition,
+  Issue,
+  SecurityHotspot,
+  ScanHistory,
+  DashboardData,
+  NotificationTab,
+  UserProfile
+} from '../../interface/dashboard_interface';
 
-interface Condition {
-  metric: string;
-  status: 'OK' | 'ERROR';
-  actual: number;
-  threshold: number;
-}
-
-interface Issue {
-  id: number;
-  type: string;
-  severity: 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR';
-  message: string;
-  project: string;
-}
-
-interface SecurityHotspot {
-  id: number;
-  status: 'REVIEWED' | 'TO_REVIEW';
-  description: string;
-  project: string;
-}
-
-interface ScanHistory {
-  scanId: string;
-  projectId: string;
-  project: string;
-  typeproject: 'Angular' | 'SpringBoot';
-  status: 'Passed' | 'Failed' | ''; // เผื่อว่าง
-  grade: string | null;
-  time: string;
-  maintainabilityGate: string | null;
-}
-
-interface DashboardData {
-  id: string;
-  name: string;
-  qualityGate: { status: 'OK' | 'ERROR'; conditions: Condition[] };
-  metrics: {
-    bugs: number;
-    vulnerabilities: number;
-    codeSmells: number;
-    coverage: number;
-    duplications?: number;
-    technicalDebt?: string;
-  };
-  issues: Issue[];
-  securityHotspots: SecurityHotspot[];
-  history: ScanHistory[];
-  coverageHistory: number[];
-  maintainabilityGate: string;
-  days: number[];
-}
-
-type NotificationTab = 'All' | 'Unread' | 'Scans' | 'Issues' | 'System';
-
-interface UserProfile {
-  username: string;
-  email: string;
-  phoneNumber?: string;
-  status: string;
-}
 export type ChartOptions = {
   series: ApexAxisChartSeries;
   chart: ApexChart;
@@ -291,7 +234,8 @@ export class DashboardComponent {
     const scans = this.getLatestScanByProject() ?? [];
     console.log('Latest Scans for Quality Gate Count:', scans);
     this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
-    this.failedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'FAILED').length;
+    // ถ้าไม่ใช่ OK ให้เป็น failed ทั้งหมด
+    this.failedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() !== 'OK').length;
     console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
   }
   countBug() {
@@ -654,13 +598,9 @@ export class DashboardComponent {
   activeTab: NotificationTab = 'All';
   displayCount = 5;
   loadNotifications() {
-    this.notificationService.getAllNotification().subscribe({
+    this.notificationService.getAllNotifications().subscribe({
       next: (data) => {
-        // แปลง createdAt เป็น Date object
-        this.notifications = data.map((n) => ({
-          ...n,
-          timestamp: new Date(n.createdAt), // ใช้ field timestamp ใน template
-        }));
+        this.notifications = data;
       },
       error: (err) => {
         console.error('Error loading notifications:', err);
@@ -692,7 +632,12 @@ export class DashboardComponent {
   }
 
   markAllRead() {
-    this.notifications.forEach((n) => (n.read = true));
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach((n) => ((n as any).isRead = true));
+      },
+      error: (err) => console.error('Failed to mark all as read:', err)
+    });
   }
 
   selectTab(tab: NotificationTab) {
@@ -701,10 +646,10 @@ export class DashboardComponent {
   }
 
   viewNotification(n: Notification) {
-    this.notificationService.checkNotification(n.notiId).subscribe({
-      next: (res) => {
-        n.read = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
-        console.log('Notification marked as read:', res);
+    this.notificationService.markAsRead(n.id).subscribe({
+      next: () => {
+        (n as any).isRead = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
+        console.log('Notification marked as read');
       },
       error: (err) => {
         console.error('Failed to mark as read:', err);
@@ -715,18 +660,18 @@ export class DashboardComponent {
   get filteredNotifications() {
     let filtered = this.notifications;
     if (this.activeTab === 'Unread') {
-      filtered = filtered.filter((n) => !n.read);
+      filtered = filtered.filter((n) => !n.isRead);
     } else if (this.activeTab !== 'All') {
-      filtered = filtered.filter((n) => n.typeNoti === this.activeTab);
+      filtered = filtered.filter((n) => n.type === this.activeTab);
     }
     filtered = filtered.sort(
-      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
     return filtered.slice(0, this.displayCount);
   }
 
   get unreadCount() {
-    return this.notifications.filter((n) => !n.read).length;
+    return this.notifications.filter((n) => !n.isRead).length;
   }
 
   loadMore() {
@@ -736,8 +681,8 @@ export class DashboardComponent {
   get totalFilteredCount() {
     if (this.activeTab === 'All') return this.notifications.length;
     if (this.activeTab === 'Unread')
-      return this.notifications.filter((n) => !n.read).length;
-    return this.notifications.filter((n) => n.typeNoti === this.activeTab)
+      return this.notifications.filter((n) => !n.isRead).length;
+    return this.notifications.filter((n) => n.type === this.activeTab)
       .length;
   }
 
@@ -870,11 +815,18 @@ export class DashboardComponent {
         | 'E';
     }
 
+    // ถ้าไม่มีข้อมูล ให้แสดง E สีเทา
+    const hasData = this.totalProjects > 0;
+    const displayGrade = hasData ? this.grade : 'E';
+    const displayPercent = hasData ? this.gradePercent : 0;
+    const successColor = hasData ? this.getGradeColor(centerLetter) : this.getGradeColor(centerLetter); // grey-400
+    const failedColor = hasData ? '#EF4444' : '#E5E7EB'; // grey-200 when no data
+
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
-      series: [this.gradePercent, 100 - this.gradePercent],
+      series: hasData ? [displayPercent, 100 - displayPercent] : [0, 100],
       labels: ['SUCCESS', 'FAILED'],
-      colors: [this.getGradeColor(centerLetter), '#EF4444'],
+      colors: [successColor, failedColor],
       plotOptions: {
         pie: {
           donut: {
@@ -884,16 +836,14 @@ export class DashboardComponent {
               name: { show: false },
               value: {
                 show: true,
-                // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => this.grade,
+                formatter: () => displayGrade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
               },
               total: {
                 show: true,
-                // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => this.grade,
+                formatter: () => displayGrade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
@@ -903,8 +853,12 @@ export class DashboardComponent {
         },
       },
       dataLabels: { enabled: true },
-
-      legend: { show: true },
+      legend: {
+        show: true,
+        markers: {
+          fillColors: [this.getGradeColor(centerLetter), '#EF4444']
+        }
+      },
       tooltip: {
         enabled: true,
         y: {
