@@ -15,7 +15,7 @@ import { UserService } from '../../../services/userservice/user.service';
 import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../../services/commentservice/comment.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { IssuesDetailResponseDTO, IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
-import { commentRequestDTO } from '../../../interface/comment_interface';
+import { commentRequestDTO, commentResponseDTO } from '../../../interface/comment_interface';
 
 interface Attachment { filename: string; url: string; }
 interface IssueComment {
@@ -81,6 +81,7 @@ export class IssuedetailComponent implements OnInit {
   UserData: UserInfo[] = [];
   filteredUsers: UserInfo[] = [];
   issuesDetails: IssuesDetailResponseDTO | null = null;
+  replyTo: { commentId: string; username: string } | null = null;
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
@@ -116,13 +117,6 @@ export class IssuedetailComponent implements OnInit {
     });
       this.sharedData.selectedIssues$.subscribe(data => { 
         this.issuesResult = data;
-        if (data) {
-          this.issueForModal = {
-            id: data.id ?? '',
-            status: data.status ?? '',
-            assignedTo: data.assignedTo.id ?? ''
-          };
-        }
         console.log('Issues Detail from sharedData:', this.issuesResult);
         this.applyUserFilter();
       });
@@ -253,26 +247,35 @@ applyUserFilter() {
   }
 
 
-  postComment() {
-  const payload: commentRequestDTO = {
+postComment() {
+  const text = (this.newComment.comment ?? '').trim();
+  if (!text || this.sendingComment) return;
+
+  const payload: any = {
     issueId: this.issuesResult?.id,
-    userId: this.UserLogin?.id || '',   
-    comment: this.newComment.comment,
+    userId: this.UserLogin?.id || '',
+    comment: text,
   };
 
-  console.log('Submitting issue assignment payload:', payload);
+  this.sendingComment = true;
 
   this.commentService.updateComments(payload).subscribe({
     next: (updated) => {
-      this.sharedData.addComments(updated)
-      console.log('Issue updated:', updated);
+      this.sharedData.addComments(updated);
+
+      // reset input
+      this.newComment.comment = '';
+      this.replyTo = null;
+      this.sendingComment = false;
     },
     error: (err) => {
-      console.error('Update issue failed:', err);
+      this.sendingComment = false;
+      console.error('Update comment failed:', err);
       console.error('Payload was:', payload);
     }
   });
-  }
+}
+
 
   onCommentKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -300,10 +303,14 @@ applyUserFilter() {
       this.assignModal.openAddAssign(issueId);
     }
   }
-
-  openStatusModal() {
-    this.autoUpdateStatus(this.issue);
+    openStatusModal() {
+      if(!this.issuesResult) return;
+      this.assignModal.openEditStatus({
+        id: this.issuesResult.id,
+        status: this.issuesResult.status,
+        });
   }
+
 
   closeModal() {
     this.showAssignModal = false;
@@ -330,26 +337,26 @@ applyUserFilter() {
   }
 
   // auto-update status ตาม logic เดิม
-  autoUpdateStatus(issue: Issue) {
-    let nextStatus: string;
+  // autoUpdateStatus(issue: Issue) {
+  //   let nextStatus: string;
 
-    switch (issue.status) {
-      case 'open':
-        alert('กรุณา Assign ก่อนเปลี่ยนสถานะ');
-        return;
-      case 'pending':
-        alert('กรุณายืนยัน assignment ก่อนเปลี่ยนสถานะ');
-        return;
-      case 'in-progress': nextStatus = 'DONE'; break;
-      case 'done':
-        alert('ยินดีด้วยค่ะ งานมอบหมายนี้ของคุณเสร็จสมบูรณ์เรียบร้อยแล้ว');
-        return;
-      default: nextStatus = issue.status;
-    }
+  //   switch (issue.status) {
+  //     case 'open':
+  //       alert('กรุณา Assign ก่อนเปลี่ยนสถานะ');
+  //       return;
+  //     case 'pending':
+  //       alert('กรุณายืนยัน assignment ก่อนเปลี่ยนสถานะ');
+  //       return;
+  //     case 'in-progress': nextStatus = 'DONE'; break;
+  //     case 'done':
+  //       alert('ยินดีด้วยค่ะ งานมอบหมายนี้ของคุณเสร็จสมบูรณ์เรียบร้อยแล้ว');
+  //       return;
+  //     default: nextStatus = issue.status;
+  //   }
 
-    this.assignModal.openStatus(issue, nextStatus);
-    console.log('🟩 openStatus called with:', issue.status, '->', nextStatus);
-  }
+  //   this.assignModal.openStatus(issue, nextStatus);
+  //   console.log('🟩 openStatus called with:', issue.status, '->', nextStatus);
+  // }
 
   handleStatusSubmit(updated: { id?: string, issueId?: string, status: Issue['status'], annotation?: string }) {
     const issueId = updated.id || updated.issueId;
@@ -387,4 +394,16 @@ applyUserFilter() {
       }
     });
   }
+  startReply(c: commentResponseDTO) {
+  this.replyTo = { commentId: c.id, username: c.user?.username };
+
+  // ใส่ @username ให้เลย (optional)
+  this.newComment.comment = `@${this.replyTo.username} `;
+
+  // ถ้ามี input reference จะ focus ได้ (ค่อยทำทีหลัง)
+}
+cancelReply() {
+  this.replyTo = null;
+}
+
 }

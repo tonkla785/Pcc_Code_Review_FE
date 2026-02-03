@@ -106,7 +106,7 @@ onSubmitUser() {
     this.isEdit = false;
     this.issueDraft = {
       id: issueId,
-      status: 'SUBMITTED',
+      status: 'IN_PROGRESS',
       assignedTo: ''
     };
     this.showAssign = true;
@@ -121,10 +121,10 @@ onSubmitUser() {
     this.showAssign = true;
   }
 
-  openStatus(assign: any, status: string) {
-    this.isEdit = true;
-    this.issueDraft = { ...assign, status }; // ตั้งค่าจาก parent
+  openEditStatus(issues : any) {
+    this.issueDraft = { ...issues}; // ตั้งค่าจาก parent
     this.showStatus = true;
+    console.log('Open status modal for issue:', this.issueDraft);
   }
 
 
