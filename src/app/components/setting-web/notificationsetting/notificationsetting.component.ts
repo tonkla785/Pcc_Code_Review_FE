@@ -10,8 +10,6 @@ interface NotificationSettings {
   issues: boolean;
   system: boolean;
   reports: boolean;
-  channel: string;     // push | email | slack
-  frequency: string;   // immediate | daily | weekly
 }
 
 @Component({
@@ -27,8 +25,6 @@ export class NotificationsettingComponent implements OnInit {
     issues: true,
     system: true,
     reports: false,
-    channel: 'push',
-    frequency: 'immediate'
   };
 
   saving = false;
@@ -73,8 +69,6 @@ export class NotificationsettingComponent implements OnInit {
       issues: true,
       system: true,
       reports: false,
-      channel: 'push',
-      frequency: 'immediate'
     };
   }
 
