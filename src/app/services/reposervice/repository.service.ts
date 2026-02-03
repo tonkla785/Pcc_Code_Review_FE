@@ -387,6 +387,9 @@ export class RepositoryService {
               duplicatedLinesDensity: s.metrics.duplicatedLinesDensity ?? 0,
               securityHotspots: 0,
               technicalDebtMinutes: 0,
+              maintainabilityRating: s.metrics.maintainabilityRating ?? s.metrics.sqale_rating ?? '',
+              reliabilityRating: s.metrics.reliabilityRating ?? s.metrics.reliability_rating ?? '',
+              securityRating: s.metrics.securityRating ?? s.metrics.security_rating ?? '',
               analysisLogs: []
             } : null,
             logFilePath: s.logFilePath ?? s.log_file_path,
