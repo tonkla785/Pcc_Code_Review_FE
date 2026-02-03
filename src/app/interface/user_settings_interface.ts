@@ -3,10 +3,10 @@
 export interface NotificationSettings {
     id: string;
     userId: string;
-    notifyOnNewScans: boolean;
-    notifyOnIssues: boolean;
-    notifyOnSystemUpdates: boolean;
-    notifyOnReports: boolean;
+    scansEnabled: boolean;
+    issuesEnabled: boolean;
+    systemEnabled: boolean;
+    reportsEnabled: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
