@@ -145,9 +145,9 @@
           </button>
 
           <!-- ปุ่ม Verify Email เฉพาะตอน Pending -->
-          <!-- <button *ngIf="userProfile?.status === 'PENDING_VERIFICATION'" class="btn-verify" (click)="verifyEmail()">
+          <button class="btn-verify" (click)="EmailVerification()">
             Verify Email
-          </button> -->
+          </button>
         </div>
       </div>
     </div>
@@ -415,7 +415,10 @@
 
             <!-- Checklist -->
             <ul class="password-rules" *ngIf="isNewPasswordFocused">
-              <li [class.error-message]="newPasswordRules.minLength">
+              <li
+                [class.pass]="newPasswordRules.minLength"
+                [class.fail]="!newPasswordRules.minLength"
+              >
                 <i
                   class="bi"
                   [ngClass]="
@@ -428,7 +431,10 @@
                 At least 8 characters
               </li>
 
-              <li [class.pass]="newPasswordRules.upper">
+              <li
+                [class.pass]="newPasswordRules.upper"
+                [class.fail]="!newPasswordRules.upper"
+              >
                 <i
                   class="bi"
                   [ngClass]="
@@ -441,7 +447,10 @@
                 Contains an uppercase letter
               </li>
 
-              <li [class.pass]="newPasswordRules.lower">
+              <li
+                [class.pass]="newPasswordRules.lower"
+                [class.fail]="!newPasswordRules.lower"
+              >
                 <i
                   class="bi"
                   [ngClass]="
@@ -454,7 +463,10 @@
                 Contains a lowercase letter
               </li>
 
-              <li [class.pass]="newPasswordRules.number">
+              <li
+                [class.pass]="newPasswordRules.number"
+                [class.fail]="!newPasswordRules.number"
+              >
                 <i
                   class="bi"
                   [ngClass]="
@@ -467,7 +479,10 @@
                 Contains a number
               </li>
 
-              <li [class.pass]="newPasswordRules.special">
+              <li
+                [class.pass]="newPasswordRules.special"
+                [class.fail]="!newPasswordRules.special"
+              >
                 <i
                   class="bi"
                   [ngClass]="
