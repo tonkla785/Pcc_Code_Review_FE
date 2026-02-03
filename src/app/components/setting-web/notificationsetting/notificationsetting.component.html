@@ -1,49 +1,59 @@
 <div class="settings-container">
   <h2><i class="bi bi-gear"></i> Notification Settings</h2>
 
-  <!-- ประเภทการแจ้งเตือน -->
-  <div class="card">
-    <h4>Notification Types</h4>
-    <label class="switch-row">
-      <span>Scans Completed</span>
-      <label class="switch">
-        <input type="checkbox" [(ngModel)]="settings.scans" />
-        <span class="slider"></span>
-      </label>
-    </label>
-
-    <label class="switch-row">
-      <span>Issues (Bugs, Vulnerabilities, Code Smells)</span>
-      <label class="switch">
-        <input type="checkbox" [(ngModel)]="settings.issues" />
-        <span class="slider"></span>
-      </label>
-    </label>
-
-    <label class="switch-row">
-      <span>System Alerts</span>
-      <label class="switch">
-        <input type="checkbox" [(ngModel)]="settings.system" />
-        <span class="slider"></span>
-      </label>
-    </label>
-
-    <label class="switch-row">
-      <span>Reports / Exports</span>
-      <label class="switch">
-        <input type="checkbox" [(ngModel)]="settings.reports" />
-        <span class="slider"></span>
-      </label>
-    </label>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading settings...</p>
   </div>
 
-  <!-- ปุ่ม -->
-  <div class="actions">
-    <button class="btn primary" (click)="saveSettings()" [disabled]="saving">
-      <i class="bi bi-save"></i> Save
-    </button>
-    <button class="btn secondary" (click)="resetSettings()">
-      <i class="bi bi-arrow-counterclockwise"></i> Reset
-    </button>
+  <!-- Settings Form -->
+  <div *ngIf="!loading">
+    <!-- ประเภทการแจ้งเตือน -->
+    <div class="card">
+      <h4>Notification Types</h4>
+      <label class="switch-row">
+        <span>Scans Completed</span>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="settings.scans" />
+          <span class="slider"></span>
+        </label>
+      </label>
+
+      <label class="switch-row">
+        <span>Issues (Bugs, Vulnerabilities, Code Smells)</span>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="settings.issues" />
+          <span class="slider"></span>
+        </label>
+      </label>
+
+      <label class="switch-row">
+        <span>System Alerts</span>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="settings.system" />
+          <span class="slider"></span>
+        </label>
+      </label>
+
+      <label class="switch-row">
+        <span>Reports / Exports</span>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="settings.reports" />
+          <span class="slider"></span>
+        </label>
+      </label>
+    </div>
+
+    <!-- ปุ่ม -->
+    <div class="actions">
+      <button class="btn primary" (click)="saveSettings()" [disabled]="saving">
+        <i class="bi" [ngClass]="saving ? 'bi-hourglass-split' : 'bi-save'"></i>
+        {{ saving ? 'Saving...' : 'Save' }}
+      </button>
+      <button class="btn secondary" (click)="resetSettings()" [disabled]="saving">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset
+      </button>
+    </div>
   </div>
 </div>
