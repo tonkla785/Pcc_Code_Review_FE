@@ -18,7 +18,11 @@ export interface WordReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
+        technicalDebt?: boolean;
+        trendAnalysis?: boolean;
+        recommendations?: boolean;
     };
+    recommendationsData?: any[];
 }
 
 @Injectable({
@@ -47,6 +51,11 @@ export class WordService {
         // Security Analysis
         if (context.selectedSections.securityAnalysis && context.securityData) {
             children.push(...this.createSecuritySection(context));
+        }
+
+        // Recommendations
+        if (context.selectedSections.recommendations && context.recommendationsData) {
+            children.push(...this.createRecommendationsSection(context));
         }
 
         const doc = new Document({ sections: [{ children }] });
@@ -247,5 +256,49 @@ export class WordService {
         if (/^[A-E]$/i.test(s)) return s.toUpperCase();
         if (s === 'OK') return 'A';
         return s;
+    }
+    private createRecommendationsSection(context: WordReportContext): (Paragraph | Table)[] {
+        if (!context.recommendationsData || context.recommendationsData.length === 0) return [];
+
+        const elements: (Paragraph | Table)[] = [];
+
+        elements.push(new Paragraph({
+            text: "Recommendations",
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 400, after: 200 }
+        }));
+
+        const tableRows = [
+            new TableRow({
+                children: [
+                    new TableCell({ children: [new Paragraph({ text: "Severity", style: "TableHeader" })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                    new TableCell({ children: [new Paragraph({ text: "Type", style: "TableHeader" })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+                    new TableCell({ children: [new Paragraph({ text: "Issue", style: "TableHeader" })], width: { size: 30, type: WidthType.PERCENTAGE } }),
+                    new TableCell({ children: [new Paragraph({ text: "Recommended Fix", style: "TableHeader" })], width: { size: 40, type: WidthType.PERCENTAGE } }),
+                ],
+            }),
+        ];
+
+        context.recommendationsData.slice(0, 10).forEach(rec => {
+            tableRows.push(
+                new TableRow({
+                    children: [
+                        new TableCell({ children: [new Paragraph(rec.severity)] }),
+                        new TableCell({ children: [new Paragraph(rec.type)] }),
+                        new TableCell({ children: [new Paragraph(rec.message)] }),
+                        new TableCell({ children: [new Paragraph(rec.recommendedFix)] }),
+                    ],
+                })
+            );
+        });
+
+        elements.push(new Table({
+            rows: tableRows,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+        }));
+
+        elements.push(new Paragraph({ text: "", spacing: { after: 200 } })); // Spacer
+
+        return elements;
     }
 }

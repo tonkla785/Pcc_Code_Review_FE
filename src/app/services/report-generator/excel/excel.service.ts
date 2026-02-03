@@ -18,7 +18,11 @@ export interface ExcelReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
+        technicalDebt?: boolean;
+        trendAnalysis?: boolean;
+        recommendations?: boolean;
     };
+    recommendationsData?: any[];
 }
 
 @Injectable({
@@ -39,6 +43,10 @@ export class ExcelService {
 
         if (context.selectedSections.securityAnalysis && context.securityData) {
             this.createSecuritySheet(workbook, context);
+        }
+
+        if (context.selectedSections.recommendations && context.recommendationsData) {
+            this.createRecommendationsSheet(workbook, context);
         }
 
         const filename = `report-${context.projectName}-${context.dateFrom}-to-${context.dateTo}.xlsx`;
@@ -202,6 +210,30 @@ export class ExcelService {
         if (/^[A-E]$/i.test(s)) return s.toUpperCase();
         if (s === 'OK') return 'A';
         return s;
+    }
+    
+    private createRecommendationsSheet(workbook: XLSX.WorkBook, context: ExcelReportContext) {
+        if (!context.recommendationsData || context.recommendationsData.length === 0) return;
+
+        const data: any[][] = [
+            ['Recommendations'],
+            [],
+            ['Severity', 'Type', 'Issue Description', 'Component', 'Line', 'Recommended Fix']
+        ];
+
+        context.recommendationsData.forEach(rec => {
+            data.push([
+                rec.severity,
+                rec.type,
+                rec.message,
+                rec.component,
+                rec.line,
+                rec.recommendedFix
+            ]);
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(data);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Recommendations');
     }
 
     private extractLineFromComponent(component: string | undefined): string {

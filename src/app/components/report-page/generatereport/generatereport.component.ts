@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { RepositoryService } from '../../../services/reposervice/repository.service';
-import { ExportreportService, ReportRequest } from '../../../services/exportreportservice/exportreport.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
@@ -17,7 +18,7 @@ import { ExcelService } from '../../../services/report-generator/excel/excel.ser
 import { WordService } from '../../../services/report-generator/word/word.service';
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
 import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
-import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { IssuesDetailResponseDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 import { HistoryDataService, ReportSnapshot } from '../../../services/shared-data/history-data.service';
 
@@ -65,7 +66,6 @@ export class GeneratereportComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly repositoryService: RepositoryService,
-    private readonly exportreportService: ExportreportService,
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sharedDataService: SharedDataService,
@@ -283,9 +283,81 @@ export class GeneratereportComponent implements OnInit {
     const selectedSections = {
       qualityGate: this.sections.find(s => s.key === 'QualityGateSummary')?.selected ?? false,
       issueBreakdown: this.sections.find(s => s.key === 'IssueBreakdown')?.selected ?? false,
-      securityAnalysis: this.sections.find(s => s.key === 'SecurityAnalysis')?.selected ?? false
+      securityAnalysis: this.sections.find(s => s.key === 'SecurityAnalysis')?.selected ?? false,
+      technicalDebt: this.sections.find(s => s.key === 'TechnicalDebt')?.selected ?? false,
+      trendAnalysis: this.sections.find(s => s.key === 'TrendAnalysis')?.selected ?? false,
+      recommendations: this.sections.find(s => s.key === 'Recommendations')?.selected ?? false
     };
 
+    if (selectedSections.recommendations && issues.length > 0) {
+      this.fetchRecommendationsData(issues).subscribe({
+        next: (recommendationsData) => {
+          this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, recommendationsData);
+        },
+        error: (err) => {
+          console.error('Failed to fetch recommendations', err);
+          this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, []);
+        }
+      });
+    } else {
+      this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, []);
+    }
+  }
+
+  private fetchRecommendationsData(issues: IssuesResponseDTO[]) {
+    const severityOrder: Record<string, number> = { 'BLOCKER': 0, 'CRITICAL': 1, 'MAJOR': 2, 'MINOR': 3, 'INFO': 4 };
+    const sortedIssues = [...issues].sort((a, b) =>
+      (severityOrder[a.severity?.toUpperCase()] ?? 5) - (severityOrder[b.severity?.toUpperCase()] ?? 5)
+    );
+
+    const topIssues = sortedIssues.slice(0, 20);
+
+    if (topIssues.length === 0) {
+      return of([]);
+    }
+
+    // Fetch details for each issue
+    const detailsRequests = topIssues.map(issue =>
+      this.issueService.getAllIssuesDetails(issue.id).pipe(
+        map((details: IssuesDetailResponseDTO) => ({
+          id: issue.id,
+          message: issue.message || 'No description',
+          component: issue.component || 'Unknown',
+          line: issue.line || 0,
+          type: (issue.type || '').toUpperCase(),
+          severity: (issue.severity || 'MINOR').toUpperCase(),
+          ruleKey: issue.ruleKey || '',
+          recommendedFix: details.recommendedFix || 'No recommendation available',
+          description: details.description || '',
+          vulnerableCode: details.vulnerableCode || ''
+        })),
+        catchError(() => of({
+          id: issue.id,
+          message: issue.message || 'No description',
+          component: issue.component || 'Unknown',
+          line: issue.line || 0,
+          type: (issue.type || '').toUpperCase(),
+          severity: (issue.severity || 'MINOR').toUpperCase(),
+          ruleKey: issue.ruleKey || '',
+          recommendedFix: 'Unable to fetch recommendation',
+          description: '',
+          vulnerableCode: ''
+        }))
+      )
+    );
+
+    return forkJoin(detailsRequests);
+  }
+
+  private finalizeReport(
+    projectId: string,
+    projectName: string,
+    scans: ScanResponseDTO[],
+    issues: any[],
+    securityData: any,
+    selectedSections: any,
+    recommendationsData: any[]
+  ) {
     const context = {
       projectName,
       dateFrom: this.dateFrom!,
@@ -293,7 +365,8 @@ export class GeneratereportComponent implements OnInit {
       scans,
       issues,
       securityData,
-      selectedSections
+      selectedSections,
+      recommendationsData
     };
 
     const snapshotId = Date.now().toString();
@@ -313,7 +386,8 @@ export class GeneratereportComponent implements OnInit {
         scans,
         issues,
         securityData,
-        selectedSections
+        selectedSections,
+        recommendationsData
       }
     };
 
