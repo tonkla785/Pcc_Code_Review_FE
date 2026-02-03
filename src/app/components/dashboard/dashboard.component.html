@@ -57,11 +57,11 @@
           </div>
 
           <!-- รายการ Notifications -->
-          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.read"
+          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.isRead"
             (click)="viewNotification(n)">
             <div class="item-header">
               <!-- <span>{{ n.icon }} {{ n.title }}</span> -->
-              <span class="item-time">{{ getTimeAgo(n.timestamp) }}</span>
+              <span class="item-time">{{ getTimeAgo(n.createdAt) }}</span>
             </div>
             <div class="item-message">{{ n.message }}</div>
           </div>

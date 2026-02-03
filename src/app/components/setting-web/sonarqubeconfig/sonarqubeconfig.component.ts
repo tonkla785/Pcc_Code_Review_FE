@@ -228,6 +228,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
 
     const payload: Partial<SonarQubeConfig> = {
       serverUrl: this.serverUrl,
+      authToken: this.authToken,
       organization: this.organization,
       angularRunNpm: this.angularSettings.runNpm,
       angularCoverage: this.angularSettings.coverage,

@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { NotificationSettings, SonarQubeConfig } from '../../interface/user_settings_interface';
 import { UserSettingsDataService } from '../shared-data/user-settings-data.service';
+import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 
 // Re-export interfaces for convenience
 export type { NotificationSettings, SonarQubeConfig } from '../../interface/user_settings_interface';
@@ -16,15 +17,22 @@ export class UserSettingService {
 
     constructor(
         private http: HttpClient,
-        private userSettingsData: UserSettingsDataService
+        private userSettingsData: UserSettingsDataService,
+        private tokenStorage: TokenStorageService
     ) { }
+
+    private getUserId(): string {
+        const user = this.tokenStorage.getLoginUser();
+        return user?.id || '';
+    }
 
     /**
      * Get notification settings and store in shared data
      */
     getNotificationSettings(): Observable<NotificationSettings> {
+        const userId = this.getUserId();
         this.userSettingsData.setLoading(true);
-        return this.http.get<NotificationSettings>(`${this.baseUrl}/settings/notification`)
+        return this.http.get<NotificationSettings>(`${this.baseUrl}/settings/notification/${userId}`)
             .pipe(
                 tap({
                     next: (settings) => {
@@ -40,7 +48,8 @@ export class UserSettingService {
      * Update notification settings
      */
     updateNotificationSettings(settings: Partial<NotificationSettings>): Observable<NotificationSettings> {
-        return this.http.put<NotificationSettings>(`${this.baseUrl}/settings/notification`, settings)
+        const payload = { ...settings, userId: this.getUserId() };
+        return this.http.put<NotificationSettings>(`${this.baseUrl}/settings/notification`, payload)
             .pipe(
                 tap((updated) => this.userSettingsData.setNotificationSettings(updated))
             );
@@ -50,8 +59,9 @@ export class UserSettingService {
      * Get SonarQube config and store in shared data
      */
     getSonarQubeConfig(): Observable<SonarQubeConfig> {
+        const userId = this.getUserId();
         this.userSettingsData.setLoading(true);
-        return this.http.get<SonarQubeConfig>(`${this.baseUrl}/settings/sonarqube`)
+        return this.http.get<SonarQubeConfig>(`${this.baseUrl}/settings/sonarqube/${userId}`)
             .pipe(
                 tap({
                     next: (config) => {
@@ -67,7 +77,8 @@ export class UserSettingService {
      * Update SonarQube config
      */
     updateSonarQubeConfig(config: Partial<SonarQubeConfig>): Observable<SonarQubeConfig> {
-        return this.http.put<SonarQubeConfig>(`${this.baseUrl}/settings/sonarqube`, config)
+        const payload = { ...config, userId: this.getUserId() };
+        return this.http.put<SonarQubeConfig>(`${this.baseUrl}/settings/sonarqube`, payload)
             .pipe(
                 tap((updated) => this.userSettingsData.setSonarQubeConfig(updated))
             );
@@ -81,3 +92,4 @@ export class UserSettingService {
         this.getSonarQubeConfig().subscribe();
     }
 }
+

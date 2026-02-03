@@ -15,6 +15,7 @@ export interface SonarQubeConfig {
     id: string;
     userId: string;
     serverUrl: string;
+    authToken?: string;
     organization: string;
     angularRunNpm: boolean;
     angularCoverage: boolean;
