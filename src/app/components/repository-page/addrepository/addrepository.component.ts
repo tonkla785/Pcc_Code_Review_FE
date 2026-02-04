@@ -286,20 +286,64 @@ export class AddrepositoryComponent implements OnInit {
   }
 
   onDelete() {
-    if (confirm('Are you sure to delete this repository?')) {
-      this.repositoryService.deleteRepo(this.gitRepository.projectId!).subscribe(() => {
-        this.snack.open('Deleted successfully!', '', {
-          duration: 2500,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red'],
-        });
-        this.repositoryService.getAllRepo().subscribe(repos => {
-          this.sharedData.setRepositories(repos);
-          this.router.navigate(['/repositories']);
-        });
+    const repo = this.gitRepository;
+    // กัน null / undefined แบบชัดเจน
+    if (!repo?.projectId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ข้อมูลไม่ถูกต้อง',
+        text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
       });
+      return;
     }
+
+    Swal.fire({
+      title: 'ยืนยันการลบ Repository',
+      text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ลบข้อมูล',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+
+        // loading ตอนกำลังลบ
+        Swal.fire({
+          title: 'กำลังลบข้อมูล...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.repositoryService.deleteRepo(repo.projectId!).subscribe({
+          next: () => {
+            this.sharedData.removeRepository(repo.projectId!);
+            Swal.fire({
+              icon: 'success',
+              title: 'ลบสำเร็จ',
+              text: 'ลบ Repository เรียบร้อยแล้ว',
+              timer: 1800,
+              showConfirmButton: false
+            });
+            this.repositoryService.getAllRepo().subscribe(repos => {
+              this.sharedData.setRepositories(repos);
+              this.router.navigate(['/repositories']);
+            });
+          },
+          error: () => {
+            Swal.fire({
+              icon: 'error',
+              title: 'ลบไม่สำเร็จ',
+              text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
+            });
+          }
+        });
+      }
+    });
   }
 
   clearForm(form?: NgForm) {
