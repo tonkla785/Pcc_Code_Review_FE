@@ -124,13 +124,17 @@ export class AddrepositoryComponent implements OnInit {
           sonarProjectKey: repo.sonarProjectKey || ''
         };
         console.log('RAW REPO FROM API:', this.gitRepository);
-        this.updateProjectKey();
+        // Edit Mode: Use existing Project Key from DB
+        this.sonarConfig.projectKey = this.gitRepository.sonarProjectKey || '';
       },
       error: (err) => console.error('Failed to load repository', err)
     });
   }
 
   updateProjectKey() {
+    // Edit Mode: Don't auto-update Project Key when Name changes
+    if (this.isEditMode) return;
+
     this.sonarConfig.projectKey = this.gitRepository.name || '';
   }
 

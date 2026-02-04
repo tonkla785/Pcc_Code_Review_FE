@@ -386,6 +386,36 @@
     background-color: #10b981 !important;
     color: #fff !important;
   }
+
+  /* ===============================
+     Search Box + Form Controls → Dark Mode
+     =============================== */
+  :host-context(.dark-mode) .search-box .form-control,
+  :host-context(.dark-mode) .search-box .form-select {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  :host-context(.dark-mode) .search-box .form-control::placeholder {
+    color: var(--text-main) !important;
+    opacity: 0.6;
+  }
+
+  :host-context(.dark-mode) .search-box .form-control:focus,
+  :host-context(.dark-mode) .search-box .form-select:focus {
+    background-color: var(--bg-card) !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+    outline: none;
+  }
+
+  :host-context(.dark-mode) .search-box .form-select option {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+  }
   
   /* ===============================
      Responsive
