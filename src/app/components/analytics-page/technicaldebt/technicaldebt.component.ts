@@ -45,6 +45,7 @@ export class TechnicaldebtComponent implements OnDestroy {
   // Meta (matches your text)
   totalDays = 0;
   totalHours = 0;
+  totalMinutes = 0;
   totalCost = 0;
 
   // Distribution by project
@@ -332,7 +333,9 @@ export class TechnicaldebtComponent implements OnDestroy {
     this.totalDebtMinutes = this.ScanHistoy.reduce((sum, p) => sum + (p.metrics?.technicalDebtMinutes || 0), 0);
     // Use 8 hours (480 mins) for a "work day"
     this.totalDays = Math.floor(this.totalDebtMinutes / 480);
-    this.totalHours = Math.floor((this.totalDebtMinutes % 480) / 60);
+    const remainingAfterDays = this.totalDebtMinutes % 480;
+    this.totalHours = Math.floor(remainingAfterDays / 60);
+    this.totalMinutes = remainingAfterDays % 60;
 
     this.calculateCategoryDebt();
   }
