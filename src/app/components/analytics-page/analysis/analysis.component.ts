@@ -6,6 +6,7 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 import { SecurityService } from '../../../services/securityservice/security.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { TechnicalDebtDataService, DebtItem } from '../../../services/shared-data/technicaldebt-data.service';
 
 interface HotSecurityIssue {
   name: string;
@@ -13,12 +14,13 @@ interface HotSecurityIssue {
 }
 
 interface DebtProject {
-  projectName: string;
-  debtTime: string;
-  debtMinutes: number;
-  debtCost: string;
-  priority: string;
-  color: string;
+    // Legacy interface, kept if needed by other parts, but mostly replaced by DebtItem
+    projectName: string;
+    debtTime: string;
+    debtMinutes: number;
+    debtCost: string;
+    priority: string;
+    color: string;
 }
 
 @Component({
@@ -38,7 +40,7 @@ export class AnalysisComponent implements OnInit {
   testCoverage = 80;
 
   topSecurityIssues: HotSecurityIssue[] = [];
-  topDebtProjects: DebtProject[] = [];
+  topDebtProjects: DebtItem[] = [];
 
   get summaryCards() {
     return [
@@ -62,7 +64,8 @@ export class AnalysisComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
-    private readonly scanService: ScanService
+    private readonly scanService: ScanService,
+    private readonly techDebtDataService: TechnicalDebtDataService
   ) { }
 
   ngOnInit(): void {
@@ -71,7 +74,20 @@ export class AnalysisComponent implements OnInit {
       return;
     }
     this.loadSecurityData();
-    this.loadTechnicalDebt();
+    // this.loadTechnicalDebt(); // No longer needed if relying on shared data provided by TechnicalDebtComponent
+    
+    // Subscribe to shared data
+    this.techDebtDataService.totalDebt$.subscribe(debt => {
+        if(debt.days > 0 || debt.hours > 0 || debt.minutes > 0) {
+            this.technicalDebt = `${debt.days}d ${debt.hours}h ${debt.minutes}m`;
+        } else {
+            this.technicalDebt = '0d 0h 0m';
+        }
+    });
+
+    this.techDebtDataService.topDebtItems$.subscribe(items => {
+        this.topDebtProjects = items;
+    });
   }
 
   loadSecurityData(): void {
@@ -95,68 +111,11 @@ export class AnalysisComponent implements OnInit {
     }
   }
 
-  loadTechnicalDebt(): void {
-    this.scanService.getScansHistory().subscribe({
-      next: (data) => {
-        this.sharedData.Scans = data;
-        this.calculateDebt(data);
-      },
-      error: (err) => console.error('Failed to load scan history', err)
-    });
-  }
-
-  private calculateDebt(scans: ScanResponseDTO[]): void {
-    const latestScans = this.latestScanPerProject(scans);
-
-    const totalMinutes = latestScans.reduce((sum, s) => sum + (s.metrics?.technicalDebtMinutes || 0), 0);
-    this.technicalDebt = this.formatDebtTime(totalMinutes);
-
-    this.topDebtProjects = latestScans
-      .map(s => {
-        const minutes = s.metrics?.technicalDebtMinutes || 0;
-        const days = minutes / 480;
-        const costVal = days * 30000;
-        const costStr = `THB${Math.ceil(costVal).toLocaleString()}`;
-        const score = (days * 2) + (costVal / 50000);
-
-        return {
-          projectName: s.project?.name || 'Unknown Project',
-          debtTime: this.formatDebtTime(minutes),
-          debtMinutes: minutes,
-          debtCost: costStr,
-          priority: this.getPriority(score),
-          color: this.getColor(score)
-        };
-      })
-      .sort((a, b) => b.debtMinutes - a.debtMinutes)
-      .slice(0, 5);
-  }
-
-  private latestScanPerProject(scans: ScanResponseDTO[]): ScanResponseDTO[] {
-    const map = new Map<string, ScanResponseDTO>();
-    scans.forEach(s => {
-      const projectName = s.project?.name || 'Unknown';
-      const scanDate = new Date(s.startedAt || 0);
-
-      if (!map.has(projectName) || scanDate > new Date(map.get(projectName)!.startedAt || 0)) {
-        map.set(projectName, s);
-      }
-    });
-    return Array.from(map.values());
-  }
-
-  private formatDebtTime(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const days = Math.floor(hours / 8);
-    const remainingHours = hours % 8;
-
-    if (days > 0) {
-      return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
-    }
-    if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
-  }
+  // loadTechnicalDebt removed as we use shared data from TechnicalDebtComponent
+  // The user requested to use shared data from TechnicalDebtComponent.
+  // If Analysis is visited first, it will be empty until TechDebt is visited (as per "Shared Data" pattern).
+  // If I wanted to force load, I would need to duplicate the logic or move it to service. 
+  // Given previous instruction rejected duplication/service-logic-move, I assume this behavior is desired.
 
 
   private getPriority(score: number): string {

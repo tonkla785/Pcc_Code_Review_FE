@@ -10,7 +10,7 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { ScanService } from '../../../services/scanservice/scan.service';
 
-type Priority = 'High' | 'Med' | 'Low';
+import { TechnicalDebtDataService, Priority, DebtItem } from '../../../services/shared-data/technicaldebt-data.service';
 
 interface ProjectDebt {
   name: string;
@@ -23,14 +23,6 @@ interface CategoryShare {
   name: string;
   percent: number;
   icon: string;
-}
-
-interface DebtItem {
-  priority: Priority;
-  colorClass: string; // 'high' | 'med' | 'low'
-  item: string;
-  time: number; // minutes
-  cost: number;
 }
 
 @Component({
@@ -72,6 +64,7 @@ export class TechnicaldebtComponent implements OnDestroy {
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly scanService: ScanService,
+    private readonly techDebtDataService: TechnicalDebtDataService,
     private readonly location: Location,
   ) { }
 
@@ -181,6 +174,7 @@ export class TechnicaldebtComponent implements OnDestroy {
 
     // Sort by Cost Descending
     this.topDebtItems = projects.sort((a, b) => b.cost - a.cost).slice(0, 5);
+    this.techDebtDataService.setTopDebtItems(this.topDebtItems);
   }
 
   calculateProjectDebts() {
@@ -336,6 +330,16 @@ export class TechnicaldebtComponent implements OnDestroy {
     const remainingAfterDays = this.totalDebtMinutes % 480;
     this.totalHours = Math.floor(remainingAfterDays / 60);
     this.totalMinutes = remainingAfterDays % 60;
+
+    this.totalMinutes = remainingAfterDays % 60;
+    
+    // Shared Data Update
+    this.techDebtDataService.setTotalDebt({
+        days: this.totalDays,
+        hours: this.totalHours,
+        minutes: this.totalMinutes,
+        cost: this.totalCosts()
+    });
 
     this.calculateCategoryDebt();
   }
