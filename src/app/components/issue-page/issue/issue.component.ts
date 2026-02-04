@@ -13,7 +13,7 @@ import { ScanService } from '../../../services/scanservice/scan.service';
 import { forkJoin } from 'rxjs';
 import { User, UserService } from '../../../services/userservice/user.service';
 import { UserInfo } from '../../../interface/user_interface';
-
+import Swal from 'sweetalert2';
 interface Issue {
   issuesId: string;
   type: string;        // 'bug' | 'security' | 'code-smell'
@@ -249,7 +249,15 @@ loadIssues() {
   }
 openAssignModal() {
   const ids = this.selectedIssues.map(i => i.id);
-  if (ids.length === 0) return;
+  if (ids.length === 0){
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid Data',
+            text: 'Don\'t Select Issue',
+          });
+          this.showAssignModal = false;
+          return;
+  }
 
   this.selectedIdsForAssign = ids;       
   this.issueDraft = { id: '', assignedTo: '', status: 'OPEN' }; 
