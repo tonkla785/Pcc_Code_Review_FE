@@ -1,200 +1,225 @@
 /* ===============================
    Report History Container
    =============================== */
-   .report-history-container {
-    padding: 24px;
-    max-width: 1000px;
-    margin: 0 auto;
-    background: var(--bg-card, #ffffff);
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    transition: all 0.3s ease;
-    font-family: "Inter", sans-serif;
-  }
-  
-  /* ===============================
+.report-history-container {
+  padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--bg-card, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
+}
+
+/* ===============================
      Header Section
      =============================== */
-  .header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    border: 1px solid var(--card-border, #cbd5e1);
-    border-radius: 12px;
-    background-color: var(--bg-panel, #f9fafb);
-  }
-  
-  .header-row h2 {
-    color: var(--dashboard-title-color); /* ✅ ใช้ตัวแปร (ฟ้าใน light, ขาวใน dark) */
-    font-size: 1.4rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-  }
-  
-  /* ===============================
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--card-border, #cbd5e1);
+  border-radius: 12px;
+  background-color: var(--bg-panel, #f9fafb);
+}
+
+.header-row h2 {
+  color: var(--dashboard-title-color);
+  /* ✅ ใช้ตัวแปร (ฟ้าใน light, ขาวใน dark) */
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+/* ===============================
      Search Input
      =============================== */
-  .search-input {
-    padding: 8px 14px;
-    border-radius: 12px;
-    border: 1px solid #e0e0e0;
-    transition: all 0.2s ease;
-  }
-  
-  .search-input:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
-  }
-  
-  /* ===============================
+.search-input {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* ===============================
      Report Table
      =============================== */
-  .report-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 6px;
-  }
-  
-  .report-table th {
-    background: var(--table-header-bg, #f8f9fa);
-    padding: 10px;
-    font-weight: 600;
-    color: var(--table-header-text, #444);
-    border-bottom: 2px solid var(--table-border, #eee);
-  }
-  
-  .report-table td {
-    background: var(--bg-card, #fff);
-    border: none;
-    padding: 12px;
-    text-align: center;
-    vertical-align: middle;
-    transition: all 0.2s ease;
-    border-bottom: 1px solid var(--table-border, #f0f0f0);
-  }
-  
-  /* Hover */
-  .report-table tr:hover td {
-    background: var(--bg-panel, #f9fbff);
-    transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-  }
-  
-  /* ===============================
+.report-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+
+.report-table th {
+  background: var(--table-header-bg, #f8f9fa);
+  padding: 10px;
+  font-weight: 600;
+  color: var(--table-header-text, #444);
+  border-bottom: 2px solid var(--table-border, #eee);
+}
+
+.report-table td {
+  background: var(--bg-card, #fff);
+  border: none;
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--table-border, #f0f0f0);
+}
+
+/* Hover */
+.report-table tr:hover td {
+  background: var(--bg-panel, #f9fbff);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* ===============================
      Download Button
      =============================== */
-  .download-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    background: linear-gradient(135deg, #28a745, #20c997);
-    border: none;
-    color: #fff;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-  }
-  
-  .download-btn:hover {
-    transform: scale(1.08);
-    box-shadow: 0 4px 10px rgba(40,167,69,0.25);
-  }
-  
-  /* ===============================
+.download-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.download-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.25);
+}
+
+/* ===============================
      Empty State (No Data)
      =============================== */
-  .no-data {
-    text-align: center;
-    color: var(--text-muted, #666);
-    font-size: 0.95rem;
-    padding: 16px;
-  }
-  
-  /* ===============================
+.no-data {
+  text-align: center;
+  color: var(--text-muted, #666);
+  font-size: 0.95rem;
+  padding: 16px;
+}
+
+/* ===============================
      Pagination Controls
      =============================== */
-  .pagination {
-    margin-top: 18px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
-  
-  .pagination button {
-    padding: 6px 14px;
-    border: 1px solid var(--card-border, #ddd);
-    background: #3c72e9;
-    color: #fff;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-  }
-  
-  .pagination button:hover:not(:disabled) {
-    background: #2563eb;
-    color: #fff;
-    border-color: #1e40af;
-  }
-  
-  .pagination button:disabled {
-    background: var(--bg-panel, #f1f1f1);
-    color: var(--text-muted, #999);
-    cursor: not-allowed;
-  }
-  
-  /* ===============================
+.pagination {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 6px 14px;
+  border: 1px solid var(--card-border, #ddd);
+  background: #3c72e9;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1e40af;
+}
+
+.pagination button:disabled {
+  background: var(--bg-panel, #f1f1f1);
+  color: var(--text-muted, #999);
+  cursor: not-allowed;
+}
+
+/* ===============================
      Dark Mode Overrides
      =============================== */
-  :host-context(.dark-mode) .report-history-container {
-    background: var(--bg-card) !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-  }
-  
-  :host-context(.dark-mode) .header-row {
-    background-color: var(--bg-panel) !important;
-    border: 1px solid var(--card-border) !important;
-  }
-  
-  :host-context(.dark-mode) .header-row h2 {
-    color: var(--dashboard-title-color) !important; 
-  }
+:host-context(.dark-mode) .report-history-container {
+  background: var(--bg-card) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+:host-context(.dark-mode) .header-row {
+  background-color: var(--bg-panel) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+:host-context(.dark-mode) .header-row h2 {
+  color: var(--dashboard-title-color) !important;
+}
+
+/* ===============================
+     Search Input → Dark Mode
+     =============================== */
+:host-context(.dark-mode) .search-input {
+  background-color: var(--bg-panel) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+:host-context(.dark-mode) .search-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+:host-context(.dark-mode) .search-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+}
+
 /* ===============================
    Dark Mode Pagination
    =============================== */
-   :host-context(.dark-mode) .pagination button {
-    background: #2563eb !important;   /* กล่องฟ้า */
-    color: #fff !important;           /* ตัวหนังสือขาว */
-    border: 1px solid #2563eb !important;
-  }
-  
-  :host-context(.dark-mode) .pagination button:hover:not(:disabled) {
-    background: #1e40af !important;   /* ฟ้าเข้มตอน hover */
-    border-color: #1e40af !important;
-    color: #fff !important;
-  }
-  
-  :host-context(.dark-mode) .pagination button:disabled {
-    background: #374151 !important;   /* เทาเข้มตอน disabled */
-    color: #9ca3af !important;        /* เทาอ่อน */
-    border-color: #4b5563 !important;
-  }
-  
+:host-context(.dark-mode) .pagination button {
+  background: #2563eb !important;
+  /* กล่องฟ้า */
+  color: #fff !important;
+  /* ตัวหนังสือขาว */
+  border: 1px solid #2563eb !important;
+}
+
+:host-context(.dark-mode) .pagination button:hover:not(:disabled) {
+  background: #1e40af !important;
+  /* ฟ้าเข้มตอน hover */
+  border-color: #1e40af !important;
+  color: #fff !important;
+}
+
+:host-context(.dark-mode) .pagination button:disabled {
+  background: #374151 !important;
+  /* เทาเข้มตอน disabled */
+  color: #9ca3af !important;
+  /* เทาอ่อน */
+  border-color: #4b5563 !important;
+}
 
 
 
 
 
- /* ===============================
+
+/* ===============================
    Mobile Responsive Table (320px - 768px)
    =============================== */
 @media (max-width: 768px) {
@@ -321,17 +346,16 @@
   border-left: 1px solid var(--table-border, #e5e7eb);
   background: var(--bg-card);
   box-shadow: -1px 0 0 rgba(0, 0, 0, 0.05);
-  isolation: isolate; /* ป้องกัน layer ซ้อน */
+  isolation: isolate;
+  /* ป้องกัน layer ซ้อน */
 }
 
 /* ✅ หัวคอลัมน์ Export ให้เหมือนเพื่อนทุกอย่าง */
 .report-table thead th:last-child {
   z-index: 6;
-  background: linear-gradient(
-    180deg,
-    var(--table-header-bg),
-    var(--table-header-bg2)
-  ) !important;
+  background: linear-gradient(180deg,
+      var(--table-header-bg),
+      var(--table-header-bg2)) !important;
   color: var(--table-header-text, #333) !important;
   border-left: 1px solid var(--table-border, #e5e7eb) !important;
   border-right: none !important;
@@ -377,11 +401,9 @@
 }
 
 .dark-mode .report-table thead th:last-child {
-  background: linear-gradient(
-    180deg,
-    var(--table-header-bg),
-    var(--table-header-bg2)
-  ) !important;
+  background: linear-gradient(180deg,
+      var(--table-header-bg),
+      var(--table-header-bg2)) !important;
   color: var(--table-header-text, #ddd) !important;
 }
 
@@ -410,13 +432,12 @@
   }
 
   .report-table thead th:last-child {
-    background: linear-gradient(
-      180deg,
-      var(--table-header-bg),
-      var(--table-header-bg2)
-    ) !important;
+    background: linear-gradient(180deg,
+        var(--table-header-bg),
+        var(--table-header-bg2)) !important;
   }
 }
+
 /* ===============================
    🧱 Sticky Columns — Status + Actions (Final)
    =============================== */
@@ -434,7 +455,8 @@
 .user-table th:nth-last-child(2),
 .user-table td:nth-last-child(2) {
   position: sticky;
-  right: 120px; /* ความกว้างเท่ากับ actions-col */
+  right: 120px;
+  /* ความกว้างเท่ากับ actions-col */
   z-index: 5;
   background: var(--bg-card, #fff);
   border-left: 1px solid var(--table-border, #e5e7eb);
@@ -528,6 +550,7 @@
     z-index: 4;
   }
 }
+
 /* ===============================
    🧭 FIX: Enable Sticky Scroll for User Table
    =============================== */
@@ -549,7 +572,8 @@
 .user-table {
   border-collapse: separate !important;
   border-spacing: 0;
-  min-width: 800px; /* ป้องกันบีบคอลัมน์จนหาย */
+  min-width: 800px;
+  /* ป้องกันบีบคอลัมน์จนหาย */
   position: relative;
 }
 
@@ -590,31 +614,32 @@
 /* ================================================
    🧭 FINAL FIX — Prevent Table from covering toggle
    ================================================ */
-   @media (min-width: 769px) and (max-width: 1024px) {
-    /* ✅ ให้ container อยู่ใน flow ปกติ (ไม่กินพื้นที่ซ้อน) */
-    .report-history-container {
-      position: static !important;
-      z-index: auto !important;
-      overflow: visible !important;
-    }
-  
-    .main-content {
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      -webkit-overflow-scrolling: touch;
-    }
-    .theme-toggle,
-    .mode-toggle,
-    .dark-mode-toggle {
-      position: fixed !important;
-      bottom: 24px !important;
-      right: 24px !important;
-      z-index: 9999 !important;
-    }
-  
-    .report-table {
-      position: relative !important;
-      z-index: 0 !important;
-    }
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  /* ✅ ให้ container อยู่ใน flow ปกติ (ไม่กินพื้นที่ซ้อน) */
+  .report-history-container {
+    position: static !important;
+    z-index: auto !important;
+    overflow: visible !important;
   }
-  
+
+  .main-content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .theme-toggle,
+  .mode-toggle,
+  .dark-mode-toggle {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 9999 !important;
+  }
+
+  .report-table {
+    position: relative !important;
+    z-index: 0 !important;
+  }
+}
