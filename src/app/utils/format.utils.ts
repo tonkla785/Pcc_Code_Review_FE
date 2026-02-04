@@ -50,6 +50,21 @@ export function formatThaiDateTime(date: Date | string): string {
     });
 }
 
+/**
+ * แปลง ISO date เป็น YYYY-MM-DD format (สำหรับ Thailand timezone)
+ */
+export function formatISODate(iso?: string): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+}
+
+/**
+ * ตรวจสอบว่าค่าไม่เป็น null, undefined หรือ empty string
+ */
+export function notEmpty(v: unknown): boolean {
+    return v !== null && v !== undefined && String(v).trim() !== '';
+}
+
 // ==================== CURRENCY ====================
 
 /**
@@ -218,13 +233,13 @@ export function capitalize(str: string): string {
 
 // ==================== ดึง Scan ล่าสุด ====================
 export function getLatestScan<T>(
-  scans: T[],
-  dateSelector: (scan: T) => Date | undefined
+    scans: T[],
+    dateSelector: (scan: T) => Date | undefined
 ): T | undefined {
-  return scans
-    .filter(s => dateSelector(s))
-    .sort((a, b) =>
-      (dateSelector(b)?.getTime() ?? 0) -
-      (dateSelector(a)?.getTime() ?? 0)
-    )[0];
+    return scans
+        .filter(s => dateSelector(s))
+        .sort((a, b) =>
+            (dateSelector(b)?.getTime() ?? 0) -
+            (dateSelector(a)?.getTime() ?? 0)
+        )[0];
 }

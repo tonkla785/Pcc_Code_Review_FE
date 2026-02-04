@@ -18,6 +18,7 @@ import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 
 import { ReportHistoryService } from '../../../services/reporthistoryservice/report-history.service';
 import { ReportHistoryRequest } from '../../../interface/report_history_interface';
+import { NotificationService } from '../../../services/notiservice/notification.service';
 
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SecurityIssueDTO } from '../../../interface/security_interface';
@@ -106,7 +107,8 @@ export class GeneratereportComponent implements OnInit {
     private readonly wordService: WordService,
     private readonly pptService: PowerpointService,
     private readonly pdfService: PdfService,
-    private readonly reportHistoryService: ReportHistoryService
+    private readonly reportHistoryService: ReportHistoryService,
+    private readonly notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -363,8 +365,10 @@ export class GeneratereportComponent implements OnInit {
     try {
       this.exportToFormat(context);
       this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections);
+      this.createReportNotification(projectName, true);  // success notification
     } catch (e) {
       console.error('Error generating report', e);
+      this.createReportNotification(projectName, false); // failed notification
     } finally {
       this.loading = false;
     }
@@ -436,6 +440,29 @@ export class GeneratereportComponent implements OnInit {
     this.reportHistoryService.createReportHistory(request).subscribe({
       next: (result) => console.log('Report history saved:', result.id),
       error: (err) => console.error('Failed to save report history:', err)
+    });
+  }
+
+  /**
+   * Create notification for report generation result
+   */
+  private createReportNotification(reportName: string, isSuccess: boolean): void {
+    const userId = this.tokenStorageService.getLoginUser()?.id;
+    if (!userId) return;
+
+    const title = isSuccess ? '✅ Report Generated' : '❌ Report Failed';
+    const message = isSuccess
+      ? `Generate ${reportName} complete`
+      : `Generate ${reportName} failed`;
+
+    this.notificationService.createNotification({
+      userId,
+      type: 'System',
+      title,
+      message
+    }).subscribe({
+      next: () => console.log('Report notification created'),
+      error: (err) => console.error('Failed to create notification:', err)
     });
   }
 
