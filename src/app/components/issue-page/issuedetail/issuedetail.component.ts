@@ -108,21 +108,33 @@ export class IssuedetailComponent implements OnInit {
       this.loadUser();
       console.log("No cache - load from server");
        }
-    this.route.paramMap.subscribe(pm => {
-      const id = pm.get('issuesId');
-      if (!id) return;
-      this.loadIssueDetails(id);
-      console.log('scanId from route:', id);
-      if(!this.sharedData.hasSelectedIssuesCache){
-      this.loadIssueById(id);
-          }
-    });
-      this.sharedData.selectedIssues$.subscribe(data => { 
-        this.issuesResult = data;
-        console.log('Issues Detail from sharedData:', this.issuesResult);
-        this.applyUserFilter();
-        this.replycomment(this.issuesResult?.commentData ?? []);
-      });
+this.route.paramMap.subscribe(pm => {
+  const id = pm.get('issuesId');
+  if (!id) return;
+
+  console.log('issuesId from route:', id);
+  const cached = this.sharedData.selectIssueValue; 
+  const isSame = cached?.id === id;
+
+  if (!isSame) {
+    this.loadIssueDetails(id);
+    this.loadIssueById(id);
+    console.log('Same')
+  } else {
+    this.issuesResult = cached;
+    this.applyUserFilter();
+    this.replycomment(this.issuesResult?.commentData ?? []);
+    console.log("Not Same")
+  }
+});
+
+this.sharedData.selectedIssues$.subscribe(data => { 
+  this.issuesResult = data;
+  console.log('Issues Detail from sharedData:', this.issuesResult);
+  this.applyUserFilter();
+  this.replycomment(this.issuesResult?.commentData ?? []);
+});
+
       const user = this.tokenStorage.getLoginUser();  
               if (user) {
                 this.sharedData.LoginUserShared = user;
@@ -333,7 +345,7 @@ postComment() {
       this.issue.dueDate
     ).subscribe({
       next: (res: any) => {
-        this.sharedData.updateIssue(res);
+        this.sharedData.updateIssueSelect(res);
         console.log('Assigned successfully:', res);
       },
       error: (err: any) => console.error('Error:', err),
