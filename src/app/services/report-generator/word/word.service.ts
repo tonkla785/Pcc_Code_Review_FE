@@ -227,20 +227,70 @@ export class WordService {
             width: { size: 100, type: WidthType.PERCENTAGE },
         }));
 
-        paragraphs.push(new Paragraph({ text: 'Vulnerability Severity:', spacing: { before: 200 } }));
+        paragraphs.push(new Paragraph({ text: 'Vulnerability Severity:', spacing: { before: 200, after: 100 } }));
+
+        const severityRows = [
+            new TableRow({
+                children: [
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Severity', bold: true })] })] }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Count', bold: true })] })] }),
+                ],
+            }),
+        ];
+
         metrics.vulnerabilities.forEach(v => {
-            paragraphs.push(new Paragraph({ text: `  ${v.severity}: ${v.count}` }));
+            severityRows.push(
+                new TableRow({
+                    children: [
+                        new TableCell({ children: [new Paragraph(v.severity)] }),
+                        new TableCell({ children: [new Paragraph(v.count.toString())] }),
+                    ],
+                })
+            );
         });
 
-        paragraphs.push(new Paragraph({ text: 'Top 5 Security Hotspots:', spacing: { before: 200 } }));
+        paragraphs.push(new Table({
+            rows: severityRows,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+        }));
+
+        paragraphs.push(new Paragraph({ text: 'Top 5 Security Hotspots:', spacing: { before: 200, after: 100 } }));
         const top5 = hotIssues.slice(0, 5);
+
+        const hotspotsRows = [
+            new TableRow({
+                children: [
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Hotspot', bold: true })] })] }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Count', bold: true })] })] }),
+                ],
+            }),
+        ];
+
         if (top5.length > 0) {
             top5.forEach(h => {
-                paragraphs.push(new Paragraph({ text: `  ${h.name}: ${h.count}` }));
+                hotspotsRows.push(
+                    new TableRow({
+                        children: [
+                            new TableCell({ children: [new Paragraph(h.name)] }),
+                            new TableCell({ children: [new Paragraph(h.count.toString())] }),
+                        ],
+                    })
+                );
             });
         } else {
-            paragraphs.push(new Paragraph({ text: '  No hotspots detected' }));
+            hotspotsRows.push(
+                new TableRow({
+                    children: [
+                        new TableCell({ columnSpan: 2, children: [new Paragraph('No hotspots detected')] }),
+                    ],
+                })
+            );
         }
+
+        paragraphs.push(new Table({
+            rows: hotspotsRows,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+        }));
 
         return paragraphs;
     }

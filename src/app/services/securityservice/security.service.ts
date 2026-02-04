@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, of, tap, pairwise, filter, startWith } from 'rxjs';
 import { AuthService } from '../authservice/auth.service';
 import { SharedDataService } from '../shared-data/shared-data.service';
 import { environment } from '../../environments/environment';
@@ -62,8 +62,8 @@ const owaspCategories = [
 const ruleToOwasp: Record<string, string> = {
     S4502: 'A01', S2612: 'A01', S5122: 'A01', S2083: 'A01', S6096: 'A01', S5876: 'A01', S4601: 'A01', S6357: 'A01',
     S2068: 'A02', S327: 'A02', S6418: 'A02', S4426: 'A02', S4790: 'A02', S2245: 'A02', S5542: 'A02', S3329: 'A02', S4423: 'A02',
-    S3649: 'A03', S2076: 'A03', S5131: 'A03', S5334: 'A03', S2077: 'A03', S5696: 'A03',S5247: 'A03', S6351: 'A03', S5146: 'A03',
-    S4792: 'A04', S5804: 'A04', S125: 'A04', S2259: 'A04',  S3338: 'A04',
+    S3649: 'A03', S2076: 'A03', S5131: 'A03', S5334: 'A03', S2077: 'A03', S5696: 'A03', S5247: 'A03', S6351: 'A03', S5146: 'A03',
+    S4792: 'A04', S5804: 'A04', S125: 'A04', S2259: 'A04', S3338: 'A04',
     S3330: 'A05', S1523: 'A05', S5332: 'A05', S2096: 'A05', S4507: 'A05', S1313: 'A05',
     S2078: 'A06', S6362: 'A06',
     S4433: 'A07', S3403: 'A07', S3011: 'A07',
@@ -89,6 +89,28 @@ export class SecurityService {
                     hotIssues: metrics.hotIssues
                 });
             }
+        });
+
+        this.sharedData.scansHistory$.pipe(
+            startWith(null),
+            pairwise(),
+            filter(([prev, curr]) => {
+                if (!curr || curr.length === 0) return false;
+                if (!prev) return false;
+
+                const currLatest = curr[0];
+                const prevScan = prev.find(s => s.id === currLatest?.id);
+
+                return prevScan?.status !== 'SUCCESS' && currLatest?.status === 'SUCCESS';
+            })
+        ).subscribe(() => {
+            this.refreshSecurityIssues();
+        });
+    }
+
+    private refreshSecurityIssues(): void {
+        this.getSecurityIssues().subscribe({
+            next: issues => this.sharedData.setSecurityIssues(issues)
         });
     }
 
