@@ -55,21 +55,15 @@ export class TechnicaldebtComponent implements OnDestroy {
 
   // Categories
   categories: CategoryShare[] = [
-    { name: ' Documentation', percent: 15, icon: 'bi bi-journal-text' },
-    { name: ' Architecture', percent: 25, icon: 'bi bi-diagram-3' },
-    { name: ' Code Quality', percent: 35, icon: 'bi bi-wrench-adjustable' },
-    { name: ' Test Coverage', percent: 15, icon: 'bi-clipboard-check' },
-    { name: ' Security', percent: 10, icon: 'bi bi-shield-lock' },
+    { name: ' Documentation', percent: 0, icon: 'bi bi-journal-text' },
+    { name: ' Architecture', percent:0, icon: 'bi bi-diagram-3' },
+    { name: ' Code Quality', percent:0, icon: 'bi bi-wrench-adjustable' },
+    { name: ' Test Coverage', percent:0,icon: 'bi-clipboard-check' },
+    { name: ' Security', percent:0, icon: 'bi bi-shield-lock' },
   ];
 
   // Top items
-  topDebtItems: DebtItem[] = [
-    { priority: 'High', colorClass: 'high', item: 'Refactor legacy module', time: 2400, cost: 150_000 },
-    { priority: 'High', colorClass: 'high', item: 'Add unit tests', time: 1440, cost: 90_000 },
-    { priority: 'Med', colorClass: 'med', item: 'Update dependencies', time: 960, cost: 60_000 },
-    { priority: 'Med', colorClass: 'med', item: 'Improve documentation', time: 480, cost: 30_000 },
-    { priority: 'Low', colorClass: 'low', item: 'Code formatting', time: 240, cost: 6_000 },
-  ];
+  topDebtItems: DebtItem[] = [];
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
