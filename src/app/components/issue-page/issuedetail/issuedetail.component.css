@@ -13,7 +13,7 @@
    Header Section
    ======================== */
 .issue-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3faae8 0%, #0B6FFD 100%);
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
@@ -119,7 +119,7 @@
 }
 
 .card-title i {
-  color: #667eea;
+  color: #0B6FFD;
 }
 
 .info-item {
@@ -233,7 +233,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3faae8 0%, #0B6FFD 100%);
   color: white;
   padding: 0.4rem 1rem;
   border-radius: 50px;
@@ -250,7 +250,7 @@
    ======================== */
 .btn-assign {
   width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3faae8 0%, #0B6FFD 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -301,7 +301,7 @@
 }
 
 .section-header h3 i {
-  color: #667eea;
+  color: #0B6FFD;
 }
 
 .description-content {
@@ -416,7 +416,7 @@
 }
 
 .comment-count {
-  background: #667eea;
+  background: #0B6FFD;
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 50px;
@@ -478,7 +478,7 @@
 
 .comment-avatar i {
   font-size: 2.5rem;
-  color: #667eea;
+  color: #0B6FFD;
 }
 
 .comment-content {
@@ -554,7 +554,7 @@
 }
 
 .comment-input-wrapper:focus-within {
-  border-color: #667eea;
+  border-color: #0B6FFD;
   background: white;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
@@ -580,7 +580,7 @@
 }
 
 .btn-send {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3faae8 0%, #0B6FFD 100%);
   color: white;
   border: none;
   width: 40px;
