@@ -138,30 +138,8 @@ export class RepositoriesComponent implements OnInit {
       .trim()
       .toLowerCase();
 
-    if (!keyword) {
-      // ไม่ค้นหา แสดงตามปกติ
-      this.filteredRepositories = this.sortRepositories([...this.repositories]);
-      this.updateSummaryStats();
-      return;
-    }
-
-    const matched: Repository[] = [];
-    const others: Repository[] = [];
-
-    this.repositories.forEach(repo => {
-      if (repo.name.toLowerCase().includes(keyword)) {
-        matched.push(repo);
-      } else {
-        others.push(repo);
-      }
-    });
-
-    this.filteredRepositories = [
-      ...this.sortRepositories(matched),
-      ...this.sortRepositories(others)
-    ];
-
-    this.updateSummaryStats();
+    this.searchText = keyword;
+    this.applyFilters();
   }
 
 
@@ -175,18 +153,38 @@ export class RepositoriesComponent implements OnInit {
   }
 
   private applyFilters(): void {
-    this.filteredRepositories = this.repositories.filter(repo =>
-      // 1. filter ตาม tab (framework)
+    // 1. Filter by Tab & Status first (Base List)
+    const baseList = this.repositories.filter(repo =>
       (this.activeFilter === 'all' || repo.projectType?.toLowerCase().includes(this.activeFilter.toLowerCase())) &&
-      // 2. filter ตาม status
-      (this.selectedStatus === 'all' || repo.status === this.selectedStatus) &&
-      // 3. filter ตาม search text
-      (this.searchText === '' ||
-        repo.name.toLowerCase().includes(this.searchText) ||
-        repo.projectType?.toLowerCase().includes(this.searchText))
+      (this.selectedStatus === 'all' || repo.status === this.selectedStatus)
     );
 
-    this.filteredRepositories = this.sortRepositories(this.filteredRepositories);
+    // 2. Handle Search Logic
+    if (this.searchText) {
+      const matched = baseList.filter(repo =>
+        repo.name.toLowerCase().includes(this.searchText) ||
+        repo.projectType?.toLowerCase().includes(this.searchText)
+      );
+
+      const others = baseList.filter(repo =>
+        !repo.name.toLowerCase().includes(this.searchText) &&
+        !repo.projectType?.toLowerCase().includes(this.searchText)
+      );
+
+      if (matched.length > 0) {
+        // ถ้าเจอ: เอาตัวที่เจอขึ้นก่อน + ตามด้วยตัวที่ไม่เจอ (Reorder)
+        this.filteredRepositories = [
+          ...this.sortRepositories(matched),
+          ...this.sortRepositories(others)
+        ];
+      } else {
+        // ถ้าไม่เจอเลย: ให้เป็นว่าง (เพื่อขึ้น No Data)
+        this.filteredRepositories = [];
+      }
+    } else {
+      // No search: Show all filtered by Tab/Status
+      this.filteredRepositories = this.sortRepositories(baseList);
+    }
 
     this.updateSummaryStats();
   }
