@@ -69,7 +69,7 @@ export class IssuedetailComponent implements OnInit {
   currentUserId = '';
   currentUserName = '';
 
-  newComment = { mention: '', comment: '' };
+  newComment: commentRequestDTO = { comment: '' };
 
   /** === state คอมเมนต์ === */
   comments: IssueComment[] = [];
@@ -81,7 +81,9 @@ export class IssuedetailComponent implements OnInit {
   UserData: UserInfo[] = [];
   filteredUsers: UserInfo[] = [];
   issuesDetails: IssuesDetailResponseDTO | null = null;
-  replyTo: { commentId: string; username: string } | null = null;
+  rootComments: commentResponseDTO[] = [];
+  replies = new Map<string, commentResponseDTO[]>();
+  replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
@@ -119,6 +121,7 @@ export class IssuedetailComponent implements OnInit {
         this.issuesResult = data;
         console.log('Issues Detail from sharedData:', this.issuesResult);
         this.applyUserFilter();
+        this.replycomment(this.issuesResult?.commentData ?? []);
       });
       const user = this.tokenStorage.getLoginUser();  
               if (user) {
@@ -137,6 +140,7 @@ export class IssuedetailComponent implements OnInit {
       next: (data) => {
         this.sharedData.SelectedIssues = data;
         this.sharedData.setLoading(false);
+        this.replycomment(this.issuesResult?.commentData ?? []);
         console.log('IssuesById loaded:', data);
         this.applyUserFilter();
       },
@@ -239,8 +243,9 @@ applyUserFilter() {
     if (!this.issue?.id) return;
     this.loadingComments = true;
     this.commentService.getIssueComments(this.issue.id).subscribe({
-      next: (list: IssueCommentModel[]) =>
-        this.comments = (list ?? []).map((x: IssueCommentModel) => this.mapComment(x)),
+      next: (list: IssueCommentModel[]) => {
+        this.comments = (list ?? []).map((x: IssueCommentModel) => this.mapComment(x));
+      },
       error: (e: unknown) => console.error('loadComments error:', e),
       complete: () => (this.loadingComments = false),
     });
@@ -248,13 +253,14 @@ applyUserFilter() {
 
 
 postComment() {
-  const text = (this.newComment.comment ?? '').trim();
+  const text = (this.newComment?.comment ?? '').trim();
   if (!text || this.sendingComment) return;
 
-  const payload: any = {
+  const payload: commentRequestDTO = {
     issueId: this.issuesResult?.id,
     userId: this.UserLogin?.id || '',
     comment: text,
+    parentCommentId: this.replyTo?.commentId || ''
   };
 
   this.sendingComment = true;
@@ -262,9 +268,8 @@ postComment() {
   this.commentService.updateComments(payload).subscribe({
     next: (updated) => {
       this.sharedData.addComments(updated);
-
       // reset input
-      this.newComment.comment = '';
+      this.newComment = { comment: '' };
       this.replyTo = null;
       this.sendingComment = false;
     },
@@ -395,15 +400,39 @@ postComment() {
     });
   }
   startReply(c: commentResponseDTO) {
-  this.replyTo = { commentId: c.id, username: c.user?.username };
-
+  this.replyTo = { commentId: c.id, username: c.user?.username , parentCommentId: c.parentCommentId || '' };
+  
   // ใส่ @username ให้เลย (optional)
-  this.newComment.comment = `@${this.replyTo.username} `;
-
-  // ถ้ามี input reference จะ focus ได้ (ค่อยทำทีหลัง)
+  this.newComment= { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
+  console.log('Replying to comment:', this.replyTo);
+  
 }
 cancelReply() {
   this.replyTo = null;
+  this.newComment = { comment: '' };
+}
+private replycomment(comments: commentResponseDTO[]) {
+  this.rootComments = [];
+  this.replies.clear();
+
+  const list = comments ?? [];
+
+  // เรียงตามเวลา 
+  const sorted = [...list].sort((a, b) =>
+    new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
+  );
+
+  for (const c of sorted) {
+    const parentId = (c as commentResponseDTO).parentCommentId || null;
+
+    if (!parentId) {
+      this.rootComments.push(c);
+    } else {
+      const arr = this.replies.get(parentId) ?? [];
+      arr.push(c);
+      this.replies.set(parentId, arr);
+    }
+  }
 }
 
 }

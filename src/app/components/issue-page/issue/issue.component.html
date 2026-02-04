@@ -38,24 +38,23 @@
     <select class="form-select w-auto"
         [(ngModel)]="filterProject"
         (change)="applyFilter()">
-  <option value="All Projects">All Projects</option>
-  <option *ngFor="let project of projects"
-          [value]="project.name">
-    {{ project.name }}
-  </option>
+      <option value="All Projects">All Projects</option>
+      <option *ngFor="let project of projects"
+              [value]="project.name">
+        {{ project.name }}
+      </option>
     </select>
     <input class="form-control w-auto" type="text" placeholder="Search issues..." [(ngModel)]="searchText" (ngModelChange)="onSearchChange($event)">
     <button class="btn btn-outline-primary" (click)="clearFilters()">Clear</button>
   </div>
 
   <!-- Table -->
-
   <div class="table-responsive">
     <table class="table table-striped table-hover table-bordered align-middle issues-table">
       <thead>
         <tr>
           <th class="text-center">
-            <!-- <input type="checkbox" [checked]="isPageAllSelected()" (change)="selectAll($event)"> -->
+            <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)">
           </th>
           <th>Type</th>
           <th>Severity</th>
@@ -69,10 +68,8 @@
       <tbody>
         <tr *ngFor="let issue of paginatedIssues">
           <td (click)="$event.stopPropagation()">
-            <!-- Checkbox needs to stop propagation to prevent double toggle from TR click -->
             <input type="checkbox" [checked]="isSelected(issue)" (change)="toggleIssueSelection(issue, $event)" />
           </td>
-          <!-- <td class="text-center"><input type="checkbox" [(ngModel)]="issue.selected"></td> -->
           <td><i class="bi me-1" [ngClass]="typeIcon(issue.type)"></i>{{ issue.type | titlecase }}</td>
           <td>
             <span class="severity-badge" [ngClass]="severityClass(issue.severity)">
@@ -81,13 +78,10 @@
           </td>
           
           <td>
-            <strong>{{ issue.message }}</strong><br>
-            <!-- <small class="text-muted">{{ issue.details }}</small> -->
+            <strong class="issue-message">{{ issue.message }}</strong><br>
           </td>
-          <!-- <td>{{ issue.projectName }}</td>
-          <td>{{ issue.assignee }}</td> -->
-          <td>Empty</td>
-                    <td>Empty</td>
+          <td>{{issue.projectId.name}}</td>
+          <td>{{issue.assignedTo?.username ?? 'Unassigned'}}</td>
           <td>
             <span class="status-badge" [ngClass]="statusClass(issue.status)">
               {{ issue.status | uppercase }}
@@ -105,10 +99,64 @@
   </div>
 </div>
 
+<!-- ✅ Assign Modal (inline in same page) -->
+<div class="modal-backdrop-custom" *ngIf="showAssignModal" (click)="closeAssignModal()"></div>
+
+<div class="modal-custom" *ngIf="showAssignModal" (click)="$event.stopPropagation()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h3 class="modal-title">Assign Issues</h3>
+      <button type="button" class="btn-close" (click)="closeAssignModal()" aria-label="Close">✕</button>
+    </div>
+
+    <form #assignForm="ngForm" (ngSubmit)="saveAssign(assignForm)">
+      <div class="modal-body">
+
+        <!-- Selected count -->
+        <div class="mb-3">
+          <label class="form-label">Selected Issues:</label>
+          <input class="form-control" [value]="selectedIssues.length + ' issues selected'" readonly />
+        </div>
+
+        <!-- Assign to user -->
+        <div class="mb-3">
+          <label class="form-label">Assign to:</label>
+          <select
+            class="form-control"
+            [(ngModel)]="issueDraft.assignedTo"
+            name="assignedTo"
+            required
+          >
+            <option value="" disabled>-- Select user --</option>
+            <option *ngFor="let u of UserData" [value]="u.id">
+              {{ u.username }}
+            </option>
+          </select>
+
+          <div class="text-danger mt-1" *ngIf="assignForm.submitted && !issueDraft.assignedTo">
+            Please select a user
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAssignModal()">Cancel</button>
+
+        <button type="submit" class="btn btn-primary" [disabled]="savingAssign">
+          <span *ngIf="!savingAssign">Save</span>
+          <span *ngIf="savingAssign" class="spinner-border spinner-border-sm"></span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
 <!-- Footer -->
 <div class="footer-bar px-3 px-md-4">
   <div class="footer-left">
-    <!-- <strong>Selected:</strong> {{ selectedCount() }} -->
   </div>
   <div class="pagination d-flex align-items-center gap-3">
     <button class="page-btn" [class.disabled]="currentPage === 1" [disabled]="currentPage === 1" (click)="prevPage()">
@@ -121,14 +169,12 @@
   </div>
 
   <div class="bottom-action-buttons">
-    <button class="action-btn assign" (click)="assignDeveloper()" title="Assign Developer">
+    <button class="action-btn assign" (click)="openAssignModal()" title="Assign Developer">
       <i class="bi bi-person-plus"></i>
-    </button>
-    <button class="action-btn status" (click)="changeStatus()" title="Update Status">
-      <i class="bi bi-arrow-repeat"></i>
     </button>
     <button class="action-btn export" (click)="exportData()" title="Export">
       <i class="bi bi-download"></i>
     </button>
   </div>
   
+</div>

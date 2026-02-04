@@ -4,6 +4,10 @@ import { UserInfo } from "./user_interface"
 export interface IssuesResponseDTO {
     id: string,
     scanId: string,
+    projectId: {
+    id: string,
+    name: string
+    },
     issueKey: string,
     type: string,
     severity: string,

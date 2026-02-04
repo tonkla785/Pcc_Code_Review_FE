@@ -184,10 +184,13 @@ export class SharedDataService {
         return this.AllIssues.value ?? [];
     }
 
-    updateIssues(updated: IssuesResponseDTO) {
-        const next = this.issuesValue.map(u => u.id === updated.id ? updated : u);
+        updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
+        const list = Array.isArray(updated) ? updated : [updated];
+        const Id = new Map(list.map(i => [i.id, i]));
+
+        const next = this.issuesValue.map(u => Id.get(u.id) ?? u);
         this.AllIssues.next(next);
-    }
+        }
 
     addIssues(newIssue: IssuesResponseDTO) {
         const next = [newIssue, ...this.issuesValue];
@@ -276,25 +279,27 @@ export class SharedDataService {
     }
 
     /** เรียกหลัง login สำเร็จ */
-    setUserFromLoginResponse(response: {
-        id: string;
-        username: string;
-        password: string;
-        email: string;
-        phone?: string;
-        role: string;
-        status: string;
-    }): void {
-        const user: UserInfo = {
-            id: response.id,
-            username: response.username,
-            password: response.password || '',
-            email: response.email,
-            phone: response.phone,
-            status: response.status,
-            role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
-        };
-        this._currentUser$.next(user);
+    // setUserFromLoginResponse(response: {
+    //     id: string;
+    //     username: string;
+    //     password: string;
+    //     email: string;
+    //     phone?: string;
+    //     role: string;
+    // }): void {
+    //     const user: UserInfo = {
+    //         id: response.id,
+    //         username: response.username,
+    //         password: response.password || '',
+    //         email: response.email,
+    //         phone: response.phone,
+    //         role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
+    //     };
+    //     this._currentUser$.next(user);
+    // }
+
+    clearUser(): void {
+        this._currentUser$.next(null);
     }
 
     // ==================== REPOSITORY METHODS ====================
