@@ -51,6 +51,7 @@ export class IssueComponent {
   filteredIssue: IssuesResponseDTO[] = [];
   selectedIssues: IssuesResponseDTO[] = [];
   selectedIdsForAssign: string[] = [];
+  paginatedIssues: IssuesResponseDTO[] = []
   issueDraft: IssuesRequestDTO = { id: '', status: 'OPEN', assignedTo: '' };
   showAssignModal = false;
   savingAssign = false;
@@ -126,7 +127,7 @@ loadIssues() {
   pageSize = 5;
 
   get totalPages(): number {
-    return Math.ceil(this.filteredIssues.length / this.pageSize) || 1;
+    return Math.ceil(this.filteredIssue.length / this.pageSize) || 1;
   }
 
   // ---------- State ----------
@@ -160,19 +161,19 @@ loadIssues() {
       return type && severity && status && project && messageOk;
     });
     this.currentPage = 1;
+    this.updatePage();
   }
   onSearchChange(value: string) {
   this.searchText = value;
   this.applyFilter();
 }
-  get filteredIssues() {
-    return this.filteredIssue;
-  }
 
-  get paginatedIssues() {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredIssues.slice(start, start + this.pageSize);
-  }
+
+
+      updatePage() {
+        const start = (this.currentPage - 1) * this.pageSize;
+        this.paginatedIssues = this.filteredIssue.slice(start, start + this.pageSize);
+      }
 
   allSelected(): boolean {
     // Check if ALL currently displayed (paged) items are selected
@@ -195,14 +196,16 @@ loadIssues() {
   }
 
   nextPage() {
-    if (this.currentPage * this.pageSize < this.filteredIssues.length) {
+    if (this.currentPage * this.pageSize < this.filteredIssue.length) {
       this.currentPage++;
+      this.updatePage();
     }
   }
 
   prevPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.updatePage();
     }
   }
 
@@ -354,7 +357,6 @@ saveAssign(form: any) {
     }
   }
   viewResult(issue : IssuesResponseDTO) {
-  this.sharedData.SelectedIssues = issue;   
   this.router.navigate(['/issuedetail', issue.id]);
 }
   isSelected(issue: IssuesResponseDTO): boolean {
