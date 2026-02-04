@@ -27,20 +27,30 @@ export class ScanresultComponent {
   scanResult: ScanResponseDTO | null = null;
 
   ngOnInit(): void {
+    // Subscribe to cached data for real-time updates
     this.sharedData.selectedScan$.subscribe(data => {
-      this.scanResult = data;
+      if (data) {
+        this.scanResult = data;
+      }
     });
+
+    // Check route params and decide whether to use cache or fetch from API
     this.route.paramMap.subscribe(pm => {
       const id = pm.get('scanId');
       if (!id) return;
 
       console.log('scanId from route:', id);
 
-      if (!this.sharedData.selectedScan$) {
+      // Check if current cache matches the requested scanId
+      const cachedScan = this.sharedData.selectedScanValue;
+      if (cachedScan && cachedScan.id === id) {
+        console.log('Using cached scan data');
+        this.scanResult = cachedScan;
+      } else {
+        // Fetch fresh data from API
+        console.log('No matching cache - loading from server');
         this.loadScanDetails(id);
-        console.log("No cache - load from server");
       }
-
     });
   }
 

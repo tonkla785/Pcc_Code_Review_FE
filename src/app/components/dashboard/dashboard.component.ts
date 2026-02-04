@@ -37,6 +37,7 @@ import {
 } from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   TopIssue,
   Condition,
@@ -60,7 +61,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
@@ -77,6 +78,7 @@ export class DashboardComponent {
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
+    private readonly snack: MatSnackBar,
   ) { }
 
   loading = true;
@@ -194,6 +196,9 @@ export class DashboardComponent {
       console.log('No cache - load from server');
       this.loadIssues();
     }
+
+    // Load existing notifications from DB on page load
+    this.loadNotifications();
   }
   loadRepositories() {
     this.sharedData.setLoading(true);
@@ -685,6 +690,99 @@ export class DashboardComponent {
         // ไม่ต้อง revert เพราะ navigation ทำไปแล้ว
       },
     });
+  }
+
+  /**
+   * Handle View Issue click - validate issue exists before navigating
+   */
+  handleViewIssue(n: Notification) {
+    // Mark notification as read first
+    this.viewNotification(n);
+
+    // Check if issue exists
+    if (!n.relatedIssueId) {
+      this.snack.open('Can not open issue', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Validate issue existence via API
+    this.issueService.getAllIssuesById(n.relatedIssueId).subscribe({
+      next: (issue) => {
+        if (issue) {
+          // Issue exists - navigate to issue detail
+          this.router.navigate(['/issuedetail', n.relatedIssueId]);
+        } else {
+          // Issue data is empty
+          this.snack.open('Can not open issue', '', {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red']
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to fetch issue:', err);
+        // Issue not found or error occurred
+        this.snack.open('Can not open issue', '', {
+          duration: 2500,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      },
+    });
+  }
+
+  /**
+   * Handle View Scan click - navigate to scan results
+   */
+  handleViewScan(n: Notification) {
+    this.viewNotification(n);
+
+    if (!n.relatedScanId) {
+      this.snack.open('Can not open scan results', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Navigate to scan result page
+    this.router.navigate(['/scanresult', n.relatedScanId]);
+  }
+
+  /**
+   * Handle View System notification - navigate based on context
+   */
+  handleViewSystem(n: Notification) {
+    this.viewNotification(n);
+
+    // Navigate based on what's related
+    if (n.relatedCommentId && n.relatedIssueId) {
+      // Comment notification - go to issue detail
+      this.router.navigate(['/issuedetail', n.relatedIssueId]);
+    } else if (n.relatedScanId) {
+      // Quality Gate notification - go to scan result
+      this.router.navigate(['/scanresult', n.relatedScanId]);
+    } else if (n.relatedProjectId) {
+      // Project related - go to repository detail
+      this.router.navigate(['/detailrepository', n.relatedProjectId]);
+    } else {
+      this.snack.open('No details available', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+    }
   }
 
   get filteredNotifications() {
