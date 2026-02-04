@@ -37,6 +37,7 @@ import {
 } from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   TopIssue,
   Condition,
@@ -60,7 +61,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
@@ -77,6 +78,7 @@ export class DashboardComponent {
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
+    private readonly snack: MatSnackBar,
   ) { }
 
   loading = true;
@@ -180,12 +182,23 @@ export class DashboardComponent {
     this.sharedData.AllIssues$.subscribe((data) => {
       const all = data ?? [];
 
-      this.allIssues = all.filter((issue) => issue.severity == 'CRITICAL');
+      // Filter for notification-worthy issues (exclude MINOR and INFO)
+      const notifiableIssues = all.filter((issue) =>
+        ['CRITICAL', 'BLOCKER', 'MAJOR'].includes(issue.severity)
+      );
+
+      this.allIssues = notifiableIssues.filter((issue) => issue.severity === 'CRITICAL');
+
+      // Generate notifications for filtered issues
+      this.generateIssueNotifications(notifiableIssues);
     });
     if (!this.sharedData.hasIssuesCache) {
       console.log('No cache - load from server');
       this.loadIssues();
     }
+
+    // Load existing notifications from DB on page load
+    this.loadNotifications();
   }
   loadRepositories() {
     this.sharedData.setLoading(true);
@@ -664,15 +677,112 @@ export class DashboardComponent {
   }
 
   viewNotification(n: Notification) {
+    // อัปเดต UI ก่อนทันที (ไม่ต้องรอ API)
+    (n as any).isRead = true;
+
+    // เรียก API แบบ fire-and-forget
     this.notificationService.markAsRead(n.id).subscribe({
       next: () => {
-        (n as any).isRead = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
         console.log('Notification marked as read');
       },
       error: (err) => {
         console.error('Failed to mark as read:', err);
+        // ไม่ต้อง revert เพราะ navigation ทำไปแล้ว
       },
     });
+  }
+
+  /**
+   * Handle View Issue click - validate issue exists before navigating
+   */
+  handleViewIssue(n: Notification) {
+    // Mark notification as read first
+    this.viewNotification(n);
+
+    // Check if issue exists
+    if (!n.relatedIssueId) {
+      this.snack.open('Can not open issue', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Validate issue existence via API
+    this.issueService.getAllIssuesById(n.relatedIssueId).subscribe({
+      next: (issue) => {
+        if (issue) {
+          // Issue exists - navigate to issue detail
+          this.router.navigate(['/issuedetail', n.relatedIssueId]);
+        } else {
+          // Issue data is empty
+          this.snack.open('Can not open issue', '', {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red']
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to fetch issue:', err);
+        // Issue not found or error occurred
+        this.snack.open('Can not open issue', '', {
+          duration: 2500,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      },
+    });
+  }
+
+  /**
+   * Handle View Scan click - navigate to scan results
+   */
+  handleViewScan(n: Notification) {
+    this.viewNotification(n);
+
+    if (!n.relatedScanId) {
+      this.snack.open('Can not open scan results', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Navigate to scan result page
+    this.router.navigate(['/scanresult', n.relatedScanId]);
+  }
+
+  /**
+   * Handle View System notification - navigate based on context
+   */
+  handleViewSystem(n: Notification) {
+    this.viewNotification(n);
+
+    // Navigate based on what's related
+    if (n.relatedCommentId && n.relatedIssueId) {
+      // Comment notification - go to issue detail
+      this.router.navigate(['/issuedetail', n.relatedIssueId]);
+    } else if (n.relatedScanId) {
+      // Quality Gate notification - go to scan result
+      this.router.navigate(['/scanresult', n.relatedScanId]);
+    } else if (n.relatedProjectId) {
+      // Project related - go to repository detail
+      this.router.navigate(['/detailrepository', n.relatedProjectId]);
+    } else {
+      this.snack.open('No details available', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+    }
   }
 
   get filteredNotifications() {
@@ -702,6 +812,96 @@ export class DashboardComponent {
       return this.notifications.filter((n) => !n.isRead).length;
     return this.notifications.filter((n) => n.type === this.activeTab)
       .length;
+  }
+
+  // Track already notified issue IDs to avoid duplicate API calls
+  private notifiedIssueIds = new Set<string>();
+
+  /**
+   * Save issue notifications to DB, then refresh all notifications
+   * Checks existing notifications to prevent duplicates on page refresh
+   */
+  generateIssueNotifications(issues: IssuesResponseDTO[]): void {
+    if (!issues?.length) return;
+
+    const userId = this.tokenStorage.getLoginUser()?.id;
+    if (!userId) return;
+
+    // First, load existing notifications to check which issues already have notifications
+    this.notificationService.getAllNotifications().subscribe({
+      next: (existingNotifications) => {
+        // Build a set of issue IDs that already have notifications
+        const existingIssueIds = new Set(
+          existingNotifications
+            .filter(n => n.relatedIssueId)
+            .map(n => n.relatedIssueId)
+        );
+
+        // Add existing issue IDs to notifiedIssueIds Set
+        existingIssueIds.forEach(id => this.notifiedIssueIds.add(id!));
+
+        // Filter issues that haven't been notified yet (not in memory AND not in DB)
+        const newIssues = issues.filter(issue =>
+          !this.notifiedIssueIds.has(issue.id) && !existingIssueIds.has(issue.id)
+        );
+
+        // Always update notifications for display
+        this.notifications = existingNotifications;
+
+        if (!newIssues.length) {
+          console.log('No new issues to notify - displaying existing notifications');
+          return;
+        }
+
+        let completedCount = 0;
+
+        for (const issue of newIssues) {
+          // Determine title based on severity
+          let title = '';
+          if (issue.severity === 'CRITICAL') {
+            title = `🔴 ${issue.severity} ${issue.type} Issue`;
+          } else if (issue.severity === 'BLOCKER') {
+            title = `🔴 ${issue.severity} ${issue.type} Issue`;
+          } else {
+            title = `🟠 ${issue.severity} ${issue.type} Issue`;
+          }
+
+          // Create notification request
+          const request = {
+            userId: userId,
+            type: 'Issues',
+            title: title,
+            message: issue.message,
+            relatedIssueId: issue.id,
+            relatedProjectId: issue.projectData?.id
+          };
+
+          this.notificationService.createNotification(request).subscribe({
+            next: () => {
+              this.notifiedIssueIds.add(issue.id);
+              completedCount++;
+              console.log(`Notification created for issue: ${issue.id}`);
+
+              // After all notifications created, refresh the list
+              if (completedCount === newIssues.length) {
+                this.loadNotifications();
+              }
+            },
+            error: (err) => {
+              console.error('Failed to create notification:', err);
+              completedCount++;
+              // Still refresh even if some failed
+              if (completedCount === newIssues.length) {
+                this.loadNotifications();
+              }
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load existing notifications:', err);
+      }
+    });
   }
 
   // ================== PROJECT DISTRIBUTION ==================
