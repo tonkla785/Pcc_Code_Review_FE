@@ -159,43 +159,71 @@
         Comments
         <span class="comment-count">{{ issuesResult?.commentData?.length || 0 }}</span>
       </h3>
-      <button class="btn-refresh" (click)="loadComments()" [disabled]="loadingComments" title="Refresh comments">
-        <i class="bi bi-arrow-clockwise" *ngIf="!loadingComments"></i>
-        <span class="spinner-border spinner-border-sm" *ngIf="loadingComments"></span>
-        <span *ngIf="!loadingComments">Refresh</span>
-        <span *ngIf="loadingComments">Loading...</span>
-      </button>
+
     </div>
 
     <!-- Comment List -->
-    <div class="comments-list">
-      <div class="comment-item" *ngFor="let c of (issuesResult?.commentData ?? []); trackBy: trackByComment">
-        <div class="comment-avatar">
-          <i class="bi bi-person-circle"></i>
-        </div>
-        <div class="comment-content">
-          <div class="comment-header">
-            <strong class="comment-author">{{ c.user?.username }}</strong>
-            <span class="comment-time">
-              <i class="bi bi-clock"></i>
-              {{ c.createdAt | date:'dd/MM/yyyy, hh:mm a' }}
-            </span>
-          </div>
-          <p class="comment-text">{{ c.comment }}</p>
-        </div>
-         <div class="comment-actions">
+<div class="comments-list">
+
+  <!-- Root comments -->
+  <div class="reply-item"
+       *ngFor="let c of rootComments; trackBy: trackByComment">
+
+    <div class="comment-avatar">
+      <i class="bi bi-person-circle"></i>
+    </div>
+
+    <div class="comment-content">
+      <div class="comment-header">
+        <strong class="comment-author">{{ c.user?.username }}</strong>
+        <span class="comment-time">
+          <i class="bi bi-clock"></i>
+          {{ c.createdAt | date:'dd/MM/yyyy, HH:mm' }}
+        </span>
+      </div>
+      <p class="comment-text">{{ c.comment }}</p>
+    </div>
+
+    <div class="comment-actions">
       <button type="button" class="btn btn-link p-0" (click)="startReply(c)">
         Reply
       </button>
     </div>
-      </div>
 
-      <!-- Empty State -->
-      <div *ngIf="!issuesResult?.commentData?.length && !loadingComments" class="empty-comments">
-        <i class="bi bi-chat-square-text"></i>
-        <p>No comments yet. Be the first to share your thoughts!</p>
+    <!-- Replies under this comment -->
+    <div class="replies" *ngIf="(replies.get(c.id) ?? []).length">
+      <div class="comment-item reply-item"
+           *ngFor="let r of replies.get(c.id); trackBy: trackByComment">
+        <div class="comment-avatar">
+          <i class="bi bi-person-circle"></i>
+        </div>
+
+        <div class="comment-content">
+          <div class="comment-header">
+            <strong class="comment-author">{{ r.user?.username }}</strong>
+            <span class="comment-time">
+              <i class="bi bi-clock"></i>
+              {{ r.createdAt | date:'dd/MM/yyyy, HH:mm' }}
+            </span>
+          </div>
+          <p class="comment-text">{{ r.comment }}</p>
+        </div>
+
+        <div class="comment-actions">
+        </div>
+
       </div>
     </div>
+
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!rootComments.length && !loadingComments" class="empty-comments">
+    <i class="bi bi-chat-square-text"></i>
+    <p>No comments yet. Be the first to share your thoughts!</p>
+  </div>
+</div>
+
 
     <!-- Add Comment -->
 <div class="add-comment-box">
@@ -213,12 +241,12 @@
 
     <input 
       type="text" 
-      [placeholder]="replyTo ? 'Write a reply...' : 'Write a comment...'" 
+      [placeholder]=" 'Write a comment...'" 
       [(ngModel)]="newComment.comment"
       name="commentText"
       class="comment-input" 
       title="Write your comment"
-      (keyup.enter)="newComment.comment.trim() && postComment()"
+      (keyup.enter)="newComment?.comment?.trim() && postComment()"
     />
 
     <button 
