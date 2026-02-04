@@ -347,28 +347,28 @@ export class RepositoriesComponent implements OnInit {
     if (!repo?.projectId) {
       Swal.fire({
         icon: 'error',
-        title: 'ข้อมูลไม่ถูกต้อง',
-        text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
+        title: 'Invalid Data',
+        text: 'Repository project ID not found',
       });
       return;
     }
 
     Swal.fire({
-      title: 'ยืนยันการลบ Repository',
-      text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
+      title: 'Confirm Delete Repository',
+      text: 'This action cannot be undone',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'ลบข้อมูล',
-      cancelButtonText: 'ยกเลิก',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
       reverseButtons: true
     }).then((result) => {
       if (result.isConfirmed) {
 
-        // loading ตอนกำลังลบ
+        // Loading while deleting
         Swal.fire({
-          title: 'กำลังลบข้อมูล...',
+          title: 'Deleting...',
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
@@ -380,8 +380,8 @@ export class RepositoriesComponent implements OnInit {
             this.sharedData.removeRepository(repo.projectId!);
             Swal.fire({
               icon: 'success',
-              title: 'ลบสำเร็จ',
-              text: 'ลบ Repository เรียบร้อยแล้ว',
+              title: 'Deleted Successfully',
+              text: 'Repository has been deleted',
               timer: 1800,
               showConfirmButton: false
             });
@@ -393,8 +393,8 @@ export class RepositoriesComponent implements OnInit {
           error: () => {
             Swal.fire({
               icon: 'error',
-              title: 'ลบไม่สำเร็จ',
-              text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
+              title: 'Delete Failed',
+              text: 'An error occurred while deleting the repository',
             });
           }
         });
