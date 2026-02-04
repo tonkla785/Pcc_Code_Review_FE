@@ -268,7 +268,6 @@ postComment() {
   this.commentService.updateComments(payload).subscribe({
     next: (updated) => {
       this.sharedData.addComments(updated);
-      // reset input
       this.newComment = { comment: '' };
       this.replyTo = null;
       this.sendingComment = false;
