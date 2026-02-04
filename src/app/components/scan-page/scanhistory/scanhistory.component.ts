@@ -26,7 +26,6 @@ export class ScanhistoryComponent {
   statusFilter: string = 'ALL'; // Status filter
 
   scans: ScanResponseDTO[] = [];
-  filteredScans: ScanResponseDTO[] = [];
 
   // Pagination
   pageSize: number = 5;
@@ -36,8 +35,8 @@ export class ScanhistoryComponent {
   pages: number[] = [];
   ScanHistory: ScanResponseDTO[] = [];
   originalData: ScanResponseDTO[] = [];
-
-
+  filteredScan:  ScanResponseDTO[] = [];
+  filterType = 'ALL';
   constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
     private sharedData: SharedDataService,
   ) {
@@ -51,7 +50,8 @@ export class ScanhistoryComponent {
     this.sharedData.scansHistory$.subscribe(data => {
       this.originalData = data || [];
       this.ScanHistory = [...this.originalData];
-      this.applyFilter();
+      this.applyFilterStatus();
+      console.log('Scan history loaded from sharedData:', data);
     });
   }
 
@@ -62,44 +62,40 @@ export class ScanhistoryComponent {
       next: (data) => {
         this.sharedData.Scans = data;
         this.sharedData.setLoading(false);
+        this.applyFilterStatus();
       },
       error: () => this.sharedData.setLoading(false)
     });
   }
 
   applyFilter() {
-    let data = [...this.originalData];
 
-    // 1. Specific Date
     if (this.searchDate) {
       const searchDay = new Date(this.searchDate);
-      data = data.filter(item => {
+      this.ScanHistory = this.ScanHistory.filter(item => {
         const d = new Date(item.startedAt);
         return d.getFullYear() === searchDay.getFullYear() &&
           d.getMonth() === searchDay.getMonth() &&
           d.getDate() === searchDay.getDate();
       });
     }
-    // 2. Date Range (only if specific date is not set)
     else if (this.startDate && this.endDate) {
       const start = new Date(this.startDate);
       const end = new Date(this.endDate);
       end.setHours(23, 59, 59, 999);
-      data = data.filter(item => {
+      this.ScanHistory = this.ScanHistory.filter(item => {
         const d = new Date(item.startedAt);
         return d >= start && d <= end;
       });
     }
 
-    // 3. Status Filter
     if (this.statusFilter !== 'ALL') {
-      data = data.filter(item => item.status?.toUpperCase() === this.statusFilter);
+      this.ScanHistory = this.ScanHistory.filter(item => item.status?.toUpperCase() === this.statusFilter);
     }
 
-    this.ScanHistory = data;
-    this.filteredScans = data;
+    this.filteredScan = this.ScanHistory;
     this.currentPage = 1;
-    this.updatePagination();
+    this.updatePage();
   }
 
   resetFilters() {
@@ -121,17 +117,19 @@ export class ScanhistoryComponent {
     }
   }
 
-  updatePagination() {
+  updatePage() {
     this.totalPages = Math.ceil(this.ScanHistory.length / this.pageSize);
     if (this.totalPages === 0) this.totalPages = 1;
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
     this.updatePagedScans();
+    
   }
 
   updatePagedScans() {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
-    this.pagedScans = this.filteredScans.slice(start, end);
+    this.pagedScans = this.filteredScan.slice(start, end);
+    
   }
 
   goPage(page: number) {
@@ -139,7 +137,6 @@ export class ScanhistoryComponent {
     this.currentPage = page;
     this.updatePagedScans();
   }
-
   statusClass(status: string) {
     switch (status) {
       case 'SUCCESS': return 'text-success';
@@ -346,6 +343,40 @@ export class ScanhistoryComponent {
       this.selectedScans = this.selectedScans.filter(s => !this.pagedScans.some(p => p.id === s.id));
     }
   }
+applyFilterStatus() {
+  const matchType = (this.filterType || 'ALL').toLowerCase();
+
+  this.filteredScan = this.ScanHistory.filter(item => {
+    const d = new Date(item.startedAt);
+
+    let matchDate = true;
+
+    if (this.startDate && !this.endDate) {
+      const searchDay = new Date(this.startDate);
+      matchDate =
+        d.getFullYear() === searchDay.getFullYear() &&
+        d.getMonth() === searchDay.getMonth() &&
+        d.getDate() === searchDay.getDate();
+    }
+
+    if (this.startDate && this.endDate) {
+      const start = new Date(this.startDate);
+      const end = new Date(this.endDate);
+      end.setHours(23, 59, 59, 999);
+      matchDate = d >= start && d <= end;
+    }
+
+    const matchStatus =
+      matchType === 'all' ||
+      (item.status || '').toLowerCase() === matchType;
+
+    return matchDate && matchStatus;
+  });
+
+  this.currentPage = 1;
+  this.updatePage();
+}
+
 
 }
 
