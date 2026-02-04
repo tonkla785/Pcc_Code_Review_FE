@@ -115,55 +115,69 @@
         </div>
 
         <!-- Stats + Action Buttons -->
-        <div class="d-flex justify-content-between align-items-center mt-3">
-          <!-- Stats -->
-          <div class="repo-stats">
-            <span>
-              <i class="bi bi-bug me-1 text-danger"></i>{{ repo.metrics?.bugs }} Bugs
-            </span>
+        <div *ngIf="repo.status !== 'Scanning'">
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <!-- Stats -->
+            <div class="repo-stats">
+              <span>
+                <i class="bi bi-bug me-1 text-danger"></i>{{ repo.metrics?.bugs }} Bugs
+              </span>
 
-            <span>
-              <i class="bi bi-shield-lock me-1 text-warning"></i>{{ repo.metrics?.vulnerabilities }} Vulnerabilities
-            </span>
+              <span>
+                <i class="bi bi-shield-lock me-1 text-warning"></i>{{ repo.metrics?.vulnerabilities }} Vulnerabilities
+              </span>
 
-            <span>
-              <i class="bi bi-graph-up me-1 text-success"></i>{{ repo.metrics?.coverage }}% Coverage
-            </span>
+              <span>
+                <i class="bi bi-graph-up me-1 text-success"></i>{{ repo.metrics?.coverage }}% Coverage
+              </span>
 
-          </div>
+            </div>
 
-          <!-- Action Buttons -->
-          <div class="d-flex gap-2">
-            <!-- delete -->
-            <button class="btn btn-sm btn-outline-danger" title="Delete repository" (click)="onDelete(repo)">
-              <i class="bi bi-trash"></i>
-            </button>
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2">
+              <!-- delete -->
+              <button class="btn btn-sm btn-outline-danger" title="Delete repository" (click)="onDelete(repo)">
+                <i class="bi bi-trash"></i>
+              </button>
 
-            <!-- Run -->
-            <button class="btn btn-sm btn-outline-primary" title="RunScan" *ngIf="repo.status == 'Active'"
-              (click)="runScan(repo)">
-              <i class="bi bi-play-circle"></i>
-            </button>
+              <!-- Run -->
+              <button class="btn btn-sm btn-outline-primary" title="RunScan" *ngIf="repo.status == 'Active'"
+                (click)="runScan(repo)">
+                <i class="bi bi-play-circle"></i>
+              </button>
 
-            <!-- Resume (เฉพาะตอน Paused และ Scanning ไม่สำเร็จ) -->
-            <button class="btn btn-sm btn-outline-success" title="ResumeScan" *ngIf="repo.status === 'Error'"
-              (click)="resumeScan(repo)">
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
+              <!-- Resume (เฉพาะตอน Paused และ Scanning ไม่สำเร็จ) -->
+              <button class="btn btn-sm btn-outline-success" title="ResumeScan" *ngIf="repo.status === 'Error'"
+                (click)="resumeScan(repo)">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
 
 
-            <!-- Settings -->
-            <button class="btn btn-sm btn-outline-secondary" title="Settings" (click)="editRepo(repo)">
-              <i class="bi bi-sliders"></i>
-            </button>
+              <!-- Settings -->
+              <button class="btn btn-sm btn-outline-secondary" title="Settings" (click)="editRepo(repo)">
+                <i class="bi bi-sliders"></i>
+              </button>
 
-            <!-- View -->
-            <button class="btn btn-sm btn-outline-info" title="ViewDetails" (click)="viewRepo(repo)">
-              <i class="bi bi-eye"></i>
-            </button>
+              <!-- View -->
+              <button class="btn btn-sm btn-outline-info" title="ViewDetails" (click)="viewRepo(repo)">
+                <i class="bi bi-eye"></i>
+              </button>
 
+            </div>
           </div>
         </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div class="row" *ngIf="filteredRepositories.length === 0 && !loading">
+    <div class="col-12 text-center py-5">
+      <div class="no-data-container">
+        <i class="bi bi-folder2-open text-muted" style="font-size: 3rem;"></i>
+        <h4 class="mt-3 text-muted">No Repositories Found</h4>
+        <p class="text-secondary">Click the + button above to add your first repository</p>
       </div>
     </div>
   </div>

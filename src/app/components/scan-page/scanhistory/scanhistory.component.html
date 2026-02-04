@@ -7,25 +7,12 @@
     <!-- 2. Date Range -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Range:</label>
-      <input #startInput 
-        type="date"
-        [(ngModel)]="startDate" 
-        class="form-control form-control-sm bg-white text-dark"
-        style="color-scheme: light;"
-        (ngModelChange)="onStartDateChange()"
-        placeholder="Start Date"
-        (keydown)="$event.preventDefault()"
+      <input #startInput type="date" [(ngModel)]="startDate" class="form-control form-control-sm"
+       (ngModelChange)="applyFilterStatus()" placeholder="Start Date" (keydown)="$event.preventDefault()"
         (click)="startInput.showPicker()" />
       <span>-</span>
-      <input #endInput
-        type="date" 
-        [(ngModel)]="endDate"
-        class="form-control form-control-sm bg-white text-dark"
-        style="color-scheme: light;"
-        [min]="minEndDate"
-        placeholder="End Date" 
-        (keydown)="$event.preventDefault()"
-        (click)="endInput.showPicker()" />
+      <input #endInput type="date" [(ngModel)]="endDate" class="form-control form-control-sm" [min]="minEndDate"
+        placeholder="End Date" (ngModelChange)="applyFilterStatus()" (keydown)="$event.preventDefault()" (click)="endInput.showPicker()" />
     </div>
 
     <div class="vr"></div>
@@ -33,15 +20,15 @@
     <!-- 3. Status -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Status:</label>
-      <select class="form-control form-control-sm" [(ngModel)]="statusFilter" style="width: 120px;">
-        <option value="ALL">All</option>
+      <select class="form-control form-control-sm" (ngModelChange)="applyFilterStatus()" [(ngModel)]="filterType" (ngModelChange)="applyFilterStatus()"style="width: 120px;">
+        <option value="ALL">ALL</option>
         <option value="SUCCESS">Success</option>
         <option value="FAILED">Failed</option>
       </select>
     </div>
 
     <!-- Buttons -->
-    <button class="btn btn-primary btn-sm ms-auto" (click)="applyFilter()">
+    <button class="btn btn-primary btn-sm ms-auto" (click)="applyFilterStatus()">
       <i class="bi bi-search"></i> Search
     </button>
 
@@ -70,7 +57,7 @@
       </thead>
 
       <tbody>
-        <tr *ngIf="pagedScans.length === 0">
+        <tr *ngIf="pagedScans?.length === 0">
           <td colspan="7" class="text-center text-muted py-4">
             <i class="bi bi-inbox"></i> No Data
           </td>
