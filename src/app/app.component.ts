@@ -7,6 +7,8 @@ import { RepositoryService } from './services/reposervice/repository.service';
 import { ScanService } from './services/scanservice/scan.service';
 import { IssueService } from './services/issueservice/issue.service';
 import { AuthService } from './services/authservice/auth.service';
+import { NotificationService } from './services/notiservice/notification.service';
+import { TokenStorageService } from './services/tokenstorageService/token-storage.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 
@@ -29,6 +31,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private scanService: ScanService,
     private issueService: IssueService,
     private authService: AuthService,
+    private notificationService: NotificationService,
+    private tokenStorage: TokenStorageService,
     private snack: MatSnackBar
   ) { }
 
@@ -83,7 +87,7 @@ export class AppComponent implements OnInit, OnDestroy {
         // 1. ลบ LocalStorage
         localStorage.removeItem(`repo-status-${event.projectId}`);
 
-        // 2. แจ้งเตือน User
+        // 2. แจ้งเตือน User (Snackbar)
         this.snack.open(
           event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
           '',
@@ -95,8 +99,8 @@ export class AppComponent implements OnInit, OnDestroy {
           }
         );
 
-        // 3. ดึงข้อมูลรอบสอง (เพื่อเอาผลลัพธ์สุดท้ายมาโชว์)
-        this.fetchScanData(event.projectId, event.status);
+        // 3. ดึงข้อมูลรอบสอง (และสร้าง notification หลังจากได้ scanId ที่ถูกต้อง)
+        this.fetchScanDataAndNotify(event.projectId, event.status);
 
         // 4. ดึง Issues ใหม่มาทับ (ถ้า Success หรือ Failed)
         if (event.status === 'SUCCESS' || event.status === 'FAILED') {
@@ -163,6 +167,69 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Fetch scan data AND create notification with correct scanId from API
+   * (ใช้เฉพาะตอน scan เสร็จ SUCCESS/FAILED)
+   */
+  private fetchScanDataAndNotify(projectId: string, wsStatus: string) {
+    this.repoService.getFullRepository(projectId).subscribe({
+      next: (fullRepo) => {
+        if (!fullRepo) {
+          console.warn('[AppComponent] Full Repo is null for project:', projectId);
+          return;
+        }
+        console.log('[AppComponent] Full Repo fetched for notification:', fullRepo);
+
+        const projectName = fullRepo.name || 'Unknown Project';
+
+        // 1. อัปเดตข้อมูล Repository ในหน้า List
+        const merged = this.sharedData.repositoriesValue.map(repo => {
+          if (repo.projectId === projectId) {
+            return {
+              ...repo,
+              ...fullRepo,
+              status: this.mapStatus(wsStatus)
+            };
+          }
+          return repo;
+        });
+        this.sharedData.setRepositories(merged);
+
+        // 2. อัปเดตประวัติการสแกน และสร้าง Notification
+        if (fullRepo.scans && fullRepo.scans.length > 0) {
+          const latestScan = fullRepo.scans.reduce((prev, current) =>
+            (new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()) ? current : prev
+          );
+
+          // แก้ไข Race condition เผื่อไว้
+          if (latestScan.status === 'PENDING' && (wsStatus === 'SUCCESS' || wsStatus === 'FAILED')) {
+            latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
+          }
+
+          // อัปเดต scanId
+          const repoIndex = this.sharedData.repositoriesValue.findIndex(r => r.projectId === projectId);
+          if (repoIndex >= 0) {
+            const currentRepos = this.sharedData.repositoriesValue;
+            currentRepos[repoIndex] = {
+              ...currentRepos[repoIndex],
+              scanId: latestScan.id
+            };
+            this.sharedData.setRepositories(currentRepos);
+          }
+
+          this.sharedData.upsertScan(latestScan);
+          console.log('[AppComponent] Upserted latest scan:', latestScan);
+
+          // 3. สร้าง Notification ด้วย scanId ที่ถูกต้องจาก API
+          this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
+        } else {
+          console.warn('[AppComponent] No scans found for notification:', projectId);
+        }
+      },
+      error: err => console.error('Failed to refresh full repo for notification', err)
+    });
+  }
+
   // ดึง Issue ทั้งหมด แล้วเอาไปทับใน SharedData เลย (สำหรับอัปเดตหน้า Issue แบบ Real-time)
   private fetchAndOverwriteIssues() {
     // ไม่ต้องหน่วงเวลาแล้ว
@@ -172,6 +239,38 @@ export class AppComponent implements OnInit, OnDestroy {
         this.sharedData.IssuesShared = allIssues; // ทับข้อมูลเดิมทั้งหมด
       },
       error: (err) => console.error('[AppComponent] Failed to fetch issues', err)
+    });
+  }
+
+  /**
+   * Create scan notification and save to DB
+   */
+  private createScanNotification(projectId: string, scanId: string, status: string, projectName?: string): void {
+    const userId = this.tokenStorage.getLoginUser()?.id;
+    if (!userId) {
+      console.warn('[AppComponent] Cannot create notification - no user ID');
+      return;
+    }
+
+    // Use provided projectName or find from repositories
+    const name = projectName || this.sharedData.repositoriesValue.find(r => r.projectId === projectId)?.name || 'Unknown Project';
+
+    const isSuccess = status === 'SUCCESS';
+    const title = isSuccess ? '✅ Scan Completed' : '❌ Scan Failed';
+    const message = isSuccess
+      ? `${name} scan completed successfully`
+      : `${name} scan failed`;
+
+    this.notificationService.createNotification({
+      userId,
+      type: 'Scans',
+      title,
+      message,
+      relatedProjectId: projectId,
+      relatedScanId: scanId
+    }).subscribe({
+      next: (noti) => console.log('[AppComponent] Scan notification created:', noti),
+      error: (err) => console.error('[AppComponent] Failed to create scan notification:', err)
     });
   }
 

@@ -130,6 +130,10 @@ export class SharedDataService {
         this.selectedScan.next(data);
     }
 
+    get selectedScanValue(): ScanResponseDTO | null {
+        return this.selectedScan.getValue();
+    }
+
     private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
     readonly AllUser$ = this.AllUser.asObservable();
 
@@ -184,13 +188,13 @@ export class SharedDataService {
         return this.AllIssues.value ?? [];
     }
 
-        updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
+    updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
         const list = Array.isArray(updated) ? updated : [updated];
         const Id = new Map(list.map(i => [i.id, i]));
 
         const next = this.issuesValue.map(u => Id.get(u.id) ?? u);
         this.AllIssues.next(next);
-        }
+    }
 
     addIssues(newIssue: IssuesResponseDTO) {
         const next = [newIssue, ...this.issuesValue];

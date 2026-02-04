@@ -60,12 +60,27 @@
 
           <!-- รายการ Notifications -->
           <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.isRead"
+            [class.notification-critical]="n.title?.includes('🔴')" [class.notification-major]="n.title?.includes('🟠')"
             (click)="viewNotification(n)">
             <div class="item-header">
-              <!-- <span>{{ n.icon }} {{ n.title }}</span> -->
+              <span class="notification-title">{{ n.title || 'Notification' }}</span>
               <span class="item-time">{{ getTimeAgo(n.createdAt) }}</span>
             </div>
             <div class="item-message">{{ n.message }}</div>
+            <!-- Action button for Issues -->
+            <a *ngIf="n.type === 'Issues'" class="view-issue-link"
+              (click)="handleViewIssue(n); $event.stopPropagation()">
+              View Issue →
+            </a>
+            <!-- Action button for Scans -->
+            <a *ngIf="n.type === 'Scans'" class="view-issue-link" (click)="handleViewScan(n); $event.stopPropagation()">
+              View Results →
+            </a>
+            <!-- Action button for System -->
+            <a *ngIf="n.type === 'System'" class="view-issue-link"
+              (click)="handleViewSystem(n); $event.stopPropagation()">
+              View Details →
+            </a>
           </div>
 
           <!-- ปุ่ม Load More -->
@@ -186,9 +201,10 @@
               <td>{{ scan.project.name }}</td>
               <td [ngClass]="{
                   'status-cell status--passed': scan.status === 'SUCCESS',
+                  'status-cell status--warning': scan.status === 'PENDING',
                   'status-cell status--failed': scan.status === 'FAILED',
                 }">
-                {{ scan.status }}
+                {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
               </td>
               <!-- <td [ngClass]="{
               'grade-cell grade--a': scan.grade === 'A',
