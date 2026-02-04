@@ -167,8 +167,11 @@
       </div>
 
       <div class="card-footer d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-outline-primary" (click)="testConnection()">
-          <i class="bi bi-wifi"></i> Test Connection
+        <button type="button" class="btn btn-outline-primary" (click)="testConnection()"
+          [disabled]="isTestingConnection">
+          <span *ngIf="isTestingConnection" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          <i *ngIf="!isTestingConnection" class="bi bi-wifi"></i>
+          {{ isTestingConnection ? 'Testing...' : 'Test Connection' }}
         </button>
         <button type="button" class="btn btn-outline-warning" (click)="resetSettings()">Reset</button>
         <button type="submit" class="btn btn-success" [disabled]="sonarForm.invalid" (click)="saveSettings()">

@@ -44,7 +44,8 @@
     /* ===============================
        Filter Input
        =============================== */
-    .filter-row input {
+    .filter-row input,
+    .filter-row select {
       max-width: 150px; /* จำกัดความกว้าง */
       border: 1px solid var(--card-border); /* เส้นขอบ */
       border-radius: 6px; /* มุมโค้ง */
@@ -56,10 +57,17 @@
                   background-color 0.35s ease,
                   color 0.35s ease;
     }
-    .filter-row input:focus {
+    .filter-row input:focus,
+    .filter-row select:focus {
       outline: none; /* ไม่แสดงเส้นขอบค่า default */
       border-color: var(--btn-primary-bg-hover); /* เปลี่ยนสีเส้นขอบ */
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25); /* เพิ่มเงารอบ */
+    }
+
+    /* Select option styling for dark mode */
+    .filter-row select option {
+      background-color: var(--bg-panel);
+      color: var(--text-main);
     }
     
     

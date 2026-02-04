@@ -162,6 +162,29 @@ export class AddrepositoryComponent implements OnInit {
       next: (savedRepo) => {
         console.log('[ADD REPO RESPONSE]', savedRepo);
 
+        console.log('[ADD REPO RESPONSE]', savedRepo);
+
+        // Determine the ID to fetch (prioritize existing ID for edits)
+        const targetId = (this.isEditMode && this.gitRepository.projectId)
+          ? this.gitRepository.projectId
+          : (savedRepo.projectId || savedRepo.id);
+
+        if (targetId) {
+          // Fetch full data to ensure consistency (Status, Metrics, Scans)
+          this.repositoryService.getFullRepository(targetId).subscribe({
+            next: (fullRepo) => {
+              if (fullRepo) {
+                if (this.isEditMode) {
+                  this.sharedData.updateRepository(targetId, fullRepo);
+                } else {
+                  this.sharedData.addRepository(fullRepo);
+                }
+              }
+            },
+            error: (err) => console.error('Failed to fetch full repo after save', err)
+          });
+        }
+
         // แจ้งผลเพิ่ม/แก้ repo
         this.snack.open(
           this.isEditMode
@@ -176,32 +199,24 @@ export class AddrepositoryComponent implements OnInit {
           }
         );
 
-        // เรียก start scan ทันที API ใหม่
+        // เรียก startScan ทันที API ใหม่
         if (savedRepo?.projectId) {
 
           this.repositoryService.startScan(savedRepo.projectId, 'main').subscribe({
-            next: () => {
+            next: (newScan) => {
 
-              // แค่รีเฟรช list แล้วกลับหน้า repo
-              this.repositoryService.getAllRepo().subscribe(repos => {
-                this.repositoryService.getAllRepo().subscribe(repos => {
+              // Immediate update to Scan History (Real-time "Scanning" status)
+              if (newScan) {
+                this.sharedData.upsertScan(newScan);
+              }
 
-                  repos.forEach(r => {
-                    if (r.projectId === savedRepo.projectId) {
-                      r.status = 'Scanning';
-                      r.scanningProgress = 0;
-                    }
-                  });
+              // อัปเดตสถานะใน SharedData เป็น Scanning
+              this.sharedData.updateRepoStatus(savedRepo.projectId!, 'Scanning', 0);
 
-                  this.sharedData.setRepositories(repos);
-                  this.sharedData.setLoading(true);
-
-                  this.router.navigate(['/repositories'], {
-                    state: { message: 'Scan started successfully!' }
-                  });
-                });
-
+              this.router.navigate(['/repositories'], {
+                state: { message: 'Scan started successfully!' }
               });
+
             },
 
             error: (err) => {
@@ -212,16 +227,16 @@ export class AddrepositoryComponent implements OnInit {
                 verticalPosition: 'top',
                 panelClass: ['app-snack', 'app-snack-red']
               });
+              // Update status to Error if needed
+              this.sharedData.updateRepoStatus(savedRepo.projectId!, 'Error', 0);
+              this.router.navigate(['/repositories']);
             }
           });
         }
 
         else {
           // fallback: ไม่มี projectId ก็กลับหน้า list
-          this.repositoryService.getAllRepo().subscribe(repos => {
-            this.sharedData.setRepositories(repos);
-            this.router.navigate(['/repositories']);
-          });
+          this.router.navigate(['/repositories']);
         }
       },
       error: (err) => {

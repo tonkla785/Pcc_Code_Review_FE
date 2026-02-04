@@ -65,6 +65,21 @@ changePassword(data: ChangePasswordData) {
   );
 }
 
+sendVerifyEmail(userId: string) {
+  return this.http.post<void>(
+    `${this.baseUrl}/api/email-verification/send`,
+    { userId },
+    this.authOpts()
+  );
+}
+
+confirmVerifyEmail(token: string) {
+  return this.http.post<void>(
+    `${this.baseUrl}/api/email-verification/confirm`,
+    { token },
+    this.authOpts()
+  );
+}
 
 
 verifyEmail(email: string): Observable<User> {

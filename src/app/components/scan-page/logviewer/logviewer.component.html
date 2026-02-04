@@ -127,10 +127,15 @@
     <!-- Details -->
     <section class="mb-4">
       <h4><i class="bi bi-list-ul"></i> Details Analysis</h4>
-      <ul class="list-group list-group-flush">
+      <ul class="list-group list-group-flush" *ngIf="scanResult?.metrics?.analysisLogs?.length; else noDetailsAnalysis">
         <li class="list-group-item" *ngFor="let d of scanResult?.metrics?.analysisLogs">{{ d.message }} - {{ d.timestamp
           | date:'dd/MM/yyyy HH:mm:ss.SSS':'Asia/Bangkok' }}</li>
       </ul>
+      <ng-template #noDetailsAnalysis>
+        <div class="text-muted p-3 text-center">
+          No Details Analysis result available
+        </div>
+      </ng-template>
     </section>
 
     <!-- Warnings -->

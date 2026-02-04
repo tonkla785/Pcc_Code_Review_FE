@@ -8,52 +8,11 @@ import { environment } from '../../environments/environment';
 import { QualityGates } from '../../interface/sonarqube_interface';
 import { SonarQubeService } from '../sonarqubeservice/sonarqube.service';
 import { getLatestScan } from '../../utils/format.utils';
+import { ScanResponseDTO } from '../../interface/scan_interface';
+import { UserSettingsDataService } from '../shared-data/user-settings-data.service';
 
-export interface Repository {
-  id?: string;
-  projectId?: string;// UUID (string)
-  user?: string;// เทียบกับ user: string | undefined; มีก็ได้ไม่มีก็ได้
-  name: string;
-  repositoryUrl: string;
-  projectType?: 'ANGULAR' | 'SPRING_BOOT';
-  projectTypeLabel?: string;
-  branch?: string;
-  sonarProjectKey?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-
-  username?: string;
-  password?: string;
-
-  scans?: Scan[];
-  scanId?: string;
-  status?: 'Active' | 'Scanning' | 'Error';
-  lastScan?: Date;
-  scanningProgress?: number;
-  qualityGate?: string;
-  metrics?: {
-    bugs?: number;
-    vulnerabilities?: number;
-    codeSmells?: number;
-    coverage?: number;
-    duplications?: number;
-  };
-  issues?: Issue[];
-}
-
-//ตัว test lssue
-export interface ScanIssue {
-  id: string;
-  scanId: string;
-  issueKey: string;
-  type: 'Bug' | 'Vulnerability' | 'Code Smell';
-  severity: 'Blocker' | 'Critical' | 'Major' | 'Minor';
-  component: string;
-  message: string;
-  status: 'OPEN' | 'PENDING' | 'IN PROGRESS' | 'DONE' | 'REJECT';
-  createdAt: Date | string;
-  assignedTo?: string;
-}
+import { Repository, ScanIssue } from '../../interface/repository_interface';
+export type { Repository, ScanIssue };
 
 @Injectable({ providedIn: 'root' })
 export class RepositoryService {
@@ -71,25 +30,15 @@ export class RepositoryService {
   private readonly issueService = inject(IssueService);
   private readonly auth = inject(AuthService);
   private readonly SonarQubeService = inject(SonarQubeService);
+  private readonly userSettingsData = inject(UserSettingsDataService);
 
-  // สร้าง interface สำหรับ request
-  private getSonarConfigFromStorage() {
-    try {
-      const raw = localStorage.getItem('sonarConfig_v1');
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch (e) {
-      console.warn('Failed to load sonar config from localStorage', e);
-      return null;
-    }
-  }
-
-  // เริ่มสแกน - ส่ง settings จาก localStorage ไปด้วย
+  // เริ่มสแกน - ดึง settings จาก SharedData (SonarQube Config)
   startScan(projectId: string, branch: string = 'main'): Observable<any> {
     console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
 
-    // ดึง settings จาก localStorage
-    const sonarConfig = this.getSonarConfigFromStorage();
+    // ดึง SonarQube config จาก SharedData
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
+    console.log('[ScanService] SonarQube Config from SharedData:', sonarConfig);
 
     // สร้าง request body
     const requestBody: any = {
@@ -97,24 +46,30 @@ export class RepositoryService {
       sonarToken: sonarConfig?.authToken || ''
     };
 
-    // เพิ่ม Angular settings ถ้ามี
-    if (sonarConfig?.angularSettings) {
-      requestBody.angularSettings = {
-        runNpm: sonarConfig.angularSettings.runNpm || false,
-        coverage: sonarConfig.angularSettings.coverage || false,
-        tsFiles: sonarConfig.angularSettings.tsFiles || false,
-        exclusions: sonarConfig.angularSettings.exclusions || '**/node_modules/**,**/*.spec.ts'
-      };
-    }
+    // เพิ่ม Angular settings จาก SonarQube Config
+    requestBody.angularSettings = {
+      runNpm: sonarConfig?.angularRunNpm || false,
+      coverage: sonarConfig?.angularCoverage || false,
+      tsFiles: sonarConfig?.angularTsFiles || false,
+      exclusions: sonarConfig?.angularExclusions || '**/node_modules/**,**/*.spec.ts'
+    };
 
-    // เพิ่ม Spring settings ถ้ามี
-    if (sonarConfig?.springSettings) {
-      requestBody.springSettings = {
-        runTests: sonarConfig.springSettings.runTests || false,
-        jacoco: sonarConfig.springSettings.jacoco || false,
-        buildTool: sonarConfig.springSettings.buildTool || 'maven'
-      };
-    }
+    // เพิ่ม Spring settings จาก SonarQube Config
+    requestBody.springSettings = {
+      runTests: sonarConfig?.springRunTests || false,
+      jacoco: sonarConfig?.springJacoco || false,
+      buildTool: sonarConfig?.springBuildTool || 'maven',
+      jdkVersion: sonarConfig?.springJdkVersion || 17
+    };
+
+    // เพิ่ม Quality Gate settings
+    requestBody.qualityGateSettings = {
+      failOnError: sonarConfig?.qgFailOnError || false,
+      coverageThreshold: sonarConfig?.qgCoverageThreshold || 0,
+      maxBugs: sonarConfig?.qgMaxBugs || 0,
+      maxVulnerabilities: sonarConfig?.qgMaxVulnerabilities || 0,
+      maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
+    };
 
     console.log('[ScanService] Request body:', requestBody);
 
@@ -218,7 +173,6 @@ export class RepositoryService {
     }
   }
 
-
   // ดึง repo ทั้งหมด
   getAllRepo(): Observable<Repository[]> {
     const opts = this.authOpts(); // ใส่ Authorization header อย่างเดียว
@@ -269,22 +223,29 @@ export class RepositoryService {
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
             scanId: latestScan?.id, //เอาไว้ส่งให้หน้า detailrepo
             scans: mappedScans.map(scan => ({
-              scanId: scan.id,
-              projectId: scan.project.id,
-              projectName: scan.project.name,
-              status: scan.status,
-              startedAt: scan.startedAt ? new Date(scan.startedAt) : undefined,
-              completedAt: scan.completedAt ? new Date(scan.completedAt) : undefined,
-              qualityGate: this.scanService.mapQualityStatus(scan.qualityGate ?? ''),
+              id: scan.id,
+              project: scan.project,
+              status: scan.status as 'PENDING' | 'SUCCESS' | 'FAILED',
+              startedAt: scan.startedAt ? scan.startedAt.toISOString() : '',
+              completedAt: scan.completedAt ? scan.completedAt.toISOString() : undefined,
+              qualityGate: scan.qualityGate,
               metrics: {
-                bugs: scan.metrics?.bugs,
-                vulnerabilities: scan.metrics?.vulnerabilities,
-                codeSmells: scan.metrics?.codeSmells,
-                coverage: scan.metrics?.coverage,
-                duplications: scan.metrics?.duplicatedLinesDensity
+                bugs: scan.metrics?.bugs ?? 0,
+                vulnerabilities: scan.metrics?.vulnerabilities ?? 0,
+                codeSmells: scan.metrics?.codeSmells ?? 0,
+                coverage: scan.metrics?.coverage ?? 0,
+                debtRatio: 0,
+                duplicatedLinesDensity: scan.metrics?.duplicatedLinesDensity ?? 0,
+                maintainabilityRating: scan.metrics?.maintainabilityRating ?? scan.metrics?.sqale_rating ?? '',
+                reliabilityRating: scan.metrics?.reliabilityRating ?? scan.metrics?.reliability_rating ?? '',
+                securityHotspots: 0,
+                securityRating: scan.metrics?.securityRating ?? scan.metrics?.security_rating ?? '',
+                technicalDebtMinutes: 0,
+                analysisLogs: []
               },
-              log_file_path: scan.logFilePath
-            })),
+              logFilePath: scan.logFilePath ?? scan.log_file_path,
+              issueData: []
+            } as ScanResponseDTO)),
 
             // summary จาก startedAt ใหม่สุด
             status: cachedStatus
@@ -340,27 +301,19 @@ export class RepositoryService {
       map(project => {
         if (!project) return undefined;
 
-        const mappedScans: Scan[] = (project.scanData ?? []).map((s: any) => ({
-          scanId: s.id,
-          projectId: project.id,
-          projectName: project.name,
-          status: this.scanService.mapStatus(s.status),
+        // Raw scans from backend
+        const rawScans = project.scanData ?? [];
+
+        // Temporary map for logical processing (finding latest, etc) with Dates
+        const logicalScans = rawScans.map((s: any) => ({
+          ...s,
           startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
-          completedAt: s.completedAt ? new Date(s.completedAt) : undefined,
-          qualityGate: this.scanService.mapQualityStatus(s.qualityGate ?? ''),
-          metrics: {
-            bugs: s.metrics?.bugs,
-            vulnerabilities: s.metrics?.vulnerabilities,
-            coverage: s.metrics?.coverage,
-            codeSmells: s.metrics?.codeSmells,
-            duplications: s.metrics?.duplicatedLinesDensity
-          },
-          log_file_path: s.logFilePath
+          completedAt: s.completedAt ? new Date(s.completedAt) : undefined
         }));
 
         const latest = getLatestScan(
-          mappedScans,
-          s => s.completedAt
+          logicalScans,
+          (s: any) => s.completedAt
         );
 
         const gates = this.SonarQubeService.getQualityGates();
@@ -374,20 +327,47 @@ export class RepositoryService {
           sonarProjectKey: project.sonarProjectKey,
           createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
           updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
+          scanId: latest?.id, // Explicitly return latest scan ID for navigation support
 
-          scans: mappedScans,
+          // Map to ScanResponseDTO for output
+          scans: logicalScans.map((s: any) => ({
+            id: s.id,
+            project: project,
+            status: s.status as 'PENDING' | 'SUCCESS' | 'FAILED',
+            startedAt: s.startedAt ? s.startedAt.toISOString() : '',
+            completedAt: s.completedAt ? s.completedAt.toISOString() : undefined,
+            qualityGate: s.qualityGate,
+            metrics: s.metrics ? {
+              bugs: s.metrics.bugs ?? 0,
+              vulnerabilities: s.metrics.vulnerabilities ?? 0,
+              codeSmells: s.metrics.codeSmells ?? 0,
+              coverage: s.metrics.coverage ?? 0,
+              debtRatio: 0,
+              duplicatedLinesDensity: s.metrics.duplicatedLinesDensity ?? 0,
+              securityHotspots: 0,
+              technicalDebtMinutes: 0,
+              maintainabilityRating: s.metrics.maintainabilityRating ?? s.metrics.sqale_rating ?? '',
+              reliabilityRating: s.metrics.reliabilityRating ?? s.metrics.reliability_rating ?? '',
+              securityRating: s.metrics.securityRating ?? s.metrics.security_rating ?? '',
+              analysisLogs: []
+            } : null,
+            logFilePath: s.logFilePath ?? s.log_file_path,
+            issueData: []
+          } as ScanResponseDTO)),
 
-          status: latest?.status ?? 'Active',
-          lastScan: latest?.completedAt,
+          status: this.deriveRepoStatusFromScan(latest),
+          lastScan: (latest as any)?.completedAt,
 
           qualityGate: gates.failOnError
-            ? (latest?.metrics
-              ? this.evaluateQualityGate(latest.metrics, gates)
+            ? ((latest as any)?.metrics
+              ? this.evaluateQualityGate((latest as any).metrics, gates)
               : undefined)
-            : latest?.qualityGate,
+            : ((latest as any)?.qualityGate
+              ? this.scanService.mapQualityStatus((latest as any).qualityGate)
+              : undefined),
 
 
-          metrics: latest?.metrics
+          metrics: (latest as any)?.metrics
         } as Repository;
       })
     );
