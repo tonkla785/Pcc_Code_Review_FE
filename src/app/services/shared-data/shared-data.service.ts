@@ -184,10 +184,13 @@ export class SharedDataService {
         return this.AllIssues.value ?? [];
     }
 
-    updateIssues(updated: IssuesResponseDTO) {
-        const next = this.issuesValue.map(u => u.id === updated.id ? updated : u);
+        updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
+        const list = Array.isArray(updated) ? updated : [updated];
+        const Id = new Map(list.map(i => [i.id, i]));
+
+        const next = this.issuesValue.map(u => Id.get(u.id) ?? u);
         this.AllIssues.next(next);
-    }
+        }
 
     addIssues(newIssue: IssuesResponseDTO) {
         const next = [newIssue, ...this.issuesValue];
@@ -197,6 +200,22 @@ export class SharedDataService {
     removeIssues(issueId: string) {
         const next = this.issuesValue.filter(u => u.id !== issueId);
         this.AllIssues.next(next);
+    }
+
+    removeIssuesByProject(projectId: string) {
+        // 1. Find all scan IDs for this project from Scan History
+        const projectScanIds = new Set(
+            this.scanValue
+                .filter(s => s.project?.id === projectId)
+                .map(s => s.id)
+        );
+
+        // 2. Filter out issues that belong to these scans
+        const currentIssues = this.issuesValue;
+        const nextIssues = currentIssues.filter(issue => !projectScanIds.has(issue.scanId));
+
+        console.log(`[SharedData] Removing issues for project ${projectId}. Scans: ${projectScanIds.size}, Issues removed: ${currentIssues.length - nextIssues.length}`);
+        this.AllIssues.next(nextIssues);
     }
     private readonly selectedIssues = new BehaviorSubject<IssuesResponseDTO | null>(null);
     readonly selectedIssues$ = this.selectedIssues.asObservable();
@@ -276,25 +295,27 @@ export class SharedDataService {
     }
 
     /** เรียกหลัง login สำเร็จ */
-    setUserFromLoginResponse(response: {
-        id: string;
-        username: string;
-        password: string;
-        email: string;
-        phone?: string;
-        role: string;
-        status: string;
-    }): void {
-        const user: UserInfo = {
-            id: response.id,
-            username: response.username,
-            password: response.password || '',
-            email: response.email,
-            phone: response.phone,
-            status: response.status,
-            role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
-        };
-        this._currentUser$.next(user);
+    // setUserFromLoginResponse(response: {
+    //     id: string;
+    //     username: string;
+    //     password: string;
+    //     email: string;
+    //     phone?: string;
+    //     role: string;
+    // }): void {
+    //     const user: UserInfo = {
+    //         id: response.id,
+    //         username: response.username,
+    //         password: response.password || '',
+    //         email: response.email,
+    //         phone: response.phone,
+    //         role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
+    //     };
+    //     this._currentUser$.next(user);
+    // }
+
+    clearUser(): void {
+        this._currentUser$.next(null);
     }
 
     // ==================== REPOSITORY METHODS ====================
@@ -349,6 +370,7 @@ export class SharedDataService {
     removeRepository(projectId: string): void {
         const current = this._repositories$.getValue();
         this._repositories$.next(current.filter(r => r.projectId !== projectId));
+        this.removeIssuesByProject(projectId); // ✅ Remove issues first
         this.removeScansByProject(projectId);
     }
 
