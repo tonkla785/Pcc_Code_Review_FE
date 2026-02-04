@@ -203,14 +203,11 @@ export class SharedDataService {
     }
 
     removeIssuesByProject(projectId: string) {
-        // 1. Find all scan IDs for this project from Scan History
         const projectScanIds = new Set(
             this.scanValue
                 .filter(s => s.project?.id === projectId)
                 .map(s => s.id)
         );
-
-        // 2. Filter out issues that belong to these scans
         const currentIssues = this.issuesValue;
         const nextIssues = currentIssues.filter(issue => !projectScanIds.has(issue.scanId));
 
@@ -240,9 +237,27 @@ export class SharedDataService {
         if (!current) return;
         if (current.id !== patch.id) return;
 
-        // merge ของเดิม + ของใหม่ แล้ว next -> ทุก component ที่ subscribe จะอัปเดตทันที
+        // merge ของเดิม + ของใหม่ แล้ว next  ทุก component ที่ subscribe จะอัปเดตทันที
         const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
         this.selectedIssues.next(next);
+    }
+    private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
+    readonly Comments$ = this.Comments.asObservable();
+
+    get hasSelectedCommentLoaded(): boolean {
+        return this.Comments.value !== null;
+    }
+
+    get hasSelectedCommentCache(): boolean {
+        const data = this.Comments.value;
+        return data !== null;
+    }
+
+    set SelectedComment(data: commentResponseDTO) {
+        this.Comments.next(data);
+    }
+    get commentValue(): commentResponseDTO {
+        return this.Comments.value ?? null!;
     }
     addComments(newComment: commentResponseDTO) {
         const current = this.issueValue;
@@ -262,7 +277,7 @@ export class SharedDataService {
             ...current,
             commentData: [...commentData, newComment],
         };
-
+        console.log('Updated Issue with new comment:', next);
         this.selectedIssues.next(next);
     }
 

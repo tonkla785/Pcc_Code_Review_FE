@@ -264,21 +264,20 @@ export class IssuedetailComponent implements OnInit {
 
     this.sendingComment = true;
 
-    this.commentService.updateComments(payload).subscribe({
-      next: (updated) => {
-        this.sharedData.addComments(updated);
-        // reset input
-        this.newComment = { comment: '' };
-        this.replyTo = null;
-        this.sendingComment = false;
-      },
-      error: (err) => {
-        this.sendingComment = false;
-        console.error('Update comment failed:', err);
-        console.error('Payload was:', payload);
-      }
-    });
-  }
+  this.commentService.updateComments(payload).subscribe({
+    next: (updated) => {
+      this.sharedData.addComments(updated);
+      this.newComment = { comment: '' };
+      this.replyTo = null;
+      this.sendingComment = false;
+    },
+    error: (err) => {
+      this.sendingComment = false;
+      console.error('Update comment failed:', err);
+      console.error('Payload was:', payload);
+    }
+  });
+}
 
 
   onCommentKeydown(e: KeyboardEvent) {
