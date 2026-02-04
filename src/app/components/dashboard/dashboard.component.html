@@ -57,11 +57,11 @@
           </div>
 
           <!-- รายการ Notifications -->
-          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.read"
+          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.isRead"
             (click)="viewNotification(n)">
             <div class="item-header">
               <!-- <span>{{ n.icon }} {{ n.title }}</span> -->
-              <span class="item-time">{{ getTimeAgo(n.timestamp) }}</span>
+              <span class="item-time">{{ getTimeAgo(n.createdAt) }}</span>
             </div>
             <div class="item-message">{{ n.message }}</div>
           </div>
@@ -84,7 +84,7 @@
             <p><strong>Username:</strong> {{ UserLogin?.username }}</p>
             <p><strong>Email:</strong> {{ UserLogin?.email }}</p>
             <p><strong>Phone Number:</strong> {{ UserLogin?.phone }}</p>
-            <!-- <p>
+            <p>
               <strong>Status:</strong>
               <span [ngClass]="{
             'status-pending': userProfile?.status === 'PENDING_VERIFICATION',
@@ -92,7 +92,7 @@
           }">
                 {{ userProfile?.status }}
               </span>
-            </p> -->
+            </p>
           </div>
 
           <!-- ปุ่มเปลี่ยนรหัสผ่าน -->
@@ -135,7 +135,8 @@
             <apx-chart [series]="pieChartOptions.series!" [chart]="pieChartOptions.chart!"
               [labels]="pieChartOptions.labels!" [plotOptions]="pieChartOptions.plotOptions!"
               [colors]="pieChartOptions.colors!" [dataLabels]="pieChartOptions.dataLabels!"
-              [legend]="pieChartOptions.legend!" [tooltip]="pieChartOptions.tooltip!">
+              [legend]="pieChartOptions.legend!" [tooltip]="pieChartOptions.tooltip!"
+              [states]="pieChartOptions.states!">
             </apx-chart>
           </div>
         </div>

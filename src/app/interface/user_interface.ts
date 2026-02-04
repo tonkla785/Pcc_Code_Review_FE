@@ -21,7 +21,7 @@ export interface LoginUser {
 
 /**
  * Login Response from API
- */ 
+ */
 export interface LoginRequest {
   email: string;
   password: string;
@@ -34,7 +34,7 @@ export interface LoginResponse {
   email: string;
   phone: string;
   role: string;
-  status:string;
+  status: string;
 }
 
 export interface RefreshResponse {
