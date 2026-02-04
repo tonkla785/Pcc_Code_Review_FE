@@ -18,7 +18,11 @@ export interface PptReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
+        technicalDebt?: boolean;
+        trendAnalysis?: boolean;
+        recommendations?: boolean;
     };
+    recommendationsData?: any[];
 }
 
 @Injectable({
@@ -50,6 +54,11 @@ export class PowerpointService {
         //issueBreakdown    
         if (context.selectedSections.issueBreakdown) {
             this.addIssueSlide(pptx, context);
+        }
+
+        // Recommendations
+        if (context.selectedSections.recommendations && context.recommendationsData) {
+            this.addRecommendationsSlide(pptx, context);
         }
 
         const filename = `report-${context.projectName}-${context.dateFrom}-to-${context.dateTo}.pptx`;
@@ -203,5 +212,33 @@ export class PowerpointService {
         if (/^[A-E]$/i.test(s)) return s.toUpperCase();
         if (s === 'OK') return 'A';
         return s;
+    }
+    
+    private addRecommendationsSlide(pptx: any, context: PptReportContext) {
+        if (!context.recommendationsData || context.recommendationsData.length === 0) return;
+
+        let slide = pptx.addSlide();
+        slide.addText('Recommendations', { x: 0.5, y: 0.5, w: '90%', h: 0.5, fontSize: 24, bold: true, color: '0088CC' });
+
+        const rows: any[][] = [['Severity', 'Type', 'Issue', 'Fix']];
+        context.recommendationsData.slice(0, 7).forEach(rec => {
+            rows.push([
+                rec.severity,
+                rec.type,
+                rec.message.substring(0, 50) + (rec.message.length > 50 ? '...' : ''),
+                rec.recommendedFix.substring(0, 50) + (rec.recommendedFix.length > 50 ? '...' : '')
+            ]);
+        });
+
+        slide.addTable(rows, {
+            x: 0.5,
+            y: 1.2,
+            w: 9.0,
+            colW: [1.0, 1.0, 3.5, 3.5],
+            fontSize: 10,
+            border: { pt: 1, color: 'CCCCCC' },
+            autoPage: true,
+            startY: 1.2
+        });
     }
 }

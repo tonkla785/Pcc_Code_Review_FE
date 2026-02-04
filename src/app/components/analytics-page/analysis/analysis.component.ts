@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
@@ -21,6 +21,8 @@ interface DebtProject {
   color: string;
 }
 
+import { Subscription } from 'rxjs';
+
 @Component({
   selector: 'app-analysis',
   standalone: true,
@@ -28,7 +30,7 @@ interface DebtProject {
   templateUrl: './analysis.component.html',
   styleUrl: './analysis.component.css'
 })
-export class AnalysisComponent implements OnInit {
+export class AnalysisComponent implements OnInit, OnDestroy {
 
   securityScore = 0;
   technicalDebt = '0d';
@@ -39,6 +41,8 @@ export class AnalysisComponent implements OnInit {
 
   topSecurityIssues: HotSecurityIssue[] = [];
   topDebtProjects: DebtProject[] = [];
+
+  private subscriptions = new Subscription();
 
   get summaryCards() {
     return [
@@ -70,19 +74,26 @@ export class AnalysisComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadSecurityData();
-    this.loadTechnicalDebt();
-  }
 
-  loadSecurityData(): void {
+    this.subscriptions.add(
+      this.sharedData.securityScore$.subscribe(score => {
+        this.securityScore = score;
+      })
+    );
 
-    this.sharedData.securityScore$.subscribe(score => {
-      this.securityScore = score;
-    });
+    this.subscriptions.add(
+      this.sharedData.hotIssues$.subscribe(issues => {
+        this.topSecurityIssues = issues;
+      })
+    );
 
-    this.sharedData.hotIssues$.subscribe(issues => {
-      this.topSecurityIssues = issues;
-    });
+    this.subscriptions.add(
+      this.sharedData.scansHistory$.subscribe(scans => {
+        if (scans && scans.length > 0) {
+          this.calculateDebt(scans);
+        }
+      })
+    );
 
     if (!this.sharedData.hasSecurityIssuesCache) {
       this.securityService.getSecurityIssues().subscribe({
@@ -93,16 +104,17 @@ export class AnalysisComponent implements OnInit {
         error: (err) => console.error('Failed to load security data:', err)
       });
     }
+
+    if (!this.sharedData.hasScansHistoryCache) {
+      this.scanService.getScansHistory().subscribe({
+        next: (data) => this.sharedData.Scans = data,
+        error: (err) => console.error('Failed to load scan history', err)
+      });
+    }
   }
 
-  loadTechnicalDebt(): void {
-    this.scanService.getScansHistory().subscribe({
-      next: (data) => {
-        this.sharedData.Scans = data;
-        this.calculateDebt(data);
-      },
-      error: (err) => console.error('Failed to load scan history', err)
-    });
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   private calculateDebt(scans: ScanResponseDTO[]): void {

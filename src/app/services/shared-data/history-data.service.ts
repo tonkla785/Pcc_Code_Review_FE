@@ -19,7 +19,11 @@ export interface ReportSnapshot {
             qualityGate: boolean;
             issueBreakdown: boolean;
             securityAnalysis: boolean;
+            technicalDebt?: boolean;
+            trendAnalysis?: boolean;
+            recommendations?: boolean;
         };
+        recommendationsData?: any[];
     };
 }
 
