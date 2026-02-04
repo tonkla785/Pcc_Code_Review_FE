@@ -150,6 +150,24 @@ export class AddrepositoryComponent implements OnInit {
       return;
     }
 
+    // Validate Duplicate Name
+    const currentRepos = this.sharedData.repositoriesValue;
+    const isDuplicate = currentRepos.some(r =>
+      r.name.trim().toLowerCase() === this.gitRepository.name.trim().toLowerCase() &&
+      r.projectId !== this.gitRepository.projectId
+    );
+
+    if (isDuplicate) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ชื่อโปรเจกต์ซ้ำ',
+        text: 'มีโปรเจกต์ชื่อนี้อยู่แล้วในระบบ กรุณาใช้ชื่ออื่น',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
     // Validate SonarQube Token
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
     console.log('Validating Token:', sonarConfig);
