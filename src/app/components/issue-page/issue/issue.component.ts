@@ -8,8 +8,11 @@ import { RouterLink, Router } from '@angular/router';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
-import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
 import { ScanService } from '../../../services/scanservice/scan.service';
+import { forkJoin } from 'rxjs';
+import { User, UserService } from '../../../services/userservice/user.service';
+import { UserInfo } from '../../../interface/user_interface';
 
 interface Issue {
   issuesId: string;
@@ -47,6 +50,11 @@ export class IssueComponent {
   originalData: IssuesResponseDTO[] = [];
   filteredIssue: IssuesResponseDTO[] = [];
   selectedIssues: IssuesResponseDTO[] = [];
+  selectedIdsForAssign: string[] = [];
+  issueDraft: IssuesRequestDTO = { id: '', status: 'OPEN', assignedTo: '' };
+  showAssignModal = false;
+  savingAssign = false;
+  UserData: UserInfo[] = [];
   constructor(
     private readonly router: Router,
     private readonly issueApi: IssueService,
@@ -54,9 +62,19 @@ export class IssueComponent {
     private readonly repositoryService: RepositoryService,
     private readonly sharedData: SharedDataService,
     private readonly issuesService: IssueService,
+    private readonly userDataService: UserService
   ) { }
 
   ngOnInit(): void {
+           if(!this.sharedData.hasUserCache){
+      this.loadUser();
+      console.log("No cache - load from server");
+    }
+    this.sharedData.AllUser$.subscribe(data => { 
+        this.UserData = data ?? [];
+        // this.applyFilter();
+        console.log('User loaded Modal from sharedData:', data);
+      });
     this.sharedData.AllIssues$.subscribe(data => { 
        this.originalData = data || [];
        this.issuesAll = [...this.originalData];
@@ -81,7 +99,18 @@ loadIssues() {
     error: () => this.sharedData.setLoading(false)
   });
 }
-
+  loadUser() {
+    this.sharedData.setLoading(true);
+    this.userDataService.getUser().subscribe({
+      next: (data) => {
+        this.sharedData.UserShared = data;
+        this.sharedData.setLoading(false);
+        console.log('User loaded Modal:', data);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
+  
 
 
   // ---------- Filters ----------
@@ -104,78 +133,6 @@ loadIssues() {
   loading = false;
   errorMsg = '';
 
-  // ดาต้าจริง (แทน mock)
-
-
-  // ---------- Fetch ----------
-
-
-  private buildTopIssues() {
-    const counter: Record<string, number> = {};
-
-    // นับตาม message อย่างเดียว
-    for (const it of this.issues) {
-      const msg = (it.message || '(no message)').trim().toLowerCase();
-      counter[msg] = (counter[msg] || 0) + 1;
-    }
-
-    // แปลงเป็น array แล้ว sort
-    const arr: TopIssue[] = Object.entries(counter)
-      .map(([message, count]) => ({ message, count }))
-      .sort((a, b) => b.count - a.count);   // มาก → น้อย
-
-    // เก็บเฉพาะจำนวนที่อยากโชว์ป
-    this.topIssues = arr.slice(0, this.maxTop);
-  }
-
-  private mapApiIssueToUi(r: import('../../../services/issueservice/issue.service').Issue): Issue {
-    // type mapping: 'Bug' | 'Vulnerability' | 'Code Smell'  ->  'bug' | 'security' | 'code-smell'
-    const typeMap: Record<string, string> = {
-      'BUG': 'bug',
-      'VULNERABILITY': 'security',
-      'CODE SMELL': 'code-smell',
-      'CODE_SMELL': 'code-smell'
-    };
-    const uiType = typeMap[(r.type || '').toUpperCase()] || (r.type || '').toLowerCase();
-
-    // severity mapping: Blocker->critical, Critical->high, Major->medium, Minor->low
-    const sevMap: Record<string, string> = {
-      'BLOCKER': 'critical',
-      'CRITICAL': 'high',
-      'MAJOR': 'medium',
-      'MINOR': 'low'
-    };
-    const uiSeverity = sevMap[(r.severity || '').toUpperCase()] || (r.severity || '').toLowerCase();
-
-    // status mapping: 'Open' | 'In Progress' | 'Resolved' | 'Closed' -> 'open' | 'in-progress' | 'resolved' | 'closed'
-    const st = (r.status || '').toLowerCase();
-    const uiStatus =
-      st.includes('open') ? 'open' :
-        st.includes('in progress') ? 'in-progress' :
-          st.includes('done') ? 'done' :
-            st.includes('reject') ? 'reject' :
-              st.includes('pending') ? 'pending' :  // <-- เพิ่มบรรทัดนี้
-                'open';
-
-
-    // assignee: ใช้ user_id/assignedTo ถ้ามี
-    const rawAssignee = r.assignedName || '';
-    const assignee = rawAssignee ? `@${rawAssignee}` : 'Unassigned';
-
-    // project: ถ้าไม่มีชื่อให้ fallback เป็น project_id
-
-    return {
-      issuesId: r.issueId,
-      type: uiType,
-      severity: uiSeverity,
-      message: r.message || '(no message)',
-      details: r.component || '',
-      projectName: r.projectName,
-      assignee,
-      status: uiStatus,
-      selected: false
-    };
-  }
 
   // ---------- Filter / Page ----------
   filterIssues() {
@@ -217,6 +174,25 @@ loadIssues() {
     return this.filteredIssues.slice(start, start + this.pageSize);
   }
 
+  allSelected(): boolean {
+    // Check if ALL currently displayed (paged) items are selected
+    return this.paginatedIssues.length > 0 && this.paginatedIssues.every(issue => this.isSelected(issue));
+  }
+    toggleSelectAll(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+
+    if (checked) {
+      // Add all currently visible items to selection if not already there
+      this.paginatedIssues.forEach(issue => {
+        if (!this.isSelected(issue)) {
+          this.selectedIssues.push(issue);
+        }
+      });
+    } else {
+      // Remove all currently visible items from selection
+      this.selectedIssues = this.selectedIssues.filter(s => !this.paginatedIssues.some(p => p.id === s.id));
+    }
+  }
 
   nextPage() {
     if (this.currentPage * this.pageSize < this.filteredIssues.length) {
@@ -230,7 +206,6 @@ loadIssues() {
     }
   }
 
-  // ---------- Selection ----------
   // isPageAllSelected(): boolean {
   //   return this.paginatedIssues.length > 0 && this.paginatedIssues.every(i => !!i.selected);
   // }
@@ -265,31 +240,49 @@ loadIssues() {
 
     //   alert(`Sent assign requests for ${selectedIssues.length} issue(s).`); // แจ้งแบบง่าย ๆ- Actions (ยังคงเค้าโครงเดิม) ----------
   assignDeveloper() {
+    const ids = Array.from(this.selectedIssues);
+    if (ids.length === 0) return;
 
   }
+openAssignModal() {
+  const ids = this.selectedIssues.map(i => i.id);
+  if (ids.length === 0) return;
 
-  changeStatus() {
-    // const selectedIssues = this.issues.filter(i => i.selected);
-    // if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
+  this.selectedIdsForAssign = ids;       
+  this.issueDraft = { id: '', assignedTo: '', status: 'OPEN' }; 
+  this.showAssignModal = true;
+}
+closeAssignModal() {
+  this.showAssignModal = false;
+}
+saveAssign(form: any) {
+  if (!form.valid) return;
 
-    // const statusSteps = ['open', 'in-progress', 'resolved', 'closed'];
-    // selectedIssues.forEach(row => {
-    //   const idx = statusSteps.indexOf(row.status);
-    //   const next = statusSteps[Math.min(idx + 1, statusSteps.length - 1)];
-    //   // แปลงกลับเป็นรูปแบบ API
-    //   const apiStatus =
-    //     next === 'in-progress' ? 'In Progress' :
-    //     next === 'resolved'    ? 'Resolved' :
-    //     next === 'closed'      ? 'Closed' : 'Open';
+  const reqs = this.selectedIdsForAssign.map((id) => {
+    const payload: IssuesRequestDTO = {
+      id,
+      assignedTo: this.issueDraft.assignedTo,
+      status: 'IN PROGRESS'  
+    };
+    return this.issuesService.updateIssues(payload); 
+  });
 
-    //   this.issueApi.updateStatus(row.issuesId, apiStatus as any).subscribe({
-    //     next: () => row.status = next,
-    //     error: (e) => console.error('update status failed', e)
-    //   });
-    // });
+  this.savingAssign = true;
 
-    // alert(`Requested status change for ${selectedIssues.length} issue(s).`);
-  }
+  forkJoin(reqs).subscribe({
+    next: (results) => {
+      this.sharedData.updateIssues(results)
+      console.log('Assign successful for all selected issues:', results);
+      this.selectedIdsForAssign = [];
+      this.savingAssign = false;
+      this.closeAssignModal();
+    },
+    error: (err) => {
+      console.error('Assign failed:', err);
+      this.savingAssign = false;
+    }
+  });
+}
 
   exportData() {
     const selectedIssues = this.issues.filter(i => i.selected);

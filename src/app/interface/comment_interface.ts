@@ -4,6 +4,7 @@ import { UserInfo } from "./user_interface";
   issueId?: string;
   userId?: string;
   comment?: string;
+  parentCommentId?: string;
   }
     export interface commentResponseDTO {
         id: string,
@@ -11,4 +12,6 @@ import { UserInfo } from "./user_interface";
         user:UserInfo,
         comment: string,
         createdAt: string
+        parentCommentId?: string;
+        
   }
