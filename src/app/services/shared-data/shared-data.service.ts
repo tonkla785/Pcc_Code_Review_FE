@@ -130,6 +130,10 @@ export class SharedDataService {
         this.selectedScan.next(data);
     }
 
+    get selectedScanValue(): ScanResponseDTO | null {
+        return this.selectedScan.getValue();
+    }
+
     private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
     readonly AllUser$ = this.AllUser.asObservable();
 
@@ -184,13 +188,13 @@ export class SharedDataService {
         return this.AllIssues.value ?? [];
     }
 
-        updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
+    updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
         const list = Array.isArray(updated) ? updated : [updated];
         const Id = new Map(list.map(i => [i.id, i]));
         
         const next = this.issuesValue.map(u => Id.get(u.id) ?? u);
         this.AllIssues.next(next);
-        }
+    }
 
     addIssues(newIssue: IssuesResponseDTO) {
         const next = [newIssue, ...this.issuesValue];
@@ -205,13 +209,31 @@ export class SharedDataService {
     removeIssuesByProject(projectId: string) {
         const projectScanIds = new Set(
             this.scanValue
-                .filter(s => s.project?.id === projectId)
+                .filter(s =>
+                    // Fix: รองรับทั้ง project.id และ projectId (Flat)
+                    (s.project?.id === projectId) ||
+                    ((s as any).projectId === projectId)
+                )
                 .map(s => s.id)
         );
-        const currentIssues = this.issuesValue;
-        const nextIssues = currentIssues.filter(issue => !projectScanIds.has(issue.scanId));
+<<<<<<< HEAD
+=======
 
-        console.log(`[SharedData] Removing issues for project ${projectId}. Scans: ${projectScanIds.size}, Issues removed: ${currentIssues.length - nextIssues.length}`);
+        // 2. Filter out issues that belong to these scans OR match project ID directly
+>>>>>>> dev
+        const currentIssues = this.issuesValue;
+        const nextIssues = currentIssues.filter(issue => {
+            // Check direct project mapping (Works even if Scans are not loaded)
+            if (issue.projectData?.id === projectId) return false;
+            if ((issue as any).projectId === projectId) return false;
+
+            // Check nested scan mapping
+            if (projectScanIds.has(issue.scanId)) return false;
+
+            return true;
+        });
+
+        console.log(`[SharedData] Removing issues for project ${projectId}. Removed: ${currentIssues.length - nextIssues.length}`);
         this.AllIssues.next(nextIssues);
     }
     private readonly selectedIssues = new BehaviorSubject<IssuesResponseDTO | null>(null);
@@ -237,9 +259,31 @@ export class SharedDataService {
         if (!current) return;
         if (current.id !== patch.id) return;
 
+<<<<<<< HEAD
+=======
+        // merge ของเดิม + ของใหม่ แล้ว next  ทุก component ที่ subscribe จะอัปเดตทันที
+>>>>>>> dev
         const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
         this.selectedIssues.next(next);
         this.updateIssues(next);
+    }
+    private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
+    readonly Comments$ = this.Comments.asObservable();
+
+    get hasSelectedCommentLoaded(): boolean {
+        return this.Comments.value !== null;
+    }
+
+    get hasSelectedCommentCache(): boolean {
+        const data = this.Comments.value;
+        return data !== null;
+    }
+
+    set SelectedComment(data: commentResponseDTO) {
+        this.Comments.next(data);
+    }
+    get commentValue(): commentResponseDTO {
+        return this.Comments.value ?? null!;
     }
     private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
     readonly Comments$ = this.Comments.asObservable();

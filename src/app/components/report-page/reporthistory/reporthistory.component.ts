@@ -1,23 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Router } from '@angular/router';
-import { HistoryDataService } from '../../../services/shared-data/history-data.service';
+import { ReportHistoryService } from '../../../services/reporthistoryservice/report-history.service';
+import { ReportHistoryDataService } from '../../../services/shared-data/report-history-data.service';
+import { ReportHistory } from '../../../interface/report_history_interface';
 import { ExcelService } from '../../../services/report-generator/excel/excel.service';
 import { WordService } from '../../../services/report-generator/word/word.service';
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
 import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subscription, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
-interface ReportHistory {
-  project: string;
-  dateRange: string;
-  generatedBy: string;
-  generatedAt: Date;
-  format: string;
-  snapshotId?: string;
-}
 @Component({
   selector: 'app-reporthistory',
   standalone: true,
@@ -25,17 +21,22 @@ interface ReportHistory {
   templateUrl: './reporthistory.component.html',
   styleUrl: './reporthistory.component.css'
 })
-export class ReporthistoryComponent {
+export class ReporthistoryComponent implements OnInit, OnDestroy {
 
   searchText: string = '';
   reports: ReportHistory[] = [];
   currentPage = 1;
   pageSize = 5;
+  loading = false;
+
+  private subscriptions: Subscription[] = [];
+  private searchSubject = new Subject<string>();
 
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
-    private readonly historyDataService: HistoryDataService,
+    private readonly reportHistoryService: ReportHistoryService,
+    private readonly reportHistoryDataService: ReportHistoryDataService,
     private readonly excelService: ExcelService,
     private readonly wordService: WordService,
     private readonly pptService: PowerpointService,
@@ -48,119 +49,132 @@ export class ReporthistoryComponent {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadHistory();
+
+    const reportSub = this.reportHistoryDataService.reportHistory$.subscribe(reports => {
+      this.reports = reports;
+    });
+    this.subscriptions.push(reportSub);
+
+    const loadingSub = this.reportHistoryDataService.loading$.subscribe(loading => {
+      this.loading = loading;
+    });
+    this.subscriptions.push(loadingSub);
+
+    this.setupSearchSubscription();
   }
 
-  loadHistory() {
-    const storageKey = 'report_history';
-    const raw = localStorage.getItem(storageKey);
-    if (raw) {
-      const data = JSON.parse(raw);
-      this.reports = data.map((item: any) => {
-        return {
-          project: item.project || (item.projects && item.projects.length ? item.projects[0] : '-'),
-          dateRange: item.dateRange,
-          generatedBy: item.generatedBy,
-          generatedAt: item.generatedAt,
-          format: item.format,
-          snapshotId: item.snapshotId
-        };
-      });
-      this.reports.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
-    }
+  private setupSearchSubscription(): void {
+    const searchSub = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(keyword => {
+        if (!keyword || keyword.trim() === '') {
+          return this.reportHistoryService.getAllReportHistory();
+        }
+        return this.reportHistoryService.searchByProjectName(keyword);
+      })
+    ).subscribe({
+      next: (results) => {
+        this.reports = results;
+        this.currentPage = 1;
+      },
+      error: (err) => {
+        console.error('Search failed:', err);
+      }
+    });
+    this.subscriptions.push(searchSub);
   }
 
-  filteredReports() {
-    return this.reports.filter(r =>
-      !this.searchText ||
-      r.project.toLowerCase().includes(this.searchText.toLowerCase())
-    );
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchText);
   }
 
-  paginatedReports() {
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  filteredReports(): ReportHistory[] {
+    return this.reports;
+  }
+
+  paginatedReports(): ReportHistory[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredReports().slice(start, start + this.pageSize);
   }
 
-  totalPages() {
+  totalPages(): number {
     return Math.ceil(this.filteredReports().length / this.pageSize);
   }
 
-  nextPage() {
+  nextPage(): void {
     if (this.currentPage < this.totalPages()) {
       this.currentPage++;
     }
   }
 
-  prevPage() {
+  prevPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
     }
   }
 
-  downloadReport(report: ReportHistory) {
-    if (!report.snapshotId) {
-      this.snack.open('Cant download report','close',
-        {
-          duration: 2000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red'],
-        }
+  getDateRange(report: ReportHistory): string {
+    return `${report.dateFrom} to ${report.dateTo}`;
+  }
 
-      )
-      return;
-    }
-
-    const snapshot = this.historyDataService.getReportSnapshotById(report.snapshotId);
-    if (!snapshot) {
-      this.snack.open('Cant download report','close',
-        {
-          duration: 2000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red'],
-        }
-
-      )
+  downloadReport(report: ReportHistory): void {
+    if (!report.snapshotData) {
+      this.snack.open('Cannot download report - no snapshot data', 'close', {
+        duration: 2000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
       return;
     }
 
     const context = {
-      projectName: snapshot.metadata.project,
-      dateFrom: snapshot.metadata.dateFrom,
-      dateTo: snapshot.metadata.dateTo,
-      scans: snapshot.data.scans,
-      issues: snapshot.data.issues,
-      securityData: snapshot.data.securityData,
-      selectedSections: snapshot.data.selectedSections,
-      generatedBy: snapshot.metadata.generatedBy
+      projectName: report.projectName,
+      dateFrom: report.dateFrom,
+      dateTo: report.dateTo,
+      scans: report.snapshotData.scans || [],
+      issues: report.snapshotData.issues || [],
+      securityData: report.snapshotData.securityData,
+      selectedSections: report.snapshotData.selectedSections || {},
+      generatedBy: report.generatedBy
     };
 
-    switch (report.format) {
-      case 'Excel':
-        this.excelService.generateExcel(context);
-        break;
-      case 'Word':
-        this.wordService.generateWord(context);
-        break;
-      case 'PowerPoint':
-        this.pptService.generatePowerPoint(context);
-        break;
-      case 'PDF':
-        this.pdfService.generatePdf(context);
-        break;
-      default:
-        this.snack.open('Format not supported','close',
-          {
+    try {
+      switch (report.format) {
+        case 'Excel':
+          this.excelService.generateExcel(context);
+          break;
+        case 'Word':
+          this.wordService.generateWord(context);
+          break;
+        case 'PowerPoint':
+          this.pptService.generatePowerPoint(context);
+          break;
+        case 'PDF':
+          this.pdfService.generatePdf(context);
+          break;
+        default:
+          this.snack.open('Format not supported', 'close', {
             duration: 2000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-red'],
-          }
-
-        )
-        break;
+            panelClass: ['app-snack', 'app-snack-red']
+          });
+          break;
+      }
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      this.snack.open('Error downloading report', 'close', {
+        duration: 2000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
     }
   }
 }

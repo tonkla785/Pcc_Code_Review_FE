@@ -8,7 +8,7 @@ import { filter, map } from 'rxjs/operators';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { RepositoryService } from '../../../services/reposervice/repository.service';
 import { AssignhistoryService } from '../../../services/assignservice/assignhistory.service';
-import { LoginUser, UserInfo} from '../../../interface/user_interface';
+import { LoginUser, UserInfo } from '../../../interface/user_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 import { UserService } from '../../../services/userservice/user.service';
 /** === เพิ่มสำหรับคอมเมนต์ === */
@@ -77,7 +77,7 @@ export class IssuedetailComponent implements OnInit {
   sendingComment = false;
   issuesResult: IssuesResponseDTO | null = null;
   issueForModal: IssuesRequestDTO = { id: '', status: '', assignedTo: '' };
-  UserLogin: LoginUser | null = null; 
+  UserLogin: LoginUser | null = null;
   UserData: UserInfo[] = [];
   filteredUsers: UserInfo[] = [];
   issuesDetails: IssuesDetailResponseDTO | null = null;
@@ -99,12 +99,12 @@ export class IssuedetailComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-           this.sharedData.AllUser$.subscribe(data => { 
-        this.UserData = data ?? [];
-        // this.applyFilter();
-        console.log('User loaded Modal from sharedData in issuedetail:', data);
-      });
-       if(!this.sharedData.hasUserCache){
+    this.sharedData.AllUser$.subscribe(data => {
+      this.UserData = data ?? [];
+      // this.applyFilter();
+      console.log('User loaded Modal from sharedData in issuedetail:', data);
+    });
+    if (!this.sharedData.hasUserCache) {
       this.loadUser();
       console.log("No cache - load from server");
        }
@@ -144,7 +144,7 @@ this.sharedData.selectedIssues$.subscribe(data => {
       console.log('User Login in Issues:', this.UserLogin);
 
     });
-    }
+  }
 
   loadIssueById(issueId: string) {
     this.sharedData.setLoading(true);
@@ -159,7 +159,7 @@ this.sharedData.selectedIssues$.subscribe(data => {
       error: () => this.sharedData.setLoading(false)
     });
   }
-    loadIssueDetails(issueId: string) {
+  loadIssueDetails(issueId: string) {
     this.issesService.getAllIssuesDetails(issueId).subscribe({
       next: (data) => {
         this.issuesDetails = data;
@@ -181,16 +181,16 @@ this.sharedData.selectedIssues$.subscribe(data => {
       error: () => this.sharedData.setLoading(false)
     });
   }
-applyUserFilter() {
-  if (!this.issuesResult || !this.UserData.length) {
-    return;
-  }
+  applyUserFilter() {
+    if (!this.issuesResult || !this.UserData.length) {
+      return;
+    }
     this.filteredUsers = this.UserData.filter(u =>
       this.issuesResult?.commentData?.some(c => c.user.id === u.id)
     );
 
-  console.log('Filtered Users:', this.filteredUsers);
-}
+    console.log('Filtered Users:', this.filteredUsers);
+  }
 
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
@@ -264,18 +264,18 @@ applyUserFilter() {
   }
 
 
-postComment() {
-  const text = (this.newComment?.comment ?? '').trim();
-  if (!text || this.sendingComment) return;
+  postComment() {
+    const text = (this.newComment?.comment ?? '').trim();
+    if (!text || this.sendingComment) return;
 
-  const payload: commentRequestDTO = {
-    issueId: this.issuesResult?.id,
-    userId: this.UserLogin?.id || '',
-    comment: text,
-    parentCommentId: this.replyTo?.commentId || ''
-  };
+    const payload: commentRequestDTO = {
+      issueId: this.issuesResult?.id,
+      userId: this.UserLogin?.id || '',
+      comment: text,
+      parentCommentId: this.replyTo?.commentId || ''
+    };
 
-  this.sendingComment = true;
+    this.sendingComment = true;
 
   this.commentService.updateComments(payload).subscribe({
     next: (updated) => {
@@ -312,19 +312,19 @@ postComment() {
         id: this.issuesResult.id,
         status: this.issuesResult.status,
         assignedTo: this.issuesResult.assignedTo.id,
-        });
+      });
     } else {
       const issueId = this.issuesResult?.id || this.issue?.id;
       if (!issueId) return;
       this.assignModal.openAddAssign(issueId);
     }
   }
-    openStatusModal() {
-      if(!this.issuesResult) return;
-      this.assignModal.openEditStatus({
-        id: this.issuesResult.id,
-        status: this.issuesResult.status,
-        });
+  openStatusModal() {
+    if (!this.issuesResult) return;
+    this.assignModal.openEditStatus({
+      id: this.issuesResult.id,
+      status: this.issuesResult.status,
+    });
   }
 
 
@@ -411,39 +411,39 @@ postComment() {
     });
   }
   startReply(c: commentResponseDTO) {
-  this.replyTo = { commentId: c.id, username: c.user?.username , parentCommentId: c.parentCommentId || '' };
-  
-  // ใส่ @username ให้เลย (optional)
-  this.newComment= { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
-  console.log('Replying to comment:', this.replyTo);
-  
-}
-cancelReply() {
-  this.replyTo = null;
-  this.newComment = { comment: '' };
-}
-private replycomment(comments: commentResponseDTO[]) {
-  this.rootComments = [];
-  this.replies.clear();
+    this.replyTo = { commentId: c.id, username: c.user?.username, parentCommentId: c.parentCommentId || '' };
 
-  const list = comments ?? [];
+    // ใส่ @username ให้เลย (optional)
+    this.newComment = { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
+    console.log('Replying to comment:', this.replyTo);
 
-  // เรียงตามเวลา 
-  const sorted = [...list].sort((a, b) =>
-    new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
-  );
+  }
+  cancelReply() {
+    this.replyTo = null;
+    this.newComment = { comment: '' };
+  }
+  private replycomment(comments: commentResponseDTO[]) {
+    this.rootComments = [];
+    this.replies.clear();
 
-  for (const c of sorted) {
-    const parentId = (c as commentResponseDTO).parentCommentId || null;
+    const list = comments ?? [];
 
-    if (!parentId) {
-      this.rootComments.push(c);
-    } else {
-      const arr = this.replies.get(parentId) ?? [];
-      arr.push(c);
-      this.replies.set(parentId, arr);
+    // เรียงตามเวลา 
+    const sorted = [...list].sort((a, b) =>
+      new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
+    );
+
+    for (const c of sorted) {
+      const parentId = (c as commentResponseDTO).parentCommentId || null;
+
+      if (!parentId) {
+        this.rootComments.push(c);
+      } else {
+        const arr = this.replies.get(parentId) ?? [];
+        arr.push(c);
+        this.replies.set(parentId, arr);
+      }
     }
   }
-}
 
 }
