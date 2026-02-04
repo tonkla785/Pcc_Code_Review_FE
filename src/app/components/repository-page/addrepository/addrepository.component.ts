@@ -8,6 +8,9 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { UserSettingService } from '../../../services/usersettingservice/user-setting.service'; // <-- added
+import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service'; // <-- added
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-addrepository',
@@ -26,7 +29,9 @@ export class AddrepositoryComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly snack: MatSnackBar,
     private readonly scanService: ScanService,
-    private readonly sse: SseService               // <-- added
+    private readonly sse: SseService,
+    private readonly userSettingService: UserSettingService,
+    private readonly userSettingsData: UserSettingsDataService
   ) { }
 
   private extractApiError(err: any): string {
@@ -83,6 +88,9 @@ export class AddrepositoryComponent implements OnInit {
     // TODO: Get userId from token when available
     this.gitRepository.user = '';
     this.updateProjectKey();
+
+    // Fetch SonarQube Config to ensure we have the token for validation
+    this.userSettingService.getSonarQubeConfig().subscribe();
   }
 
   loadRepository(projectId: string) {
@@ -116,13 +124,17 @@ export class AddrepositoryComponent implements OnInit {
           sonarProjectKey: repo.sonarProjectKey || ''
         };
         console.log('RAW REPO FROM API:', this.gitRepository);
-        this.updateProjectKey();
+        // Edit Mode: Use existing Project Key from DB
+        this.sonarConfig.projectKey = this.gitRepository.sonarProjectKey || '';
       },
       error: (err) => console.error('Failed to load repository', err)
     });
   }
 
   updateProjectKey() {
+    // Edit Mode: Don't auto-update Project Key when Name changes
+    if (this.isEditMode) return;
+
     this.sonarConfig.projectKey = this.gitRepository.name || '';
   }
 
@@ -138,6 +150,46 @@ export class AddrepositoryComponent implements OnInit {
         horizontalPosition: 'right',
         verticalPosition: 'top',
         panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Validate Duplicate Name
+    const currentRepos = this.sharedData.repositoriesValue;
+    const isDuplicate = currentRepos.some(r =>
+      r.name.trim().toLowerCase() === this.gitRepository.name.trim().toLowerCase() &&
+      r.projectId !== this.gitRepository.projectId
+    );
+
+    if (isDuplicate) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ชื่อโปรเจกต์ซ้ำ',
+        text: 'มีโปรเจกต์ชื่อนี้อยู่แล้วในระบบ กรุณาใช้ชื่ออื่น',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    // Validate SonarQube Token
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
+    console.log('Validating Token:', sonarConfig);
+
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing SonarQube Token',
+        text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Settings',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true
+      }).then((result: any) => {
+        if (result.isConfirmed) {
+          this.router.navigate(['/sonarqubeconfig']);
+        }
       });
       return;
     }
@@ -256,20 +308,64 @@ export class AddrepositoryComponent implements OnInit {
   }
 
   onDelete() {
-    if (confirm('Are you sure to delete this repository?')) {
-      this.repositoryService.deleteRepo(this.gitRepository.projectId!).subscribe(() => {
-        this.snack.open('Deleted successfully!', '', {
-          duration: 2500,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red'],
-        });
-        this.repositoryService.getAllRepo().subscribe(repos => {
-          this.sharedData.setRepositories(repos);
-          this.router.navigate(['/repositories']);
-        });
+    const repo = this.gitRepository;
+    // กัน null / undefined แบบชัดเจน
+    if (!repo?.projectId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ข้อมูลไม่ถูกต้อง',
+        text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
       });
+      return;
     }
+
+    Swal.fire({
+      title: 'ยืนยันการลบ Repository',
+      text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ลบข้อมูล',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+
+        // loading ตอนกำลังลบ
+        Swal.fire({
+          title: 'กำลังลบข้อมูล...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.repositoryService.deleteRepo(repo.projectId!).subscribe({
+          next: () => {
+            this.sharedData.removeRepository(repo.projectId!);
+            Swal.fire({
+              icon: 'success',
+              title: 'ลบสำเร็จ',
+              text: 'ลบ Repository เรียบร้อยแล้ว',
+              timer: 1800,
+              showConfirmButton: false
+            });
+            this.repositoryService.getAllRepo().subscribe(repos => {
+              this.sharedData.setRepositories(repos);
+              this.router.navigate(['/repositories']);
+            });
+          },
+          error: () => {
+            Swal.fire({
+              icon: 'error',
+              title: 'ลบไม่สำเร็จ',
+              text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
+            });
+          }
+        });
+      }
+    });
   }
 
   clearForm(form?: NgForm) {
