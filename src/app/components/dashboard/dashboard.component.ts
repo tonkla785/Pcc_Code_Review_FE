@@ -335,10 +335,10 @@ export class DashboardComponent {
         };
         console.log('[overview] metrics summary:', metrics);
 
-        // 2) history -> map
+        // 2. history -> map
         this.dashboardData.history = this.dash.mapHistory(history);
 
-        // 3) avg grade จาก trends
+        // 3. avg grade จาก trends
         if (trends?.length && this.isValidGateLetter(trends[0].avgGrade)) {
           this.avgGateLetter = trends[0].avgGrade.toUpperCase() as any;
           console.log('[trends] avgGrade from API =', trends[0].avgGrade);
@@ -390,7 +390,7 @@ export class DashboardComponent {
           console.log('[fallback] avgGateLetter =', this.avgGateLetter);
         }
 
-        // 4) recent scans (เอา 5 อันล่าสุด)
+        // 4. recent scans (เอา 5 อันล่าสุด)
         this.recentScans = scans
           .sort((a, b) => {
             const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
@@ -399,17 +399,21 @@ export class DashboardComponent {
           })
           .slice(0, 5);
 
-        // 5) นับ passed / failed จาก history
+        // 5. นับ passed / failed จาก history
         this.recomputeStatusCountsFromHistory();
 
-        // 6) สรุป project distribution
+        // 6. สรุป project distribution
         this.calculateProjectDistribution();
 
-        // 7) คำนวณ donut / เกรด
+        // 7. คำนวณ donut / เกรด
         this.loadDashboardData();
 
-        // 8) ✅ ตรงนี้คือของใหม่: คำนวณ Top Issues จากรายการ issues ที่ดึงมา
-        this.buildTopIssues(issues);
+        // 8. ตรงนี้คือของใหม่: คำนวณ Top Issues จากรายการ issues ที่ดึงมา
+        // Filter out issues from deleted projects (which are not in history)
+        const activeProjectIds = new Set(this.dashboardData.history.map(h => h.projectId));
+        const activeIssues = (issues || []).filter(issue => activeProjectIds.has(issue.projectId));
+
+        this.buildTopIssues(activeIssues);
 
         console.log(
           '[donut] pass/fail ->',
