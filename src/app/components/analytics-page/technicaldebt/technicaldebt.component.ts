@@ -16,6 +16,7 @@ interface ProjectDebt {
   name: string;
   days: number;
   cost: number;
+  lastScan?: Date;
 }
 
 interface CategoryShare {
@@ -142,30 +143,29 @@ export class TechnicaldebtComponent implements OnDestroy {
   }
 
   calculateTopDebtProjects() {
-    // 1. We already have 'projectDebts' calculated in calculateProjectDebts(), which gives us Cost and Days per project.
-    // We can reuse that or recalculate if we want to be safe, but calculateProjectDebts seems to derive correctly from Latest Scan.
-    // Let's use calculateProjectDebts' output if available, OR just iterate ScanHistory (which is latest scan per project).
-    
-    // Formula: Score = (Days * 2) + (Cost / 50,000)
-    // Classification: >=10 High, 5-9.99 Med, <5 Low
-    
+    // 1. Find Max Cost
+    const maxCost = this.ScanHistoy.reduce((max, scan) => Math.max(max, scan.metrics?.debtRatio || 0), 0);
+    const step = maxCost / 3;
+
+    // 2. Map and Classify
     const projects = this.ScanHistoy.map(scan => {
         const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
         const days = this.toTechDebtDays(debtMinutes);
-        const cost = scan.metrics?.debtRatio || 0; // Assuming debtRatio holds the Cost value as per previous logic
+        const cost = scan.metrics?.debtRatio || 0;
         const name = scan.project?.name || scan.project?.id || 'Unknown';
 
-        // Score calc
-        const score = (days * 2) + (cost / 50000);
+        // Classification based on Max Cost
+        // Low: 0 - step
+        // Med: step - 2*step
+        // High: > 2*step
         
-        // Priority/Class
         let priority: Priority = 'Low';
         let color = 'low';
-        
-        if (score >= 10) {
+
+        if (cost > (step * 2)) {
             priority = 'High';
             color = 'high';
-        } else if (score >= 5) {
+        } else if (cost > step) {
             priority = 'Med';
             color = 'med';
         }
@@ -174,14 +174,13 @@ export class TechnicaldebtComponent implements OnDestroy {
             priority: priority,
             colorClass: color,
             item: name, 
-            time: debtMinutes, // Store minutes for pipe
-            cost: cost,
-            score: score 
-        } as DebtItem & { score: number };
+            time: debtMinutes,
+            cost: cost
+        } as DebtItem;
     });
 
-    // Sort by Score Descending
-    this.topDebtItems = projects.sort((a, b) => b.score - a.score).slice(0, 5);
+    // Sort by Cost Descending
+    this.topDebtItems = projects.sort((a, b) => b.cost - a.cost).slice(0, 5);
   }
 
   calculateProjectDebts() {
@@ -193,7 +192,8 @@ export class TechnicaldebtComponent implements OnDestroy {
         return {
             name: scan.project?.name || scan.project?.id || 'Unknown',
             days: days,
-            cost: cost
+            cost: cost,
+            lastScan: new Date(scan.startedAt)
         } as ProjectDebt;
     }).sort((a, b) => b.cost - a.cost);
   }
@@ -514,14 +514,14 @@ export class TechnicaldebtComponent implements OnDestroy {
     });
 
     rows.push('');
-    rows.push('Section,Project,Days,Cost (THB)');
+    rows.push('Section,Project,Scan Date,Cost (THB)');
     this.projectDebts.forEach(p => {
-      rows.push(['Projects', p.name, String(p.days), String(p.cost)].join(','));
+      rows.push(['Projects', p.name, p.lastScan ? p.lastScan.toISOString().split('T')[0] : '-', String(p.cost)].join(','));
     });
 
     rows.push('');
-    rows.push(['Summary', 'Total Days', 'Total Hours', 'Estimated Cost (THB)'].join(','));
-    rows.push(['', String(this.totalDays), String(this.totalHours), String(this.totalCost)].join(','));
+    rows.push(['Summary', 'Total Days', 'Total Hours',  'Total Minutes', 'Estimated Cost (THB)'].join(','));
+    rows.push(['', String(this.totalDays), String(this.totalHours), String(this.totalMinutes), String(this.totalCosts())].join(','));
 
     const csv = rows.join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -538,7 +538,8 @@ export class TechnicaldebtComponent implements OnDestroy {
   formatMinutesToTime(minutes: number): string {
      const days = Math.floor(minutes / 480);
      const hours = Math.floor((minutes % 480) / 60);
-     return `${days}d ${hours}h`;
+     const minute = Math.floor(minutes % 60);
+     return `${days }d ${hours}h ${minute}m`;
   }
 
   actionPlanText = '';
