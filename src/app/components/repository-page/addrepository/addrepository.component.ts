@@ -8,6 +8,9 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { UserSettingService } from '../../../services/usersettingservice/user-setting.service'; // <-- added
+import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service'; // <-- added
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-addrepository',
@@ -26,7 +29,9 @@ export class AddrepositoryComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly snack: MatSnackBar,
     private readonly scanService: ScanService,
-    private readonly sse: SseService               // <-- added
+    private readonly sse: SseService,
+    private readonly userSettingService: UserSettingService,
+    private readonly userSettingsData: UserSettingsDataService
   ) { }
 
   private extractApiError(err: any): string {
@@ -83,6 +88,9 @@ export class AddrepositoryComponent implements OnInit {
     // TODO: Get userId from token when available
     this.gitRepository.user = '';
     this.updateProjectKey();
+
+    // Fetch SonarQube Config to ensure we have the token for validation
+    this.userSettingService.getSonarQubeConfig().subscribe();
   }
 
   loadRepository(projectId: string) {
@@ -138,6 +146,28 @@ export class AddrepositoryComponent implements OnInit {
         horizontalPosition: 'right',
         verticalPosition: 'top',
         panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Validate SonarQube Token
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
+    console.log('Validating Token:', sonarConfig);
+
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing SonarQube Token',
+        text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Settings',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true
+      }).then((result: any) => {
+        if (result.isConfirmed) {
+          this.router.navigate(['/sonarqubeconfig']);
+        }
       });
       return;
     }
