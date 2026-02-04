@@ -11,6 +11,7 @@
     border-color 0.35s ease,
     box-shadow 0.35s ease,
     color 0.35s ease;
+
 }
 
 .scan-history-container:hover {
@@ -24,7 +25,8 @@
   background-color: var(--bg-panel);
   display: block;
   width: 100%;
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 1.5rem;
   color: var(--dashboard-title-color);
 }
 

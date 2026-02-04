@@ -29,14 +29,14 @@
 }
 
 /* ตัวอักษรหัวข้อ */
-.analytics-header h3 {
+.analytics-header h3,
+.analytics-header h3.text-primary {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 800 !important;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 25px;
+  font-size: 1.5rem !important;
 }
 
 /* ===============================
@@ -239,7 +239,7 @@ p strong {
 :host-context(body.dark-mode) .list-group-item {
   background: #2c2c2c;
   border: 1px solid #4b5563;
-  color: #e5e7eb;
+  color: #ffffff !important;
 }
 
 :host-context(body.dark-mode) .list-group-item:hover {
