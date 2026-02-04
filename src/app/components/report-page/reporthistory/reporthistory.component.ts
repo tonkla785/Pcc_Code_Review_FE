@@ -11,7 +11,8 @@ import { WordService } from '../../../services/report-generator/word/word.servic
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
 import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-reporthistory',
@@ -29,6 +30,7 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
   loading = false;
 
   private subscriptions: Subscription[] = [];
+  private searchSubject = new Subject<string>();
 
   constructor(
     private readonly router: Router,
@@ -58,35 +60,41 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
     });
     this.subscriptions.push(loadingSub);
 
-    this.loadHistory();
+    this.setupSearchSubscription();
+  }
+
+  private setupSearchSubscription(): void {
+    const searchSub = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(keyword => {
+        if (!keyword || keyword.trim() === '') {
+          return this.reportHistoryService.getAllReportHistory();
+        }
+        return this.reportHistoryService.searchByProjectName(keyword);
+      })
+    ).subscribe({
+      next: (results) => {
+        this.reports = results;
+        this.currentPage = 1;
+      },
+      error: (err) => {
+        console.error('Search failed:', err);
+      }
+    });
+    this.subscriptions.push(searchSub);
+  }
+
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchText);
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  loadHistory(): void {
-    this.reportHistoryService.getAllReportHistory().subscribe({
-      error: (err) => {
-        console.error('Failed to load report history:', err);
-        this.snack.open('Failed to load report history', 'close', {
-          duration: 3000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red']
-        });
-      }
-    });
-  }
-
   filteredReports(): ReportHistory[] {
-    if (!this.searchText) {
-      return this.reports;
-    }
-    const keyword = this.searchText.toLowerCase();
-    return this.reports.filter(r =>
-      r.projectName.toLowerCase().includes(keyword)
-    );
+    return this.reports;
   }
 
   paginatedReports(): ReportHistory[] {

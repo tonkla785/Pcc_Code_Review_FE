@@ -130,7 +130,7 @@ export class PdfService {
             'Quality Gate',
             'Reliability',
             'Security',
-            'Maintainability',
+            'Maintain-\nability',
             'Bugs',
             'Vulnerabilities',
             'Code Smells'
@@ -177,13 +177,13 @@ export class PdfService {
             },
             columnStyles: {
                 0: { cellWidth: 35 }, // Date
-                1: { cellWidth: 20 }, // Status
-                2: { cellWidth: 22 }, // QG
-                3: { cellWidth: 18, halign: 'center' }, // Rel
+                1: { cellWidth: 22 }, // Status
+                2: { cellWidth: 17 }, // QG
+                3: { cellWidth: 20, halign: 'center' }, // Rel
                 4: { cellWidth: 18, halign: 'center' }, // Sec
                 5: { cellWidth: 25, halign: 'center' }, // Main
                 6: { halign: 'center' }, // Bugs
-                7: { halign: 'center' }, // Vulns
+                7: { cellWidth: 18, halign: 'center' }, // Vulns
                 8: { halign: 'center' }  // Smells
             },
             margin: { left: margin, right: margin }

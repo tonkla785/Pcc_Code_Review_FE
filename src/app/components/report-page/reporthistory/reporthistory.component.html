@@ -2,7 +2,8 @@
   <div class="header-row">
     <h2><i class="bi bi-journal-text"></i> Report History</h2>
     <!-- Search Bar -->
-    <input type="text" placeholder="Search reports..." [(ngModel)]="searchText" class="search-input" />
+    <input type="text" placeholder="Search reports..." [(ngModel)]="searchText" (ngModelChange)="onSearchChange()"
+      class="search-input" />
   </div>
 
   <!-- Loading Indicator -->

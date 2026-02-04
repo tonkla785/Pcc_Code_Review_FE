@@ -207,7 +207,7 @@ export class GeneratereportComponent implements OnInit {
       return;
     }
 
-    const repo = this.sharedDataService.repositoriesValue.find(r => r.name === selectedProject.name);
+    const repo = this.sharedDataService.repositoriesValue.find(r => r.projectId === selectedProject.id);
     if (!repo?.scans) {
       this.noScanInRange = true;
       return;
@@ -272,7 +272,7 @@ export class GeneratereportComponent implements OnInit {
 
   private processScansAndIssues(project: Project, allScans: ScanResponseDTO[]): void {
     const projectScans = allScans.filter(
-      s => s.project?.name === project.name || s.project?.id === project.id
+      s => s.project?.id === project.id
     );
 
     const filteredScans = projectScans.filter(scan => {
