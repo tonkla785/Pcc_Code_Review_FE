@@ -19,16 +19,21 @@
   border-radius: 12px;
   background-color: var(--bg-panel, #f9fafb);
   padding: 14px 18px;
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   gap: 10px;
   color: var(--dashboard-title-color);
 }
 
-.report-title { margin-bottom: 20px; }
-.report-container h2 { margin-bottom: 24px; }
+.report-title {
+  margin-bottom: 20px;
+}
+
+.report-container h2 {
+  margin-bottom: 24px;
+}
 
 
 /* Form Box */
@@ -167,10 +172,12 @@ input[type="email"]:hover,
 .btn-secondary {
   background: #9ca3af;
 }
+
 .report-actions button:nth-child(2),
 .btn-primary {
   background: #2563eb;
 }
+
 .report-actions button:nth-child(3),
 .btn-success {
   background: #16a34a;
@@ -210,6 +217,7 @@ button.loading::after {
   from {
     transform: translateY(-50%) rotate(0);
   }
+
   to {
     transform: translateY(-50%) rotate(360deg);
   }
@@ -232,6 +240,7 @@ button.loading::after {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -249,7 +258,7 @@ button.loading::after {
 }
 
 /* Format Buttons */
-.format-option .btn-check + .btn {
+.format-option .btn-check+.btn {
   min-width: 120px;
   flex-grow: 1;
   text-align: center;
@@ -258,32 +267,32 @@ button.loading::after {
 }
 
 /* --- Light Mode Variants --- */
-.format-option .pdf.btn-check:checked + .btn,
-.format-option .pdf.btn-check + .btn:hover {
+.format-option .pdf.btn-check:checked+.btn,
+.format-option .pdf.btn-check+.btn:hover {
   background-color: #dc2626;
   border-color: #dc2626;
   color: white;
   box-shadow: 0 0 8px rgba(220, 38, 38, 0.5);
 }
 
-.format-option .excel.btn-check:checked + .btn,
-.format-option .excel.btn-check + .btn:hover {
+.format-option .excel.btn-check:checked+.btn,
+.format-option .excel.btn-check+.btn:hover {
   background-color: #16a34a;
   border-color: #16a34a;
   color: white;
   box-shadow: 0 0 8px rgba(22, 163, 74, 0.5);
 }
 
-.format-option .word.btn-check:checked + .btn,
-.format-option .word.btn-check + .btn:hover {
+.format-option .word.btn-check:checked+.btn,
+.format-option .word.btn-check+.btn:hover {
   background-color: #2563eb;
   border-color: #2563eb;
   color: white;
   box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
 }
 
-.format-option .ppt.btn-check:checked + .btn,
-.format-option .ppt.btn-check + .btn:hover {
+.format-option .ppt.btn-check:checked+.btn,
+.format-option .ppt.btn-check+.btn:hover {
   background-color: #ea580c;
   border-color: #ea580c;
   color: white;
@@ -419,32 +428,32 @@ button.loading::after {
 }
 
 /* --- Dark Mode Format Buttons --- */
-:host-context(.dark-mode) .format-option .pdf.btn-check:checked + .btn,
-:host-context(.dark-mode) .format-option .pdf.btn-check + .btn:hover {
+:host-context(.dark-mode) .format-option .pdf.btn-check:checked+.btn,
+:host-context(.dark-mode) .format-option .pdf.btn-check+.btn:hover {
   background-color: #b91c1c;
   border-color: #b91c1c;
   color: white;
   box-shadow: 0 0 8px rgba(185, 28, 28, 0.6);
 }
 
-:host-context(.dark-mode) .format-option .excel.btn-check:checked + .btn,
-:host-context(.dark-mode) .format-option .excel.btn-check + .btn:hover {
+:host-context(.dark-mode) .format-option .excel.btn-check:checked+.btn,
+:host-context(.dark-mode) .format-option .excel.btn-check+.btn:hover {
   background-color: #15803d;
   border-color: #15803d;
   color: white;
   box-shadow: 0 0 8px rgba(21, 128, 61, 0.6);
 }
 
-:host-context(.dark-mode) .format-option .word.btn-check:checked + .btn,
-:host-context(.dark-mode) .format-option .word.btn-check + .btn:hover {
+:host-context(.dark-mode) .format-option .word.btn-check:checked+.btn,
+:host-context(.dark-mode) .format-option .word.btn-check+.btn:hover {
   background-color: #1d4ed8;
   border-color: #1d4ed8;
   color: white;
   box-shadow: 0 0 8px rgba(29, 78, 216, 0.6);
 }
 
-:host-context(.dark-mode) .format-option .ppt.btn-check:checked + .btn,
-:host-context(.dark-mode) .format-option .ppt.btn-check + .btn:hover {
+:host-context(.dark-mode) .format-option .ppt.btn-check:checked+.btn,
+:host-context(.dark-mode) .format-option .ppt.btn-check+.btn:hover {
   background-color: #c2410c;
   border-color: #c2410c;
   color: white;
@@ -496,7 +505,7 @@ button.loading::after {
     justify-items: stretch;
   }
 
-  .format-option .btn-check + .btn {
+  .format-option .btn-check+.btn {
     width: 100% !important;
     min-width: 0 !important;
     flex: none !important;
@@ -562,7 +571,7 @@ button.loading::after {
     gap: 8px !important;
   }
 
-  .format-option .btn-check + .btn {
+  .format-option .btn-check+.btn {
     font-size: 0.85rem !important;
     padding: 8px 0 !important;
   }
