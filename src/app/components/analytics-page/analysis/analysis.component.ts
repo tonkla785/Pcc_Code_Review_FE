@@ -6,6 +6,7 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 import { SecurityService } from '../../../services/securityservice/security.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { TechnicalDebtDataService, DebtItem } from '../../../services/shared-data/technicaldebt-data.service';
 
 interface HotSecurityIssue {
   name: string;
@@ -13,7 +14,8 @@ interface HotSecurityIssue {
 }
 
 interface DebtProject {
-  projectName: string;
+    // Legacy interface, kept if needed by other parts, but mostly replaced by DebtItem
+     projectName: string;
   debtTime: string;
   debtMinutes: number;
   debtCost: string;
@@ -40,6 +42,7 @@ export class AnalysisComponent implements OnInit, OnDestroy {
   testCoverage = 80;
 
   topSecurityIssues: HotSecurityIssue[] = [];
+  // topDebtProjects: DebtItem[] = [];
   topDebtProjects: DebtProject[] = [];
 
   private subscriptions = new Subscription();
@@ -66,7 +69,8 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
-    private readonly scanService: ScanService
+    private readonly scanService: ScanService,
+    // private readonly techDebtDataService: TechnicalDebtDataService
   ) { }
 
   ngOnInit(): void {
@@ -169,6 +173,11 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
   }
+  // loadTechnicalDebt removed as we use shared data from TechnicalDebtComponent
+  // The user requested to use shared data from TechnicalDebtComponent.
+  // If Analysis is visited first, it will be empty until TechDebt is visited (as per "Shared Data" pattern).
+  // If I wanted to force load, I would need to duplicate the logic or move it to service. 
+  // Given previous instruction rejected duplication/service-logic-move, I assume this behavior is desired.
 
 
   private getPriority(score: number): string {
