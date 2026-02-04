@@ -9,48 +9,10 @@ import { QualityGates } from '../../interface/sonarqube_interface';
 import { SonarQubeService } from '../sonarqubeservice/sonarqube.service';
 import { getLatestScan } from '../../utils/format.utils';
 import { ScanResponseDTO } from '../../interface/scan_interface';
+import { UserSettingsDataService } from '../shared-data/user-settings-data.service';
 
-export interface Repository {
-  id?: string;
-  projectId?: string;// UUID (string)
-  user?: string;// เทียบกับ user: string | undefined; มีก็ได้ไม่มีก็ได้
-  name: string;
-  repositoryUrl: string;
-  projectType?: 'ANGULAR' | 'SPRING_BOOT';
-  projectTypeLabel?: string;
-  branch?: string;
-  sonarProjectKey?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  scans?: ScanResponseDTO[];
-  scanId?: string;
-  status?: 'Active' | 'Scanning' | 'Error';
-  lastScan?: Date;
-  scanningProgress?: number;
-  qualityGate?: string;
-  metrics?: {
-    bugs?: number;
-    vulnerabilities?: number;
-    codeSmells?: number;
-    coverage?: number;
-    duplications?: number;
-  };
-  issues?: Issue[];
-}
-
-//ตัว test lssue
-export interface ScanIssue {
-  id: string;
-  scanId: string;
-  issueKey: string;
-  type: 'Bug' | 'Vulnerability' | 'Code Smell';
-  severity: 'Blocker' | 'Critical' | 'Major' | 'Minor';
-  component: string;
-  message: string;
-  status: 'OPEN' | 'PENDING' | 'IN PROGRESS' | 'DONE' | 'REJECT';
-  createdAt: Date | string;
-  assignedTo?: string;
-}
+import { Repository, ScanIssue } from '../../interface/repository_interface';
+export type { Repository, ScanIssue };
 
 @Injectable({ providedIn: 'root' })
 export class RepositoryService {
@@ -68,25 +30,15 @@ export class RepositoryService {
   private readonly issueService = inject(IssueService);
   private readonly auth = inject(AuthService);
   private readonly SonarQubeService = inject(SonarQubeService);
+  private readonly userSettingsData = inject(UserSettingsDataService);
 
-  // สร้าง interface สำหรับ request
-  private getSonarConfigFromStorage() {
-    try {
-      const raw = localStorage.getItem('sonarConfig_v1');
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch (e) {
-      console.warn('Failed to load sonar config from localStorage', e);
-      return null;
-    }
-  }
-
-  // เริ่มสแกน - ส่ง settings จาก localStorage ไปด้วย
+  // เริ่มสแกน - ดึง settings จาก SharedData (SonarQube Config)
   startScan(projectId: string, branch: string = 'main'): Observable<any> {
     console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
 
-    // ดึง settings จาก localStorage
-    const sonarConfig = this.getSonarConfigFromStorage();
+    // ดึง SonarQube config จาก SharedData
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
+    console.log('[ScanService] SonarQube Config from SharedData:', sonarConfig);
 
     // สร้าง request body
     const requestBody: any = {
@@ -94,24 +46,30 @@ export class RepositoryService {
       sonarToken: sonarConfig?.authToken || ''
     };
 
-    // เพิ่ม Angular settings ถ้ามี
-    if (sonarConfig?.angularSettings) {
-      requestBody.angularSettings = {
-        runNpm: sonarConfig.angularSettings.runNpm || false,
-        coverage: sonarConfig.angularSettings.coverage || false,
-        tsFiles: sonarConfig.angularSettings.tsFiles || false,
-        exclusions: sonarConfig.angularSettings.exclusions || '**/node_modules/**,**/*.spec.ts'
-      };
-    }
+    // เพิ่ม Angular settings จาก SonarQube Config
+    requestBody.angularSettings = {
+      runNpm: sonarConfig?.angularRunNpm || false,
+      coverage: sonarConfig?.angularCoverage || false,
+      tsFiles: sonarConfig?.angularTsFiles || false,
+      exclusions: sonarConfig?.angularExclusions || '**/node_modules/**,**/*.spec.ts'
+    };
 
-    // เพิ่ม Spring settings ถ้ามี
-    if (sonarConfig?.springSettings) {
-      requestBody.springSettings = {
-        runTests: sonarConfig.springSettings.runTests || false,
-        jacoco: sonarConfig.springSettings.jacoco || false,
-        buildTool: sonarConfig.springSettings.buildTool || 'maven'
-      };
-    }
+    // เพิ่ม Spring settings จาก SonarQube Config
+    requestBody.springSettings = {
+      runTests: sonarConfig?.springRunTests || false,
+      jacoco: sonarConfig?.springJacoco || false,
+      buildTool: sonarConfig?.springBuildTool || 'maven',
+      jdkVersion: sonarConfig?.springJdkVersion || 17
+    };
+
+    // เพิ่ม Quality Gate settings
+    requestBody.qualityGateSettings = {
+      failOnError: sonarConfig?.qgFailOnError || false,
+      coverageThreshold: sonarConfig?.qgCoverageThreshold || 0,
+      maxBugs: sonarConfig?.qgMaxBugs || 0,
+      maxVulnerabilities: sonarConfig?.qgMaxVulnerabilities || 0,
+      maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
+    };
 
     console.log('[ScanService] Request body:', requestBody);
 
@@ -267,9 +225,9 @@ export class RepositoryService {
             scans: mappedScans.map(scan => ({
               id: scan.id,
               project: scan.project,
-              status: scan.status as 'PENDING' | 'SUCCESS' | 'FAILED', // Cast status to match ScanResponseDTO
-              startedAt: scan.startedAt ? scan.startedAt.toISOString() : '', // Convert Date to string
-              completedAt: scan.completedAt ? scan.completedAt.toISOString() : undefined, // Convert Date to string
+              status: scan.status as 'PENDING' | 'SUCCESS' | 'FAILED',
+              startedAt: scan.startedAt ? scan.startedAt.toISOString() : '',
+              completedAt: scan.completedAt ? scan.completedAt.toISOString() : undefined,
               qualityGate: scan.qualityGate,
               metrics: {
                 bugs: scan.metrics?.bugs ?? 0,
@@ -278,14 +236,14 @@ export class RepositoryService {
                 coverage: scan.metrics?.coverage ?? 0,
                 debtRatio: 0,
                 duplicatedLinesDensity: scan.metrics?.duplicatedLinesDensity ?? 0,
-                maintainabilityRating: '',
-                reliabilityRating: '',
+                maintainabilityRating: scan.metrics?.maintainabilityRating ?? scan.metrics?.sqale_rating ?? '',
+                reliabilityRating: scan.metrics?.reliabilityRating ?? scan.metrics?.reliability_rating ?? '',
                 securityHotspots: 0,
-                securityRating: '',
+                securityRating: scan.metrics?.securityRating ?? scan.metrics?.security_rating ?? '',
                 technicalDebtMinutes: 0,
                 analysisLogs: []
               },
-              logFilePath: scan.logFilePath ?? scan.log_file_path, // Handle fallback mapping if needed
+              logFilePath: scan.logFilePath ?? scan.log_file_path,
               issueData: []
             } as ScanResponseDTO)),
 
@@ -369,6 +327,7 @@ export class RepositoryService {
           sonarProjectKey: project.sonarProjectKey,
           createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
           updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
+          scanId: latest?.id, // Explicitly return latest scan ID for navigation support
 
           // Map to ScanResponseDTO for output
           scans: logicalScans.map((s: any) => ({
@@ -387,6 +346,9 @@ export class RepositoryService {
               duplicatedLinesDensity: s.metrics.duplicatedLinesDensity ?? 0,
               securityHotspots: 0,
               technicalDebtMinutes: 0,
+              maintainabilityRating: s.metrics.maintainabilityRating ?? s.metrics.sqale_rating ?? '',
+              reliabilityRating: s.metrics.reliabilityRating ?? s.metrics.reliability_rating ?? '',
+              securityRating: s.metrics.securityRating ?? s.metrics.security_rating ?? '',
               analysisLogs: []
             } : null,
             logFilePath: s.logFilePath ?? s.log_file_path,

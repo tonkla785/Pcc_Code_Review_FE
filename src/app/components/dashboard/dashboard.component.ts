@@ -25,10 +25,8 @@ import { forkJoin, scan } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
-import {
-  NotificationService,
-  Notification,
-} from '../../services/notiservice/notification.service';
+import { NotificationService } from '../../services/notiservice/notification.service';
+import { Notification } from '../../interface/notification_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
@@ -39,72 +37,17 @@ import {
 } from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
-interface TopIssue {
-  message: string;
-  count: number;
-}
+import {
+  TopIssue,
+  Condition,
+  Issue,
+  SecurityHotspot,
+  ScanHistory,
+  DashboardData,
+  NotificationTab,
+  UserProfile
+} from '../../interface/dashboard_interface';
 
-interface Condition {
-  metric: string;
-  status: 'OK' | 'ERROR';
-  actual: number;
-  threshold: number;
-}
-
-interface Issue {
-  id: number;
-  type: string;
-  severity: 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR';
-  message: string;
-  project: string;
-}
-
-interface SecurityHotspot {
-  id: number;
-  status: 'REVIEWED' | 'TO_REVIEW';
-  description: string;
-  project: string;
-}
-
-interface ScanHistory {
-  scanId: string;
-  projectId: string;
-  project: string;
-  typeproject: 'Angular' | 'SpringBoot';
-  status: 'Passed' | 'Failed' | ''; // เผื่อว่าง
-  grade: string | null;
-  time: string;
-  maintainabilityGate: string | null;
-}
-
-interface DashboardData {
-  id: string;
-  name: string;
-  qualityGate: { status: 'OK' | 'ERROR'; conditions: Condition[] };
-  metrics: {
-    bugs: number;
-    vulnerabilities: number;
-    codeSmells: number;
-    coverage: number;
-    duplications?: number;
-    technicalDebt?: string;
-  };
-  issues: Issue[];
-  securityHotspots: SecurityHotspot[];
-  history: ScanHistory[];
-  coverageHistory: number[];
-  maintainabilityGate: string;
-  days: number[];
-}
-
-type NotificationTab = 'All' | 'Unread' | 'Repo' | 'scan' | 'Export';
-
-interface UserProfile {
-  username: string;
-  email: string;
-  phoneNumber?: string;
-  status: string;
-}
 export type ChartOptions = {
   series: ApexAxisChartSeries;
   chart: ApexChart;
@@ -134,7 +77,7 @@ export class DashboardComponent {
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
-  ) {}
+  ) { }
 
   loading = true;
 
@@ -189,7 +132,7 @@ export class DashboardComponent {
   coverageChartOptions!: Partial<ChartOptions>;
   repositories: Repository[] = [];
   allIssues: IssuesResponseDTO[] = [];
-    filteredRepositories: Repository[] = [];
+  filteredRepositories: Repository[] = [];
   latestScans = this.getLatestScanByProject();
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
@@ -288,75 +231,90 @@ export class DashboardComponent {
     });
   }
   countQualityGate() {
-  const scans = this.getLatestScanByProject() ?? [];
-  console.log('Latest Scans for Quality Gate Count:', scans);
-  this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
-  this.failedCount  = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'FAILED').length;
-  console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
-}
-  countBug() {
-  const bugs = this.getLatestScanByProject() ?? [];
-  this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0),0);
-  this.securityCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),0);
-  this.codeSmellCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0),0);
-  this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
-  console.log('Bug:',this.passedCountBug , 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
-}
-private dateTH(iso?: string): string {
-  if (!iso) return '';
-  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-  // ได้ YYYY-MM-DD
-}
-
-countQuality(date: string): number {
-  return (this.DashboardData ?? []).filter(s => {
-    if (!s?.completedAt) return false;
-    const scanDate = this.dateTH(s.completedAt); 
-        console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
-        console.log('latestScans', this.getLatestScanByProject());
-    return scanDate === date && s.qualityGate === 'OK' ;
-
-  }).length;
-  
-}
-getLatestScanByProject(): any[] {
-  const rows = (this.DashboardData ?? [])
-    .filter((s): s is any => typeof s?.completedAt === 'string')
-    .filter(s => !!(s?.project?.id ));
-
-  const latestByProject = new Map<string, any>();
-
-  for (const s of rows) {
-    const projectId = s.project?.id ?? s.projectId;
-
-    const prev = latestByProject.get(projectId);
-    if (!prev) {
-      latestByProject.set(projectId, s);
-      continue;
-    }
-
-    const prevTime = new Date(prev.completedAt).getTime();
-    const curTime  = new Date(s.completedAt).getTime();
-
-    if (curTime > prevTime) {
-      latestByProject.set(projectId, s);
-    }
+    const scans = this.getLatestScanByProject() ?? [];
+    console.log('Latest Scans for Quality Gate Count:', scans);
+    this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
+    // ถ้าไม่ใช่ OK ให้เป็น failed ทั้งหมด
+    this.failedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() !== 'OK').length;
+    console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
   }
-  console.log('Latest by Project:', Array.from(latestByProject.values()));
-  return Array.from(latestByProject.values());
-}
+  countBug() {
+    const bugs = this.getLatestScanByProject() ?? [];
+    this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
+    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0), 0);
+    this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
+    this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
+    console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
+  }
+  private dateTH(iso?: string): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+    // ได้ YYYY-MM-DD
+  }
+
+  countQuality(date: string): number {
+    return (this.DashboardData ?? []).filter(s => {
+      if (!s?.completedAt) return false;
+      const scanDate = this.dateTH(s.completedAt);
+      console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
+      console.log('latestScans', this.getLatestScanByProject());
+      return scanDate === date && s.qualityGate === 'OK';
+
+    }).length;
+
+  }
+  getLatestScanByProject(): any[] {
+    const rows = (this.DashboardData ?? [])
+      .filter((s): s is any => typeof s?.completedAt === 'string')
+      .filter(s => !!(s?.project?.id));
+
+    const latestByProject = new Map<string, any>();
+
+    for (const s of rows) {
+      const projectId = s.project?.id ?? s.projectId;
+
+      const prev = latestByProject.get(projectId);
+      if (!prev) {
+        latestByProject.set(projectId, s);
+        continue;
+      }
+
+      const prevTime = new Date(prev.completedAt).getTime();
+      const curTime = new Date(s.completedAt).getTime();
+
+      if (curTime > prevTime) {
+        latestByProject.set(projectId, s);
+      }
+    }
+    console.log('Latest by Project:', Array.from(latestByProject.values()));
+    return Array.from(latestByProject.values());
+  }
 
 
 
 
-buildPieChart() {
-  this.pieChartOptions = {
-    series: [this.passedCount, this.failedCount],
-    labels: ['Success', 'Failed'],
-    chart: { type: 'pie' },
-    legend: { position: 'bottom' }
-  };
-}
+  buildPieChart() {
+    this.pieChartOptions = {
+      series: [this.passedCount, this.failedCount],
+      labels: ['Success', 'Failed'],
+      chart: { type: 'pie' },
+      legend: { position: 'bottom' },
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+            value: 0.15
+          }
+        },
+        active: {
+          filter: {
+            type: 'darken',
+            value: 0.2
+          }
+        }
+      }
+    };
+  }
   // ================== FETCH FROM SERVER ==================
   fetchFromServer(userId: string | number) {
     this.loading = true;
@@ -414,13 +372,13 @@ buildPieChart() {
             : 1;
 
           const revMap: Record<1 | 2 | 3 | 4 | 5, 'A' | 'B' | 'C' | 'D' | 'E'> =
-            {
-              1: 'E',
-              2: 'D',
-              3: 'C',
-              4: 'B',
-              5: 'A',
-            };
+          {
+            1: 'E',
+            2: 'D',
+            3: 'C',
+            4: 'B',
+            5: 'A',
+          };
 
           const rounded = Math.max(1, Math.min(5, Math.round(avgScore))) as
             | 1
@@ -619,7 +577,7 @@ buildPieChart() {
             try {
               const parsed = JSON.parse(err.error);
               if (parsed?.message) return parsed.message;
-            } catch (_) {}
+            } catch (_) { }
             // ถ้าไม่ใช่ JSON ก็ใช้ string ตรงๆ
             return err.error;
           }
@@ -654,13 +612,9 @@ buildPieChart() {
   activeTab: NotificationTab = 'All';
   displayCount = 5;
   loadNotifications() {
-    this.notificationService.getAllNotification().subscribe({
+    this.notificationService.getAllNotifications().subscribe({
       next: (data) => {
-        // แปลง createdAt เป็น Date object
-        this.notifications = data.map((n) => ({
-          ...n,
-          timestamp: new Date(n.createdAt), // ใช้ field timestamp ใน template
-        }));
+        this.notifications = data;
       },
       error: (err) => {
         console.error('Error loading notifications:', err);
@@ -691,9 +645,14 @@ buildPieChart() {
     this.showNotifications = false;
   }
 
-  // markAllRead() {
-  //   this.notifications.forEach((n) => (n.read = true));
-  // }
+  markAllRead() {
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach((n) => ((n as any).isRead = true));
+      },
+      error: (err) => console.error('Failed to mark all as read:', err)
+    });
+  }
 
   selectTab(tab: NotificationTab) {
     this.activeTab = tab;
@@ -701,10 +660,10 @@ buildPieChart() {
   }
 
   viewNotification(n: Notification) {
-    this.notificationService.checkNotification(n.notiId).subscribe({
-      next: (res) => {
-        n.read = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
-        console.log('Notification marked as read:', res);
+    this.notificationService.markAsRead(n.id).subscribe({
+      next: () => {
+        (n as any).isRead = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
+        console.log('Notification marked as read');
       },
       error: (err) => {
         console.error('Failed to mark as read:', err);
@@ -715,18 +674,18 @@ buildPieChart() {
   get filteredNotifications() {
     let filtered = this.notifications;
     if (this.activeTab === 'Unread') {
-      filtered = filtered.filter((n) => !n.read);
+      filtered = filtered.filter((n) => !n.isRead);
     } else if (this.activeTab !== 'All') {
-      filtered = filtered.filter((n) => n.typeNoti === this.activeTab);
+      filtered = filtered.filter((n) => n.type === this.activeTab);
     }
     filtered = filtered.sort(
-      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
     return filtered.slice(0, this.displayCount);
   }
 
   get unreadCount() {
-    return this.notifications.filter((n) => !n.read).length;
+    return this.notifications.filter((n) => !n.isRead).length;
   }
 
   loadMore() {
@@ -736,8 +695,8 @@ buildPieChart() {
   get totalFilteredCount() {
     if (this.activeTab === 'All') return this.notifications.length;
     if (this.activeTab === 'Unread')
-      return this.notifications.filter((n) => !n.read).length;
-    return this.notifications.filter((n) => n.typeNoti === this.activeTab)
+      return this.notifications.filter((n) => !n.isRead).length;
+    return this.notifications.filter((n) => n.type === this.activeTab)
       .length;
   }
 
@@ -870,11 +829,32 @@ buildPieChart() {
         | 'E';
     }
 
+    // ถ้าไม่มีข้อมูล ให้แสดง E สีเทา
+    const hasData = this.totalProjects > 0;
+    const displayGrade = hasData ? this.grade : 'E';
+    const displayPercent = hasData ? this.gradePercent : 0;
+    const successColor = hasData ? this.getGradeColor(centerLetter) : this.getGradeColor(centerLetter); // grey-400
+    const failedColor = hasData ? '#EF4444' : '#E5E7EB'; // grey-200 when no data
+
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
-      series: [this.gradePercent, 100 - this.gradePercent],
+      series: hasData ? [displayPercent, 100 - displayPercent] : [0, 100],
       labels: ['SUCCESS', 'FAILED'],
-      colors: [this.getGradeColor(centerLetter), '#EF4444'],
+      colors: [successColor, failedColor],
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+            value: 0.15
+          }
+        },
+        active: {
+          filter: {
+            type: 'darken',
+            value: 0.2
+          }
+        }
+      },
       plotOptions: {
         pie: {
           donut: {
@@ -884,16 +864,14 @@ buildPieChart() {
               name: { show: false },
               value: {
                 show: true,
-                // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => this.grade,
+                formatter: () => displayGrade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
               },
               total: {
                 show: true,
-                // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => this.grade,
+                formatter: () => displayGrade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
@@ -903,8 +881,12 @@ buildPieChart() {
         },
       },
       dataLabels: { enabled: true },
-
-      legend: { show:  true },
+      legend: {
+        show: true,
+        markers: {
+          fillColors: [this.getGradeColor(centerLetter), '#EF4444']
+        }
+      },
       tooltip: {
         enabled: true,
         y: {
@@ -1075,6 +1057,43 @@ buildPieChart() {
     // TODO: Get userId from token when available
     this.fetchFromServer('');
   }
+  sendVerifyEmail() {
+    const userId = (this.UserLogin as any)?.id; // ถ้า type LoginUser ยังไม่มี id
+    if (!userId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing userId',
+        text: 'Cannot send verification email (userId not found).',
+        confirmButtonColor: '#d33',
+      });
+      return;
+    }
+
+    this.userService.sendVerifyEmail(userId).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sent',
+          text: 'Verification email has been sent. Please check your inbox.',
+          confirmButtonColor: '#3085d6',
+        });
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.error ||
+          err?.message ||
+          'Failed to send verification email';
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: msg,
+          confirmButtonColor: '#d33',
+        });
+      },
+    });
+  }
 
   viewDetail(scan: ScanResponseDTO) {
     this.sharedData.ScansDetail = scan;
@@ -1133,5 +1152,5 @@ buildPieChart() {
       colors: ['#0d6efd'], // bootstrap primary
     };
   }
-  
+
 }

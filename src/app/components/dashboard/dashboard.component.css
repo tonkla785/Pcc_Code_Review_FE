@@ -1065,3 +1065,6 @@ body.dark-mode .dashboard-container .recent-scans thead th:last-child {
 .password-rules li.pass {
   color: #2e7d32; /* เขียว */
 }
+.password-rules li.fail {
+  color: #dc3545 !important; /* แดง */
+}
