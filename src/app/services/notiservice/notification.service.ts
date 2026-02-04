@@ -106,6 +106,25 @@ export class NotificationService {
   }
 
   /**
+   * Create a new notification
+   */
+  createNotification(request: {
+    userId: string;
+    type: string;
+    title: string;
+    message: string;
+    relatedProjectId?: string;
+    relatedScanId?: string;
+    relatedIssueId?: string;
+    relatedCommentId?: string;
+  }): Observable<Notification> {
+    return this.http.post<Notification>(this.base, request)
+      .pipe(
+        tap((notification) => this.notificationData.addNotification(notification))
+      );
+  }
+
+  /**
    * Disconnect WebSocket
    */
   disconnect(): void {

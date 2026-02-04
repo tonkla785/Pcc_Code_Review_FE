@@ -201,6 +201,48 @@
    }
    .load-more:hover { background: var(--btn-primary-bg-hover); }
 
+   /* Severity-based notification styles */
+   .notification-critical {
+     border-left: 4px solid #ef4444;
+     background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), var(--notification-bg));
+   }
+   .notification-critical:hover {
+     background: #ef4444;
+     color: #fff;
+   }
+   
+   .notification-major {
+     border-left: 4px solid #f59e0b;
+     background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), var(--notification-bg));
+   }
+   .notification-major:hover {
+     background: #f59e0b;
+     color: #fff;
+   }
+   
+   .notification-title {
+     font-weight: 700;
+     font-size: 13px;
+   }
+   
+   .view-issue-link {
+     display: inline-block;
+     margin-top: 6px;
+     font-size: 12px;
+     font-weight: 600;
+     color: var(--btn-primary-bg);
+     text-decoration: none;
+     transition: color 0.2s, transform 0.2s;
+   }
+   .view-issue-link:hover {
+     color: var(--btn-primary-bg-hover);
+     text-decoration: underline;
+     transform: translateX(2px);
+   }
+   .notification-item:hover .view-issue-link {
+     color: #fff;
+   }
+
   
 /* ===============================
    Profile Menu

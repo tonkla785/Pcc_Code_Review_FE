@@ -60,12 +60,17 @@
 
           <!-- รายการ Notifications -->
           <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.isRead"
+            [class.notification-critical]="n.title?.includes('🔴')" [class.notification-major]="n.title?.includes('🟠')"
             (click)="viewNotification(n)">
             <div class="item-header">
-              <!-- <span>{{ n.icon }} {{ n.title }}</span> -->
+              <span class="notification-title">{{ n.title || 'Notification' }}</span>
               <span class="item-time">{{ getTimeAgo(n.createdAt) }}</span>
             </div>
             <div class="item-message">{{ n.message }}</div>
+            <a *ngIf="n.relatedIssueId" class="view-issue-link" [routerLink]="['/issue', n.relatedIssueId]"
+              (click)="$event.stopPropagation()">
+              View Issue →
+            </a>
           </div>
 
           <!-- ปุ่ม Load More -->
@@ -186,9 +191,10 @@
               <td>{{ scan.project.name }}</td>
               <td [ngClass]="{
                   'status-cell status--passed': scan.status === 'SUCCESS',
+                  'status-cell status--warning': scan.status === 'PENDING',
                   'status-cell status--failed': scan.status === 'FAILED',
                 }">
-                {{ scan.status }}
+                {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
               </td>
               <!-- <td [ngClass]="{
               'grade-cell grade--a': scan.grade === 'A',

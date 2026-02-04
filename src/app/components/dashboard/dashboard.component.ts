@@ -180,7 +180,15 @@ export class DashboardComponent {
     this.sharedData.AllIssues$.subscribe((data) => {
       const all = data ?? [];
 
-      this.allIssues = all.filter((issue) => issue.severity == 'CRITICAL');
+      // Filter for notification-worthy issues (exclude MINOR and INFO)
+      const notifiableIssues = all.filter((issue) =>
+        ['CRITICAL', 'BLOCKER', 'MAJOR'].includes(issue.severity)
+      );
+
+      this.allIssues = notifiableIssues.filter((issue) => issue.severity === 'CRITICAL');
+
+      // Generate notifications for filtered issues
+      this.generateIssueNotifications(notifiableIssues);
     });
     if (!this.sharedData.hasIssuesCache) {
       console.log('No cache - load from server');
@@ -676,7 +684,7 @@ export class DashboardComponent {
   }
 
   get filteredNotifications() {
-    let filtered = this.notifications;
+    let filtered = this.allNotificationsForDisplay;
     if (this.activeTab === 'Unread') {
       filtered = filtered.filter((n) => !n.isRead);
     } else if (this.activeTab !== 'All') {
@@ -689,7 +697,7 @@ export class DashboardComponent {
   }
 
   get unreadCount() {
-    return this.notifications.filter((n) => !n.isRead).length;
+    return this.allNotificationsForDisplay.filter((n) => !n.isRead).length;
   }
 
   loadMore() {
@@ -697,11 +705,70 @@ export class DashboardComponent {
   }
 
   get totalFilteredCount() {
-    if (this.activeTab === 'All') return this.notifications.length;
+    if (this.activeTab === 'All') return this.allNotificationsForDisplay.length;
     if (this.activeTab === 'Unread')
-      return this.notifications.filter((n) => !n.isRead).length;
-    return this.notifications.filter((n) => n.type === this.activeTab)
+      return this.allNotificationsForDisplay.filter((n) => !n.isRead).length;
+    return this.allNotificationsForDisplay.filter((n) => n.type === this.activeTab)
       .length;
+  }
+
+  // Issue-based notifications (not saved to DB, displayed on frontend only)
+  issueNotifications: Notification[] = [];
+
+  /**
+   * Convert issues to notification-like objects for display (no API call)
+   */
+  generateIssueNotifications(issues: IssuesResponseDTO[]): void {
+    if (!issues?.length) {
+      this.issueNotifications = [];
+      return;
+    }
+
+    const userId = this.tokenStorage.getLoginUser()?.id || '';
+
+    this.issueNotifications = issues.map(issue => {
+      // Determine title based on severity
+      let title = '';
+      if (issue.severity === 'CRITICAL') {
+        title = `🔴 ${issue.severity} ${issue.type} Issue`;
+      } else if (issue.severity === 'BLOCKER') {
+        title = `🔴 ${issue.severity} ${issue.type} Issue`;
+      } else {
+        title = `🟠 ${issue.severity} ${issue.type} Issue`;
+      }
+
+      return {
+        id: issue.id,
+        userId: userId,
+        type: 'Issues',
+        title: title,
+        message: issue.message,
+        isRead: false, // Issues are always unread in this view
+        createdAt: new Date(issue.createdAt),
+        relatedIssueId: issue.id,
+        relatedProjectId: issue.projectData?.id
+      } as Notification;
+    });
+  }
+
+  /**
+   * Get all notifications (real + issue-based) for display
+   */
+  get allNotificationsForDisplay(): Notification[] {
+    // Merge real notifications with issue notifications
+    const realNotifications = this.notifications || [];
+    const issueNotis = this.issueNotifications || [];
+
+    // Avoid duplicates: filter out issue notifications that already exist in real notifications
+    const existingIssueIds = new Set(
+      realNotifications
+        .filter(n => n.relatedIssueId)
+        .map(n => n.relatedIssueId)
+    );
+
+    const uniqueIssueNotis = issueNotis.filter(n => !existingIssueIds.has(n.relatedIssueId));
+
+    return [...realNotifications, ...uniqueIssueNotis];
   }
 
   // ================== PROJECT DISTRIBUTION ==================
