@@ -1,266 +1,366 @@
 /* ===============================
    Card container (โครงหลักของ log-card)
    =============================== */
-   .log-card {
-    background-color: #ffffff;             /* พื้นหลังสีขาว (Light mode) */
-    border: 1px solid #e5e7eb;             /* ขอบสีเทาอ่อน */
-    border-radius: 12px;                   /* มุมโค้งมน */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* เงาเบาๆ */
-    transition: transform 0.25s ease, box-shadow 0.25s ease; /* transition เวลา hover */
-  }
-  .log-card:hover {
-    transform: translateY(-3px);           /* hover → ขยับขึ้น */
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); /* hover → เงาเข้มขึ้น */
-  }
-  
-  
-  /* ===============================
+.log-card {
+  background-color: #ffffff;
+  /* พื้นหลังสีขาว (Light mode) */
+  border: 1px solid #e5e7eb;
+  /* ขอบสีเทาอ่อน */
+  border-radius: 12px;
+  /* มุมโค้งมน */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  /* เงาเบาๆ */
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  /* transition เวลา hover */
+}
+
+.log-card:hover {
+  transform: translateY(-3px);
+  /* hover → ขยับขึ้น */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  /* hover → เงาเข้มขึ้น */
+}
+
+
+/* ===============================
      Section headings (หัวข้อ h4 ในการ์ด)
      =============================== */
-  .log-card h4 {
-    font-size: 1.2rem;                     /* ขนาดตัวอักษรหัวข้อ */
-    margin-bottom: 0.75rem;                /* เว้นระยะด้านล่าง */
-    color: #111827;                        /* สีดำเข้ม */
-    font-weight: 600;                      /* ตัวหนา */
-    display: flex;                         /* ใช้ flex จัดตำแหน่ง */
-    align-items: center;                   /* จัดไอคอนตรงกลางแนวตั้ง */
-    gap: 6px;                              /* ระยะห่างระหว่างไอคอนกับข้อความ */
-    transition: color 0.25s ease;          /* เปลี่ยนสีเวลา hover */
-  }
-  .log-card h4 i {
-    color: #2563eb;                        /* ไอคอนสีฟ้า */
-    transition: transform 0.25s ease, color 0.25s ease; /* hover effect */
-  }
-  .log-card h4:hover {
-    color: #2563eb;                        /* hover → หัวข้อฟ้า */
-  }
-  .log-card h4:hover i {
-    transform: scale(1.2);                 /* hover → ไอคอนขยาย */
-  }
-  
-  
-  /* ===============================
+.log-card h4 {
+  font-size: 1.2rem;
+  /* ขนาดตัวอักษรหัวข้อ */
+  margin-bottom: 0.75rem;
+  /* เว้นระยะด้านล่าง */
+  color: #111827;
+  /* สีดำเข้ม */
+  font-weight: 600;
+  /* ตัวหนา */
+  display: flex;
+  /* ใช้ flex จัดตำแหน่ง */
+  align-items: center;
+  /* จัดไอคอนตรงกลางแนวตั้ง */
+  gap: 6px;
+  /* ระยะห่างระหว่างไอคอนกับข้อความ */
+  transition: color 0.25s ease;
+  /* เปลี่ยนสีเวลา hover */
+}
+
+.log-card h4 i {
+  color: #2563eb;
+  /* ไอคอนสีฟ้า */
+  transition: transform 0.25s ease, color 0.25s ease;
+  /* hover effect */
+}
+
+.log-card h4:hover {
+  color: #2563eb;
+  /* hover → หัวข้อฟ้า */
+}
+
+.log-card h4:hover i {
+  transform: scale(1.2);
+  /* hover → ไอคอนขยาย */
+}
+
+
+/* ===============================
      List group items (รายการใน list)
      =============================== */
-  .list-group-item {
-    padding: 0.65rem 1rem;                 /* ระยะห่างภายใน */
-    font-family: monospace;                /* ฟอนต์แบบโค้ด */
-    background-color: #fafafa;             /* พื้นหลังเทาอ่อน */
-    border-radius: 6px;                    /* มุมโค้ง */
-    margin-bottom: 4px;                    /* ระยะห่างระหว่างรายการ */
-    transition: background-color 0.25s ease, transform 0.2s ease; 
-  }
-  .list-group-item:hover {
-    background-color: #f3f4f6;             /* hover → เทาเข้มขึ้น */
-    transform: translateX(3px);            /* ขยับไปทางขวา */
-  }
-  
-  
-  /* ===============================
+.list-group-item {
+  padding: 0.65rem 1rem;
+  /* ระยะห่างภายใน */
+  font-family: monospace;
+  /* ฟอนต์แบบโค้ด */
+  background-color: #fafafa;
+  /* พื้นหลังเทาอ่อน */
+  border-radius: 6px;
+  /* มุมโค้ง */
+  margin-bottom: 4px;
+  /* ระยะห่างระหว่างรายการ */
+  transition: background-color 0.25s ease, transform 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f3f4f6;
+  /* hover → เทาเข้มขึ้น */
+  transform: translateX(3px);
+  /* ขยับไปทางขวา */
+}
+
+
+/* ===============================
      Warnings & Errors (เน้นสีให้ชัดเจน)
      =============================== */
-  
-  /* Error items */
-  section:has(h4 i.text-danger) .list-group-item {
-    font-weight: 600;                      /* ตัวหนา */
-    background-color: #fef2f2;             /* พื้นหลังแดงอ่อน */
-    box-shadow: inset 2px 0 0 #dc2626;     /* เส้นแดงด้านซ้าย */
-    color: #b91c1c;                        /* ตัวอักษรแดงเข้ม */
-  }
-  
-  /* Warning items */
-  section:has(h4 i.text-warning) .list-group-item {
-    font-weight: 600;                      /* ตัวหนา */
-    background-color: #fff7ed;             /* พื้นหลังส้มอ่อน */
-    box-shadow: inset 2px 0 0 #f59e0b;     /* เส้นส้มด้านซ้าย */
-    color: #92400e;                        /* ตัวอักษรส้มเข้ม */
-  }
-  
-  /* ให้สีไอคอนในหัวข้อสม่ำเสมอ */
-  section h4 .text-warning { color: #f59e0b !important; }
-  section h4 .text-danger  { color: #dc2626 !important; }
-  
-  
-  /* ===============================
+
+/* Error items */
+section:has(h4 i.text-danger) .list-group-item {
+  font-weight: 600;
+  /* ตัวหนา */
+  background-color: #fef2f2;
+  /* พื้นหลังแดงอ่อน */
+  box-shadow: inset 2px 0 0 #dc2626;
+  /* เส้นแดงด้านซ้าย */
+  color: #b91c1c;
+  /* ตัวอักษรแดงเข้ม */
+}
+
+/* Warning items */
+section:has(h4 i.text-warning) .list-group-item {
+  font-weight: 600;
+  /* ตัวหนา */
+  background-color: #fff7ed;
+  /* พื้นหลังส้มอ่อน */
+  box-shadow: inset 2px 0 0 #f59e0b;
+  /* เส้นส้มด้านซ้าย */
+  color: #92400e;
+  /* ตัวอักษรส้มเข้ม */
+}
+
+/* ให้สีไอคอนในหัวข้อสม่ำเสมอ */
+section h4 .text-warning {
+  color: #f59e0b !important;
+}
+
+section h4 .text-danger {
+  color: #dc2626 !important;
+}
+
+
+/* ===============================
      Buttons (ปุ่มทั่วไป)
      =============================== */
-  .btn {
-    border-radius: 8px;                    /* มุมโค้ง */
-    font-weight: 500;                      /* ตัวหนากลาง */
-    display: inline-flex;                  /* flex */
-    align-items: center;                   /* จัดแนวตั้ง */
-    gap: 6px;                              /* ระยะห่างกับไอคอน */
-    transition: transform 0.25s ease,
-                box-shadow 0.25s ease,
-                background-color 0.25s ease;
-  }
-  .btn i {
-    transition: transform 0.25s ease;      /* icon effect */
-  }
-  .btn:hover i {
-    transform: translateX(2px);            /* hover → ไอคอนขยับ */
-  }
-  .btn:hover {
-    transform: translateY(-2px);           /* hover → ปุ่มยกขึ้น */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-  }
-  .btn:active {
-    transform: translateY(0);              /* กดแล้วกลับลง */
-    box-shadow: none;
-  }
-  
-  
-  /* ===============================
+.btn {
+  border-radius: 8px;
+  /* มุมโค้ง */
+  font-weight: 500;
+  /* ตัวหนากลาง */
+  display: inline-flex;
+  /* flex */
+  align-items: center;
+  /* จัดแนวตั้ง */
+  gap: 6px;
+  /* ระยะห่างกับไอคอน */
+  transition: transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.btn i {
+  transition: transform 0.25s ease;
+  /* icon effect */
+}
+
+.btn:hover i {
+  transform: translateX(2px);
+  /* hover → ไอคอนขยับ */
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  /* hover → ปุ่มยกขึ้น */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.btn:active {
+  transform: translateY(0);
+  /* กดแล้วกลับลง */
+  box-shadow: none;
+}
+
+
+/* ===============================
      Specific Button Colors (กำหนดสีเฉพาะปุ่ม)
      =============================== */
-  .btn-secondary {
-    background-color: #e5e7eb;             /* เทาอ่อน */
-    color: #374151;                        /* เทาเข้ม */
-    border: none;
-  }
-  .btn-secondary:hover { background-color: #d1d5db; }
-  
-  .btn-success {
-    background-color: #10b981;             /* เขียว */
-    border: none;
-  }
-  .btn-success:hover { background-color: #059669; }
-  
-  .btn-primary {
-    background: linear-gradient(90deg, #2563eb, #1d4ed8); /* ไล่ฟ้า */
-    border: none;
-  }
-  
-  .btn-warning {
-    background-color: #f59e0b;             /* ส้ม */
-    border: none;
-    color: #fff;                           /* ตัวอักษรขาว */
-  }
-  .btn-warning:hover { background-color: #d97706; }
-  
-  
-  /* ===============================
+.btn-secondary {
+  background-color: #e5e7eb;
+  /* เทาอ่อน */
+  color: #374151;
+  /* เทาเข้ม */
+  border: none;
+}
+
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+.btn-success {
+  background-color: #10b981;
+  /* เขียว */
+  border: none;
+}
+
+.btn-success:hover {
+  background-color: #059669;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  /* ไล่ฟ้า */
+  border: none;
+}
+
+.btn-warning {
+  background-color: #f59e0b;
+  /* ส้ม */
+  border: none;
+  color: #fff;
+  /* ตัวอักษรขาว */
+}
+
+.btn-warning:hover {
+  background-color: #d97706;
+}
+
+
+/* ===============================
      Responsive font scaling (หน้าจอเล็ก)
      =============================== */
-  @media (max-width: 576px) {
-    .log-card h4 {
-      font-size: 1rem;                     /* หัวข้อเล็กลง */
-    }
-    .list-group-item {
-      font-size: 0.875rem;                 /* รายการเล็กลง */
-    }
+@media (max-width: 576px) {
+  .log-card h4 {
+    font-size: 1rem;
+    /* หัวข้อเล็กลง */
   }
-  
-  
-  /* ===============================
+
+  .list-group-item {
+    font-size: 0.875rem;
+    /* รายการเล็กลง */
+  }
+}
+
+
+/* ===============================
      Dark mode overrides (แก้สีในโหมดมืด)
      =============================== */
-  
-  /* การ์ดหลัก */
-  :host-context(.dark-mode) .log-card {
-    background-color: var(--bg-card) !important;
-    border-color: var(--card-border) !important;
-    color: var(--text-main) !important;
-  }
-  
-  /* หัวข้อ h4 */
-  :host-context(.dark-mode) .log-card h4 {
-    color: var(--text-heading) !important;
-  }
-  :host-context(.dark-mode) .log-card h4 i {
-    color: var(--btn-primary-bg) !important;
-  }
-  
-  /* รายการทั่วไป */
-  :host-context(.dark-mode) .list-group-item {
-    background-color: var(--bg-panel) !important;
-    color: var(--text-main) !important;
-    border: 1px solid var(--card-border) !important;
-  }
-  :host-context(.dark-mode) .list-group-item:hover {
-    background-color: var(--table-header-bg2) !important;
-  }
-  
-  /* รายการ Error */
-  :host-context(.dark-mode) section:has(h4 i.text-danger) .list-group-item {
-    background-color: #3f0d0d !important;  /* แดงเข้ม */
-    color: #fca5a5 !important;             /* แดงอ่อน */
-    box-shadow: inset 2px 0 0 #ef4444;     /* เส้นแดง */
-  }
-  
-  /* รายการ Warning */
-  :host-context(.dark-mode) section:has(h4 i.text-warning) .list-group-item {
-    background-color: #422006 !important;  /* ส้มเข้ม */
-    color: #fbbf24 !important;             /* เหลือง */
-    box-shadow: inset 2px 0 0 #f59e0b;
-  }
-  
-  /* ปุ่ม Secondary */
-  :host-context(.dark-mode) .btn-secondary {
-    background-color: var(--bg-panel) !important;
-    color: var(--text-main) !important;
-    border: 1px solid var(--card-border) !important;
-  }
-  :host-context(.dark-mode) .btn-secondary:hover {
-    background-color: var(--table-header-bg2) !important;
-  }
-  
-  /* ปุ่ม Success */
-  :host-context(.dark-mode) .btn-success {
-    background-color: #059669 !important;
-    color: #fff !important;
-  }
-  :host-context(.dark-mode) .btn-success:hover {
-    background-color: #047857 !important;
-  }
-  
-  /* ปุ่ม Primary */
-  :host-context(.dark-mode) .btn-primary {
-    background: linear-gradient(90deg, #1d4ed8, #1e40af) !important;
-    color: #fff !important;
-  }
-  
-  /* ปุ่ม Warning */
-  :host-context(.dark-mode) .btn-warning {
-    background-color: #d97706 !important;
-    color: #fff !important;
-  }
-  :host-context(.dark-mode) .btn-warning:hover {
-    background-color: #b45309 !important;
-  }
-  
-  /* ข้อความ muted */
-  :host-context(.dark-mode) .log-card p.text-muted,
-  :host-context(.dark-mode) .log-card p.text-muted *,
-  :host-context(.dark-mode) .log-card .text-muted,
-  :host-context(.dark-mode) .log-card .text-muted * {
-    color: var(--text-muted) !important;   /* สีอ่อน */
-  }
-  
-  /* ข้อความ strong ใน muted */
-  :host-context(.dark-mode) .log-card p.text-muted strong,
-  :host-context(.dark-mode) .log-card .text-muted strong {
-    color: var(--text-heading) !important;
-  }
-  
-  /* วันที่ใน log */
-  :host-context(.dark-mode) .log-card .log-date {
-    color: var(--text-main) !important;
-  }
-  :host-context(.dark-mode) .log-card .log-date strong {
-    color: var(--text-heading) !important;
-  }
-  /* คุม layout ตารางให้บาลานซ์ */
+
+/* การ์ดหลัก */
+:host-context(.dark-mode) .log-card {
+  background-color: var(--bg-card) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-main) !important;
+}
+
+/* หัวข้อ h4 */
+:host-context(.dark-mode) .log-card h4 {
+  color: var(--text-heading) !important;
+}
+
+:host-context(.dark-mode) .log-card h4 i {
+  color: var(--btn-primary-bg) !important;
+}
+
+/* รายการทั่วไป */
+:host-context(.dark-mode) .list-group-item {
+  background-color: var(--bg-panel) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+:host-context(.dark-mode) .list-group-item:hover {
+  background-color: var(--table-header-bg2) !important;
+}
+
+/* รายการ Error */
+:host-context(.dark-mode) section:has(h4 i.text-danger) .list-group-item {
+  background-color: #3f0d0d !important;
+  /* แดงเข้ม */
+  color: #fca5a5 !important;
+  /* แดงอ่อน */
+  box-shadow: inset 2px 0 0 #ef4444;
+  /* เส้นแดง */
+}
+
+/* รายการ Warning */
+:host-context(.dark-mode) section:has(h4 i.text-warning) .list-group-item {
+  background-color: #422006 !important;
+  /* ส้มเข้ม */
+  color: #fbbf24 !important;
+  /* เหลือง */
+  box-shadow: inset 2px 0 0 #f59e0b;
+}
+
+/* ปุ่ม Secondary */
+:host-context(.dark-mode) .btn-secondary {
+  background-color: var(--bg-panel) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+:host-context(.dark-mode) .btn-secondary:hover {
+  background-color: var(--table-header-bg2) !important;
+}
+
+/* ปุ่ม Success */
+:host-context(.dark-mode) .btn-success {
+  background-color: #059669 !important;
+  color: #fff !important;
+}
+
+:host-context(.dark-mode) .btn-success:hover {
+  background-color: #047857 !important;
+}
+
+/* ปุ่ม Primary */
+:host-context(.dark-mode) .btn-primary {
+  background: linear-gradient(90deg, #1d4ed8, #1e40af) !important;
+  color: #fff !important;
+}
+
+/* ปุ่ม Warning */
+:host-context(.dark-mode) .btn-warning {
+  background-color: #d97706 !important;
+  color: #fff !important;
+}
+
+:host-context(.dark-mode) .btn-warning:hover {
+  background-color: #b45309 !important;
+}
+
+/* ข้อความ muted */
+:host-context(.dark-mode) .log-card p.text-muted,
+:host-context(.dark-mode) .log-card p.text-muted *,
+:host-context(.dark-mode) .log-card .text-muted,
+:host-context(.dark-mode) .log-card .text-muted * {
+  color: var(--text-muted) !important;
+  /* สีอ่อน */
+}
+
+/* ข้อความ strong ใน muted */
+:host-context(.dark-mode) .log-card p.text-muted strong,
+:host-context(.dark-mode) .log-card .text-muted strong {
+  color: var(--text-heading) !important;
+}
+
+/* วันที่ใน log */
+:host-context(.dark-mode) .log-card .log-date {
+  color: var(--text-main) !important;
+}
+
+:host-context(.dark-mode) .log-card .log-date strong {
+  color: var(--text-heading) !important;
+}
+
+/* คุม layout ตารางให้บาลานซ์ */
 .major-table {
-  table-layout: fixed;   /* สำคัญมาก: ทำให้ width ที่กำหนดมีผลจริง */
+  table-layout: fixed;
+  /* สำคัญมาก: ทำให้ width ที่กำหนดมีผลจริง */
   width: 100%;
 }
 
 /* ความกว้างแต่ละคอลัมน์ */
-.col-no { width: 60px; }
-.col-line { width: 80px; }
-.col-msg { width: 60%; }
-.col-comp { width: 35%; }
+.col-no {
+  width: 60px;
+}
+
+.col-line {
+  width: 80px;
+}
+
+.col-msg {
+  width: 60%;
+}
+
+.col-comp {
+  width: 35%;
+}
 
 /* ทำ ellipsis ให้คอลัมน์ component */
 .col-comp {
@@ -269,5 +369,44 @@
   text-overflow: ellipsis;
 }
 
-  
-  
+/* ===============================
+   Major Table (Warnings/Errors) → Dark Mode
+   =============================== */
+:host-context(.dark-mode) .table.major-table,
+:host-context(.dark-mode) .table.major-table> :not(caption)>*>* {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border-color: var(--card-border) !important;
+}
+
+/* Warning Header - ใช้สีเดียวกับ table header อื่นๆ */
+:host-context(.dark-mode) .major-table thead.table-warning,
+:host-context(.dark-mode) .major-table thead.table-warning>tr,
+:host-context(.dark-mode) .major-table thead.table-warning>tr>th {
+  background-color: var(--table-header-bg) !important;
+  color: #fbbf24 !important;
+  border-color: var(--card-border) !important;
+}
+
+/* Error Header - ใช้สีเดียวกับ table header อื่นๆ */
+:host-context(.dark-mode) .major-table thead.table-danger,
+:host-context(.dark-mode) .major-table thead.table-danger>tr,
+:host-context(.dark-mode) .major-table thead.table-danger>tr>th {
+  background-color: var(--table-header-bg) !important;
+  color: #f87171 !important;
+  border-color: var(--card-border) !important;
+}
+
+/* Table Body */
+:host-context(.dark-mode) .major-table tbody,
+:host-context(.dark-mode) .major-table tbody>tr,
+:host-context(.dark-mode) .major-table tbody>tr>td {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border-color: var(--card-border) !important;
+}
+
+:host-context(.dark-mode) .major-table tbody>tr:hover,
+:host-context(.dark-mode) .major-table tbody>tr:hover>td {
+  background-color: var(--table-header-bg2) !important;
+}
