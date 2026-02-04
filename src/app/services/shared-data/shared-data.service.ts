@@ -216,11 +216,8 @@ export class SharedDataService {
                 )
                 .map(s => s.id)
         );
-<<<<<<< HEAD
-=======
 
         // 2. Filter out issues that belong to these scans OR match project ID directly
->>>>>>> dev
         const currentIssues = this.issuesValue;
         const nextIssues = currentIssues.filter(issue => {
             // Check direct project mapping (Works even if Scans are not loaded)
@@ -259,10 +256,6 @@ export class SharedDataService {
         if (!current) return;
         if (current.id !== patch.id) return;
 
-<<<<<<< HEAD
-=======
-        // merge ของเดิม + ของใหม่ แล้ว next  ทุก component ที่ subscribe จะอัปเดตทันที
->>>>>>> dev
         const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
         this.selectedIssues.next(next);
         this.updateIssues(next);
@@ -270,23 +263,6 @@ export class SharedDataService {
     private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
     readonly Comments$ = this.Comments.asObservable();
 
-    get hasSelectedCommentLoaded(): boolean {
-        return this.Comments.value !== null;
-    }
-
-    get hasSelectedCommentCache(): boolean {
-        const data = this.Comments.value;
-        return data !== null;
-    }
-
-    set SelectedComment(data: commentResponseDTO) {
-        this.Comments.next(data);
-    }
-    get commentValue(): commentResponseDTO {
-        return this.Comments.value ?? null!;
-    }
-    private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
-    readonly Comments$ = this.Comments.asObservable();
 
     get hasSelectedCommentLoaded(): boolean {
         return this.Comments.value !== null;
