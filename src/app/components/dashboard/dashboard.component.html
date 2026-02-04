@@ -67,8 +67,8 @@
               <span class="item-time">{{ getTimeAgo(n.createdAt) }}</span>
             </div>
             <div class="item-message">{{ n.message }}</div>
-            <a *ngIf="n.relatedIssueId" class="view-issue-link" [routerLink]="['/issue', n.relatedIssueId]"
-              (click)="$event.stopPropagation()">
+            <a *ngIf="n.relatedIssueId" class="view-issue-link" [routerLink]="['/issuedetail', n.relatedIssueId]"
+              (click)="viewNotification(n); $event.stopPropagation()">
               View Issue →
             </a>
           </div>

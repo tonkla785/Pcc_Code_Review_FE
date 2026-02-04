@@ -175,6 +175,13 @@
      border-color: var(--btn-primary-bg); 
      color: var(--btn-primary-bg);
    }
+   .notification-tabs button.active {
+     background: var(--btn-primary-bg);
+     color: #fff;
+     border-color: var(--btn-primary-bg);
+     font-weight: 700;
+     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+   }
    
    /* Notification item */
    .notification-item {

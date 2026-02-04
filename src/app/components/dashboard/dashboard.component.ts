@@ -672,19 +672,23 @@ export class DashboardComponent {
   }
 
   viewNotification(n: Notification) {
+    // อัปเดต UI ก่อนทันที (ไม่ต้องรอ API)
+    (n as any).isRead = true;
+
+    // เรียก API แบบ fire-and-forget
     this.notificationService.markAsRead(n.id).subscribe({
       next: () => {
-        (n as any).isRead = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
         console.log('Notification marked as read');
       },
       error: (err) => {
         console.error('Failed to mark as read:', err);
+        // ไม่ต้อง revert เพราะ navigation ทำไปแล้ว
       },
     });
   }
 
   get filteredNotifications() {
-    let filtered = this.allNotificationsForDisplay;
+    let filtered = this.notifications;
     if (this.activeTab === 'Unread') {
       filtered = filtered.filter((n) => !n.isRead);
     } else if (this.activeTab !== 'All') {
@@ -697,7 +701,7 @@ export class DashboardComponent {
   }
 
   get unreadCount() {
-    return this.allNotificationsForDisplay.filter((n) => !n.isRead).length;
+    return this.notifications.filter((n) => !n.isRead).length;
   }
 
   loadMore() {
@@ -705,70 +709,101 @@ export class DashboardComponent {
   }
 
   get totalFilteredCount() {
-    if (this.activeTab === 'All') return this.allNotificationsForDisplay.length;
+    if (this.activeTab === 'All') return this.notifications.length;
     if (this.activeTab === 'Unread')
-      return this.allNotificationsForDisplay.filter((n) => !n.isRead).length;
-    return this.allNotificationsForDisplay.filter((n) => n.type === this.activeTab)
+      return this.notifications.filter((n) => !n.isRead).length;
+    return this.notifications.filter((n) => n.type === this.activeTab)
       .length;
   }
 
-  // Issue-based notifications (not saved to DB, displayed on frontend only)
-  issueNotifications: Notification[] = [];
+  // Track already notified issue IDs to avoid duplicate API calls
+  private notifiedIssueIds = new Set<string>();
 
   /**
-   * Convert issues to notification-like objects for display (no API call)
+   * Save issue notifications to DB, then refresh all notifications
+   * Checks existing notifications to prevent duplicates on page refresh
    */
   generateIssueNotifications(issues: IssuesResponseDTO[]): void {
-    if (!issues?.length) {
-      this.issueNotifications = [];
-      return;
-    }
+    if (!issues?.length) return;
 
-    const userId = this.tokenStorage.getLoginUser()?.id || '';
+    const userId = this.tokenStorage.getLoginUser()?.id;
+    if (!userId) return;
 
-    this.issueNotifications = issues.map(issue => {
-      // Determine title based on severity
-      let title = '';
-      if (issue.severity === 'CRITICAL') {
-        title = `🔴 ${issue.severity} ${issue.type} Issue`;
-      } else if (issue.severity === 'BLOCKER') {
-        title = `🔴 ${issue.severity} ${issue.type} Issue`;
-      } else {
-        title = `🟠 ${issue.severity} ${issue.type} Issue`;
+    // First, load existing notifications to check which issues already have notifications
+    this.notificationService.getAllNotifications().subscribe({
+      next: (existingNotifications) => {
+        // Build a set of issue IDs that already have notifications
+        const existingIssueIds = new Set(
+          existingNotifications
+            .filter(n => n.relatedIssueId)
+            .map(n => n.relatedIssueId)
+        );
+
+        // Add existing issue IDs to notifiedIssueIds Set
+        existingIssueIds.forEach(id => this.notifiedIssueIds.add(id!));
+
+        // Filter issues that haven't been notified yet (not in memory AND not in DB)
+        const newIssues = issues.filter(issue =>
+          !this.notifiedIssueIds.has(issue.id) && !existingIssueIds.has(issue.id)
+        );
+
+        // Always update notifications for display
+        this.notifications = existingNotifications;
+
+        if (!newIssues.length) {
+          console.log('No new issues to notify - displaying existing notifications');
+          return;
+        }
+
+        let completedCount = 0;
+
+        for (const issue of newIssues) {
+          // Determine title based on severity
+          let title = '';
+          if (issue.severity === 'CRITICAL') {
+            title = `🔴 ${issue.severity} ${issue.type} Issue`;
+          } else if (issue.severity === 'BLOCKER') {
+            title = `🔴 ${issue.severity} ${issue.type} Issue`;
+          } else {
+            title = `🟠 ${issue.severity} ${issue.type} Issue`;
+          }
+
+          // Create notification request
+          const request = {
+            userId: userId,
+            type: 'Issues',
+            title: title,
+            message: issue.message,
+            relatedIssueId: issue.id,
+            relatedProjectId: issue.projectData?.id
+          };
+
+          this.notificationService.createNotification(request).subscribe({
+            next: () => {
+              this.notifiedIssueIds.add(issue.id);
+              completedCount++;
+              console.log(`Notification created for issue: ${issue.id}`);
+
+              // After all notifications created, refresh the list
+              if (completedCount === newIssues.length) {
+                this.loadNotifications();
+              }
+            },
+            error: (err) => {
+              console.error('Failed to create notification:', err);
+              completedCount++;
+              // Still refresh even if some failed
+              if (completedCount === newIssues.length) {
+                this.loadNotifications();
+              }
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load existing notifications:', err);
       }
-
-      return {
-        id: issue.id,
-        userId: userId,
-        type: 'Issues',
-        title: title,
-        message: issue.message,
-        isRead: false, // Issues are always unread in this view
-        createdAt: new Date(issue.createdAt),
-        relatedIssueId: issue.id,
-        relatedProjectId: issue.projectData?.id
-      } as Notification;
     });
-  }
-
-  /**
-   * Get all notifications (real + issue-based) for display
-   */
-  get allNotificationsForDisplay(): Notification[] {
-    // Merge real notifications with issue notifications
-    const realNotifications = this.notifications || [];
-    const issueNotis = this.issueNotifications || [];
-
-    // Avoid duplicates: filter out issue notifications that already exist in real notifications
-    const existingIssueIds = new Set(
-      realNotifications
-        .filter(n => n.relatedIssueId)
-        .map(n => n.relatedIssueId)
-    );
-
-    const uniqueIssueNotis = issueNotis.filter(n => !existingIssueIds.has(n.relatedIssueId));
-
-    return [...realNotifications, ...uniqueIssueNotis];
   }
 
   // ================== PROJECT DISTRIBUTION ==================
