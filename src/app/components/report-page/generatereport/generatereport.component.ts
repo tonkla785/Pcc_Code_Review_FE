@@ -443,9 +443,6 @@ export class GeneratereportComponent implements OnInit {
     });
   }
 
-  /**
-   * Create notification for report generation result
-   */
   private createReportNotification(reportName: string, isSuccess: boolean): void {
     const userId = this.tokenStorageService.getLoginUser()?.id;
     if (!userId) return;
