@@ -207,15 +207,31 @@ export class SharedDataService {
     }
 
     removeIssuesByProject(projectId: string) {
+        // 1. Find all scan IDs for this project from Scan History
         const projectScanIds = new Set(
             this.scanValue
-                .filter(s => s.project?.id === projectId)
+                .filter(s =>
+                    // Fix: รองรับทั้ง project.id และ projectId (Flat)
+                    (s.project?.id === projectId) ||
+                    ((s as any).projectId === projectId)
+                )
                 .map(s => s.id)
         );
-        const currentIssues = this.issuesValue;
-        const nextIssues = currentIssues.filter(issue => !projectScanIds.has(issue.scanId));
 
-        console.log(`[SharedData] Removing issues for project ${projectId}. Scans: ${projectScanIds.size}, Issues removed: ${currentIssues.length - nextIssues.length}`);
+        // 2. Filter out issues that belong to these scans OR match project ID directly
+        const currentIssues = this.issuesValue;
+        const nextIssues = currentIssues.filter(issue => {
+            // Check direct project mapping (Works even if Scans are not loaded)
+            if (issue.projectData?.id === projectId) return false;
+            if ((issue as any).projectId === projectId) return false;
+
+            // Check nested scan mapping
+            if (projectScanIds.has(issue.scanId)) return false;
+
+            return true;
+        });
+
+        console.log(`[SharedData] Removing issues for project ${projectId}. Removed: ${currentIssues.length - nextIssues.length}`);
         this.AllIssues.next(nextIssues);
     }
     private readonly selectedIssues = new BehaviorSubject<IssuesResponseDTO | null>(null);
