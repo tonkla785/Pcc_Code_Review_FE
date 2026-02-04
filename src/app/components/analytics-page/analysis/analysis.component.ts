@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
@@ -6,6 +6,7 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 import { SecurityService } from '../../../services/securityservice/security.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
+import { TechnicalDebtDataService, DebtItem } from '../../../services/shared-data/technicaldebt-data.service';
 
 interface HotSecurityIssue {
   name: string;
@@ -13,13 +14,16 @@ interface HotSecurityIssue {
 }
 
 interface DebtProject {
-  projectName: string;
+    // Legacy interface, kept if needed by other parts, but mostly replaced by DebtItem
+     projectName: string;
   debtTime: string;
   debtMinutes: number;
   debtCost: string;
   priority: string;
   color: string;
 }
+
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-analysis',
@@ -28,7 +32,7 @@ interface DebtProject {
   templateUrl: './analysis.component.html',
   styleUrl: './analysis.component.css'
 })
-export class AnalysisComponent implements OnInit {
+export class AnalysisComponent implements OnInit, OnDestroy {
 
   securityScore = 0;
   technicalDebt = '0d';
@@ -38,7 +42,10 @@ export class AnalysisComponent implements OnInit {
   testCoverage = 80;
 
   topSecurityIssues: HotSecurityIssue[] = [];
+  // topDebtProjects: DebtItem[] = [];
   topDebtProjects: DebtProject[] = [];
+
+  private subscriptions = new Subscription();
 
   get summaryCards() {
     return [
@@ -62,7 +69,8 @@ export class AnalysisComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
-    private readonly scanService: ScanService
+    private readonly scanService: ScanService,
+    // private readonly techDebtDataService: TechnicalDebtDataService
   ) { }
 
   ngOnInit(): void {
@@ -70,19 +78,26 @@ export class AnalysisComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadSecurityData();
-    this.loadTechnicalDebt();
-  }
 
-  loadSecurityData(): void {
+    this.subscriptions.add(
+      this.sharedData.securityScore$.subscribe(score => {
+        this.securityScore = score;
+      })
+    );
 
-    this.sharedData.securityScore$.subscribe(score => {
-      this.securityScore = score;
-    });
+    this.subscriptions.add(
+      this.sharedData.hotIssues$.subscribe(issues => {
+        this.topSecurityIssues = issues;
+      })
+    );
 
-    this.sharedData.hotIssues$.subscribe(issues => {
-      this.topSecurityIssues = issues;
-    });
+    this.subscriptions.add(
+      this.sharedData.scansHistory$.subscribe(scans => {
+        if (scans && scans.length > 0) {
+          this.calculateDebt(scans);
+        }
+      })
+    );
 
     if (!this.sharedData.hasSecurityIssuesCache) {
       this.securityService.getSecurityIssues().subscribe({
@@ -93,16 +108,17 @@ export class AnalysisComponent implements OnInit {
         error: (err) => console.error('Failed to load security data:', err)
       });
     }
+
+    if (!this.sharedData.hasScansHistoryCache) {
+      this.scanService.getScansHistory().subscribe({
+        next: (data) => this.sharedData.Scans = data,
+        error: (err) => console.error('Failed to load scan history', err)
+      });
+    }
   }
 
-  loadTechnicalDebt(): void {
-    this.scanService.getScansHistory().subscribe({
-      next: (data) => {
-        this.sharedData.Scans = data;
-        this.calculateDebt(data);
-      },
-      error: (err) => console.error('Failed to load scan history', err)
-    });
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   private calculateDebt(scans: ScanResponseDTO[]): void {
@@ -157,6 +173,11 @@ export class AnalysisComponent implements OnInit {
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
   }
+  // loadTechnicalDebt removed as we use shared data from TechnicalDebtComponent
+  // The user requested to use shared data from TechnicalDebtComponent.
+  // If Analysis is visited first, it will be empty until TechDebt is visited (as per "Shared Data" pattern).
+  // If I wanted to force load, I would need to duplicate the logic or move it to service. 
+  // Given previous instruction rejected duplication/service-logic-move, I assume this behavior is desired.
 
 
   private getPriority(score: number): string {
