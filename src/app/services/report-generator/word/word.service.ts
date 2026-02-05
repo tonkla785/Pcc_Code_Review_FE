@@ -18,9 +18,8 @@ export interface WordReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
-        technicalDebt?: boolean;
-        trendAnalysis?: boolean;
-        recommendations?: boolean;
+        technicalDebt: boolean;
+        recommendations: boolean;
     };
     recommendationsData?: any[];
 }

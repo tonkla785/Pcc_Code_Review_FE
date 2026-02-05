@@ -380,7 +380,7 @@ export class GeneratereportComponent implements OnInit {
 
     try {
       this.exportToFormat(context);
-      this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections);
+      this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections, recommendationsData);
       this.createReportNotification(projectName, true);  // success notification
       this.snackBar.open('Report generated successfully', '', {
         duration: 2500,
@@ -443,7 +443,8 @@ export class GeneratereportComponent implements OnInit {
     scans: ScanResponseDTO[],
     issues: IssuesResponseDTO[],
     securityData: any,
-    selectedSections: SelectedSections
+    selectedSections: SelectedSections,
+    recommendationsData: any[] = []
   ): void {
     const user = this.tokenStorageService.getLoginUser();
 
@@ -459,7 +460,7 @@ export class GeneratereportComponent implements OnInit {
       includeSecurityAnalysis: selectedSections.securityAnalysis,
       includeTechnicalDebt: selectedSections.technicalDebt,
       includeRecommendations: selectedSections.recommendations,
-      snapshotData: { scans, issues, securityData, selectedSections },
+      snapshotData: { scans, issues, securityData, selectedSections, recommendationsData },
       fileSizeBytes: 0
     };
 

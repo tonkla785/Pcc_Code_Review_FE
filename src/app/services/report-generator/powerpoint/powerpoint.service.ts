@@ -18,9 +18,9 @@ export interface PptReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
-        technicalDebt?: boolean;
+        technicalDebt: boolean;
         trendAnalysis?: boolean;
-        recommendations?: boolean;
+        recommendations: boolean;
     };
     recommendationsData?: any[];
 }

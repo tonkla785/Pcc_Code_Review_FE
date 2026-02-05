@@ -141,6 +141,7 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
       issues: report.snapshotData.issues || [],
       securityData: report.snapshotData.securityData,
       selectedSections: report.snapshotData.selectedSections || {},
+      recommendationsData: report.snapshotData.recommendationsData || [],
       generatedBy: report.generatedBy
     };
 

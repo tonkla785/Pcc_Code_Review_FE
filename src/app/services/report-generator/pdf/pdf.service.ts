@@ -19,9 +19,9 @@ export interface PdfReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
-        technicalDebt?: boolean;
+        technicalDebt: boolean;
         trendAnalysis?: boolean;
-        recommendations?: boolean;
+        recommendations: boolean;
     };
     recommendationsData?: any[];
     generatedBy?: string;
