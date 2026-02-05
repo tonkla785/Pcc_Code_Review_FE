@@ -2,11 +2,17 @@
   <div class="header-row">
     <h2><i class="bi bi-journal-text"></i> Report History</h2>
     <!-- Search Bar -->
-    <input type="text" placeholder="Search reports..." [(ngModel)]="searchText" class="search-input" />
+    <input type="text" placeholder="Search reports..." [(ngModel)]="searchText" (ngModelChange)="onSearchChange()"
+      class="search-input" />
+  </div>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="loading" class="loading-container">
+    <span>Loading...</span>
   </div>
 
   <!-- Report Table -->
-  <table class="report-table">
+  <table class="report-table" *ngIf="!loading">
     <thead>
       <tr>
         <th class="text-center">Project</th>
@@ -19,8 +25,8 @@
     </thead>
     <tbody>
       <tr *ngFor="let report of paginatedReports()">
-        <td class="text-center">{{ report.project }}</td>
-        <td class="text-center">{{ report.dateRange }}</td>
+        <td class="text-center">{{ report.projectName }}</td>
+        <td class="text-center">{{ getDateRange(report) }}</td>
         <td class="text-center">{{ report.generatedBy }}</td>
         <td class="text-center">{{ report.generatedAt | date:'short' }}</td>
         <td class="text-center">{{ report.format }}</td>
@@ -34,7 +40,7 @@
       </tr>
 
       <tr *ngIf="filteredReports().length === 0">
-        <td colspan="8" class="no-data">No reports found</td>
+        <td colspan="6" class="no-data">No reports found</td>
       </tr>
     </tbody>
   </table>

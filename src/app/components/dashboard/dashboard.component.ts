@@ -37,6 +37,7 @@ import {
 } from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   TopIssue,
   Condition,
@@ -47,6 +48,24 @@ import {
   NotificationTab,
   UserProfile
 } from '../../interface/dashboard_interface';
+import {
+  getTimeAgo,
+  formatISODate,
+  getGradeColor,
+  isValidGrade,
+  notEmpty
+} from '../../utils/format.utils';
+import {
+  getPasswordRules,
+  isPasswordValid,
+  isPasswordMismatch,
+  getPasswordError
+} from '../../utils/password-validator.utils';
+import {
+  buildQualityGatePieChart,
+  buildCoverageTrendChart,
+  generateLast30DaysLabels
+} from '../../utils/chart.utils';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -60,7 +79,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
@@ -77,6 +96,7 @@ export class DashboardComponent {
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
+    private readonly snack: MatSnackBar,
   ) { }
 
   loading = true;
@@ -158,6 +178,7 @@ export class DashboardComponent {
       this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
+      this.generateQualityGateNotifications(data || []);
     });
     this.sharedData.LoginUser$.subscribe((data) => {
       this.UserLogin = data;
@@ -180,12 +201,23 @@ export class DashboardComponent {
     this.sharedData.AllIssues$.subscribe((data) => {
       const all = data ?? [];
 
-      this.allIssues = all.filter((issue) => issue.severity == 'CRITICAL');
+      // Filter for notification-worthy issues (exclude MINOR and INFO)
+      const notifiableIssues = all.filter((issue) =>
+        ['CRITICAL', 'BLOCKER', 'MAJOR'].includes(issue.severity)
+      );
+
+      this.allIssues = notifiableIssues.filter((issue) => issue.severity === 'CRITICAL');
+
+      // Generate notifications for filtered issues
+      this.generateIssueNotifications(notifiableIssues);
     });
     if (!this.sharedData.hasIssuesCache) {
       console.log('No cache - load from server');
       this.loadIssues();
     }
+
+    // Load existing notifications from DB on page load
+    this.loadNotifications();
   }
   loadRepositories() {
     this.sharedData.setLoading(true);
@@ -246,16 +278,14 @@ export class DashboardComponent {
     this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
     console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
   }
-  private dateTH(iso?: string): string {
-    if (!iso) return '';
-    return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-    // ได้ YYYY-MM-DD
-  }
+
+  // ใช้ formatISODate จาก utils แทน
+  private dateTH = formatISODate;
 
   countQuality(date: string): number {
     return (this.DashboardData ?? []).filter(s => {
       if (!s?.completedAt) return false;
-      const scanDate = this.dateTH(s.completedAt);
+      const scanDate = formatISODate(s.completedAt);
       console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
       console.log('latestScans', this.getLatestScanByProject());
       return scanDate === date && s.qualityGate === 'OK';
@@ -293,27 +323,9 @@ export class DashboardComponent {
 
 
 
+  // ใช้ chart utils สำหรับ Pie Chart
   buildPieChart() {
-    this.pieChartOptions = {
-      series: [this.passedCount, this.failedCount],
-      labels: ['Success', 'Failed'],
-      chart: { type: 'pie' },
-      legend: { position: 'bottom' },
-      states: {
-        hover: {
-          filter: {
-            type: 'darken',
-            value: 0.15
-          }
-        },
-        active: {
-          filter: {
-            type: 'darken',
-            value: 0.2
-          }
-        }
-      }
-    };
+    this.pieChartOptions = buildQualityGatePieChart(this.passedCount, this.failedCount);
   }
   // ================== FETCH FROM SERVER ==================
   fetchFromServer(userId: string | number) {
@@ -508,37 +520,24 @@ export class DashboardComponent {
     };
   }
 
-  // ==== NEW PASSWORD VALIDATION (Change Password Modal) ====
+  // ==== NEW PASSWORD VALIDATION (ใช้ utils) ====
   get newPasswordRules() {
-    const pwd = this.passwordData?.newPassword || '';
-    return {
-      minLength: pwd.length >= 8,
-      upper: /[A-Z]/.test(pwd),
-      lower: /[a-z]/.test(pwd),
-      number: /\d/.test(pwd),
-      special: /[!@#$%&*]/.test(pwd),
-    };
+    return getPasswordRules(this.passwordData?.newPassword || '');
   }
 
   get newPasswordValid() {
-    const r = this.newPasswordRules;
-    return r.minLength && r.upper && r.lower && r.number && r.special;
+    return isPasswordValid(this.passwordData?.newPassword || '');
   }
 
   get newPasswordsMismatch() {
-    return (
-      !!this.passwordData?.newPassword &&
-      !!this.passwordData?.confirmPassword &&
-      this.passwordData.newPassword !== this.passwordData.confirmPassword
+    return isPasswordMismatch(
+      this.passwordData?.newPassword || '',
+      this.passwordData?.confirmPassword || ''
     );
   }
 
   get newPasswordError() {
-    const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*]).{8,}$/;
-    const pwd = this.passwordData?.newPassword || '';
-    return pwd && !pattern.test(pwd)
-      ? 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character'
-      : '';
+    return getPasswordError(this.passwordData?.newPassword || '');
   }
 
   submitChangePassword(form: any) {
@@ -626,20 +625,8 @@ export class DashboardComponent {
     });
   }
 
-  getTimeAgo(value: Date | string | number): string {
-    const t =
-      value instanceof Date ? value.getTime() : new Date(value).getTime();
-    if (Number.isNaN(t)) return 'Just now';
-    let diffSec = Math.floor((Date.now() - t) / 1000);
-    if (diffSec < 0) diffSec = 0;
-    const m = Math.floor(diffSec / 60),
-      h = Math.floor(diffSec / 3600),
-      d = Math.floor(diffSec / 86400);
-    if (m < 1) return 'Just now';
-    if (m < 60) return `${m}m ago`;
-    if (h < 24) return `${h}h ago`;
-    return `${d}d ago`;
-  }
+  // ใช้ getTimeAgo จาก utils (export เพื่อใช้ใน template)
+  getTimeAgo = getTimeAgo;
 
   toggleNotifications() {
     this.showNotifications = !this.showNotifications;
@@ -664,15 +651,133 @@ export class DashboardComponent {
   }
 
   viewNotification(n: Notification) {
+    // อัปเดต UI ก่อนทันที (ไม่ต้องรอ API)
+    (n as any).isRead = true;
+
+    // เรียก API แบบ fire-and-forget
     this.notificationService.markAsRead(n.id).subscribe({
       next: () => {
-        (n as any).isRead = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
         console.log('Notification marked as read');
       },
       error: (err) => {
         console.error('Failed to mark as read:', err);
+        // ไม่ต้อง revert เพราะ navigation ทำไปแล้ว
       },
     });
+  }
+
+  /**
+   * Handle View Issue click - validate issue exists before navigating
+   */
+  handleViewIssue(n: Notification) {
+    // Mark notification as read first
+    this.viewNotification(n);
+
+    // Check if issue exists
+    if (!n.relatedIssueId) {
+      this.snack.open('Can not open issue', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Validate issue existence via API
+    this.issueService.getAllIssuesById(n.relatedIssueId).subscribe({
+      next: (issue) => {
+        if (issue) {
+          // Issue exists - navigate to issue detail
+          this.router.navigate(['/issuedetail', n.relatedIssueId]);
+        } else {
+          // Issue data is empty
+          this.snack.open('Can not open issue', '', {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red']
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to fetch issue:', err);
+        // Issue not found or error occurred
+        this.snack.open('Can not open issue', '', {
+          duration: 2500,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      },
+    });
+  }
+
+  /**
+   * Handle View Scan click - navigate to scan results
+   */
+  handleViewScan(n: Notification) {
+    this.viewNotification(n);
+
+    if (!n.relatedScanId) {
+      this.snack.open('Can not open scan results', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Navigate to scan result page
+    this.router.navigate(['/scanresult', n.relatedScanId]);
+  }
+
+  /**
+   * Handle View System notification - navigate based on context
+   */
+  handleViewSystem(n: Notification) {
+    this.viewNotification(n);
+
+    // Report generation notification - navigate to report history
+    if (n.title?.includes('Generate') || n.title?.includes('Report')) {
+      this.router.navigate(['/reporthistory']);
+      return;
+    }
+
+    // Quality Gate Failed notification - navigate to detail repo
+    if (n.title?.includes('Quality Gate')) {
+      if (n.relatedProjectId && n.relatedScanId) {
+        this.router.navigate(['/detailrepo', n.relatedProjectId, n.relatedScanId]);
+      } else {
+        this.snack.open('Cannot open project details', '', {
+          duration: 2500,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      }
+      return;
+    }
+
+    // Navigate based on what's related
+    if (n.relatedCommentId && n.relatedIssueId) {
+      // Comment notification - go to issue detail
+      this.router.navigate(['/issuedetail', n.relatedIssueId]);
+    } else if (n.relatedScanId) {
+      // Quality Gate notification - go to scan result
+      this.router.navigate(['/scanresult', n.relatedScanId]);
+    } else if (n.relatedProjectId) {
+      // Project related - go to repository detail
+      this.router.navigate(['/detailrepository', n.relatedProjectId]);
+    } else {
+      this.snack.open('No details available', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+    }
   }
 
   get filteredNotifications() {
@@ -702,6 +807,22 @@ export class DashboardComponent {
       return this.notifications.filter((n) => !n.isRead).length;
     return this.notifications.filter((n) => n.type === this.activeTab)
       .length;
+  }
+
+  /**
+   * Generate issue notifications (ใช้ NotificationService)
+   */
+  generateIssueNotifications(issues: IssuesResponseDTO[]): void {
+    this.notificationService.generateIssueNotifications(issues);
+    // Refresh notification list after generating
+    setTimeout(() => this.loadNotifications(), 1000);
+  }
+
+  /**
+   * Generate quality gate notifications (ใช้ NotificationService)
+   */
+  generateQualityGateNotifications(scans: ScanResponseDTO[]): void {
+    this.notificationService.generateQualityGateNotifications(scans);
   }
 
   // ================== PROJECT DISTRIBUTION ==================
@@ -755,30 +876,10 @@ export class DashboardComponent {
     return Array.from(map.values());
   }
 
-  private notEmpty(v: unknown): boolean {
-    return v !== null && v !== undefined && String(v).trim() !== '';
-  }
-
-  private isValidGateLetter(v?: string): boolean {
-    return /^[A-E]$/i.test((v || '').trim());
-  }
-
-  private getGradeColor(grade: string): string {
-    switch (grade?.toUpperCase()) {
-      case 'A':
-        return '#10B981'; // เขียว
-      case 'B':
-        return '#84CC16';
-      case 'C':
-        return '#F59E0B';
-      case 'D':
-        return '#FB923C';
-      case 'E':
-        return '#EF4444';
-      default:
-        return '#6B7280'; // เทา
-    }
-  }
+  // ใช้ utility functions จาก format.utils.ts
+  private notEmpty = notEmpty;
+  private isValidGateLetter = isValidGrade;  // isValidGrade ใน utils เหมือนกันกับ isValidGateLetter
+  private getGradeColor = getGradeColor;
 
   // ================== โหลดข้อมูลสำหรับโดนัทและการ์ด ==================
   loadDashboardData() {
@@ -1103,58 +1204,15 @@ export class DashboardComponent {
     this.sharedData.ScansDetail = scan;
     this.router.navigate(['/scanresult', scan.id]);
   }
+
+  // ใช้ chart utils สำหรับ Coverage Trend
   mockCoverageTrend() {
-    // mock วันที่ย้อนหลัง 30 วัน
-    const dates: string[] = [];
-    const coverageValues: number[] = [];
+    const { dates, dateKeys } = generateLast30DaysLabels();
+    const coverageValues = dateKeys.map(dateKey => this.countQuality(dateKey));
 
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-
-      const dateKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
-
-      const label = d.toLocaleDateString('th-TH', {
-        day: '2-digit',
-        month: '2-digit',
-      });
-
-      dates.push(label);
-
-      coverageValues.push(this.countQuality(dateKey));
-    }
-    const maxY = Math.max(1, ...coverageValues);
-    this.coverageChartSeries = [
-      {
-        name: 'Quality Grade',
-        data: coverageValues,
-      },
-    ];
-
-    this.coverageChartOptions = {
-      chart: {
-        type: 'line',
-        height: 300,
-        toolbar: { show: false },
-        zoom: { enabled: false }
-      },
-      xaxis: {
-        categories: dates,
-      },
-      yaxis: {
-        min: 0,
-        max: maxY,
-        title: { text: 'Quality Grade' },
-      },
-      stroke: {
-        curve: 'smooth',
-        width: 3,
-      },
-      markers: {
-        size: 4,
-      },
-      colors: ['#0d6efd'], // bootstrap primary
-    };
+    const chartConfig = buildCoverageTrendChart(dates, coverageValues);
+    this.coverageChartSeries = chartConfig.series as any;
+    this.coverageChartOptions = chartConfig.options as any;
   }
 
 }
