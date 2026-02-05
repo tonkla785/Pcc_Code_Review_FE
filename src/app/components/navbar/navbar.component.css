@@ -5,9 +5,9 @@
   color: var(--navbar-text);
   display: flex;
   flex-direction: column;
-  justify-content: space-between; 
+  justify-content: space-between;
   padding: 20px 0;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: all 0.3s ease;
 }
@@ -28,14 +28,16 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  justify-content: space-between; /* กระจายเมนูให้ balance */
+  justify-content: space-between;
+  /* กระจายเมนูให้ balance */
 }
 
 .vertical-navbar li {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px; /* เว้นช่องว่างระหว่างเมนู */
+  gap: 10px;
+  /* เว้นช่องว่างระหว่างเมนู */
 }
 
 .vertical-navbar a {
@@ -50,14 +52,18 @@
 }
 
 .vertical-navbar a i {
-  margin-right: 10px; /* เว้นช่องว่างไอคอนกับข้อความ */
+  margin-right: 10px;
+  /* เว้นช่องว่างไอคอนกับข้อความ */
 }
 
 /* Submenu items */
 .vertical-navbar ul li ul li a {
-  font-weight: normal; /* ทำให้ตัวอักษรไม่หนา */
-  padding-left: 1.2rem; /* กำหนดระยะย่อหน้าซ้ายเล็กน้อย */
-  font-size: 0.95rem; /* ปรับขนาดตัวอักษรถ้าต้องการ */
+  font-weight: normal;
+  /* ทำให้ตัวอักษรไม่หนา */
+  padding-left: 1.2rem;
+  /* กำหนดระยะย่อหน้าซ้ายเล็กน้อย */
+  font-size: 0.95rem;
+  /* ปรับขนาดตัวอักษรถ้าต้องการ */
 }
 
 
@@ -79,7 +85,8 @@
   }
 
   .main-content {
-    margin-left: 220px; /* เว้นพื้นที่ navbar */
+    margin-left: 220px;
+    /* เว้นพื้นที่ navbar */
   }
 }
 
@@ -88,7 +95,8 @@
   .vertical-navbar {
     position: fixed;
     top: 0;
-    left: -220px; /* ซ่อน navbar */
+    left: -220px;
+    /* ซ่อน navbar */
     z-index: 1000;
   }
 
@@ -97,12 +105,14 @@
   }
 
   .vertical-navbar.active {
-    left: 0; /* slide in */
+    left: 0;
+    /* slide in */
   }
 
   .main-content {
     margin-left: 0;
-    padding-top: 70px; /* เว้น hamburger */
+    padding-top: 70px;
+    /* เว้น hamburger */
   }
 
   .hamburger {
@@ -118,8 +128,47 @@
     cursor: pointer;
   }
 
-  .vertical-navbar.active + .hamburger,
-.hamburger.active {
-  color: white; /* เปลี่ยนเป็นสีขาว */
+  .vertical-navbar.active+.hamburger,
+  .hamburger.active {
+    color: white;
+    /* เปลี่ยนเป็นสีขาว */
+  }
 }
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.submenu-up {
+  animation: slideUpFade 0.3s ease-out forwards;
+}
+
+.submenu-down {
+  animation: slideDownFade 0.3s ease-out forwards;
+  /* Ensure transform origin is top for natural drop-down feel if needed, though translateY handles it well */
+}
+
+/* Backward compatibility or specific override if kept */
+.setting-submenu {
+  animation: slideUpFade 0.3s ease-out forwards;
 }
