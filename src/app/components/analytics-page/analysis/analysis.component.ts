@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
@@ -7,7 +7,6 @@ import { SecurityService } from '../../../services/securityservice/security.serv
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { TechnicalDebtDataService } from '../../../services/shared-data/technicaldebt-data.service';
 import { TechnicalDebtService } from '../../../services/technicaldebtservice/technicaldebt.service';
-import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { DebtTimePipe } from '../../../pipes/debt-time.pipe';
 
 interface HotSecurityIssue {
@@ -57,7 +56,7 @@ export class AnalysisComponent implements OnInit, OnDestroy {
       },
       {
         title: 'Technical Debt',
-        value: this.debtTimePipe.transform(this.technicalDebt),
+        value: this.debtTimePipe.transform(this.technicalDebt, 'short'),
         icon: 'bi bi-clock-history',
         action: () => this.router.navigate(['/technical-debt'])
       }
@@ -72,7 +71,7 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     private readonly scanService: ScanService,
     private readonly techDebtDataService: TechnicalDebtDataService,
     private readonly techDebtService: TechnicalDebtService,
-    private readonly debtTimePipe: DebtTimePipe
+    private readonly debtTimePipe: DebtTimePipe,
   ) { }
 
   ngOnInit(): void {

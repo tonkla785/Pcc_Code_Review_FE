@@ -24,6 +24,7 @@ import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SecurityIssueDTO } from '../../../interface/security_interface';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
 
+import { MatSnackBar } from '@angular/material/snack-bar';
 // Recommendations ถ้าจะเอาเปิดใช้ได้
 // import { forkJoin, of } from 'rxjs';
 // import { catchError, map } from 'rxjs/operators';
@@ -108,7 +109,8 @@ export class GeneratereportComponent implements OnInit {
     private readonly pptService: PowerpointService,
     private readonly pdfService: PdfService,
     private readonly reportHistoryService: ReportHistoryService,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -249,7 +251,6 @@ export class GeneratereportComponent implements OnInit {
     this.securityService.loadAndCalculate().subscribe({
       next: () => this.executeReportGeneration(),
       error: (err) => {
-        console.error('Failed to load security data', err);
         this.loading = false;
         alert('Failed to generate report: Security data unavailable');
       }
@@ -265,9 +266,7 @@ export class GeneratereportComponent implements OnInit {
         this.processScansAndIssues(selectedProject, allScans);
       },
       error: (err) => {
-        console.error('Failed to load scan history', err);
         this.loading = false;
-        alert('Failed to load scan data');
       }
     });
   }
@@ -366,6 +365,12 @@ export class GeneratereportComponent implements OnInit {
       this.exportToFormat(context);
       this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections);
       this.createReportNotification(projectName, true);  // success notification
+      this.snackBar.open('Report generated successfully', 'Close', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-green']
+      });
     } catch (e) {
       console.error('Error generating report', e);
       this.createReportNotification(projectName, false); // failed notification

@@ -2,17 +2,43 @@ import { Injectable, inject } from '@angular/core';
 import { SharedDataService } from '../shared-data/shared-data.service';
 import { TechnicalDebtDataService, DebtItem, TotalDebt, Priority } from '../shared-data/technicaldebt-data.service';
 import { ScanResponseDTO } from '../../interface/scan_interface';
+import { ScanService } from '../scanservice/scan.service';
+import { filter, pairwise, startWith, delay } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class TechnicalDebtService {
     private readonly sharedData = inject(SharedDataService);
     private readonly techDebtData = inject(TechnicalDebtDataService);
+    private readonly scanService = inject(ScanService);
 
     constructor() {
         this.sharedData.scansHistory$.subscribe(scans => {
             if (scans && scans.length > 0) {
                 this.calculateAndStore(scans);
             }
+        });
+        this.sharedData.scansHistory$.pipe(
+            startWith(null),
+            pairwise(),
+            filter(([prev, curr]) => {
+                if (!curr || curr.length === 0) return false;
+                if (!prev) return false;
+                const currLatest = curr[0];
+                const prevScan = prev.find(s => s.id === currLatest?.id);
+                return prevScan?.status !== 'SUCCESS' && currLatest?.status === 'SUCCESS';
+            }),
+            delay(3000)
+        ).subscribe(() => {
+            this.refreshScanHistory();
+        });
+    }
+
+    private refreshScanHistory() {
+        this.scanService.getScansHistory().subscribe({
+            next: (data: ScanResponseDTO[]) => {
+                this.sharedData.Scans = data;
+            },
+            error: (err: any) => console.error('[TechnicalDebtService] Failed to refetch history', err)
         });
     }
 
