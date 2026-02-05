@@ -13,12 +13,14 @@ export class DebtTimePipe implements PipeTransform {
     const days = Math.floor(minutes / 480);
     const remainingMinutes = minutes % 480;
     const hours = Math.floor(remainingMinutes / 60);
+    const mins = remainingMinutes % 60;
 
     const parts: string[] = [];
     if (days > 0) parts.push(`${days}d`);
     if (hours > 0) parts.push(`${hours}h`);
+    if (mins > 0) parts.push(`${mins}min`);
 
-    return parts.length > 0 ? parts.join(' ') : '0h';
+    return parts.length > 0 ? parts.join(' ') : '0min';
   }
 
 }

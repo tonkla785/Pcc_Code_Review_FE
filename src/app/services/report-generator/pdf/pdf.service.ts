@@ -19,7 +19,11 @@ export interface PdfReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
+        technicalDebt?: boolean;
+        trendAnalysis?: boolean;
+        recommendations?: boolean;
     };
+    recommendationsData?: any[];
     generatedBy?: string;
 }
 
@@ -49,6 +53,10 @@ export class PdfService {
         }
         if (context.selectedSections.securityAnalysis && context.securityData) {
             y = this.addSecuritySection(pdf, context.securityData, margin, y);
+        }
+
+        if (context.selectedSections.recommendations && context.recommendationsData) {
+            y = this.addRecommendationsSection(pdf, context.recommendationsData, margin, y);
         }
 
         this.addFooter(pdf);
@@ -122,7 +130,7 @@ export class PdfService {
             'Quality Gate',
             'Reliability',
             'Security',
-            'Maintainability',
+            'Maintain-\nability',
             'Bugs',
             'Vulnerabilities',
             'Code Smells'
@@ -169,13 +177,13 @@ export class PdfService {
             },
             columnStyles: {
                 0: { cellWidth: 35 }, // Date
-                1: { cellWidth: 20 }, // Status
-                2: { cellWidth: 22 }, // QG
-                3: { cellWidth: 18, halign: 'center' }, // Rel
+                1: { cellWidth: 22 }, // Status
+                2: { cellWidth: 17 }, // QG
+                3: { cellWidth: 20, halign: 'center' }, // Rel
                 4: { cellWidth: 18, halign: 'center' }, // Sec
                 5: { cellWidth: 25, halign: 'center' }, // Main
                 6: { halign: 'center' }, // Bugs
-                7: { halign: 'center' }, // Vulns
+                7: { cellWidth: 18, halign: 'center' }, // Vulns
                 8: { halign: 'center' }  // Smells
             },
             margin: { left: margin, right: margin }
@@ -362,5 +370,49 @@ export class PdfService {
         if (/^[A-E]$/i.test(s)) return s.toUpperCase();
         if (s === 'OK') return 'A';
         return s;
+    }
+    private addRecommendationsSection(pdf: jsPDF, recommendations: any[], margin: number, startY: number): number {
+        if (startY > 250) {
+            pdf.addPage();
+            startY = 20;
+        } else {
+            startY += 10;
+        }
+
+        pdf.setFontSize(16);
+        pdf.setTextColor(46, 125, 50); // Green color
+        pdf.text('Recommendations', margin, startY);
+        startY += 8;
+
+        if (!recommendations || recommendations.length === 0) {
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('No recommendations available.', margin, startY);
+            return startY + 10;
+        }
+
+        const tableBody = recommendations.slice(0, 10).map(rec => [
+            rec.severity,
+            rec.type,
+            rec.message,
+            rec.recommendedFix
+        ]);
+
+        autoTable(pdf, {
+            startY: startY,
+            head: [['Severity', 'Type', 'Issue', 'Recommended Fix']],
+            body: tableBody,
+            margin: { left: margin, right: margin },
+            headStyles: { fillColor: [76, 175, 80] }, // Green header
+            styles: { fontSize: 8, cellPadding: 2 },
+            columnStyles: {
+                0: { cellWidth: 25 },
+                1: { cellWidth: 25 },
+                2: { cellWidth: 60 },
+                3: { cellWidth: 'auto' }
+            }
+        });
+
+        return (pdf as any).lastAutoTable.finalY + 10;
     }
 }

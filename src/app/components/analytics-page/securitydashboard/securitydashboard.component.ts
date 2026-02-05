@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { NgApexchartsModule, ApexOptions, ChartComponent, ApexYAxis } from 'ng-apexcharts';
@@ -14,6 +14,8 @@ import {
   HotSecurityIssue
 } from '../../../interface/security_interface';
 
+import { Subscription } from 'rxjs';
+
 @Component({
   selector: 'app-securitydashboard',
   standalone: true,
@@ -21,7 +23,7 @@ import {
   templateUrl: './securitydashboard.component.html',
   styleUrl: './securitydashboard.component.css'
 })
-export class SecuritydashboardComponent implements OnInit {
+export class SecuritydashboardComponent implements OnInit, OnDestroy {
 
   securityIssues: SecurityIssueDTO[] = [];
   vulnerabilities: VulnerabilitySeverity[] = [];
@@ -39,6 +41,8 @@ export class SecuritydashboardComponent implements OnInit {
 
   @ViewChild('chart') chart!: ChartComponent;
 
+  private subscriptions = new Subscription();
+
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
@@ -53,18 +57,56 @@ export class SecuritydashboardComponent implements OnInit {
       return;
     }
 
-    this.sharedData.securityIssues$.subscribe(issues => {
-      if (issues) {
-        this.securityIssues = issues;
-        this.applyMetrics();
-      }
-    });
+    this.initializeDefaults();
+
+    this.subscriptions.add(
+      this.sharedData.securityIssues$.subscribe(issues => {
+        if (issues) {
+          this.securityIssues = issues;
+          this.applyMetrics();
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      this.sharedData.scansHistory$.subscribe(scans => {
+        if (scans && scans.length > 0) {
+          this.calculateTrend7Days(scans);
+        }
+      })
+    );
 
     if (!this.sharedData.hasSecurityIssuesCache) {
       this.loadSecurityData();
     }
+    if (!this.sharedData.hasScansHistoryCache) {
+      this.loadTrendData();
+    }
+  }
 
-    this.loadTrendData();
+  private initializeDefaults(): void {
+    this.vulnerabilities = [
+      { severity: 'Critical', count: 0, color: 'bg-critical' },
+      { severity: 'High', count: 0, color: 'bg-high' },
+      { severity: 'Medium', count: 0, color: 'bg-medium' },
+      { severity: 'Low', count: 0, color: 'bg-low' }
+    ];
+    this.owaspCoverage = [
+      { name: 'A01 Broken Access', count: 0, status: 'pass' },
+      { name: 'A02 Crypto Failures', count: 0, status: 'pass' },
+      { name: 'A03 Injection', count: 0, status: 'pass' },
+      { name: 'A04 Insecure Design', count: 0, status: 'pass' },
+      { name: 'A05 Security Config', count: 0, status: 'pass' },
+      { name: 'A06 Vulnerable Comp', count: 0, status: 'pass' },
+      { name: 'A07 Auth Failures', count: 0, status: 'pass' },
+      { name: 'A08 Data Integrity', count: 0, status: 'pass' },
+      { name: 'A09 Logging Fails', count: 0, status: 'pass' },
+      { name: 'A10 SSRF', count: 0, status: 'pass' }
+    ];
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   loadSecurityData(): void {
@@ -79,7 +121,7 @@ export class SecuritydashboardComponent implements OnInit {
   loadTrendData(): void {
     this.scanService.getScansHistory().subscribe({
       next: (scans) => {
-        this.calculateTrend7Days(scans);
+        this.sharedData.Scans = scans;
       },
       error: (err) => console.error('Failed to load scan history for trend:', err)
     });
