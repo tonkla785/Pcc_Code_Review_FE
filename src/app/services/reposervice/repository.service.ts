@@ -33,52 +33,49 @@ export class RepositoryService {
   private readonly userSettingsData = inject(UserSettingsDataService);
 
   // เริ่มสแกน - ดึง settings จาก SharedData (SonarQube Config)
-  startScan(projectId: string, branch: string = 'main'): Observable<any> {
-    console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
+  startScan(projectId: string, branch: string = 'main', gitToken?: string | null): Observable<any> {
+  console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
 
-    // ดึง SonarQube config จาก SharedData
-    const sonarConfig = this.userSettingsData.sonarQubeConfig;
-    console.log('[ScanService] SonarQube Config from SharedData:', sonarConfig);
+  const sonarConfig = this.userSettingsData.sonarQubeConfig;
 
-    // สร้าง request body
-    const requestBody: any = {
-      branch: branch,
-      sonarToken: sonarConfig?.authToken || ''
-    };
+  const requestBody: any = {
+    branch,
+    sonarToken: sonarConfig?.authToken || '',
+    gitToken: (gitToken && gitToken.trim() !== '') ? gitToken.trim() : null,
+  };
 
-    // เพิ่ม Angular settings จาก SonarQube Config
-    requestBody.angularSettings = {
-      runNpm: sonarConfig?.angularRunNpm || false,
-      coverage: sonarConfig?.angularCoverage || false,
-      tsFiles: sonarConfig?.angularTsFiles || false,
-      exclusions: sonarConfig?.angularExclusions || '**/node_modules/**,**/*.spec.ts'
-    };
+  requestBody.angularSettings = {
+    runNpm: sonarConfig?.angularRunNpm || false,
+    coverage: sonarConfig?.angularCoverage || false,
+    tsFiles: sonarConfig?.angularTsFiles || false,
+    exclusions: sonarConfig?.angularExclusions || '**/node_modules/**,**/*.spec.ts'
+  };
 
-    // เพิ่ม Spring settings จาก SonarQube Config
-    requestBody.springSettings = {
-      runTests: sonarConfig?.springRunTests || false,
-      jacoco: sonarConfig?.springJacoco || false,
-      buildTool: sonarConfig?.springBuildTool || 'maven',
-      jdkVersion: sonarConfig?.springJdkVersion || 17
-    };
+  requestBody.springSettings = {
+    runTests: sonarConfig?.springRunTests || false,
+    jacoco: sonarConfig?.springJacoco || false,
+    buildTool: sonarConfig?.springBuildTool || 'maven',
+    jdkVersion: sonarConfig?.springJdkVersion || 17
+  };
 
-    // เพิ่ม Quality Gate settings
-    requestBody.qualityGateSettings = {
-      failOnError: sonarConfig?.qgFailOnError || false,
-      coverageThreshold: sonarConfig?.qgCoverageThreshold || 0,
-      maxBugs: sonarConfig?.qgMaxBugs || 0,
-      maxVulnerabilities: sonarConfig?.qgMaxVulnerabilities || 0,
-      maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
-    };
+  requestBody.qualityGateSettings = {
+    failOnError: sonarConfig?.qgFailOnError || false,
+    coverageThreshold: sonarConfig?.qgCoverageThreshold || 0,
+    maxBugs: sonarConfig?.qgMaxBugs || 0,
+    maxVulnerabilities: sonarConfig?.qgMaxVulnerabilities || 0,
+    maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
+  };
 
-    console.log('[ScanService] Request body:', requestBody);
+  // ถ้าจะ log ให้ mask
+  // console.log('[ScanService] Request body:', { ...requestBody, gitToken: requestBody.gitToken ? '***' : null });
 
-    return this.http.post(
-      `${environment.apiUrl}/${projectId}/scan`,
-      requestBody,
-      this.authOpts()
-    );
-  }
+  return this.http.post(
+    `${environment.apiUrl}/${projectId}/scan`,
+    requestBody,
+    this.authOpts()
+  );
+}
+
 
   getScanById(scanId: string): Observable<any> {
     return this.http.get(
