@@ -39,7 +39,7 @@
         [(ngModel)]="filterProject"
         (change)="applyFilter()">
       <option value="All Projects">All Projects</option>
-      <option *ngFor="let project of projects"
+      <option *ngFor="let project of repositories"
               [value]="project.name">
         {{ project.name }}
       </option>
