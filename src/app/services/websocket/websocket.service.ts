@@ -3,34 +3,13 @@ import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Observable, Subject } from 'rxjs';
 
-type BackendScanStatus = 'PENDING' | 'SUCCESS' | 'FAILED';
-type UiScanStatus = 'SCANNING' | 'SUCCESS' | 'FAILED';
+import { BackendScanStatus, UiScanStatus, ScanEvent, NotificationEvent } from '../../interface/websocket_interface';
 
 function mapToUiStatus(status: BackendScanStatus): UiScanStatus {
   if (status === 'PENDING') {
     return 'SCANNING';
   }
   return status;
-}
-
-export interface ScanEvent {
-  projectId: string;
-  scanId: string;
-  status: UiScanStatus;
-}
-
-export interface NotificationEvent {
-  id: string;
-  userId: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  relatedProjectId?: string;
-  relatedScanId?: string;
-  relatedIssueId?: string;
-  relatedCommentId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -41,6 +20,8 @@ export class WebSocketService {
   private notificationSubject = new Subject<NotificationEvent>();
   private scanSubject = new Subject<ScanEvent>();
   private userId: string | null = null;
+  private subscribed = false;
+  private userTopicSubscribed = false;
 
   constructor() {
     this.client = new Client({
@@ -76,31 +57,36 @@ export class WebSocketService {
    * Subscribe to all relevant topics
    */
   private subscribeToTopics(): void {
-    // Subscribe to scan status updates
-    this.client.subscribe('/topic/scan-status', (message: IMessage) => {
-      try {
-        const raw = JSON.parse(message.body) as {
-          projectId: string;
-          scanId?: string;
-          id?: string;
-          status: BackendScanStatus;
-        };
 
-        const event: ScanEvent = {
-          projectId: raw.projectId,
-          scanId: raw.scanId || raw.id || '',
-          status: mapToUiStatus(raw.status)
-        };
+    // 1. Subscribe to scan status updates (Public)
+    if (!this.subscribed) {
+      this.client.subscribe('/topic/scan-status', (message: IMessage) => {
+        try {
+          const raw = JSON.parse(message.body) as {
+            projectId: string;
+            scanId?: string;
+            id?: string;
+            status: BackendScanStatus;
+          };
 
-        console.log('WS scan event:', event);
-        this.scanSubject.next(event);
-      } catch (e) {
-        console.error('Failed to parse scan WS message', e);
-      }
-    });
+          const event: ScanEvent = {
+            projectId: raw.projectId,
+            scanId: raw.scanId || raw.id || '',
+            status: mapToUiStatus(raw.status)
+          };
 
-    // Subscribe to personal notifications
-    if (this.userId) {
+          console.log('WS scan event:', event);
+          this.scanSubject.next(event);
+        } catch (e) {
+          console.error('Failed to parse scan WS message', e);
+        }
+      });
+      this.subscribed = true;
+    }
+
+    // 2. Subscribe to personal notifications (Private)
+    if (this.userId && !this.userTopicSubscribed) {
+      console.log(`Subscribing to private notifications for user: ${this.userId}`);
       this.client.subscribe(`/topic/notifications/${this.userId}`, (message: IMessage) => {
         try {
           const notification: NotificationEvent = JSON.parse(message.body);
@@ -110,18 +96,8 @@ export class WebSocketService {
           console.error('Failed to parse notification WS message', e);
         }
       });
+      this.userTopicSubscribed = true;
     }
-
-    // Subscribe to broadcast notifications
-    this.client.subscribe('/topic/notifications/all', (message: IMessage) => {
-      try {
-        const notification: NotificationEvent = JSON.parse(message.body);
-        console.log('WS broadcast notification:', notification);
-        this.notificationSubject.next(notification);
-      } catch (e) {
-        console.error('Failed to parse broadcast WS message', e);
-      }
-    });
   }
 
   /**
@@ -145,6 +121,8 @@ export class WebSocketService {
     if (this.connected) {
       this.client.deactivate();
       this.connected = false;
+      this.subscribed = false;
+      this.userTopicSubscribed = false;
     }
   }
 

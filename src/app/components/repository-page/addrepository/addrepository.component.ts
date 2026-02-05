@@ -3,13 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
+import {
+  Repository,
+  RepositoryService,
+} from '../../../services/reposervice/repository.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
-import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
+import { SseService } from '../../../services/scanservice/sse.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
-import { UserSettingService } from '../../../services/usersettingservice/user-setting.service'; // <-- added
-import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service'; // <-- added
+import { UserSettingService } from '../../../services/usersettingservice/user-setting.service';
+import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -17,10 +20,9 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule],
   templateUrl: './addrepository.component.html',
-  styleUrls: ['./addrepository.component.css']
+  styleUrls: ['./addrepository.component.css'],
 })
 export class AddrepositoryComponent implements OnInit {
-
   constructor(
     private sharedData: SharedDataService,
     private readonly router: Router,
@@ -31,8 +33,8 @@ export class AddrepositoryComponent implements OnInit {
     private readonly scanService: ScanService,
     private readonly sse: SseService,
     private readonly userSettingService: UserSettingService,
-    private readonly userSettingsData: UserSettingsDataService
-  ) { }
+    private readonly userSettingsData: UserSettingsDataService,
+  ) {}
 
   private extractApiError(err: any): string {
     return (
@@ -44,6 +46,9 @@ export class AddrepositoryComponent implements OnInit {
     );
   }
 
+  // ✅ แผน B: token ใช้ตอน startScan (optional)
+  gitToken: string = '';
+
   authMethod: 'usernamePassword' | 'accessToken' | null = null;
   isEditMode: boolean = false;
 
@@ -52,13 +57,14 @@ export class AddrepositoryComponent implements OnInit {
     user: '',
     name: '',
     projectType: undefined,
-    repositoryUrl: ''
+    repositoryUrl: '',
   };
 
-  credentials = {
-    username: '',
-    password: ''
-  };
+  // ❌ ไม่ใช้แล้ว (BE ไม่ได้เอา username/password ไป clone)
+  // credentials = {
+  //   username: '',
+  //   password: '',
+  // };
 
   sonarConfig = {
     projectKey: '',
@@ -68,7 +74,7 @@ export class AddrepositoryComponent implements OnInit {
     serverUrl: 'https://code.pccth.com',
     token: '',
     enableAutoScan: true,
-    enableQualityGate: true
+    enableQualityGate: true,
   };
 
   ngOnInit(): void {
@@ -82,10 +88,9 @@ export class AddrepositoryComponent implements OnInit {
     if (projectId) {
       this.isEditMode = true;
       this.loadRepository(projectId);
-      console.log('Edit mode for projectId:', projectId);
+      // console.log('Edit mode for projectId:', projectId);
     }
 
-    // TODO: Get userId from token when available
     this.gitRepository.user = '';
     this.updateProjectKey();
 
@@ -95,10 +100,7 @@ export class AddrepositoryComponent implements OnInit {
 
   loadRepository(projectId: string) {
     this.repositoryService.getByIdRepo(projectId).subscribe({
-
       next: (repo) => {
-        // console.log('RAW REPO FROM API:', repo);
-
         if (!repo) {
           console.error('Repository not found');
           return;
@@ -121,20 +123,18 @@ export class AddrepositoryComponent implements OnInit {
           name: repo.name || '',
           repositoryUrl: repo.repositoryUrl || '',
           projectTypeLabel: normalizedType,
-          sonarProjectKey: repo.sonarProjectKey || ''
+          sonarProjectKey: repo.sonarProjectKey || '',
         };
-        console.log('RAW REPO FROM API:', this.gitRepository);
+
         // Edit Mode: Use existing Project Key from DB
         this.sonarConfig.projectKey = this.gitRepository.sonarProjectKey || '';
       },
-      error: (err) => console.error('Failed to load repository', err)
+      error: (err) => console.error('Failed to load repository', err),
     });
   }
 
   updateProjectKey() {
-    // Edit Mode: Don't auto-update Project Key when Name changes
     if (this.isEditMode) return;
-
     this.sonarConfig.projectKey = this.gitRepository.name || '';
   }
 
@@ -149,16 +149,18 @@ export class AddrepositoryComponent implements OnInit {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-red']
+        panelClass: ['app-snack', 'app-snack-red'],
       });
       return;
     }
 
     // Validate Duplicate Name
     const currentRepos = this.sharedData.repositoriesValue;
-    const isDuplicate = currentRepos.some(r =>
-      r.name.trim().toLowerCase() === this.gitRepository.name.trim().toLowerCase() &&
-      r.projectId !== this.gitRepository.projectId
+    const isDuplicate = currentRepos.some(
+      (r) =>
+        r.name.trim().toLowerCase() ===
+          this.gitRepository.name.trim().toLowerCase() &&
+        r.projectId !== this.gitRepository.projectId,
     );
 
     if (isDuplicate) {
@@ -167,15 +169,13 @@ export class AddrepositoryComponent implements OnInit {
         title: 'ชื่อโปรเจกต์ซ้ำ',
         text: 'มีโปรเจกต์ชื่อนี้อยู่แล้วในระบบ กรุณาใช้ชื่ออื่น',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#3085d6'
+        confirmButtonColor: '#3085d6',
       });
       return;
     }
 
     // Validate SonarQube Token
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
-    console.log('Validating Token:', sonarConfig);
-
     if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
       Swal.fire({
         icon: 'error',
@@ -185,7 +185,7 @@ export class AddrepositoryComponent implements OnInit {
         confirmButtonText: 'Go to Settings',
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        reverseButtons: true
+        reverseButtons: true,
       }).then((result: any) => {
         if (result.isConfirmed) {
           this.router.navigate(['/sonarqubeconfig']);
@@ -196,14 +196,13 @@ export class AddrepositoryComponent implements OnInit {
 
     this.updateProjectKey();
 
+    // ✅ payload add/update repo: ไม่ต้องส่ง username/password แล้ว
     const payload = {
       name: this.gitRepository.name,
       url: this.gitRepository.repositoryUrl,
-      type: this.gitRepository.projectTypeLabel === 'ANGULAR' //ทดสอบ
+      type: this.gitRepository.projectTypeLabel === 'ANGULAR'
         ? 'ANGULAR'
         : 'SPRING_BOOT',
-      username: this.credentials.username,
-      password: this.credentials.password
     };
 
     const saveOrUpdate$ = this.isEditMode
@@ -212,14 +211,11 @@ export class AddrepositoryComponent implements OnInit {
 
     saveOrUpdate$.subscribe({
       next: (savedRepo) => {
-        console.log('[ADD REPO RESPONSE]', savedRepo);
-
-        console.log('[ADD REPO RESPONSE]', savedRepo);
-
         // Determine the ID to fetch (prioritize existing ID for edits)
-        const targetId = (this.isEditMode && this.gitRepository.projectId)
-          ? this.gitRepository.projectId
-          : (savedRepo.projectId || savedRepo.id);
+        const targetId =
+          this.isEditMode && this.gitRepository.projectId
+            ? this.gitRepository.projectId
+            : savedRepo.projectId || savedRepo.id;
 
         if (targetId) {
           // Fetch full data to ensure consistency (Status, Metrics, Scans)
@@ -233,11 +229,11 @@ export class AddrepositoryComponent implements OnInit {
                 }
               }
             },
-            error: (err) => console.error('Failed to fetch full repo after save', err)
+            error: (err) =>
+              console.error('Failed to fetch full repo after save', err),
           });
         }
 
-        // แจ้งผลเพิ่ม/แก้ repo
         this.snack.open(
           this.isEditMode
             ? 'Repository updated successfully!'
@@ -247,47 +243,57 @@ export class AddrepositoryComponent implements OnInit {
             duration: 2500,
             horizontalPosition: 'right',
             verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-blue']
-          }
+            panelClass: ['app-snack', 'app-snack-blue'],
+          },
         );
 
-        // เรียก startScan ทันที API ใหม่
+        // ✅ เรียก startScan ทันที และส่ง gitToken ไปด้วย (optional)
         if (savedRepo?.projectId) {
+          const tokenToUse = this.gitToken?.trim() || null;
 
-          this.repositoryService.startScan(savedRepo.projectId, 'main').subscribe({
-            next: (newScan) => {
+          this.repositoryService
+            .startScan(savedRepo.projectId, 'main', tokenToUse as any)
+            .subscribe({
+              next: (newScan) => {
+                // ล้าง token หลังส่ง (กันค้างใน UI)
+                this.gitToken = '';
 
-              // Immediate update to Scan History (Real-time "Scanning" status)
-              if (newScan) {
-                this.sharedData.upsertScan(newScan);
-              }
+                if (newScan) {
+                  this.sharedData.upsertScan(newScan);
+                }
 
-              // อัปเดตสถานะใน SharedData เป็น Scanning
-              this.sharedData.updateRepoStatus(savedRepo.projectId!, 'Scanning', 0);
+                this.sharedData.updateRepoStatus(
+                  savedRepo.projectId!,
+                  'Scanning',
+                  0,
+                );
 
-              this.router.navigate(['/repositories'], {
-                state: { message: 'Scan started successfully!' }
-              });
+                this.router.navigate(['/repositories'], {
+                  state: { message: 'Scan started successfully!' },
+                });
+              },
 
-            },
+              error: (err) => {
+                // ล้าง token แม้ fail
+                this.gitToken = '';
 
-            error: (err) => {
-              const msgErr = this.extractApiError(err);
-              this.snack.open(`Scan failed to start: ${msgErr}`, '', {
-                duration: 3000,
-                horizontalPosition: 'right',
-                verticalPosition: 'top',
-                panelClass: ['app-snack', 'app-snack-red']
-              });
-              // Update status to Error if needed
-              this.sharedData.updateRepoStatus(savedRepo.projectId!, 'Error', 0);
-              this.router.navigate(['/repositories']);
-            }
-          });
-        }
+                const msgErr = this.extractApiError(err);
+                this.snack.open(`Scan failed to start: ${msgErr}`, '', {
+                  duration: 3000,
+                  horizontalPosition: 'right',
+                  verticalPosition: 'top',
+                  panelClass: ['app-snack', 'app-snack-red'],
+                });
 
-        else {
-          // fallback: ไม่มี projectId ก็กลับหน้า list
+                this.sharedData.updateRepoStatus(
+                  savedRepo.projectId!,
+                  'Error',
+                  0,
+                );
+                this.router.navigate(['/repositories']);
+              },
+            });
+        } else {
           this.router.navigate(['/repositories']);
         }
       },
@@ -297,9 +303,9 @@ export class AddrepositoryComponent implements OnInit {
           duration: 3000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-red']
+          panelClass: ['app-snack', 'app-snack-red'],
         });
-      }
+      },
     });
   }
 
@@ -309,7 +315,6 @@ export class AddrepositoryComponent implements OnInit {
 
   onDelete() {
     const repo = this.gitRepository;
-    // กัน null / undefined แบบชัดเจน
     if (!repo?.projectId) {
       Swal.fire({
         icon: 'error',
@@ -328,17 +333,15 @@ export class AddrepositoryComponent implements OnInit {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'ลบข้อมูล',
       cancelButtonText: 'ยกเลิก',
-      reverseButtons: true
+      reverseButtons: true,
     }).then((result: any) => {
       if (result.isConfirmed) {
-
-        // loading ตอนกำลังลบ
         Swal.fire({
           title: 'กำลังลบข้อมูล...',
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
-          }
+          },
         });
 
         this.repositoryService.deleteRepo(repo.projectId!).subscribe({
@@ -349,9 +352,9 @@ export class AddrepositoryComponent implements OnInit {
               title: 'ลบสำเร็จ',
               text: 'ลบ Repository เรียบร้อยแล้ว',
               timer: 1800,
-              showConfirmButton: false
+              showConfirmButton: false,
             });
-            this.repositoryService.getAllRepo().subscribe(repos => {
+            this.repositoryService.getAllRepo().subscribe((repos) => {
               this.sharedData.setRepositories(repos);
               this.router.navigate(['/repositories']);
             });
@@ -362,7 +365,7 @@ export class AddrepositoryComponent implements OnInit {
               title: 'ลบไม่สำเร็จ',
               text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
             });
-          }
+          },
         });
       }
     });
@@ -385,10 +388,11 @@ export class AddrepositoryComponent implements OnInit {
       serverUrl: 'https://code.pccth.com',
       token: '',
       enableAutoScan: true,
-      enableQualityGate: true
+      enableQualityGate: true,
     };
 
     this.authMethod = null;
+    this.gitToken = '';
 
     if (form) {
       form.resetForm({
@@ -399,7 +403,8 @@ export class AddrepositoryComponent implements OnInit {
         serverUrl: 'https://code.pccth.com',
         projectKey: '',
         enableAutoScan: true,
-        enableQualityGate: true
+        enableQualityGate: true,
+        gitToken: null,
       });
     }
   }
