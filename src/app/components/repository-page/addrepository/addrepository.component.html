@@ -1,4 +1,3 @@
-
 <div class="page-wrapper">
   <div class="form-card">
 
@@ -12,9 +11,12 @@
 
         <div class="mb-3">
           <label for="name" class="form-label">Repository Name <span class="required">*</span></label>
-          <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required 
-            #name="ngModel" (ngModelChange)="onNameChange($event)">
-          <div class="error" *ngIf="name.invalid && name.touched">Repository name is required</div>
+          <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required
+            pattern="^(?![0-9]{0})[a-zA-Z0-9\-_ ]+$" #name="ngModel" (ngModelChange)="onNameChange($event)">
+          <div class="error" *ngIf="name.invalid && name.touched">
+            <span *ngIf="name.errors?.['required']">Repository name is required</span>
+            <span *ngIf="name.errors?.['pattern']">ห้ามขึ้นต้นด้วยตัวเลข และห้ามมีอักขระพิเศษ</span>
+          </div>
         </div>
 
         <div class="mb-3">
@@ -113,4 +115,3 @@
     </form>
   </div>
 </div>
-
