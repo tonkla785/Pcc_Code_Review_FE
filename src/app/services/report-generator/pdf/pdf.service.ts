@@ -19,9 +19,9 @@ export interface PdfReportContext {
         qualityGate: boolean;
         issueBreakdown: boolean;
         securityAnalysis: boolean;
-        technicalDebt?: boolean;
+        technicalDebt: boolean;
         trendAnalysis?: boolean;
-        recommendations?: boolean;
+        recommendations: boolean;
     };
     recommendationsData?: any[];
     generatedBy?: string;
@@ -53,6 +53,10 @@ export class PdfService {
         }
         if (context.selectedSections.securityAnalysis && context.securityData) {
             y = this.addSecuritySection(pdf, context.securityData, margin, y);
+        }
+
+        if (context.selectedSections.technicalDebt) {
+            y = this.addTechnicalDebtSection(pdf, context, margin, y);
         }
 
         if (context.selectedSections.recommendations && context.recommendationsData) {
@@ -359,18 +363,6 @@ export class PdfService {
         return `${dateStr}, ${timeStr}`;
     }
 
-    private formatRating(value: string | number | undefined): string {
-        if (value === null || value === undefined || value === '') return 'N/A';
-        const s = String(value);
-        if (s.startsWith('1')) return 'A';
-        if (s.startsWith('2')) return 'B';
-        if (s.startsWith('3')) return 'C';
-        if (s.startsWith('4')) return 'D';
-        if (s.startsWith('5')) return 'E';
-        if (/^[A-E]$/i.test(s)) return s.toUpperCase();
-        if (s === 'OK') return 'A';
-        return s;
-    }
     private addRecommendationsSection(pdf: jsPDF, recommendations: any[], margin: number, startY: number): number {
         if (startY > 250) {
             pdf.addPage();
@@ -414,5 +406,52 @@ export class PdfService {
         });
 
         return (pdf as any).lastAutoTable.finalY + 10;
+    }
+
+    // Technical Debt Section
+    private addTechnicalDebtSection(pdf: jsPDF, context: PdfReportContext, margin: number, startY: number): number {
+        pdf.setFontSize(16);
+        pdf.setTextColor(33, 37, 41);
+        pdf.text('Technical Debt Analysis', margin, startY);
+
+        const tableData = context.scans.map(scan => {
+            const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
+            const debtRatio = scan.metrics?.debtRatio || 0;
+            return [
+                this.formatScanDate(scan.startedAt),
+                context.projectName,
+                this.formatTechnicalDebt(debtMinutes),
+                this.formatCost(debtRatio)
+            ];
+        });
+
+        autoTable(pdf, {
+            startY: startY + 5,
+            head: [['Scan Date', 'Project', 'Technical Debt', 'Cost (THB)']],
+            body: tableData.length > 0 ? tableData : [['No scans found', '-', '-', '-']],
+            margin: { left: margin, right: margin },
+            headStyles: { fillColor: [255, 152, 0] },
+            styles: { fontSize: 9, cellPadding: 3 },
+        });
+
+        return (pdf as any).lastAutoTable.finalY + 10;
+    }
+
+    private formatTechnicalDebt(minutes: number): string {
+        const days = Math.floor(minutes / 480);
+        const remainingMinutes = minutes % 480;
+        const hours = Math.floor(remainingMinutes / 60);
+        const mins = remainingMinutes % 60;
+
+        let result = '';
+        if (days > 0) result += `${days}d `;
+        if (hours > 0) result += `${hours}h `;
+        if (mins > 0 || result === '') result += `${mins}m`;
+
+        return result.trim();
+    }
+
+    private formatCost(cost: number): string {
+        return `THB ${cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 }
