@@ -31,6 +31,7 @@ export class NotificationService {
    * Subscribe to WebSocket notifications
    */
   private subscribeToWebSocket(): void {
+    // Personal notifications
     this.webSocketService.subscribeNotifications().subscribe({
       next: (event: NotificationEvent) => {
         // Add new notification to shared data
@@ -50,6 +51,33 @@ export class NotificationService {
         this.notificationData.addNotification(notification);
       },
       error: (err) => console.error('WebSocket notification error:', err)
+    });
+
+    // Global notifications (broadcast to all users: scan complete, quality gate failed, new issues)
+    this.webSocketService.subscribeGlobalNotifications().subscribe({
+      next: (event: NotificationEvent) => {
+        console.log('Global notification received:', event);
+        // Add global notification to shared data for all users
+        const notification: Notification = {
+          id: event.id,
+          userId: event.userId,
+          type: event.type,
+          title: event.title,
+          message: event.message,
+          isRead: event.isRead,
+          createdAt: new Date(event.createdAt),
+          relatedProjectId: event.relatedProjectId,
+          relatedScanId: event.relatedScanId,
+          relatedIssueId: event.relatedIssueId,
+          relatedCommentId: event.relatedCommentId
+        };
+
+        // Avoid duplicates (in case personal + global notification both arrive)
+        if (!this.notificationData.notifications.some((n: Notification) => n.id === notification.id)) {
+          this.notificationData.addNotification(notification);
+        }
+      },
+      error: (err) => console.error('WebSocket global notification error:', err)
     });
   }
 
@@ -118,6 +146,7 @@ export class NotificationService {
     relatedScanId?: string;
     relatedIssueId?: string;
     relatedCommentId?: string;
+    isBroadcast?: boolean; // If true, broadcast to all users
   }): Observable<Notification> {
     return this.http.post<Notification>(this.base, request)
       .pipe(
@@ -141,6 +170,7 @@ export class NotificationService {
     const userId = this.getUserId();
     if (!userId) return;
 
+    // Use forkJoin or just fetch latest status to ensure we have up-to-date state
     this.getAllNotifications().subscribe({
       next: (existingNotifications) => {
         const existingIssueIds = new Set(
@@ -149,6 +179,8 @@ export class NotificationService {
             .map(n => n.relatedIssueId)
         );
 
+        // Also check against local cache of recently notified IDs to prevent race conditions within the session
+        // This is crucial if this method is called multiple times rapidly
         existingIssueIds.forEach(id => this.notifiedIssueIds.add(id!));
 
         const newIssues = issues.filter(issue =>
@@ -156,9 +188,11 @@ export class NotificationService {
         );
 
         if (!newIssues.length) {
-          console.log('No new issues to notify');
           return;
         }
+
+        // Add to local cache IMMEDIATELY to prevent concurrent calls from processing the same issue
+        newIssues.forEach(i => this.notifiedIssueIds.add(i.id));
 
         for (const issue of newIssues) {
           const isHighSeverity = issue.severity === 'CRITICAL' || issue.severity === 'BLOCKER';
@@ -170,13 +204,14 @@ export class NotificationService {
             title,
             message: issue.message,
             relatedIssueId: issue.id,
-            relatedProjectId: issue.projectData?.id
+            relatedProjectId: issue.projectData?.id,
+            isBroadcast: true
           }).subscribe({
-            next: () => {
-              this.notifiedIssueIds.add(issue.id);
-              console.log(`Notification created for issue: ${issue.id}`);
-            },
-            error: (err) => console.error('Failed to create notification:', err)
+            error: (err) => {
+              console.error('Failed to create notification:', err);
+              // On error, remove from cache so we can retry later if needed
+              this.notifiedIssueIds.delete(issue.id);
+            }
           });
         }
       },
@@ -231,7 +266,8 @@ export class NotificationService {
             title: '⚠️ Quality Gate Failed',
             message: `${projectName} failed quality gate check`,
             relatedProjectId: scan.project?.id,
-            relatedScanId: scan.id
+            relatedScanId: scan.id,
+            isBroadcast: true // Broadcast quality gate failures to all users
           }).subscribe({
             next: () => {
               this.notifiedQualityGateScanIds.add(scan.id);
@@ -248,8 +284,8 @@ export class NotificationService {
   /**
    * Disconnect WebSocket
    */
-  disconnect(): void {
-    this.webSocketService.disconnect();
-  }
+  // disconnect(): void {
+  //   this.webSocketService.disconnect();
+  // }
 }
 
