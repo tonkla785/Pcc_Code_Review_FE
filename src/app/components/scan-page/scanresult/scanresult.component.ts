@@ -7,6 +7,8 @@ import autoTable from 'jspdf-autotable';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { EmailService } from '../../../services/emailservice/email.service';
+import { LoginUser } from '../../../interface/user_interface';
 
 import { ActivatedRoute } from '@angular/router';
 @Component({
@@ -18,15 +20,27 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class ScanresultComponent {
 
-  constructor(private readonly router: Router, private readonly scanService: ScanService,
-    private readonly authService: AuthService, private sharedData: SharedDataService, private route: ActivatedRoute,) { }
+  constructor(
+    private readonly router: Router,
+    private readonly scanService: ScanService,
+    private readonly authService: AuthService,
+    private sharedData: SharedDataService,
+    private route: ActivatedRoute,
+    private readonly emailService: EmailService
+  ) { }
 
   goBack() { window.history.back(); }
 
   scanInfo: Scan | null = null;
   scanResult: ScanResponseDTO | null = null;
+  currentUser: LoginUser | null = null;
 
   ngOnInit(): void {
+    // Subscribe to LoginUser
+    this.sharedData.LoginUser$.subscribe((user) => {
+      this.currentUser = user;
+    });
+
     // Subscribe to cached data for real-time updates
     this.sharedData.selectedScan$.subscribe(data => {
       if (data) {
@@ -132,18 +146,96 @@ export class ScanresultComponent {
     this.router.navigate(['/generatereport']);
   }
 
-  /** ✅ ปุ่มส่ง Email (จำลอง) */
-  emailReport() {
-    if (!this.scanInfo) {
-      alert('No scan data available');
+  /** ✅ ปุ่มส่ง Email (ทำงานเหมือน LogViewer) */
+  emailReport(): void {
+    const toEmail = this.currentUser?.email;
+    if (!toEmail) {
+      alert('No recipient email found for current user.');
       return;
     }
-    const doc = this.generatePDF();
-    const pdfBlob = doc.output('blob');
 
-    // ในระบบจริง คุณจะส่ง pdfBlob ไป backend
-    console.log('PDF ready to send by email', pdfBlob);
-    alert('Report prepared for email (demo only)');
+    if (!this.scanResult) {
+      alert('No scan data available to send.');
+      return;
+    }
+
+    const applicationName = this.scanResult.project?.name || 'Unknown Project';
+    const subject = `Scan Report: ${applicationName}`;
+
+    // Generate Markdown summary similar to what is displayed
+    const md = this.generateMarkdown();
+    const html = this.wrapAsPre(md);
+
+    this.emailService
+      .scanReportEmail({
+        type: 'ScanReport',
+        email: toEmail,
+        applicationName,
+        subject,
+        html,
+      })
+      .subscribe({
+        next: () => {
+          console.log('Scan report email queued');
+          // You might want to show a snackbar or alert here
+          alert('Scan report email sent successfully!');
+        },
+        error: (err) => {
+          console.error('Send email failed', err);
+          alert('Failed to send email.');
+        },
+      });
+  }
+
+  generateMarkdown(): string {
+    const scan = this.scanResult;
+    const metrics = scan?.metrics;
+
+    // Helper to format date
+    const formatDate = (date: string | number | undefined) => {
+      if (!date) return '-';
+      const d = new Date(date);
+      return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    };
+
+    // Helper for safe values
+    const val = (v: any) => (v !== null && v !== undefined ? v : '-');
+
+    return `# Scan Results: ${scan?.project?.name ?? '-'}
+
+## Scan Info
+- **Started At**: ${formatDate(scan?.startedAt)}
+- **Completed At**: ${formatDate(scan?.completedAt)}
+- **Quality Gate**: ${scan?.qualityGate === 'OK' ? 'Passed' : 'Failed'}
+
+## Overall Gates
+| Gate | Grade |
+| --- | --- |
+| Reliability | ${val(metrics?.reliabilityRating)} |
+| Security | ${val(metrics?.securityRating)} |
+| Maintainability | ${val(metrics?.maintainabilityRating)} |
+| Security Review | ${this.getAverageRating()} |
+
+## Metrics Overview
+- **Bugs**: ${val(metrics?.bugs)}
+- **Vulnerabilities**: ${val(metrics?.vulnerabilities)}
+- **Code Smells**: ${val(metrics?.codeSmells)}
+- **Coverage**: ${val(metrics?.coverage)}%
+`;
+  }
+
+  private wrapAsPre(md: string): string {
+    const esc = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    return `
+  <pre style="white-space: pre-wrap; font-family: ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace;">
+${esc}
+  </pre>`;
   }
 
   viewIssues() {
