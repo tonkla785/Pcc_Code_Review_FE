@@ -34,47 +34,47 @@ export class RepositoryService {
 
   // เริ่มสแกน - ดึง settings จาก SharedData (SonarQube Config)
   startScan(projectId: string, branch: string = 'main', gitToken?: string | null): Observable<any> {
-  console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
+    console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
 
-  const sonarConfig = this.userSettingsData.sonarQubeConfig;
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
 
-  const requestBody: any = {
-    branch,
-    sonarToken: sonarConfig?.authToken || '',
-    gitToken: (gitToken && gitToken.trim() !== '') ? gitToken.trim() : null,
-  };
+    const requestBody: any = {
+      branch,
+      sonarToken: sonarConfig?.authToken || '',
+      gitToken: (gitToken && gitToken.trim() !== '') ? gitToken.trim() : null,
+    };
 
-  requestBody.angularSettings = {
-    runNpm: sonarConfig?.angularRunNpm || false,
-    coverage: sonarConfig?.angularCoverage || false,
-    tsFiles: sonarConfig?.angularTsFiles || false,
-    exclusions: sonarConfig?.angularExclusions || '**/node_modules/**,**/*.spec.ts'
-  };
+    requestBody.angularSettings = {
+      runNpm: sonarConfig?.angularRunNpm || false,
+      coverage: sonarConfig?.angularCoverage || false,
+      tsFiles: sonarConfig?.angularTsFiles || false,
+      exclusions: sonarConfig?.angularExclusions || '**/node_modules/**,**/*.spec.ts'
+    };
 
-  requestBody.springSettings = {
-    runTests: sonarConfig?.springRunTests || false,
-    jacoco: sonarConfig?.springJacoco || false,
-    buildTool: sonarConfig?.springBuildTool || 'maven',
-    jdkVersion: sonarConfig?.springJdkVersion || 17
-  };
+    requestBody.springSettings = {
+      runTests: sonarConfig?.springRunTests || false,
+      jacoco: sonarConfig?.springJacoco || false,
+      buildTool: sonarConfig?.springBuildTool || 'maven',
+      jdkVersion: sonarConfig?.springJdkVersion || 17
+    };
 
-  requestBody.qualityGateSettings = {
-    failOnError: sonarConfig?.qgFailOnError || false,
-    coverageThreshold: sonarConfig?.qgCoverageThreshold || 0,
-    maxBugs: sonarConfig?.qgMaxBugs || 0,
-    maxVulnerabilities: sonarConfig?.qgMaxVulnerabilities || 0,
-    maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
-  };
+    requestBody.qualityGateSettings = {
+      failOnError: sonarConfig?.qgFailOnError || false,
+      coverageThreshold: sonarConfig?.qgCoverageThreshold || 0,
+      maxBugs: sonarConfig?.qgMaxBugs || 0,
+      maxVulnerabilities: sonarConfig?.qgMaxVulnerabilities || 0,
+      maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
+    };
 
-  // ถ้าจะ log ให้ mask
-  // console.log('[ScanService] Request body:', { ...requestBody, gitToken: requestBody.gitToken ? '***' : null });
+    // ถ้าจะ log ให้ mask
+    // console.log('[ScanService] Request body:', { ...requestBody, gitToken: requestBody.gitToken ? '***' : null });
 
-  return this.http.post(
-    `${environment.apiUrl}/${projectId}/scan`,
-    requestBody,
-    this.authOpts()
-  );
-}
+    return this.http.post(
+      `${environment.apiUrl}/${projectId}/scan`,
+      requestBody,
+      this.authOpts()
+    );
+  }
 
 
   getScanById(scanId: string): Observable<any> {
@@ -231,16 +231,16 @@ export class RepositoryService {
                 vulnerabilities: scan.metrics?.vulnerabilities ?? 0,
                 codeSmells: scan.metrics?.codeSmells ?? 0,
                 coverage: scan.metrics?.coverage ?? 0,
-                debtRatio: 0,
+                debtRatio: scan.metrics?.debtRatio ?? 0,
                 duplicatedLinesDensity: scan.metrics?.duplicatedLinesDensity ?? 0,
                 maintainabilityRating: scan.metrics?.maintainabilityRating ?? scan.metrics?.sqale_rating ?? '',
                 reliabilityRating: scan.metrics?.reliabilityRating ?? scan.metrics?.reliability_rating ?? '',
-                securityHotspots: 0,
+                securityHotspots: scan.metrics?.securityHotspots ?? 0,
                 securityRating: scan.metrics?.securityRating ?? scan.metrics?.security_rating ?? '',
-                technicalDebtMinutes: 0,
-                analysisLogs: []
+                technicalDebtMinutes: scan.metrics?.technicalDebtMinutes ?? 0,
+                analysisLogs: scan.metrics?.analysisLogs ?? []
               },
-              logFilePath: scan.logFilePath ?? scan.log_file_path,
+              logFilePath: scan.logFilePath ? scan.logFilePath : scan.log_file_path,
               issueData: []
             } as ScanResponseDTO)),
 
@@ -264,7 +264,15 @@ export class RepositoryService {
                 vulnerabilities: latestScan.metrics.vulnerabilities,
                 codeSmells: latestScan.metrics.codeSmells,
                 coverage: latestScan.metrics.coverage,
-                duplications: latestScan.metrics.duplicatedLinesDensity
+                duplications: latestScan.metrics.duplicatedLinesDensity,
+                debtRatio: latestScan.metrics.debtRatio,
+                analysisLogs: latestScan.metrics.analysisLogs,
+                securityRating: latestScan.metrics.securityRating ?? latestScan.metrics.security_rating,
+                securityHotspots: latestScan.metrics.securityHotspots,
+                reliabilityRating: latestScan.metrics.reliabilityRating ?? latestScan.metrics.reliability_rating,
+                technicalDebtMinutes: latestScan.metrics.technicalDebtMinutes,
+                maintainabilityRating: latestScan.metrics.maintainabilityRating ?? latestScan.metrics.sqale_rating,
+                duplicatedLinesDensity: latestScan.metrics.duplicatedLinesDensity
               }
               : undefined
           };
@@ -339,10 +347,10 @@ export class RepositoryService {
               vulnerabilities: s.metrics.vulnerabilities ?? 0,
               codeSmells: s.metrics.codeSmells ?? 0,
               coverage: s.metrics.coverage ?? 0,
-              debtRatio: 0,
+              debtRatio: s.metrics.debtRatio ?? 0,
               duplicatedLinesDensity: s.metrics.duplicatedLinesDensity ?? 0,
-              securityHotspots: 0,
-              technicalDebtMinutes: 0,
+              securityHotspots: s.metrics.securityHotspots ?? 0,
+              technicalDebtMinutes: s.metrics.technicalDebtMinutes ?? 0,
               maintainabilityRating: s.metrics.maintainabilityRating ?? s.metrics.sqale_rating ?? '',
               reliabilityRating: s.metrics.reliabilityRating ?? s.metrics.reliability_rating ?? '',
               securityRating: s.metrics.securityRating ?? s.metrics.security_rating ?? '',
@@ -369,8 +377,6 @@ export class RepositoryService {
       })
     );
   }
-
-
 }
 
 
