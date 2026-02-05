@@ -16,7 +16,7 @@ import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../..
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { IssuesDetailResponseDTO, IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
 import { commentRequestDTO, commentResponseDTO } from '../../../interface/comment_interface';
-
+type SortOrder = 'ASC' | 'DESC';
 interface Attachment { filename: string; url: string; }
 interface IssueComment {
   issueId: string; userId: string; comment: string; timestamp: Date | string;
@@ -84,6 +84,8 @@ export class IssuedetailComponent implements OnInit {
   rootComments: commentResponseDTO[] = [];
   replies = new Map<string, commentResponseDTO[]>();
   replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
+  sortedComments: commentResponseDTO[] = [];
+
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
@@ -123,7 +125,7 @@ this.route.paramMap.subscribe(pm => {
   } else {
     this.issuesResult = cached;
     this.applyUserFilter();
-    this.replycomment(this.issuesResult?.commentData ?? []);
+    this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
     console.log("Not Same")
   }
 });
@@ -132,7 +134,7 @@ this.sharedData.selectedIssues$.subscribe(data => {
   this.issuesResult = data;
   console.log('Issues Detail from sharedData:', this.issuesResult);
   this.applyUserFilter();
-  this.replycomment(this.issuesResult?.commentData ?? []);
+  this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
 });
 
       const user = this.tokenStorage.getLoginUser();  
@@ -191,7 +193,15 @@ this.sharedData.selectedIssues$.subscribe(data => {
 
     console.log('Filtered Users:', this.filteredUsers);
   }
-
+sortComments(list: commentResponseDTO[], order: string) {
+  return [...list].sort((a, b) => {
+    const timeA = new Date(a.createdAt).getTime();
+    const timeB = new Date(b.createdAt).getTime();
+    return order === 'ASC'
+      ? timeA - timeB
+      : timeB - timeA;
+  });
+}
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
     console.log('Raw API issue:', r);
@@ -411,12 +421,13 @@ this.sharedData.selectedIssues$.subscribe(data => {
     });
   }
   startReply(c: commentResponseDTO) {
+    if(c.user?.id === this.UserLogin?.id){ 
+      return; 
+    }else{
     this.replyTo = { commentId: c.id, username: c.user?.username, parentCommentId: c.parentCommentId || '' };
-
-    // ใส่ @username ให้เลย (optional)
     this.newComment = { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
     console.log('Replying to comment:', this.replyTo);
-
+    }
   }
   cancelReply() {
     this.replyTo = null;
