@@ -167,7 +167,7 @@
 
   <!-- Root comments -->
   <div class="reply-item"
-       *ngFor="let c of rootComments; trackBy: trackByComment">
+       *ngFor="let c of sortedComments ; trackBy: trackByComment">
   <div class="comment-item">
     <div class="comment-avatar">
       <i class="bi bi-person-circle"></i>
@@ -184,7 +184,7 @@
       <p class="comment-text">{{ c.comment }}</p>
     </div>
 
-    <div class="comment-actions">
+    <div class="comment-actions" *ngIf="c.user?.id !== UserLogin?.id">
       <button type="button" class="btn btn-link p-0" (click)="startReply(c)">
         Reply
       </button>
@@ -192,7 +192,7 @@
     </div>
 
     <!-- Replies under this comment -->
-    <div class="replies" *ngIf="(replies.get(c.id) ?? []).length">
+    <!-- <div class="replies" *ngIf="(replies.get(c.id) ?? []).length">
       <div class="comment-item reply-item"
            *ngFor="let r of replies.get(c.id); trackBy: trackByComment">
         <div class="comment-avatar">
@@ -214,7 +214,7 @@
         </div>
 
       </div>
-    </div>
+    </div> -->
 
   </div>
 

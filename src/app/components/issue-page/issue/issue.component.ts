@@ -63,7 +63,8 @@ export class IssueComponent {
     private readonly repositoryService: RepositoryService,
     private readonly sharedData: SharedDataService,
     private readonly issuesService: IssueService,
-    private readonly userDataService: UserService
+    private readonly userDataService: UserService,
+    private readonly repoService: RepositoryService,
   ) { }
 
   ngOnInit(): void {
@@ -89,6 +90,14 @@ export class IssueComponent {
       console.log("No cache - load from server");
       this.loadIssues();
     }
+    if(!this.sharedData.hasRepositoriesCache){
+      this.loadRepositories();
+      console.log("No cache - load from server");
+    }
+     this.sharedData.repositories$.subscribe((repos) => {
+      this.repositories = repos;
+      console.log('Repositories loaded from sharedData:', this.repositories);
+    });
 
   }
 
@@ -115,7 +124,22 @@ loadIssues() {
     });
   }
   
+  loadRepositories() {
+    this.sharedData.setLoading(true);
 
+    this.repoService.getAllRepo().subscribe({
+      next: (repos) => {
+        // เก็บข้อมูลลง SharedDataService
+        this.sharedData.setRepositories(repos);
+        this.sharedData.setLoading(false);
+        console.log('Repositories loaded:', repos);
+      },
+      error: (err) => {
+        console.error('Failed to load repositories:', err);
+        this.sharedData.setLoading(false);
+      },
+    });
+  }
 
   // ---------- Filters ----------
   filterType = 'All Types';
@@ -153,12 +177,11 @@ loadIssues() {
     const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
     const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
     const matchProject = (this.filterProject || 'All Projects').toLowerCase();
-
     this.filteredIssue = this.issuesAll.filter(i => {
       const type = matchType === 'all types' || (i.type || '').toLowerCase() === matchType;
       const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
       const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
-      const projectName = (i.message || i.message || '').toString().toLowerCase();
+      const projectName = (i.projectData?.name || '').toString().toLowerCase();
       const project = matchProject === 'all projects' || projectName === matchProject;
       const messageOk = keyword === '' || (i.message || '').toLowerCase().includes(keyword);
       return type && severity && status && project && messageOk;
