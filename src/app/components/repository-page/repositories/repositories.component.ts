@@ -10,7 +10,8 @@ import { forkJoin } from 'rxjs';
 import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
-import { WebSocketService, ScanEvent } from '../../../services/websocket/websocket.service';
+import { WebSocketService } from '../../../services/websocket/websocket.service';
+import { ScanEvent } from '../../../interface/websocket_interface';
 import Swal from 'sweetalert2';
 
 
