@@ -5,8 +5,10 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
 import { ScanService } from '../../../services/scanservice/scan.service';
+import { TechnicalDebtDataService } from '../../../services/shared-data/technicaldebt-data.service';
+import { TechnicalDebtService } from '../../../services/technicaldebtservice/technicaldebt.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
-import { TechnicalDebtDataService, DebtItem } from '../../../services/shared-data/technicaldebt-data.service';
+import { DebtTimePipe } from '../../../pipes/debt-time.pipe';
 
 interface HotSecurityIssue {
   name: string;
@@ -14,9 +16,7 @@ interface HotSecurityIssue {
 }
 
 interface DebtProject {
-    // Legacy interface, kept if needed by other parts, but mostly replaced by DebtItem
-     projectName: string;
-  debtTime: string;
+  projectName: string;
   debtMinutes: number;
   debtCost: string;
   priority: string;
@@ -28,21 +28,21 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-analysis',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DebtTimePipe],
+  providers: [DebtTimePipe],
   templateUrl: './analysis.component.html',
   styleUrl: './analysis.component.css'
 })
 export class AnalysisComponent implements OnInit, OnDestroy {
 
   securityScore = 0;
-  technicalDebt = '0d';
+  technicalDebt = 0;
   codeCoverage = 78;
   buildStatus = 'Passing';
   lintingIssues = 12;
   testCoverage = 80;
 
   topSecurityIssues: HotSecurityIssue[] = [];
-  // topDebtProjects: DebtItem[] = [];
   topDebtProjects: DebtProject[] = [];
 
   private subscriptions = new Subscription();
@@ -57,7 +57,7 @@ export class AnalysisComponent implements OnInit, OnDestroy {
       },
       {
         title: 'Technical Debt',
-        value: this.technicalDebt,
+        value: this.debtTimePipe.transform(this.technicalDebt),
         icon: 'bi bi-clock-history',
         action: () => this.router.navigate(['/technical-debt'])
       }
@@ -70,7 +70,9 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     private readonly sharedData: SharedDataService,
     private readonly securityService: SecurityService,
     private readonly scanService: ScanService,
-    // private readonly techDebtDataService: TechnicalDebtDataService
+    private readonly techDebtDataService: TechnicalDebtDataService,
+    private readonly techDebtService: TechnicalDebtService,
+    private readonly debtTimePipe: DebtTimePipe
   ) { }
 
   ngOnInit(): void {
@@ -92,10 +94,21 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.add(
-      this.sharedData.scansHistory$.subscribe(scans => {
-        if (scans && scans.length > 0) {
-          this.calculateDebt(scans);
-        }
+      this.techDebtDataService.totalDebt$.subscribe(debt => {
+        const totalMinutes = (debt.days * 480) + (debt.hours * 60) + debt.minutes;
+        this.technicalDebt = totalMinutes;
+      })
+    );
+
+    this.subscriptions.add(
+      this.techDebtDataService.topDebtItems$.subscribe(items => {
+        this.topDebtProjects = items.map(item => ({
+          projectName: item.item,
+          debtMinutes: item.time,
+          debtCost: `THB${Math.ceil(item.cost).toLocaleString()}`,
+          priority: item.priority,
+          color: item.colorClass === 'high' ? 'bg-danger' : (item.colorClass === 'med' ? 'bg-warning text-dark' : 'bg-success')
+        }));
       })
     );
 
@@ -121,78 +134,8 @@ export class AnalysisComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  private calculateDebt(scans: ScanResponseDTO[]): void {
-    const latestScans = this.latestScanPerProject(scans);
-
-    const totalMinutes = latestScans.reduce((sum, s) => sum + (s.metrics?.technicalDebtMinutes || 0), 0);
-    this.technicalDebt = this.formatDebtTime(totalMinutes);
-
-    this.topDebtProjects = latestScans
-      .map(s => {
-        const minutes = s.metrics?.technicalDebtMinutes || 0;
-        const days = minutes / 480;
-        const costVal = days * 30000;
-        const costStr = `THB${Math.ceil(costVal).toLocaleString()}`;
-        const score = (days * 2) + (costVal / 50000);
-
-        return {
-          projectName: s.project?.name || 'Unknown Project',
-          debtTime: this.formatDebtTime(minutes),
-          debtMinutes: minutes,
-          debtCost: costStr,
-          priority: this.getPriority(score),
-          color: this.getColor(score)
-        };
-      })
-      .sort((a, b) => b.debtMinutes - a.debtMinutes)
-      .slice(0, 5);
-  }
-
-  private latestScanPerProject(scans: ScanResponseDTO[]): ScanResponseDTO[] {
-    const map = new Map<string, ScanResponseDTO>();
-    scans.forEach(s => {
-      const projectName = s.project?.name || 'Unknown';
-      const scanDate = new Date(s.startedAt || 0);
-
-      if (!map.has(projectName) || scanDate > new Date(map.get(projectName)!.startedAt || 0)) {
-        map.set(projectName, s);
-      }
-    });
-    return Array.from(map.values());
-  }
-
-  private formatDebtTime(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const days = Math.floor(hours / 8);
-    const remainingHours = hours % 8;
-
-    if (days > 0) {
-      return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
-    }
-    if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
-  }
-  // loadTechnicalDebt removed as we use shared data from TechnicalDebtComponent
-  // The user requested to use shared data from TechnicalDebtComponent.
-  // If Analysis is visited first, it will be empty until TechDebt is visited (as per "Shared Data" pattern).
-  // If I wanted to force load, I would need to duplicate the logic or move it to service. 
-  // Given previous instruction rejected duplication/service-logic-move, I assume this behavior is desired.
-
-
-  private getPriority(score: number): string {
-    if (score >= 10) return 'High';
-    if (score >= 5) return 'Medium';
-    return 'Low';
-  }
-
-  private getColor(score: number): string {
-    if (score >= 10) return 'bg-danger';
-    if (score >= 5) return 'bg-warning text-dark';
-    return 'bg-success';
-  }
-
   goToDebt(): void {
     this.router.navigate(['/technical-debt']);
   }
 }
+
