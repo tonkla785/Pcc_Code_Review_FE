@@ -80,7 +80,7 @@
           <td>
             <strong class="issue-message">{{ issue.message }}</strong><br>
           </td>
-          <td>{{issue.projectData.name}}</td>
+          <td>{{issue.projectData?.name}}</td>
           <td>{{issue.assignedTo?.username ?? 'Unassigned'}}</td>
           <td>
             <span class="status-badge" [ngClass]="statusClass(issue.status)">

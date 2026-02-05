@@ -124,6 +124,126 @@ export class NotificationService {
       );
   }
 
+  // Track notified issue and scan IDs to prevent duplicates
+  private notifiedIssueIds = new Set<string>();
+  private notifiedQualityGateScanIds = new Set<string>();
+
+  /**
+   * Generate notifications for issues (prevent duplicates)
+   * Returns Observable that completes when all notifications are created
+   */
+  generateIssueNotifications(
+    issues: { id: string; severity: string; type: string; message: string; projectData?: { id: string } }[]
+  ): void {
+    if (!issues?.length) return;
+
+    const userId = this.getUserId();
+    if (!userId) return;
+
+    this.getAllNotifications().subscribe({
+      next: (existingNotifications) => {
+        const existingIssueIds = new Set(
+          existingNotifications
+            .filter(n => n.relatedIssueId)
+            .map(n => n.relatedIssueId)
+        );
+
+        existingIssueIds.forEach(id => this.notifiedIssueIds.add(id!));
+
+        const newIssues = issues.filter(issue =>
+          !this.notifiedIssueIds.has(issue.id) && !existingIssueIds.has(issue.id)
+        );
+
+        if (!newIssues.length) {
+          console.log('No new issues to notify');
+          return;
+        }
+
+        for (const issue of newIssues) {
+          const isHighSeverity = issue.severity === 'CRITICAL' || issue.severity === 'BLOCKER';
+          const title = `${isHighSeverity ? '🔴' : '🟠'} ${issue.severity} ${issue.type} Issue`;
+
+          this.createNotification({
+            userId,
+            type: 'Issues',
+            title,
+            message: issue.message,
+            relatedIssueId: issue.id,
+            relatedProjectId: issue.projectData?.id
+          }).subscribe({
+            next: () => {
+              this.notifiedIssueIds.add(issue.id);
+              console.log(`Notification created for issue: ${issue.id}`);
+            },
+            error: (err) => console.error('Failed to create notification:', err)
+          });
+        }
+      },
+      error: (err) => console.error('Failed to load notifications:', err)
+    });
+  }
+
+  /**
+   * Generate notifications for failed quality gates (prevent duplicates)
+   */
+  generateQualityGateNotifications(
+    scans: { id: string; qualityGate?: string | null; project?: { id: string; name?: string } }[]
+  ): void {
+    if (!scans?.length) return;
+
+    const userId = this.getUserId();
+    if (!userId) return;
+
+    const failedScans = scans.filter(scan =>
+      scan.qualityGate &&
+      scan.qualityGate.toUpperCase() !== 'OK' &&
+      scan.qualityGate.toUpperCase() !== 'NONE'
+    );
+
+    if (!failedScans.length) return;
+
+    this.getAllNotifications().subscribe({
+      next: (existingNotifications) => {
+        const existingScanIds = new Set(
+          existingNotifications
+            .filter(n => n.title?.includes('Quality Gate'))
+            .map(n => n.relatedScanId)
+        );
+
+        existingScanIds.forEach(id => this.notifiedQualityGateScanIds.add(id!));
+
+        const newFailedScans = failedScans.filter(scan =>
+          !this.notifiedQualityGateScanIds.has(scan.id) && !existingScanIds.has(scan.id)
+        );
+
+        if (!newFailedScans.length) {
+          console.log('No new quality gate failures to notify');
+          return;
+        }
+
+        for (const scan of newFailedScans) {
+          const projectName = scan.project?.name || 'Unknown';
+
+          this.createNotification({
+            userId,
+            type: 'System',
+            title: '⚠️ Quality Gate Failed',
+            message: `${projectName} failed quality gate check`,
+            relatedProjectId: scan.project?.id,
+            relatedScanId: scan.id
+          }).subscribe({
+            next: () => {
+              this.notifiedQualityGateScanIds.add(scan.id);
+              console.log(`Quality Gate notification created for scan: ${scan.id}`);
+            },
+            error: (err) => console.error('Failed to create notification:', err)
+          });
+        }
+      },
+      error: (err) => console.error('Failed to load notifications:', err)
+    });
+  }
+
   /**
    * Disconnect WebSocket
    */
