@@ -31,6 +31,7 @@ import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
+import { WebSocketService } from '../../services/websocket/websocket.service';
 import {
   Repository,
   RepositoryService,
@@ -97,6 +98,7 @@ export class DashboardComponent {
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
     private readonly snack: MatSnackBar,
+    private readonly ws: WebSocketService,
   ) { }
 
   loading = true;
@@ -171,6 +173,20 @@ export class DashboardComponent {
     const user = this.tokenStorage.getLoginUser();
     if (user) {
       this.sharedData.LoginUserShared = user;
+    }
+
+    if (user?.id) {
+      this.ws.connect(user.id);
+
+      this.ws.subscribeNotifications().subscribe((noti) => {
+        console.log('Realtime notification:', noti);
+
+        const exists = this.notifications.some(n => n.id === noti.id);
+        if (exists) return;
+
+        this.notifications.unshift(noti as any);
+      });
+
     }
     this.sharedData.scansHistory$.subscribe((data) => {
       this.DashboardData = data || [];
@@ -1215,4 +1231,7 @@ export class DashboardComponent {
     this.coverageChartOptions = chartConfig.options as any;
   }
 
+  ngOnDestroy() {
+    this.ws.disconnect();
+  }
 }
