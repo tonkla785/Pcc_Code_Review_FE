@@ -191,7 +191,7 @@ export class SharedDataService {
     updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
         const list = Array.isArray(updated) ? updated : [updated];
         const Id = new Map(list.map(i => [i.id, i]));
-
+        
         const next = this.issuesValue.map(u => Id.get(u.id) ?? u);
         this.AllIssues.next(next);
     }
@@ -207,7 +207,6 @@ export class SharedDataService {
     }
 
     removeIssuesByProject(projectId: string) {
-        // 1. Find all scan IDs for this project from Scan History
         const projectScanIds = new Set(
             this.scanValue
                 .filter(s =>
@@ -249,20 +248,21 @@ export class SharedDataService {
     set SelectedIssues(data: IssuesResponseDTO) {
         this.selectedIssues.next(data);
     }
-    get issueValue(): IssuesResponseDTO {
+    get selectIssueValue(): IssuesResponseDTO {
         return this.selectedIssues.value ?? null!;
     }
-    updateIssue(patch: Partial<IssuesResponseDTO> & { id: string }) {
-        const current = this.issueValue;
+    updateIssueSelect(patch: Partial<IssuesResponseDTO> & { id: string }) {
+        const current = this.selectIssueValue;
         if (!current) return;
         if (current.id !== patch.id) return;
 
-        // merge ของเดิม + ของใหม่ แล้ว next  ทุก component ที่ subscribe จะอัปเดตทันที
         const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
         this.selectedIssues.next(next);
+        this.updateIssues(next);
     }
     private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
     readonly Comments$ = this.Comments.asObservable();
+
 
     get hasSelectedCommentLoaded(): boolean {
         return this.Comments.value !== null;
@@ -280,7 +280,7 @@ export class SharedDataService {
         return this.Comments.value ?? null!;
     }
     addComments(newComment: commentResponseDTO) {
-        const current = this.issueValue;
+        const current = this.selectIssueValue;
         if (!current) return;
 
         // กันเผื่อ backend ส่ง issue เป็น id หรือ object

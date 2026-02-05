@@ -76,6 +76,10 @@ export class IssueComponent {
         // this.applyFilter();
         console.log('User loaded Modal from sharedData:', data);
       });
+      if(!this.sharedData.hasIssuesCache){
+      this.loadIssues();
+      console.log("No cache - load from server");
+    }
     this.sharedData.AllIssues$.subscribe(data => { 
        this.originalData = data || [];
        this.issuesAll = [...this.originalData];
@@ -89,13 +93,12 @@ export class IssueComponent {
   }
 
 loadIssues() {
-
   this.sharedData.setLoading(true);
   this.issuesService.getAllIssues().subscribe({
     next: (data) => {
       this.sharedData.IssuesShared = data;
       this.sharedData.setLoading(false);
-      console.log('Issues loaded:', data);
+      console.log('Issues loaded:', );
     },
     error: () => this.sharedData.setLoading(false)
   });
@@ -170,10 +173,10 @@ loadIssues() {
 
 
 
-      updatePage() {
+    updatePage() {
         const start = (this.currentPage - 1) * this.pageSize;
         this.paginatedIssues = this.filteredIssue.slice(start, start + this.pageSize);
-      }
+    }
 
   allSelected(): boolean {
     // Check if ALL currently displayed (paged) items are selected

@@ -168,12 +168,12 @@
   <!-- Root comments -->
   <div class="reply-item"
        *ngFor="let c of rootComments; trackBy: trackByComment">
-
+  <div class="comment-item">
     <div class="comment-avatar">
       <i class="bi bi-person-circle"></i>
     </div>
 
-    <div class="comment-content">
+    <div class="comment-content ">
       <div class="comment-header">
         <strong class="comment-author">{{ c.user?.username }}</strong>
         <span class="comment-time">
@@ -188,6 +188,7 @@
       <button type="button" class="btn btn-link p-0" (click)="startReply(c)">
         Reply
       </button>
+    </div>
     </div>
 
     <!-- Replies under this comment -->
