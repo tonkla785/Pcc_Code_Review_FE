@@ -53,6 +53,11 @@ export class WordService {
             children.push(...this.createSecuritySection(context));
         }
 
+        // Technical Debt
+        if (context.selectedSections.technicalDebt) {
+            children.push(...this.createTechnicalDebtSection(context));
+        }
+
         // Recommendations
         if (context.selectedSections.recommendations && context.recommendationsData) {
             children.push(...this.createRecommendationsSection(context));
@@ -295,18 +300,6 @@ export class WordService {
         return paragraphs;
     }
 
-    private formatRating(value: string | number | undefined): string {
-        if (value === null || value === undefined || value === '') return 'N/A';
-        const s = String(value);
-        if (s.startsWith('1')) return 'A';
-        if (s.startsWith('2')) return 'B';
-        if (s.startsWith('3')) return 'C';
-        if (s.startsWith('4')) return 'D';
-        if (s.startsWith('5')) return 'E';
-        if (/^[A-E]$/i.test(s)) return s.toUpperCase();
-        if (s === 'OK') return 'A';
-        return s;
-    }
     private createRecommendationsSection(context: WordReportContext): (Paragraph | Table)[] {
         if (!context.recommendationsData || context.recommendationsData.length === 0) return [];
 
@@ -350,5 +343,62 @@ export class WordService {
         elements.push(new Paragraph({ text: "", spacing: { after: 200 } })); // Spacer
 
         return elements;
+    }
+
+    private createTechnicalDebtSection(context: WordReportContext): (Paragraph | Table)[] {
+        const elements: (Paragraph | Table)[] = [];
+
+        elements.push(new Paragraph({
+            text: 'Technical Debt Analysis',
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 400, after: 200 }
+        }));
+
+        // Header row
+        const headerRow = new TableRow({
+            children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Scan Date', bold: true })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Project', bold: true })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Technical Debt', bold: true })] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Cost (THB)', bold: true })] })] }),
+            ]
+        });
+
+        const dataRows = context.scans.map(scan => {
+            const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
+            const debtRatio = scan.metrics?.debtRatio || 0;
+
+            return new TableRow({
+                children: [
+                    new TableCell({ children: [new Paragraph({ text: this.formatScanDate(scan.startedAt) })] }),
+                    new TableCell({ children: [new Paragraph({ text: context.projectName })] }),
+                    new TableCell({ children: [new Paragraph({ text: this.formatTechnicalDebt(debtMinutes) })] }),
+                    new TableCell({ children: [new Paragraph({ text: `THB ${debtRatio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` })] }),
+                ]
+            });
+        });
+
+        elements.push(new Table({
+            rows: [headerRow, ...dataRows],
+            width: { size: 100, type: WidthType.PERCENTAGE },
+        }));
+
+        elements.push(new Paragraph({ text: "", spacing: { after: 200 } }));
+
+        return elements;
+    }
+
+    private formatTechnicalDebt(minutes: number): string {
+        const days = Math.floor(minutes / 480);
+        const remainingMinutes = minutes % 480;
+        const hours = Math.floor(remainingMinutes / 60);
+        const mins = remainingMinutes % 60;
+
+        let result = '';
+        if (days > 0) result += `${days}d `;
+        if (hours > 0) result += `${hours}h `;
+        if (mins > 0 || result === '') result += `${mins}m`;
+
+        return result.trim();
     }
 }

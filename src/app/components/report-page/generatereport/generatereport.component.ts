@@ -25,10 +25,9 @@ import { SecurityIssueDTO } from '../../../interface/security_interface';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
 
 import { MatSnackBar } from '@angular/material/snack-bar';
-// Recommendations ถ้าจะเอาเปิดใช้ได้
-// import { forkJoin, of } from 'rxjs';
-// import { catchError, map } from 'rxjs/operators';
-// import { IssuesDetailResponseDTO } from '../../../interface/issues_interface';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { IssuesDetailResponseDTO } from '../../../interface/issues_interface';
 
 interface Project {
   id: string;
@@ -47,6 +46,8 @@ interface SelectedSections {
   qualityGate: boolean;
   issueBreakdown: boolean;
   securityAnalysis: boolean;
+  technicalDebt: boolean;
+  recommendations: boolean;
 }
 
 interface ReportContext {
@@ -57,6 +58,7 @@ interface ReportContext {
   issues: IssuesResponseDTO[];
   securityData: any;
   selectedSections: SelectedSections;
+  recommendationsData?: any[];
   generatedBy: string;
 }
 
@@ -81,10 +83,10 @@ export class GeneratereportComponent implements OnInit {
   sections: Section[] = [
     { name: 'Quality Gate Summary', key: 'QualityGateSummary', selected: false, disabled: false },
     { name: 'Issue Breakdown', key: 'IssueBreakdown', selected: false, disabled: false },
-    { name: 'Security Analysis', key: 'SecurityAnalysis', selected: false, disabled: false }
-    // { name: 'Technical Debt', key: 'TechnicalDebt', selected: false, disabled: false },
+    { name: 'Security Analysis', key: 'SecurityAnalysis', selected: false, disabled: false },
+    { name: 'Technical Debt', key: 'TechnicalDebt', selected: false, disabled: false },
     // { name: 'Trend Analysis', key: 'TrendAnalysis', selected: false, disabled: false },
-    // { name: 'Recommendations', key: 'Recommendations', selected: false, disabled: false }
+    { name: 'Recommendations', key: 'Recommendations', selected: false, disabled: false }
   ];
 
   formatMap: Record<string, string> = {
@@ -316,7 +318,19 @@ export class GeneratereportComponent implements OnInit {
     const securityData = this.buildSecurityData(scans);
     const selectedSections = this.buildSelectedSections();
 
-    this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections);
+    if (selectedSections.recommendations) {
+      this.fetchRecommendationsData(issues).subscribe({
+        next: (recommendationsData) => {
+          this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, recommendationsData);
+        },
+        error: (err) => {
+          console.error('Failed to fetch recommendations', err);
+          this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, []);
+        }
+      });
+    } else {
+      this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections);
+    }
   }
 
   private buildSecurityData(scans: ScanResponseDTO[]): any {
@@ -346,7 +360,9 @@ export class GeneratereportComponent implements OnInit {
     return {
       qualityGate: this.sections.find(s => s.key === 'QualityGateSummary')?.selected ?? false,
       issueBreakdown: this.sections.find(s => s.key === 'IssueBreakdown')?.selected ?? false,
-      securityAnalysis: this.sections.find(s => s.key === 'SecurityAnalysis')?.selected ?? false
+      securityAnalysis: this.sections.find(s => s.key === 'SecurityAnalysis')?.selected ?? false,
+      technicalDebt: this.sections.find(s => s.key === 'TechnicalDebt')?.selected ?? false,
+      recommendations: this.sections.find(s => s.key === 'Recommendations')?.selected ?? false
     };
   }
 
@@ -357,15 +373,16 @@ export class GeneratereportComponent implements OnInit {
     scans: ScanResponseDTO[],
     issues: IssuesResponseDTO[],
     securityData: any,
-    selectedSections: SelectedSections
+    selectedSections: SelectedSections,
+    recommendationsData: any[] = []
   ): void {
-    const context = this.buildReportContext(projectName, scans, issues, securityData, selectedSections);
+    const context = this.buildReportContext(projectName, scans, issues, securityData, selectedSections, recommendationsData);
 
     try {
       this.exportToFormat(context);
       this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections);
       this.createReportNotification(projectName, true);  // success notification
-      this.snackBar.open('Report generated successfully','', {
+      this.snackBar.open('Report generated successfully', '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
@@ -384,7 +401,8 @@ export class GeneratereportComponent implements OnInit {
     scans: ScanResponseDTO[],
     issues: IssuesResponseDTO[],
     securityData: any,
-    selectedSections: SelectedSections
+    selectedSections: SelectedSections,
+    recommendationsData: any[] = []
   ): ReportContext {
     const user = this.tokenStorageService.getLoginUser();
 
@@ -396,6 +414,7 @@ export class GeneratereportComponent implements OnInit {
       issues,
       securityData,
       selectedSections,
+      recommendationsData,
       generatedBy: user?.username || 'Unknown'
     };
   }
@@ -438,6 +457,8 @@ export class GeneratereportComponent implements OnInit {
       includeQualityGate: selectedSections.qualityGate,
       includeIssueBreakdown: selectedSections.issueBreakdown,
       includeSecurityAnalysis: selectedSections.securityAnalysis,
+      includeTechnicalDebt: selectedSections.technicalDebt,
+      includeRecommendations: selectedSections.recommendations,
       snapshotData: { scans, issues, securityData, selectedSections },
       fileSizeBytes: 0
     };
@@ -469,7 +490,6 @@ export class GeneratereportComponent implements OnInit {
   }
 
   // ส่วนนี้ถ้าจะเอาเปิดใช้ได้
-  /*
   private fetchRecommendationsData(issues: IssuesResponseDTO[]) {
     const severityOrder: Record<string, number> = {
       'BLOCKER': 0, 'CRITICAL': 1, 'MAJOR': 2, 'MINOR': 3, 'INFO': 4
@@ -516,5 +536,4 @@ export class GeneratereportComponent implements OnInit {
 
     return forkJoin(detailsRequests);
   }
-  */
 }

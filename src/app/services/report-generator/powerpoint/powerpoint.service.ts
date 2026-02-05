@@ -46,14 +46,19 @@ export class PowerpointService {
             this.addSummarySlide(pptx, context);
         }
 
+        //issueBreakdown    
+        if (context.selectedSections.issueBreakdown) {
+            this.addIssueSlide(pptx, context);
+        }
+
         //securityAnalysis
         if (context.selectedSections.securityAnalysis && context.securityData) {
             this.addSecuritySlide(pptx, context);
         }
 
-        //issueBreakdown    
-        if (context.selectedSections.issueBreakdown) {
-            this.addIssueSlide(pptx, context);
+        // Technical Debt
+        if (context.selectedSections.technicalDebt) {
+            this.addTechnicalDebtSlide(pptx, context);
         }
 
         // Recommendations
@@ -201,19 +206,6 @@ export class PowerpointService {
         slide2.addTable(owaspRows, { x: 0.5, y: 1.5, w: 9, fontSize: 12, border: { type: 'solid', color: 'CFCFCF' } });
     }
 
-    private formatRating(value: string | number | undefined): string {
-        if (value === null || value === undefined || value === '') return 'N/A';
-        const s = String(value);
-        if (s.startsWith('1')) return 'A';
-        if (s.startsWith('2')) return 'B';
-        if (s.startsWith('3')) return 'C';
-        if (s.startsWith('4')) return 'D';
-        if (s.startsWith('5')) return 'E';
-        if (/^[A-E]$/i.test(s)) return s.toUpperCase();
-        if (s === 'OK') return 'A';
-        return s;
-    }
-    
     private addRecommendationsSlide(pptx: any, context: PptReportContext) {
         if (!context.recommendationsData || context.recommendationsData.length === 0) return;
 
@@ -225,8 +217,8 @@ export class PowerpointService {
             rows.push([
                 rec.severity,
                 rec.type,
-                rec.message.substring(0, 50) + (rec.message.length > 50 ? '...' : ''),
-                rec.recommendedFix.substring(0, 50) + (rec.recommendedFix.length > 50 ? '...' : '')
+                rec.message,
+                rec.recommendedFix
             ]);
         });
 
@@ -240,5 +232,55 @@ export class PowerpointService {
             autoPage: true,
             startY: 1.2
         });
+    }
+
+    private addTechnicalDebtSlide(pptx: any, context: PptReportContext) {
+        const slide = pptx.addSlide();
+        slide.addText('Technical Debt Analysis', { x: 0.5, y: 0.3, w: '90%', h: 0.5, fontSize: 28, bold: true });
+
+        const tableData = context.scans.map(scan => {
+            const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
+            const debtRatio = scan.metrics?.debtRatio || 0;
+            return [
+                { text: this.formatScanDate(scan.startedAt), options: { align: 'center' } },
+                { text: context.projectName, options: { align: 'left' } },
+                { text: this.formatTechnicalDebt(debtMinutes), options: { align: 'center' } },
+                { text: `THB ${debtRatio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, options: { align: 'center' } }
+            ];
+        });
+
+        const rows = [
+            [
+                { text: 'Scan Date', options: { bold: true, fill: { color: 'FF9800' }, color: 'FFFFFF' } },
+                { text: 'Project', options: { bold: true, fill: { color: 'FF9800' }, color: 'FFFFFF' } },
+                { text: 'Technical Debt', options: { bold: true, fill: { color: 'FF9800' }, color: 'FFFFFF' } },
+                { text: 'Cost (THB)', options: { bold: true, fill: { color: 'FF9800' }, color: 'FFFFFF' } }
+            ],
+            ...tableData
+        ];
+
+        slide.addTable(rows, {
+            x: 0.5,
+            y: 1.0,
+            w: 9.0,
+            colW: [2.0, 3.0, 2.0, 2.0],
+            fontSize: 11,
+            border: { pt: 1, color: 'CCCCCC' },
+            autoPage: true
+        });
+    }
+
+    private formatTechnicalDebt(minutes: number): string {
+        const days = Math.floor(minutes / 480);
+        const remainingMinutes = minutes % 480;
+        const hours = Math.floor(remainingMinutes / 60);
+        const mins = remainingMinutes % 60;
+
+        let result = '';
+        if (days > 0) result += `${days}d `;
+        if (hours > 0) result += `${hours}h `;
+        if (mins > 0 || result === '') result += `${mins}m`;
+
+        return result.trim();
     }
 }

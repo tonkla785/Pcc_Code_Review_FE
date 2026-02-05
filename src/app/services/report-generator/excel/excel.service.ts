@@ -45,6 +45,10 @@ export class ExcelService {
             this.createSecuritySheet(workbook, context);
         }
 
+        if (context.selectedSections.technicalDebt) {
+            this.createTechnicalDebtSheet(workbook, context);
+        }
+
         if (context.selectedSections.recommendations && context.recommendationsData) {
             this.createRecommendationsSheet(workbook, context);
         }
@@ -198,20 +202,6 @@ export class ExcelService {
         XLSX.utils.book_append_sheet(workbook, securitySheet, 'Security_Report');
     }
 
-    // Helpers
-    private formatRating(value: string | number | undefined): string {
-        if (value === null || value === undefined || value === '') return 'N/A';
-        const s = String(value);
-        if (s.startsWith('1')) return 'A';
-        if (s.startsWith('2')) return 'B';
-        if (s.startsWith('3')) return 'C';
-        if (s.startsWith('4')) return 'D';
-        if (s.startsWith('5')) return 'E';
-        if (/^[A-E]$/i.test(s)) return s.toUpperCase();
-        if (s === 'OK') return 'A';
-        return s;
-    }
-    
     private createRecommendationsSheet(workbook: XLSX.WorkBook, context: ExcelReportContext) {
         if (!context.recommendationsData || context.recommendationsData.length === 0) return;
 
@@ -233,12 +223,82 @@ export class ExcelService {
         });
 
         const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+        worksheet['!cols'] = [
+            { wch: 10 }, // Severity
+            { wch: 10 }, // Type
+            { wch: 100 }, // Description
+            { wch: 50 }, // Component
+            { wch: 10 }, // Line
+            { wch: 100 }  // Fix
+        ];
+
+        const range = XLSX.utils.decode_range(worksheet['!ref']!);
+        for (let R = range.s.r + 2; R <= range.e.r; ++R) {
+            ['C', 'F'].forEach(col => {
+                const cellRef = XLSX.utils.encode_cell({ r: R, c: col === 'C' ? 2 : 5 });
+                if (!worksheet[cellRef]) return;
+
+                if (!worksheet[cellRef].s) worksheet[cellRef].s = {};
+                worksheet[cellRef].s.alignment = { wrapText: true, vertical: 'top', horizontal: 'left' };
+            });
+        }
+
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Recommendations');
     }
 
-    private extractLineFromComponent(component: string | undefined): string {
-        if (!component) return '';
-        const match = component.match(/:(\d+)$/);
-        return match ? match[1] : '';
+    private createTechnicalDebtSheet(workbook: XLSX.WorkBook, context: ExcelReportContext) {
+        const debtData: any[][] = [
+            ['Code Review Report - Technical Debt Analysis'],
+            [`Project: ${context.projectName}`],
+            [`Date Range: ${context.dateFrom} - ${context.dateTo}`],
+            [`Generated: ${new Date().toLocaleString()}`],
+            [],
+            ['Scan Date', 'Project Name', 'Technical Debt Time', 'Cost (THB)'],
+        ];
+
+        if (context.scans && context.scans.length > 0) {
+            context.scans.forEach(scan => {
+                const scanDate = this.formatScanDate(scan.startedAt);
+                const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
+                const debtRatio = scan.metrics?.debtRatio || 0;
+                const debtTimeStr = this.formatTechnicalDebt(debtMinutes);
+
+                debtData.push([
+                    scanDate,
+                    context.projectName,
+                    debtTimeStr,
+                    `THB ${debtRatio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                ]);
+            });
+        } else {
+            debtData.push(['No scans found', '-', '-', '-']);
+        }
+
+        const sheet = XLSX.utils.aoa_to_sheet(debtData);
+        sheet['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+            { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
+            { s: { r: 3, c: 0 }, e: { r: 3, c: 3 } },
+        ];
+        sheet['!cols'] = [
+            { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 15 }
+        ];
+        XLSX.utils.book_append_sheet(workbook, sheet, 'Technical Debt');
+    }
+
+    private formatTechnicalDebt(minutes: number): string {
+        const days = Math.floor(minutes / 480);
+        const remainingMinutes = minutes % 480;
+        const hours = Math.floor(remainingMinutes / 60);
+        const mins = remainingMinutes % 60;
+
+        let result = '';
+        if (days > 0) result += `${days}d `;
+        if (hours > 0) result += `${hours}h `;
+        if (mins > 0 || result === '') result += `${mins}m`;
+
+        return result.trim();
     }
 }
