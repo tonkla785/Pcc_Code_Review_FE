@@ -249,12 +249,53 @@ export class RepositoriesComponent implements OnInit {
       return;
     }
 
+    Swal.fire({
+      title: 'ยืนยันการสแกน',
+      text: 'Repository นี้เป็นแบบ Public หรือ Private?',
+      icon: 'question',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Public',
+      denyButtonText: 'Private',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#28a745',
+      denyButtonColor: '#3085d6'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Public เริ่มได้เลย
+        this.executeScan(repo, null);
+      } else if (result.isDenied) {
+        // Private ต้องใส่ Token
+        Swal.fire({
+          title: 'ระบุ Git Token',
+          input: 'text',
+          inputLabel: 'Git Token',
+          inputPlaceholder: 'กรอก Git Token',
+          showCancelButton: true,
+          confirmButtonText: 'เริ่มสแกน',
+          cancelButtonText: 'ยกเลิก',
+          inputValidator: (value) => {
+            if (!value) {
+              return 'กรุณากรอกข้อมูล!';
+            }
+            return null;
+          }
+        }).then((tokenResult) => {
+          if (tokenResult.isConfirmed) {
+            this.executeScan(repo, tokenResult.value);
+          }
+        });
+      }
+    });
+  }
+
+  private executeScan(repo: Repository, token: string | null) {
     // update UI
     repo.status = 'Scanning';
     repo.scanningProgress = 0;
     this.updateSummaryStats();
 
-    this.repoService.startScan(repo.projectId, 'main').subscribe({
+    this.repoService.startScan(repo.projectId!, 'main', token).subscribe({
       next: () => {
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,
@@ -262,9 +303,6 @@ export class RepositoriesComponent implements OnInit {
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-green']
         });
-
-        // ตอนนี้ยังไม่รู้ว่า scan เสร็จเมื่อไร
-        // ปล่อย status เป็น Scanning ไว้
       },
       error: (err) => {
         console.error('Scan failed:', err);
@@ -272,7 +310,10 @@ export class RepositoriesComponent implements OnInit {
         repo.scanningProgress = 0;
         this.updateSummaryStats();
 
-        this.snack.open('Scan failed to start', '', {
+        // Extract error message if possible
+        const msg = err?.error?.message || 'Scan failed to start';
+
+        this.snack.open(msg, '', {
           duration: 3000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
