@@ -178,9 +178,22 @@ export class DashboardComponent {
     if (user?.id) {
       this.ws.connect(user.id);
 
+      // Subscribe to personal notifications
       this.ws.subscribeNotifications().subscribe((noti) => {
         console.log('Realtime notification:', noti);
 
+        const exists = this.notifications.some(n => n.id === noti.id);
+        if (exists) return;
+
+        this.notifications.unshift(noti as any);
+      });
+
+      // Subscribe to global notifications (broadcast for all users)
+      // These include: scan complete, quality gate failed, new critical issues
+      this.ws.subscribeGlobalNotifications().subscribe((noti) => {
+        console.log('Global broadcast notification:', noti);
+
+        // Avoid duplicates (in case user also gets personal notification)
         const exists = this.notifications.some(n => n.id === noti.id);
         if (exists) return;
 
@@ -1231,7 +1244,7 @@ export class DashboardComponent {
     this.coverageChartOptions = chartConfig.options as any;
   }
 
-  ngOnDestroy() {
-    this.ws.disconnect();
-  }
+  // ngOnDestroy() {
+  //   this.ws.disconnect();
+  // }
 }

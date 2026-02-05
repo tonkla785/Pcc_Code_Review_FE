@@ -290,24 +290,43 @@ export class RepositoriesComponent implements OnInit {
   }
 
   private executeScan(repo: Repository, token: string | null) {
-    // update UI
+    // update UI and SharedDataService with 'Scanning' immediately to give feedback
     repo.status = 'Scanning';
     repo.scanningProgress = 0;
+
+    if (repo.projectId) {
+      this.sharedData.updateRepoStatus(repo.projectId, 'Scanning', 0);
+    }
+
     this.updateSummaryStats();
 
     this.repoService.startScan(repo.projectId!, 'main', token).subscribe({
-      next: () => {
+      next: (response: any) => {
+        console.log('[Repositories] Scan started successfully:', response);
+
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-green']
         });
+
+        // Use backend status if available
+        if (response && response.status && repo.projectId) {
+          const mappedStatus = this.mapStatus(response.status);
+          this.sharedData.updateRepoStatus(repo.projectId, mappedStatus, 0);
+        }
       },
       error: (err) => {
         console.error('Scan failed:', err);
         repo.status = 'Error';
         repo.scanningProgress = 0;
+
+        // Update SharedDataService on error
+        if (repo.projectId) {
+          this.sharedData.updateRepoStatus(repo.projectId, 'Error', 0);
+        }
+
         this.updateSummaryStats();
 
         // Extract error message if possible
