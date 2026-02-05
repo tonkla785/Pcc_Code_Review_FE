@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { Observable, ReplaySubject, Subject } from 'rxjs';
+import { Observable, ReplaySubject, Subject, BehaviorSubject } from 'rxjs';
 
 import { BackendScanStatus, UiScanStatus, ScanEvent, NotificationEvent, GlobalNotificationEvent, ProjectChangeEvent } from '../../interface/websocket_interface';
 
@@ -27,6 +27,8 @@ export class WebSocketService {
   private globalTopicSubscribed = false;
   private projectTopicSubscribed = false;
 
+  private connectionState$ = new BehaviorSubject<boolean>(false);
+
   constructor() {
     this.client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
@@ -36,6 +38,7 @@ export class WebSocketService {
 
     this.client.onConnect = () => {
       this.connected = true;
+      this.connectionState$.next(true); // Notify connected
       console.log('WebSocket connected');
       this.subscribeToTopics();
     };
@@ -48,6 +51,7 @@ export class WebSocketService {
     this.client.onWebSocketClose = () => {
       console.warn('WS connection closed');
       this.connected = false;
+      this.connectionState$.next(false); // Notify disconnected
       this.resetSubscriptions();
     };
   }
@@ -179,24 +183,55 @@ export class WebSocketService {
   }
 
   /**
-   * Disconnect WebSocket
+   * Subscribe to comments for a specific issue
+   * Waits for connection to be established
    */
-  // disconnect(): void {
-  //   if (this.connected) {
-  //     this.client.deactivate();
-  //     this.connected = false;
-  //     this.subscribed = false;
-  //     this.userTopicSubscribed = false;
-  //     this.globalTopicSubscribed = false;
-  //     this.projectTopicSubscribed = false;
-  //   }
-  // }
+  subscribeToIssueComments(issueId: string): Observable<any> {
+    const subject = new Subject<any>();
+    let stompSubscription: any = null;
 
-  /**
-   * Check if connected
-   */
-  isConnected(): boolean {
-    return this.connected;
+    // Observe connection state
+    const connectionSub = this.connectionState$.subscribe(isConnected => {
+      if (isConnected) {
+        // Correctly subscribe once connected
+        console.log(`[WS] Connected. Subscribing to comments for issue: ${issueId}`);
+        if (stompSubscription) {
+          stompSubscription.unsubscribe();
+        }
+
+        try {
+          stompSubscription = this.client.subscribe(`/topic/issue/${issueId}/comments`, (message: IMessage) => {
+            try {
+              const comment = JSON.parse(message.body);
+              console.log('WS comment received:', comment);
+              subject.next(comment);
+            } catch (e) {
+              console.error('Failed to parse comment WS message', e);
+              // Don't error the subject, just log
+            }
+          });
+        } catch (err) {
+          console.error('[WS] Subscribe failed', err);
+        }
+      } else {
+        console.log(`[WS] Waiting for connection to subscribe to issue: ${issueId}`);
+      }
+    });
+
+    // Return an observable that handles unsubscription logic when the caller unsubscribes
+    return new Observable(observer => {
+      const sub = subject.subscribe(observer);
+
+      return () => {
+        // Cleanup
+        sub.unsubscribe();
+        connectionSub.unsubscribe();
+        if (stompSubscription) {
+          stompSubscription.unsubscribe();
+        }
+        console.log(`Unsubscribed from comments for issue: ${issueId}`);
+      };
+    });
   }
 }
 

@@ -202,12 +202,18 @@ export class DashboardComponent {
 
     }
     this.sharedData.scansHistory$.subscribe((data) => {
-      this.DashboardData = data || [];
+      // Sort data: Pending (null completedAt) or Newest first
+      this.DashboardData = (data || []).sort((a, b) => {
+        const timeA = a.completedAt ? new Date(a.completedAt).getTime() : Date.now();
+        const timeB = b.completedAt ? new Date(b.completedAt).getTime() : Date.now();
+        return timeB - timeA;
+      });
+
       this.countQualityGate();
       this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
-      this.generateQualityGateNotifications(data || []);
+      this.generateQualityGateNotifications(this.DashboardData);
     });
     this.sharedData.LoginUser$.subscribe((data) => {
       this.UserLogin = data;
@@ -265,7 +271,7 @@ export class DashboardComponent {
     });
   }
   loadDashboard() {
-    this.dashboardService.getDashboard().subscribe({
+    this.scanService.getAllScan().subscribe({
       next: (res: any[]) => {
         this.sharedData.Scans = res ?? [];
         this.countQualityGate();
@@ -273,7 +279,7 @@ export class DashboardComponent {
         this.countBug();
         this.mockCoverageTrend();
         this.loadDashboardData();
-        console.log('Dashboard Data', this.DashboardData);
+        console.log('Dashboard Data (All Scans)', this.DashboardData);
       },
       error: (err) => {
         console.error('โหลด ประวัติการสแกน ล้มเหลว', err);

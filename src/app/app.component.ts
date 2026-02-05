@@ -116,27 +116,43 @@ export class AppComponent implements OnInit, OnDestroy {
     this.ws.subscribeProjectChanges().subscribe(event => {
       console.log('[AppComponent] Project change event:', event);
 
-      // Refresh repository list when any project is added/updated/deleted
-      this.repoService.getAllRepo().subscribe({
-        next: (repos: any[]) => {
-          this.sharedData.setRepositories(repos);
-          console.log('[AppComponent] Repositories refreshed after project change:', event.action);
+      if (event.action === 'DELETED') {
+        // Optimized: Remove directly from SharedData without refetching
+        this.sharedData.removeRepository(event.projectId);
 
-          // Show notification to user
-          const actionText = event.action === 'ADDED' ? 'added' : event.action === 'UPDATED' ? 'updated' : 'deleted';
-          this.snack.open(
-            `Project "${event.projectName}" was ${actionText}`,
-            '',
-            {
-              duration: 3000,
-              horizontalPosition: 'right',
-              verticalPosition: 'top',
-              panelClass: ['app-snack', 'app-snack-blue']
-            }
-          );
-        },
-        error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err)
-      });
+        this.snack.open(
+          `Project "${event.projectName}" was deleted`,
+          '',
+          {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-blue']
+          }
+        );
+      } else {
+        // For ADDED / UPDATED -> Refresh repository list
+        this.repoService.getAllRepo().subscribe({
+          next: (repos: any[]) => {
+            this.sharedData.setRepositories(repos);
+            console.log('[AppComponent] Repositories refreshed after project change:', event.action);
+
+            // Show notification to user
+            const actionText = event.action === 'ADDED' ? 'added' : 'updated';
+            this.snack.open(
+              `Project "${event.projectName}" was ${actionText}`,
+              '',
+              {
+                duration: 3000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-blue']
+              }
+            );
+          },
+          error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err)
+        });
+      }
     });
   }
 

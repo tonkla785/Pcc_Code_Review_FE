@@ -170,6 +170,7 @@ export class NotificationService {
     const userId = this.getUserId();
     if (!userId) return;
 
+    // Use forkJoin or just fetch latest status to ensure we have up-to-date state
     this.getAllNotifications().subscribe({
       next: (existingNotifications) => {
         const existingIssueIds = new Set(
@@ -178,6 +179,8 @@ export class NotificationService {
             .map(n => n.relatedIssueId)
         );
 
+        // Also check against local cache of recently notified IDs to prevent race conditions within the session
+        // This is crucial if this method is called multiple times rapidly
         existingIssueIds.forEach(id => this.notifiedIssueIds.add(id!));
 
         const newIssues = issues.filter(issue =>
@@ -185,9 +188,11 @@ export class NotificationService {
         );
 
         if (!newIssues.length) {
-          console.log('No new issues to notify');
           return;
         }
+
+        // Add to local cache IMMEDIATELY to prevent concurrent calls from processing the same issue
+        newIssues.forEach(i => this.notifiedIssueIds.add(i.id));
 
         for (const issue of newIssues) {
           const isHighSeverity = issue.severity === 'CRITICAL' || issue.severity === 'BLOCKER';
@@ -200,13 +205,13 @@ export class NotificationService {
             message: issue.message,
             relatedIssueId: issue.id,
             relatedProjectId: issue.projectData?.id,
-            isBroadcast: true // Broadcast new issues to all users
+            isBroadcast: true
           }).subscribe({
-            next: () => {
-              this.notifiedIssueIds.add(issue.id);
-              console.log(`Notification created for issue: ${issue.id}`);
-            },
-            error: (err) => console.error('Failed to create notification:', err)
+            error: (err) => {
+              console.error('Failed to create notification:', err);
+              // On error, remove from cache so we can retry later if needed
+              this.notifiedIssueIds.delete(issue.id);
+            }
           });
         }
       },
