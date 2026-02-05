@@ -96,10 +96,9 @@ export class SecurityService {
             pairwise(),
             filter(([prev, curr]) => {
                 if (!curr || curr.length === 0) return false;
-                if (!prev) return false;
 
                 const currLatest = curr[0];
-                const prevScan = prev.find(s => s.id === currLatest?.id);
+                const prevScan = prev?.find((s: any) => s.id === currLatest?.id);
 
                 return prevScan?.status !== 'SUCCESS' && currLatest?.status === 'SUCCESS';
             })
