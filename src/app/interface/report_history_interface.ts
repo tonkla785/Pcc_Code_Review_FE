@@ -13,6 +13,8 @@ export interface ReportHistory {
     includeQualityGate: boolean;
     includeIssueBreakdown: boolean;
     includeSecurityAnalysis: boolean;
+    includeTechnicalDebt: boolean;
+    includeRecommendations: boolean;
     snapshotData: any;
     fileSizeBytes: number;
 }
@@ -27,6 +29,9 @@ export interface ReportHistoryRequest {
     includeQualityGate?: boolean;
     includeIssueBreakdown?: boolean;
     includeSecurityAnalysis?: boolean;
+    includeTechnicalDebt?: boolean;
+    includeRecommendations?: boolean;
     snapshotData?: any;
     fileSizeBytes?: number;
 }
+

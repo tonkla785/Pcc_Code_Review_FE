@@ -25,6 +25,14 @@ export interface Repository {
         codeSmells?: number;
         coverage?: number;
         duplications?: number;
+        debtRatio?: number;
+        analysisLogs?: { message: string, timestamp: number }[];
+        securityRating?: string;
+        securityHotspots?: number;
+        reliabilityRating?: string;
+        technicalDebtMinutes?: number;
+        maintainabilityRating?: string;
+        duplicatedLinesDensity?: number;
     };
     issues?: Issue[];
 }
