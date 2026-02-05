@@ -9,10 +9,8 @@
   <!-- Top Summary Cards -->
   <div class="container mt-4">
     <div class="row justify-content-center">
-      <div 
-        class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4 d-flex justify-content-center"
-        *ngFor="let card of summaryCards"
-      >
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4 d-flex justify-content-center"
+        *ngFor="let card of summaryCards">
         <div class="card text-center summary-card shadow-sm w-100">
           <div class="card-body">
             <h5 class="card-title text-info">
@@ -28,29 +26,48 @@
     </div>
   </div>
 
-  <!-- Top Security Issues & Technical Debt -->
-  <div class="row mt-4">
-    <div class="col-md-6">
+  <div class="row mt-4 align-items-stretch">
+    <div class="col-md-6 d-flex flex-column">
       <h5 class="text-primary"><i class="bi bi-shield-lock"></i> Top Security Issues</h5>
-      <ul class="list-group list-group-flush shadow-sm">
-        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let issue of topSecurityIssues">
-          {{issue.name}} ({{issue.count}})
-          <span [ngClass]="issue.color" class="badge rounded-pill">{{issue.priority}}</span>
+      <ul *ngIf="topSecurityIssues.length > 0; else noSecurityIssues"
+        class="list-group list-group-flush shadow-sm flex-grow-1">
+        <li class="list-group-item d-flex justify-content-between align-items-center"
+          *ngFor="let issue of topSecurityIssues">
+          {{issue.name}}
+          <span class="badge bg-danger rounded-pill">{{issue.count}}</span>
         </li>
       </ul>
+      <ng-template #noSecurityIssues>
+        <div class="list-group list-group-flush shadow-sm flex-grow-1">
+          <div
+            class="list-group-item text-muted text-center py-4 h-100 d-flex align-items-center justify-content-center">
+            No Top Security Issues is found
+          </div>
+        </div>
+      </ng-template>
     </div>
-    <div class="col-md-6">
-      <h5 class="text-primary"><i class="bi bi-cash-stack"></i> Top Technical Debt</h5>
-      <ul class="list-group list-group-flush shadow-sm">
-        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let debt of topDebtItems">
-          {{debt.item}} - {{debt.time}} - {{debt.cost | currency:'THB':'symbol':'1.0-0'}}
-          <span [ngClass]="debt.color" class="badge rounded-pill">{{debt.priority}}</span>
+    <div class="col-md-6 d-flex flex-column">
+      <h5 class="text-primary"><i class="bi bi-wallet2"></i> Top Technical Debt</h5>
+      <ul *ngIf="topDebtProjects.length > 0; else noDebtProjects"
+        class="list-group list-group-flush shadow-sm flex-grow-1">
+        <li class="list-group-item d-flex justify-content-between align-items-center"
+          *ngFor="let project of topDebtProjects">
+          {{project.projectName}} - {{project.debtMinutes | debtTime:'short'}} {{project.debtCost}}
+          <span [ngClass]="project.color" class="badge rounded-pill text-white">{{project.priority}}</span>
         </li>
       </ul>
+      <ng-template #noDebtProjects>
+        <div class="list-group list-group-flush shadow-sm flex-grow-1">
+          <div
+            class="list-group-item text-muted text-center py-4 h-100 d-flex align-items-center justify-content-center">
+            No technical debt found
+          </div>
+        </div>
+      </ng-template>
     </div>
   </div>
 
-  <!-- Quality Overview -->
+  <!-- Quality Overview
   <div class="row mt-4">
     <div class="col-md-12">
       <h5 class="text-primary"><i class="bi bi-check2-circle"></i> Quality Overview</h5>
@@ -66,5 +83,5 @@
         </li>
       </ul>
     </div>
-  </div>
+  </div> -->
 </div>

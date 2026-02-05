@@ -41,7 +41,7 @@
       <a class="nav-link" (click)="toggleSubmenu('report')">
         <i class="bi bi-file-earmark-text-fill"></i> Report
       </a>
-      <ul *ngIf="submenuOpen['report']">
+      <ul *ngIf="submenuOpen['report']" class="submenu-down">
         <li><a routerLink="/generatereport" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
             (click)="closeNavbar()"><i class="bi bi-file-plus"></i>Generate Report</a></li>
         <li><a routerLink="/reporthistory" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
@@ -51,17 +51,25 @@
 
     <!-- กลุ่ม Setting , logout-->
     <li class="nav-item mt-auto">
+      <ul *ngIf="submenuOpen['Setting']" class="submenu-up">
+        <li><a routerLink="/sonarqubeconfig"
+           routerLinkActive="active" 
+           [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeNavbar()"> <i class="bi bi-gear"></i>Sonarqube Config</a></li>
+
+        <li><a routerLink="/notificationsetting" 
+          routerLinkActive="active" 
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeNavbar()"><i class="bi bi-bell"></i> Notification Setting</a></li>
+          
+        <li *ngIf="isAdmin"><a routerLink="/usermanagement" 
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }" 
+          (click)="closeNavbar()"><i class="bi bi-people"></i>UserManagement</a></li>
+      </ul>
       <a class="nav-link" (click)="toggleSubmenu('Setting')">
         <i class="bi bi-gear-fill"></i> Setting
       </a>
-      <ul *ngIf="submenuOpen['Setting']">
-        <li><a routerLink="/sonarqubeconfig" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeNavbar()"> <i class="bi bi-gear"></i>Sonarqube Config</a></li>
-        <li><a routerLink="/notificationsetting" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeNavbar()"><i class="bi bi-bell"></i> Notification Setting</a></li>
-        <li><a routerLink="/usermanagement" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeNavbar()"><i class="bi bi-people"></i>User Management</a></li>
-      </ul>
 
       <a class="nav-link" (click)="logout(); closeNavbar()">
         <i class="bi bi-box-arrow-right"></i> Logout

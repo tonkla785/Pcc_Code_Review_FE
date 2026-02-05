@@ -11,10 +11,10 @@
       <div class="card text-center h-100">
         <div class="card-body">
           <h5 class="card-title">
-            Quality Gate: {{ scanResult?.qualityGate }}
+            Quality Gate: {{ scanResult?.qualityGate === 'OK' ? 'Pass' : 'Fail' }}
             <i class="bi" [ngClass]="{
-                 'bi-check-circle-fill text-success': scanResult?.qualityGate === 'SUCCESS',
-                 'bi-x-circle-fill text-danger': scanResult?.qualityGate === 'ERROR'
+                 'bi-check-circle-fill text-success': scanResult?.qualityGate === 'OK',
+                 'bi-x-circle-fill text-danger': scanResult?.qualityGate === null
                }"></i>
           </h5>
           <!-- <p>OwerScan: <strong>{{ scanInfo.owerscan }}</strong></p> -->
@@ -34,73 +34,80 @@
     </div>
   </div>
 
-<div *ngIf="scanResult">
-  <!-- Over all Code -->
-  <h4 class="mb-3 mt-4">Overall Gates</h4>
-  <table class="table table-bordered table-striped">
-    <thead>
-      <tr>
-        <th>Gate</th>
-        <th>Grade</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Reliability</td>
-        <td>{{ scanResult?.qualityGate }}</td>
-      </tr>
-      <tr>
-        <td>Security</td>
-        <td>{{ scanResult?.metrics?.securityRating}}</td>
-      </tr>
-      <tr>
-        <td>Maintainability</td>
-        <td>{{ scanResult?.metrics?.maintainabilityRating }}</td>
-      </tr>
-      <tr>
-        <td>Security Review</td>
-        <td>{{ scanResult?.metrics?.reliabilityRating}}</td>
-      </tr>
-    </tbody>
-  </table>
+  <div *ngIf="scanResult && scanResult.metrics; else noDataTemplate">
+    <!-- Over all Code -->
+    <h4 class="mb-3 mt-4">Overall Gates</h4>
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Gate</th>
+          <th>Grade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Reliability</td>
+          <td>{{ scanResult?.metrics?.reliabilityRating}}</td>
+        </tr>
+        <tr>
+          <td>Security</td>
+          <td>{{ scanResult?.metrics?.securityRating}}</td>
+        </tr>
+        <tr>
+          <td>Maintainability</td>
+          <td>{{ scanResult?.metrics?.maintainabilityRating }}</td>
+        </tr>
+        <tr>
+          <td>Security Review</td>
+          <td>{{ getAverageRating() }}</td>
+        </tr>
+      </tbody>
+    </table>
 
-  <!-- Metrics Overview -->
-  <h4 class="mb-3 mt-4">Metrics Overview</h4>
-  <div class="row text-center g-3">
-    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
-      <div class="card metric-card">
-        <div class="card-body h-100">
-          <h5><i class="bi bi-bug"></i> Bugs</h5>
-          <p>{{ scanResult?.metrics?.bugs }}</p>
+    <!-- Metrics Overview -->
+    <h4 class="mb-3 mt-4">Metrics Overview</h4>
+    <div class="row text-center g-3">
+      <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
+        <div class="card metric-card">
+          <div class="card-body h-100">
+            <h5><i class="bi bi-bug"></i> Bugs</h5>
+            <p>{{ scanResult?.metrics?.bugs }}</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
-      <div class="card metric-card">
-        <div class="card-body">
-          <h5><i class="bi bi-shield-lock"></i> Vulnerabilities</h5>
-          <p>{{ scanResult?.metrics?.vulnerabilities }}</p>
+      <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
+        <div class="card metric-card">
+          <div class="card-body">
+            <h5><i class="bi bi-shield-lock"></i> Vulnerabilities</h5>
+            <p>{{ scanResult?.metrics?.vulnerabilities }}</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
-      <div class="card metric-card">
-        <div class="card-body">
-          <h5><i class="bi bi-droplet"></i> Code Smells</h5>
-          <p>{{ scanResult?.metrics?.codeSmells }}</p>
+      <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
+        <div class="card metric-card">
+          <div class="card-body">
+            <h5><i class="bi bi-droplet"></i> Code Smells</h5>
+            <p>{{ scanResult?.metrics?.codeSmells }}</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
-      <div class="card metric-card">
-        <div class="card-body">
-          <h5><i class="bi bi-bar-chart-line"></i> Coverage</h5>
-          <p>{{ scanResult?.metrics?.coverage }}%</p>
+      <div class="col-md-3 mb-3" *ngIf="scanResult?.metrics">
+        <div class="card metric-card">
+          <div class="card-body">
+            <h5><i class="bi bi-bar-chart-line"></i> Coverage</h5>
+            <p>{{ scanResult?.metrics?.coverage }}%</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- No Data Template -->
+  <ng-template #noDataTemplate>
+    <div class="alert alert-info text-center mt-4">
+      <i class="bi bi-info-circle"></i> No result available
+    </div>
+  </ng-template>
 
 
   <!-- Technical Debt & Estimated Cost -->
@@ -131,8 +138,8 @@
     <button class="btn btn-info" (click)="emailReport()">
       <i class="bi bi-envelope"></i> Email Report
     </button>
-    <button class="btn btn-warning" [routerLink]="['/issue']" 
-    [queryParams]="{ project: scanInfo?.projectName, scanId: scanInfo?.scanId }">
+    <button class="btn btn-warning" [routerLink]="['/issue']"
+      [queryParams]="{ project: scanInfo?.projectName, scanId: scanInfo?.scanId }">
       <i class="bi bi-search"></i> View Issues
     </button>
   </div>

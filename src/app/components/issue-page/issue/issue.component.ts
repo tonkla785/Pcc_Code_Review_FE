@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import { scan } from 'rxjs';
 import { SharedDataService } from './../../../services/shared-data/shared-data.service';
 import { Component } from '@angular/core';
@@ -7,9 +8,12 @@ import { RouterLink, Router } from '@angular/router';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
-import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
 import { ScanService } from '../../../services/scanservice/scan.service';
-
+import { forkJoin } from 'rxjs';
+import { User, UserService } from '../../../services/userservice/user.service';
+import { UserInfo } from '../../../interface/user_interface';
+import Swal from 'sweetalert2';
 interface Issue {
   issuesId: string;
   type: string;        // 'bug' | 'security' | 'code-smell'
@@ -41,9 +45,17 @@ export class IssueComponent {
   repositories: Repository[] = [];
   filteredRepositories: Repository[] = [];
   projects: { name: string }[] = [];
-  issues:Issue [] = [];
+  issues: Issue[] = [];
   issuesAll: IssuesResponseDTO[] = [];
   originalData: IssuesResponseDTO[] = [];
+  filteredIssue: IssuesResponseDTO[] = [];
+  selectedIssues: IssuesResponseDTO[] = [];
+  selectedIdsForAssign: string[] = [];
+  paginatedIssues: IssuesResponseDTO[] = []
+  issueDraft: IssuesRequestDTO = { id: '', status: 'OPEN', assignedTo: '' };
+  showAssignModal = false;
+  savingAssign = false;
+  UserData: UserInfo[] = [];
   constructor(
     private readonly router: Router,
     private readonly issueApi: IssueService,
@@ -51,34 +63,83 @@ export class IssueComponent {
     private readonly repositoryService: RepositoryService,
     private readonly sharedData: SharedDataService,
     private readonly issuesService: IssueService,
+    private readonly userDataService: UserService,
+    private readonly repoService: RepositoryService,
   ) { }
 
   ngOnInit(): void {
-    this.sharedData.AllIssues$.subscribe(data => { 
-       this.originalData = data || [];
-       this.issuesAll = [...this.originalData];
+    if (!this.sharedData.hasUserCache) {
+      this.loadUser();
+      console.log("No cache - load from server");
+    }
+    this.sharedData.AllUser$.subscribe(data => {
+      this.UserData = data ?? [];
+      // this.applyFilter();
+      console.log('User loaded Modal from sharedData:', data);
     });
-    if(!this.sharedData.hasIssuesCache){
+    if (!this.sharedData.hasIssuesCache) {
+      this.loadIssues();
+      console.log("No cache - load from server");
+    }
+    this.sharedData.AllIssues$.subscribe(data => {
+      this.originalData = data || [];
+      this.issuesAll = [...this.originalData];
+      this.applyFilter();
+    });
+    if (!this.sharedData.hasIssuesCache) {
       console.log("No cache - load from server");
       this.loadIssues();
     }
+    if (!this.sharedData.hasRepositoriesCache) {
+      this.loadRepositories();
+      console.log("No cache - load from server");
+    }
+    this.sharedData.repositories$.subscribe((repos) => {
+      this.repositories = repos;
+      console.log('Repositories loaded from sharedData:', this.repositories);
+    });
 
   }
 
-loadIssues() {
+  loadIssues() {
+    this.sharedData.setLoading(true);
+    this.issuesService.getAllIssues().subscribe({
+      next: (data) => {
+        this.sharedData.IssuesShared = data;
+        this.sharedData.setLoading(false);
+        console.log('Issues loaded:',);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
+  loadUser() {
+    this.sharedData.setLoading(true);
+    this.userDataService.getUser().subscribe({
+      next: (data) => {
+        this.sharedData.UserShared = data;
+        this.sharedData.setLoading(false);
+        console.log('User loaded Modal:', data);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
 
-  this.sharedData.setLoading(true);
-  this.issuesService.getAllIssues().subscribe({
-    next: (data) => {
-      this.sharedData.IssuesShared = data;
-      this.sharedData.setLoading(false);
-      console.log('Issues loaded:', data);
-    },
-    error: () => this.sharedData.setLoading(false)
-  });
-}
+  loadRepositories() {
+    this.sharedData.setLoading(true);
 
-
+    this.repoService.getAllRepo().subscribe({
+      next: (repos) => {
+        // เก็บข้อมูลลง SharedDataService
+        this.sharedData.setRepositories(repos);
+        this.sharedData.setLoading(false);
+        console.log('Repositories loaded:', repos);
+      },
+      error: (err) => {
+        console.error('Failed to load repositories:', err);
+        this.sharedData.setLoading(false);
+      },
+    });
+  }
 
   // ---------- Filters ----------
   filterType = 'All Types';
@@ -93,182 +154,171 @@ loadIssues() {
   pageSize = 5;
 
   get totalPages(): number {
-    return Math.ceil(this.filteredIssues.length / this.pageSize) || 1;
+    return Math.ceil(this.filteredIssue.length / this.pageSize) || 1;
   }
 
   // ---------- State ----------
   loading = false;
   errorMsg = '';
 
-  // ดาต้าจริง (แทน mock)
-
-
-  // ---------- Fetch ----------
-
-
-  private buildTopIssues() {
-    const counter: Record<string, number> = {};
-
-    // นับตาม message อย่างเดียว
-    for (const it of this.issues) {
-      const msg = (it.message || '(no message)').trim().toLowerCase();
-      counter[msg] = (counter[msg] || 0) + 1;
-    }
-
-    // แปลงเป็น array แล้ว sort
-    const arr: TopIssue[] = Object.entries(counter)
-      .map(([message, count]) => ({ message, count }))
-      .sort((a, b) => b.count - a.count);   // มาก → น้อย
-
-    // เก็บเฉพาะจำนวนที่อยากโชว์ป
-    this.topIssues = arr.slice(0, this.maxTop);
-  }
-
-  private mapApiIssueToUi(r: import('../../../services/issueservice/issue.service').Issue): Issue {
-    // type mapping: 'Bug' | 'Vulnerability' | 'Code Smell'  ->  'bug' | 'security' | 'code-smell'
-    const typeMap: Record<string, string> = {
-      'BUG': 'bug',
-      'VULNERABILITY': 'security',
-      'CODE SMELL': 'code-smell',
-      'CODE_SMELL': 'code-smell'
-    };
-    const uiType = typeMap[(r.type || '').toUpperCase()] || (r.type || '').toLowerCase();
-
-    // severity mapping: Blocker->critical, Critical->high, Major->medium, Minor->low
-    const sevMap: Record<string, string> = {
-      'BLOCKER': 'critical',
-      'CRITICAL': 'high',
-      'MAJOR': 'medium',
-      'MINOR': 'low'
-    };
-    const uiSeverity = sevMap[(r.severity || '').toUpperCase()] || (r.severity || '').toLowerCase();
-
-    // status mapping: 'Open' | 'In Progress' | 'Resolved' | 'Closed' -> 'open' | 'in-progress' | 'resolved' | 'closed'
-    const st = (r.status || '').toLowerCase();
-    const uiStatus =
-      st.includes('open') ? 'open' :
-        st.includes('in progress') ? 'in-progress' :
-          st.includes('done') ? 'done' :
-            st.includes('reject') ? 'reject' :
-              st.includes('pending') ? 'pending' :  // <-- เพิ่มบรรทัดนี้
-                'open';
-
-
-    // assignee: ใช้ user_id/assignedTo ถ้ามี
-    const rawAssignee = r.assignedName || '';
-    const assignee = rawAssignee ? `@${rawAssignee}` : 'Unassigned';
-
-    // project: ถ้าไม่มีชื่อให้ fallback เป็น project_id
-
-    return {
-      issuesId: r.issueId,
-      type: uiType,
-      severity: uiSeverity,
-      message: r.message || '(no message)',
-      details: r.component || '',
-      projectName: r.projectName,
-      assignee,
-      status: uiStatus,
-      selected: false
-    };
-  }
 
   // ---------- Filter / Page ----------
   filterIssues() {
-    return this.issues.filter(i =>
+    return this.issuesAll.filter(i =>
       (this.filterType === 'All Types' || i.type === this.filterType) &&
       (this.filterSeverity === 'All Severity' || i.severity === this.filterSeverity) &&
       (this.filterStatus === 'All Status' || i.status === this.filterStatus) &&
-      (
-        this.filterProject === 'All Projects' ||
-        i.projectName?.toLowerCase().trim() === this.filterProject.toLowerCase().trim()
-      ) &&
       (this.searchText === '' || i.message.toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
-
-
-  get filteredIssues() {
-    return this.filterIssues();
+  applyFilter() {
+    const keyword = this.searchText.trim().toLowerCase();
+    const matchType = (this.filterType || 'All Types').toLowerCase();
+    const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
+    const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
+    const matchProject = (this.filterProject || 'All Projects').toLowerCase();
+    this.filteredIssue = this.issuesAll.filter(i => {
+      const type = matchType === 'all types' || (i.type || '').toLowerCase() === matchType;
+      const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
+      const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
+      const projectName = (i.projectData?.name || '').toString().toLowerCase();
+      const project = matchProject === 'all projects' || projectName === matchProject;
+      const messageOk = keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+      return type && severity && status && project && messageOk;
+    });
+    this.currentPage = 1;
+    this.updatePage();
+  }
+  onSearchChange(value: string) {
+    this.searchText = value;
+    this.applyFilter();
   }
 
-  get paginatedIssues() {
+
+
+  updatePage() {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredIssues.slice(start, start + this.pageSize);
+    this.paginatedIssues = this.filteredIssue.slice(start, start + this.pageSize);
   }
 
+  allSelected(): boolean {
+    // Check if ALL currently displayed (paged) items are selected
+    return this.paginatedIssues.length > 0 && this.paginatedIssues.every(issue => this.isSelected(issue));
+  }
+  toggleSelectAll(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+
+    if (checked) {
+      // Add all currently visible items to selection if not already there
+      this.paginatedIssues.forEach(issue => {
+        if (!this.isSelected(issue)) {
+          this.selectedIssues.push(issue);
+        }
+      });
+    } else {
+      // Remove all currently visible items from selection
+      this.selectedIssues = this.selectedIssues.filter(s => !this.paginatedIssues.some(p => p.id === s.id));
+    }
+  }
 
   nextPage() {
-    if (this.currentPage * this.pageSize < this.filteredIssues.length) {
+    if (this.currentPage * this.pageSize < this.filteredIssue.length) {
       this.currentPage++;
+      this.updatePage();
     }
   }
 
   prevPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.updatePage();
     }
   }
 
-  // ---------- Selection ----------
-  isPageAllSelected(): boolean {
-    return this.paginatedIssues.length > 0 && this.paginatedIssues.every(i => !!i.selected);
-  }
+  // isPageAllSelected(): boolean {
+  //   return this.paginatedIssues.length > 0 && this.paginatedIssues.every(i => !!i.selected);
+  // }
 
-  selectAll(event: any) {
-    const checked = event.target.checked;
-    this.paginatedIssues.forEach(i => i.selected = checked);
-  }
+  // selectAll(event: any) {
+  //   const checked = event.target.checked;
+  //   this.paginatedIssues.forEach(i => i.selected = checked);
+  // }
 
-  selectedCount() {
-    return this.issues.filter(i => i.selected).length;
-  }
+  // selectedCount() {
+  //   return this.issuesAll.filter(i => i.selected).length;
+  // }
 
   // ---------    //   const selectedIssues = this.issues.filter(i => i.selected);
-    //   if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
+  //   if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
 
-    //   const developers = ['userA', 'userB', 'userC']; // สมมุติ user_id; ถ้ามี list จริงให้แทนที่
-    //   const dev = prompt('เลือก Developer (พิมพ์ user id): ' + developers.join(', '));
-    //   if (!dev || !developers.includes(dev)) { alert('Developer ไม่ถูกต้อง'); return; }
+  //   const developers = ['userA', 'userB', 'userC']; // สมมุติ user_id; ถ้ามี list จริงให้แทนที่
+  //   const dev = prompt('เลือก Developer (พิมพ์ user id): ' + developers.join(', '));
+  //   if (!dev || !developers.includes(dev)) { alert('Developer ไม่ถูกต้อง'); return; }
 
-    //   // call API แบบทีละรายการ (คงโครงเดิมให้เบา ๆ)
-    //   let ok = 0;
-    //   selectedIssues.forEach(row => {
-    //     this.issueApi.assignDeveloper(row.issuesId, dev).subscribe({
-    //       next: () => {
-    //         row.assignee = `@${dev}`;
-    //         ok++;
-    //       },
-    //       error: (e) => console.error('assign failed', e)
-    //     });
-    //   });
+  //   // call API แบบทีละรายการ (คงโครงเดิมให้เบา ๆ)
+  //   let ok = 0;
+  //   selectedIssues.forEach(row => {
+  //     this.issueApi.assignDeveloper(row.issuesId, dev).subscribe({
+  //       next: () => {
+  //         row.assignee = `@${dev}`;
+  //         ok++;
+  //       },
+  //       error: (e) => console.error('assign failed', e)
+  //     });
+  //   });
 
-    //   alert(`Sent assign requests for ${selectedIssues.length} issue(s).`); // แจ้งแบบง่าย ๆ- Actions (ยังคงเค้าโครงเดิม) ----------
+  //   alert(`Sent assign requests for ${selectedIssues.length} issue(s).`); // แจ้งแบบง่าย ๆ- Actions (ยังคงเค้าโครงเดิม) ----------
   assignDeveloper() {
+    const ids = Array.from(this.selectedIssues);
+    if (ids.length === 0) return;
 
   }
+  openAssignModal() {
+    const ids = this.selectedIssues.map(i => i.id);
+    if (ids.length === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Data',
+        text: 'Don\'t Select Issue',
+      });
+      this.showAssignModal = false;
+      return;
+    }
 
-  changeStatus() {
-    // const selectedIssues = this.issues.filter(i => i.selected);
-    // if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
+    this.selectedIdsForAssign = ids;
+    this.issueDraft = { id: '', assignedTo: '', status: 'OPEN' };
+    this.showAssignModal = true;
+  }
+  closeAssignModal() {
+    this.showAssignModal = false;
+  }
+  saveAssign(form: any) {
+    if (!form.valid) return;
 
-    // const statusSteps = ['open', 'in-progress', 'resolved', 'closed'];
-    // selectedIssues.forEach(row => {
-    //   const idx = statusSteps.indexOf(row.status);
-    //   const next = statusSteps[Math.min(idx + 1, statusSteps.length - 1)];
-    //   // แปลงกลับเป็นรูปแบบ API
-    //   const apiStatus =
-    //     next === 'in-progress' ? 'In Progress' :
-    //     next === 'resolved'    ? 'Resolved' :
-    //     next === 'closed'      ? 'Closed' : 'Open';
+    const reqs = this.selectedIdsForAssign.map((id) => {
+      const payload: IssuesRequestDTO = {
+        id,
+        assignedTo: this.issueDraft.assignedTo,
+        status: 'IN PROGRESS'
+      };
+      return this.issuesService.updateIssues(payload);
+    });
 
-    //   this.issueApi.updateStatus(row.issuesId, apiStatus as any).subscribe({
-    //     next: () => row.status = next,
-    //     error: (e) => console.error('update status failed', e)
-    //   });
-    // });
+    this.savingAssign = true;
 
-    // alert(`Requested status change for ${selectedIssues.length} issue(s).`);
+    forkJoin(reqs).subscribe({
+      next: (results) => {
+        this.sharedData.updateIssues(results)
+        console.log('Assign successful for all selected issues:', results);
+        this.selectedIdsForAssign = [];
+        this.savingAssign = false;
+        this.closeAssignModal();
+      },
+      error: (err) => {
+        console.error('Assign failed:', err);
+        this.savingAssign = false;
+      }
+    });
   }
 
   exportData() {
@@ -307,6 +357,7 @@ loadIssues() {
     this.currentPage = 1;
     this.selectAllCheckbox = false;
     this.issues.forEach(i => i.selected = false);
+    this.applyFilter();
   }
 
   // ---------- Helpers (โครงเดิม) ----------
@@ -330,18 +381,48 @@ loadIssues() {
   }
 
   statusClass(status: string) {
-    switch (status.toLowerCase()) {
-      case 'open': return 'text-danger';
-      case 'in-progress': return 'text-warning';
-      case 'done': return 'text-success';
-      case 'reject': return 'text-secondary';
-      case 'pending': return 'text-info';  // <-- เพิ่ม pending
-      default: return '';
+    if (!status) return '';
+    const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+    const clean = normalized.replace(/\s/g, '-'); // normalize to hyphenated for some cases if needed, but here we just check strings
+
+    if (normalized === 'open') return 'text-danger';
+    if (normalized === 'in progress' || normalized === 'inprogress' || normalized === 'in-progress') return 'text-warning'; // Handle all forms
+    if (normalized === 'resolved' || normalized === 'done') return 'text-success';
+    if (normalized === 'closed') return 'text-secondary';
+    if (normalized === 'pending') return 'text-info';
+
+    return '';
+  }
+
+  formatStatus(status: string): string {
+    if (!status) return '';
+    const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+
+    if (normalized === 'in progress' || normalized === 'inprogress' || normalized === 'in-progress') return 'In Progress';
+    if (normalized === 'open') return 'Open';
+    if (normalized === 'done' || normalized === 'resolved') return 'Resolved';
+    if (normalized === 'reject') return 'Reject';
+    if (normalized === 'pending') return 'Pending';
+
+    return status;
+  }
+  viewResult(issue: IssuesResponseDTO) {
+    this.router.navigate(['/issuedetail', issue.id]);
+  }
+  isSelected(issue: IssuesResponseDTO): boolean {
+    return this.selectedIssues.some(s => s.id === issue.id);
+  }
+  toggleIssueSelection(issue: IssuesResponseDTO, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    // Toggle logic
+    const index = this.selectedIssues.findIndex(s => s.id === issue.id);
+    if (index >= 0) {
+      this.selectedIssues.splice(index, 1);
+    } else {
+      this.selectedIssues.push(issue);
     }
   }
-  viewResult(issue : IssuesResponseDTO) {
-  this.sharedData.SelectedIssues = issue;   
-  this.router.navigate(['/issuedetail', issue.id]);
-}
-
 }

@@ -3,28 +3,16 @@
 
   <!-- Filter / Search -->
   <div class="filter-row my-3 d-flex flex-wrap align-items-center gap-3">
-    
-    <!-- 1. Specific Date -->
-    <div class="d-flex align-items-center gap-2">
-      <label class="fw-bold">Specific Date:</label>
-      <input type="date" [(ngModel)]="searchDate" class="form-control form-control-sm" 
-             (ngModelChange)="onSearchDateChange()">
-    </div>
-
-    <div class="vr"></div>
 
     <!-- 2. Date Range -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Range:</label>
-      <div class="date-wrapper">
-        <input type="date" [(ngModel)]="startDate" class="form-control form-control-sm" 
-               (ngModelChange)="onStartDateChange()" placeholder="Start Date"/>
-      </div>
+      <input #startInput type="date" [(ngModel)]="startDate" class="form-control form-control-sm"
+       (ngModelChange)="applyFilterStatus()" placeholder="Start Date" (keydown)="$event.preventDefault()"
+        (click)="startInput.showPicker()" />
       <span>-</span>
-      <div class="date-wrapper">
-        <input type="date" [(ngModel)]="endDate" class="form-control form-control-sm" 
-               [min]="minEndDate" placeholder="End Date"/>
-      </div>
+      <input #endInput type="date" [(ngModel)]="endDate" class="form-control form-control-sm" [min]="minEndDate"
+        placeholder="End Date" (ngModelChange)="applyFilterStatus()" (keydown)="$event.preventDefault()" (click)="endInput.showPicker()" />
     </div>
 
     <div class="vr"></div>
@@ -32,18 +20,18 @@
     <!-- 3. Status -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Status:</label>
-      <select class="form-select form-select-sm" [(ngModel)]="statusFilter" style="width: 120px;">
-        <option value="ALL">All</option>
+      <select class="form-control form-control-sm" (ngModelChange)="applyFilterStatus()" [(ngModel)]="filterType" (ngModelChange)="applyFilterStatus()"style="width: 120px;">
+        <option value="ALL">ALL</option>
         <option value="SUCCESS">Success</option>
         <option value="FAILED">Failed</option>
       </select>
     </div>
 
     <!-- Buttons -->
-    <button class="btn btn-primary btn-sm ms-auto" (click)="applyFilter()">
+    <button class="btn btn-primary btn-sm ms-auto" (click)="applyFilterStatus()">
       <i class="bi bi-search"></i> Search
     </button>
-    
+
     <button class="btn btn-secondary btn-sm" (click)="resetFilters()">
       <i class="bi bi-eraser"></i> Clear
     </button>
@@ -67,70 +55,77 @@
           <th></th>
         </tr>
       </thead>
-  
+
       <tbody>
+        <tr *ngIf="pagedScans?.length === 0">
+          <td colspan="7" class="text-center text-muted py-4">
+            <i class="bi bi-inbox"></i> No Data
+          </td>
+        </tr>
         <tr *ngFor="let scan of pagedScans" style="cursor: pointer;" (click)="toggleScanSelection(scan)">
-           <td (click)="$event.stopPropagation()">
+          <td (click)="$event.stopPropagation()">
             <!-- Checkbox needs to stop propagation to prevent double toggle from TR click -->
-            <input type="checkbox" [checked]="isSelected(scan)" 
-                   (change)="toggleScanSelection(scan, $event)" />
+            <input type="checkbox" [checked]="isSelected(scan)" (change)="toggleScanSelection(scan, $event)" />
           </td>
-  
+
           <td>
-            {{scan.completedAt | date:'dd/MM/yyyy'}} <br /> {{scan.completedAt | date:'HH:mm'}}
+            {{ scan.startedAt | date:'dd/MM/yyyy' }} <br /> {{ scan.startedAt | date:'HH:mm' }}
           </td>
-  
+
           <td>
             {{scan.project.name}} <br />
             <span [ngClass]="statusClass(scan.status)">
-              <i [ngClass]="statusIcon(scan.status)"></i> {{scan.status}}
+              <i [ngClass]="statusIcon(scan.status)"></i> {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
             </span>
           </td>
-   <!-- <td>{{scan.ownerScan}}</td> -->
-          <td>{{scan.qualityGate}}</td>
-  
+          <!-- <td>{{scan.ownerScan}}</td> -->
+          <td>{{ scan.qualityGate === 'OK' ? 'Pass' : 'Fail' }}</td>
+
           <td>
-           <span *ngIf="scan.metrics?.bugs !== undefined"><i class="bi bi-bug"></i> {{scan.metrics?.bugs}}</span>
-            <span *ngIf="scan.metrics?.vulnerabilities !== undefined"><i class="bi bi-shield"></i> {{scan.metrics?.vulnerabilities}}</span>
-            <span *ngIf="scan.metrics?.codeSmells !== undefined"><i class="bi bi-code"></i> {{scan.metrics?.codeSmells}}</span>
-            <span *ngIf="scan.metrics?.coverage !== undefined"><i class="bi bi-bar-chart"></i> {{scan.metrics?.coverage}}</span>
-              <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined"><i class="bi bi-duplicate"></i> {{scan.metrics?.duplicatedLinesDensity}}</span>
+            <span *ngIf="scan.metrics?.bugs !== undefined"><i class="bi bi-bug"></i> {{scan.metrics?.bugs}}</span>
+            <span *ngIf="scan.metrics?.vulnerabilities !== undefined"><i class="bi bi-shield"></i>
+              {{scan.metrics?.vulnerabilities}}</span>
+            <span *ngIf="scan.metrics?.codeSmells !== undefined"><i class="bi bi-code"></i>
+              {{scan.metrics?.codeSmells}}</span>
+            <span *ngIf="scan.metrics?.coverage !== undefined"><i class="bi bi-bar-chart"></i>
+              {{scan.metrics?.coverage}}</span>
+            <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined"><i class="bi bi-duplicate"></i>
+              {{scan.metrics?.duplicatedLinesDensity}}</span>
           </td>
-  
-         <td class="log-col sticky-col" (click)="$event.stopPropagation()">
+
+          <td class="log-col sticky-col" (click)="$event.stopPropagation()">
             <button title="View log" class="btn btn-log btn-sm" (click)="viewLog(scan); $event.stopPropagation()">
-              <i class="bi bi-file-text"></i> 
+              <i class="bi bi-file-text"></i>
             </button>
           </td>
-  
+
           <td class="result-col sticky-col" (click)="$event.stopPropagation()">
-            <button title="View Result Scan" class="btn btn-primary btn-sm" (click)="viewResult(scan); $event.stopPropagation()">
-              <i class="bi bi-eye"></i> 
+            <button title="View Result Scan" class="btn btn-primary btn-sm"
+              (click)="viewResult(scan); $event.stopPropagation()">
+              <i class="bi bi-eye"></i>
             </button>
           </td>
-  
+
         </tr>
       </tbody>
     </table>
-  </div>  
+  </div>
   <div class="pagination">
     <!-- Prev -->
-    <button class="page-btn prev" [class.disabled]="currentPage === 1"
-            (click)="goPage(currentPage - 1)">
+    <button class="page-btn prev" [class.disabled]="currentPage === 1" (click)="goPage(currentPage - 1)">
       <i class="bi bi-chevron-left"></i>
     </button>
-  
+
     <!-- Page Label -->
     <span class="page-label">Page {{currentPage}} of {{totalPages}}</span>
-  
+
     <!-- Next -->
-    <button class="page-btn next" [class.disabled]="currentPage === totalPages"
-            (click)="goPage(currentPage + 1)">
+    <button class="page-btn next" [class.disabled]="currentPage === totalPages" (click)="goPage(currentPage + 1)">
       <i class="bi bi-chevron-right"></i>
     </button>
   </div>
-  
-  
+
+
 
   <!-- Actions -->
   <div class="actions mt-3 d-flex gap-2 flex-wrap">
@@ -170,7 +165,7 @@
             <td>Bugs</td>
             <td *ngFor="let scan of selectedScans">{{ scan.metrics?.bugs ?? 0 }}</td>
           </tr>
-           <tr>
+          <tr>
             <td>Code Smells</td>
             <td *ngFor="let scan of selectedScans">{{ scan.metrics?.codeSmells ?? 0 }}</td>
           </tr>

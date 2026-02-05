@@ -10,26 +10,19 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { ScanService } from '../../../services/scanservice/scan.service';
 
-type Priority = 'High' | 'Med' | 'Low';
+import { TechnicalDebtDataService, Priority, DebtItem } from '../../../services/shared-data/technicaldebt-data.service';
 
 interface ProjectDebt {
   name: string;
   days: number;
   cost: number;
+  lastScan?: Date;
 }
 
 interface CategoryShare {
   name: string;
   percent: number;
   icon: string;
-}
-
-interface DebtItem {
-  priority: Priority;
-  colorClass: string; // 'high' | 'med' | 'low'
-  item: string;
-  time: number; // minutes
-  cost: number;
 }
 
 @Component({
@@ -45,6 +38,7 @@ export class TechnicaldebtComponent implements OnDestroy {
   // Meta (matches your text)
   totalDays = 0;
   totalHours = 0;
+  totalMinutes = 0;
   totalCost = 0;
 
   // Distribution by project
@@ -55,26 +49,22 @@ export class TechnicaldebtComponent implements OnDestroy {
 
   // Categories
   categories: CategoryShare[] = [
-    { name: ' Documentation', percent: 15, icon: 'bi bi-journal-text' },
-    { name: ' Architecture', percent: 25, icon: 'bi bi-diagram-3' },
-    { name: ' Code Quality', percent: 35, icon: 'bi bi-wrench-adjustable' },
-    { name: ' Test Coverage', percent: 15, icon: 'bi-clipboard-check' },
-    { name: ' Security', percent: 10, icon: 'bi bi-shield-lock' },
+    { name: ' Documentation', percent: 0, icon: 'bi bi-journal-text' },
+    { name: ' Architecture', percent: 0, icon: 'bi bi-diagram-3' },
+    { name: ' Code Quality', percent: 0, icon: 'bi bi-wrench-adjustable' },
+    { name: ' Test Coverage', percent: 0, icon: 'bi-clipboard-check' },
+    { name: ' Security', percent: 0, icon: 'bi bi-shield-lock' },
   ];
 
   // Top items
-  topDebtItems: DebtItem[] = [
-    { priority: 'High', colorClass: 'high', item: 'Refactor legacy module', time: 2400, cost: 150_000 },
-    { priority: 'High', colorClass: 'high', item: 'Add unit tests', time: 1440, cost: 90_000 },
-    { priority: 'Med', colorClass: 'med', item: 'Update dependencies', time: 960, cost: 60_000 },
-    { priority: 'Med', colorClass: 'med', item: 'Improve documentation', time: 480, cost: 30_000 },
-    { priority: 'Low', colorClass: 'low', item: 'Code formatting', time: 240, cost: 6_000 },
-  ];
+  topDebtItems: DebtItem[] = [];
+  
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
     private readonly scanService: ScanService,
+    private readonly techDebtDataService: TechnicalDebtDataService,
     private readonly location: Location,
   ) { }
 
@@ -146,30 +136,29 @@ export class TechnicaldebtComponent implements OnDestroy {
   }
 
   calculateTopDebtProjects() {
-    // 1. We already have 'projectDebts' calculated in calculateProjectDebts(), which gives us Cost and Days per project.
-    // We can reuse that or recalculate if we want to be safe, but calculateProjectDebts seems to derive correctly from Latest Scan.
-    // Let's use calculateProjectDebts' output if available, OR just iterate ScanHistory (which is latest scan per project).
-    
-    // Formula: Score = (Days * 2) + (Cost / 50,000)
-    // Classification: >=10 High, 5-9.99 Med, <5 Low
-    
+    // 1. Find Max Cost
+    const maxCost = this.ScanHistoy.reduce((max, scan) => Math.max(max, scan.metrics?.debtRatio || 0), 0);
+    const step = maxCost / 3;
+
+    // 2. Map and Classify
     const projects = this.ScanHistoy.map(scan => {
         const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
         const days = this.toTechDebtDays(debtMinutes);
-        const cost = scan.metrics?.debtRatio || 0; // Assuming debtRatio holds the Cost value as per previous logic
+        const cost = scan.metrics?.debtRatio || 0;
         const name = scan.project?.name || scan.project?.id || 'Unknown';
 
-        // Score calc
-        const score = (days * 2) + (cost / 50000);
+        // Classification based on Max Cost
+        // Low: 0 - step
+        // Med: step - 2*step
+        // High: > 2*step
         
-        // Priority/Class
         let priority: Priority = 'Low';
         let color = 'low';
-        
-        if (score >= 10) {
+
+        if (cost > (step * 2)) {
             priority = 'High';
             color = 'high';
-        } else if (score >= 5) {
+        } else if (cost > step) {
             priority = 'Med';
             color = 'med';
         }
@@ -178,14 +167,14 @@ export class TechnicaldebtComponent implements OnDestroy {
             priority: priority,
             colorClass: color,
             item: name, 
-            time: debtMinutes, // Store minutes for pipe
-            cost: cost,
-            score: score 
-        } as DebtItem & { score: number };
+            time: debtMinutes,
+            cost: cost
+        } as DebtItem;
     });
 
-    // Sort by Score Descending
-    this.topDebtItems = projects.sort((a, b) => b.score - a.score).slice(0, 5);
+    // Sort by Cost Descending
+    this.topDebtItems = projects.sort((a, b) => b.cost - a.cost).slice(0, 5);
+    this.techDebtDataService.setTopDebtItems(this.topDebtItems);
   }
 
   calculateProjectDebts() {
@@ -197,7 +186,8 @@ export class TechnicaldebtComponent implements OnDestroy {
         return {
             name: scan.project?.name || scan.project?.id || 'Unknown',
             days: days,
-            cost: cost
+            cost: cost,
+            lastScan: new Date(scan.startedAt)
         } as ProjectDebt;
     }).sort((a, b) => b.cost - a.cost);
   }
@@ -258,9 +248,9 @@ export class TechnicaldebtComponent implements OnDestroy {
     let runningTotal = 0;
     const dataPoints: { x: string, y: number, added: number, dateStr: string }[] = [];
 
-    // Add a starting point? (Optional, but good for line chart to start at 0 if no projects)
+    // Add a starting point
     if(projects.length > 0) {
-        // dataPoints.push({ x: 'Start', y: 0, added: 0, dateStr: '' }); 
+        dataPoints.push({ x: 'Start', y: 0, added: 0, dateStr: 'Initial' }); 
     }
 
     projects.forEach(p => {
@@ -300,6 +290,7 @@ export class TechnicaldebtComponent implements OnDestroy {
         }
       },
       yaxis: {
+        min: 0, 
         title: { text: 'Cumulative Cost (THB)' },
         labels: {
             formatter: (val: number) => this.formatTHB(val)
@@ -336,47 +327,122 @@ export class TechnicaldebtComponent implements OnDestroy {
     this.totalDebtMinutes = this.ScanHistoy.reduce((sum, p) => sum + (p.metrics?.technicalDebtMinutes || 0), 0);
     // Use 8 hours (480 mins) for a "work day"
     this.totalDays = Math.floor(this.totalDebtMinutes / 480);
-    this.totalHours = Math.floor((this.totalDebtMinutes % 480) / 60);
+    const remainingAfterDays = this.totalDebtMinutes % 480;
+    this.totalHours = Math.floor(remainingAfterDays / 60);
+    this.totalMinutes = remainingAfterDays % 60;
+
+    this.totalMinutes = remainingAfterDays % 60;
+    
+    // Shared Data Update
+    this.techDebtDataService.setTotalDebt({
+        days: this.totalDays,
+        hours: this.totalHours,
+        minutes: this.totalMinutes,
+        cost: this.totalCosts()
+    });
 
     this.calculateCategoryDebt();
   }
 
   calculateCategoryDebt() {
-    let totalSecurityScore = 0;
-    let totalQualityScore = 0;
-    let totalTestScore = 0;
-    let totalArchScore = 0;
-    let totalDocScore = 0; 
+    let sumSecurity = 0;
+    let sumQuality = 0;
+    let sumTest = 0;
+    let sumArch = 0;
+    let sumDoc = 0; 
+    let count = 0;
 
     // Aggregate metrics from all latest scans
     this.ScanHistoy.forEach(scan => {
       const m = scan.metrics;
+      // If no metrics, skip this scan from the average
       if (!m) return;
-      totalSecurityScore += (m.vulnerabilities || 0) * 10 
-                          + (m.securityHotspots || 0) * 3;
-      totalQualityScore += (m.bugs || 0) * 5 
-                         + (m.codeSmells || 0) * 1;
-      const coverageGap = 100 - (m.coverage || 0);
-      if (coverageGap > 0) {
-        totalTestScore += coverageGap * 5;
-      }
-      totalArchScore += (m.duplicatedLinesDensity || 0) * 5;
+      
+      count++;
+
+      // 1. Security (Vulnerabilities & Hotspots)
+      // A: vuln=0, hs<=1 (0) | B: vuln=0, hs<=3 (20) | C: vuln 1-2 (40) | D: vuln 3-5 (60) | E: vuln >5 (80)
+      let secScore = 0;
+      const v = m.vulnerabilities || 0;
+      const hs = m.securityHotspots || 0;
+
+      if (v === 0 && hs <= 1) secScore = 0;
+      else if (v === 0 && hs <= 3) secScore = 20;
+      else if (v <= 2) secScore = 40;
+      else if (v <= 5) secScore = 60;
+      else secScore = 80;
+
+      sumSecurity += secScore;
+
+      // 2. Architecture (Duplicated Lines %)
+      // A <= 3 (0), B <= 8 (20), C <= 15 (40), D <= 25 (60), E > 25 (80)
+      const dup = m.duplicatedLinesDensity || 0;
+      let archScore = 0;
+      if (dup <= 3) archScore = 0;
+      else if (dup <= 8) archScore = 20;
+      else if (dup <= 15) archScore = 40;
+      else if (dup <= 25) archScore = 60;
+      else archScore = 80;
+
+      sumArch += archScore;
+
+      // 3. Documentation (Code Smells -> Maintainability)
+      // A <= 10 (0), B <= 25 (20), C <= 40 (40), D <= 60 (60), E > 60 (80)
+      const smells = m.codeSmells || 0;
+      let docScore = 0;
+      if (smells <= 10) docScore = 0;
+      else if (smells <= 25) docScore = 20;
+      else if (smells <= 40) docScore = 40;
+      else if (smells <= 60) docScore = 60;
+      else docScore = 80;
+
+      sumDoc += docScore;
+
+      // 4. Test Coverage (Coverage %)
+      // 0-20 (80), 21-40 (60), 41-60 (40), 61-80 (20), 81-100 (0)
+      const cov = m.coverage || 0;
+      let testScore = 0;
+      if (cov <= 20) testScore = 80;
+      else if (cov <= 40) testScore = 60;
+      else if (cov <= 60) testScore = 40;
+      else if (cov <= 80) testScore = 20;
+      else testScore = 0;
+
+      sumTest += testScore;
+
+      // 5. Code Quality (Bugs -> Inferred Score)
+      // A: 0 (0), B: <=2 (20), C: <=5 (40), D: <=10 (60), E: >10 (80)
+      const bugs = m.bugs || 0;
+      let qualScore = 0;
+      if (bugs === 0) qualScore = 0;
+      else if (bugs <= 2) qualScore = 20;
+      else if (bugs <= 5) qualScore = 40;
+      else if (bugs <= 10) qualScore = 60;
+      else qualScore = 80;
+
+      sumQuality += qualScore;
     });
 
-    if (this.ScanHistoy.length > 0) {
-       totalDocScore = this.ScanHistoy.length * 10; 
-    }
+    if (count === 0) return;
 
-    const totalScore = totalSecurityScore + totalQualityScore + totalTestScore + totalArchScore + totalDocScore;
+    // Calculate Averages
+    const avgSec = sumSecurity / count;
+    const avgArch = sumArch / count;
+    const avgDoc = sumDoc / count;
+    const avgTest = sumTest / count;
+    const avgQual = sumQuality / count;
 
-    if (totalScore === 0) return; 
+    const totalAvg = avgSec + avgArch + avgDoc + avgTest + avgQual;
 
+    if (totalAvg === 0) return;
+
+    // Normalize to 100%
     this.categories = [
-       { name: ' Documentation', percent: Math.round((totalDocScore / totalScore) * 100), icon: 'bi bi-journal-text' },
-       { name: ' Architecture', percent: Math.round((totalArchScore / totalScore) * 100), icon: 'bi bi-diagram-3' },
-       { name: ' Code Quality', percent: Math.round((totalQualityScore / totalScore) * 100), icon: 'bi bi-wrench-adjustable' },
-       { name: ' Test Coverage', percent: Math.round((totalTestScore / totalScore) * 100), icon: 'bi-clipboard-check' },
-       { name: ' Security', percent: Math.round((totalSecurityScore / totalScore) * 100), icon: 'bi bi-shield-lock' },
+       { name: ' Documentation', percent: Number(((avgDoc / totalAvg) * 100).toFixed(1)), icon: 'bi bi-journal-text' },
+       { name: ' Architecture', percent: Number(((avgArch / totalAvg) * 100).toFixed(1)), icon: 'bi bi-diagram-3' },
+       { name: ' Code Quality', percent: Number(((avgQual / totalAvg) * 100).toFixed(1)), icon: 'bi bi-wrench-adjustable' },
+       { name: ' Test Coverage', percent: Number(((avgTest / totalAvg) * 100).toFixed(1)), icon: 'bi-clipboard-check' },
+       { name: ' Security', percent: Number(((avgSec / totalAvg) * 100).toFixed(1)), icon: 'bi bi-shield-lock' },
     ];
   }
 
@@ -452,14 +518,14 @@ export class TechnicaldebtComponent implements OnDestroy {
     });
 
     rows.push('');
-    rows.push('Section,Project,Days,Cost (THB)');
+    rows.push('Section,Project,Scan Date,Cost (THB)');
     this.projectDebts.forEach(p => {
-      rows.push(['Projects', p.name, String(p.days), String(p.cost)].join(','));
+      rows.push(['Projects', p.name, p.lastScan ? p.lastScan.toISOString().split('T')[0] : '-', String(p.cost)].join(','));
     });
 
     rows.push('');
-    rows.push(['Summary', 'Total Days', 'Total Hours', 'Estimated Cost (THB)'].join(','));
-    rows.push(['', String(this.totalDays), String(this.totalHours), String(this.totalCost)].join(','));
+    rows.push(['Summary', 'Total Days', 'Total Hours',  'Total Minutes', 'Estimated Cost (THB)'].join(','));
+    rows.push(['', String(this.totalDays), String(this.totalHours), String(this.totalMinutes), String(this.totalCosts())].join(','));
 
     const csv = rows.join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -476,7 +542,8 @@ export class TechnicaldebtComponent implements OnDestroy {
   formatMinutesToTime(minutes: number): string {
      const days = Math.floor(minutes / 480);
      const hours = Math.floor((minutes % 480) / 60);
-     return `${days}d ${hours}h`;
+     const minute = Math.floor(minutes % 60);
+     return `${days }d ${hours}h ${minute}m`;
   }
 
   actionPlanText = '';

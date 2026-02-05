@@ -4,7 +4,8 @@
     <div>
       <h2><i class="bi bi-file-earmark-text"></i> Scan Report: {{ log.applicationName }}</h2>
       <p class="log-date mb-0">
-        <strong>Date:</strong> {{ log.timestamp | date:'dd/MM/yyyy, hh:mm a' }}</p>
+        <strong>Date:</strong> {{ scanResult?.startedAt| date:'dd/MM/yyyy, hh:mm a' }}
+      </p>
     </div>
 
     <!-- Control Buttons -->
@@ -24,13 +25,14 @@
       <ul class="list-group list-group-flush">
         <li class="list-group-item d-flex justify-content-between">
           <span>Status</span>
-          <span [ngClass]="{'text-success': log.content.status==='success', 'text-danger': log.content.status==='failed'}">
+          <span
+            [ngClass]="{'text-success': scanResult?.status==='SUCCESS', 'text-danger': scanResult?.status==='FAILED'}">
             {{ scanResult?.status| titlecase }}
           </span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Duration</span>
-          <span>{{  getDurationSeconds(scanResult?.startedAt, scanResult?.completedAt) }}</span>
+          <span>{{ getDurationSeconds(scanResult?.startedAt, scanResult?.completedAt) }}</span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
           <span>Scanner Type</span>
@@ -42,81 +44,80 @@
     <!-- SonarQube Results -->
     <section class="mb-4">
       <h4><i class="bi bi-graph-up"></i> SonarQube Results</h4>
-<ul class="list-group list-group-flush"
-    *ngIf="scanResult?.metrics; else noSonar">
+      <ul class="list-group list-group-flush" *ngIf="scanResult?.metrics; else noSonar">
 
-  <!-- Quality -->
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Quality Gate</span>
-    <span>{{ scanResult?.qualityGate }}</span>
-  </li>
+        <!-- Quality -->
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Quality Gate</span>
+          <span>{{ scanResult?.qualityGate }}</span>
+        </li>
 
-  <!-- Bugs & Issues -->
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Bugs</span>
-    <span>{{ scanResult?.metrics?.bugs }}</span>
-  </li>
+        <!-- Bugs & Issues -->
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Bugs</span>
+          <span>{{ scanResult?.metrics?.bugs }}</span>
+        </li>
 
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Vulnerabilities</span>
-    <span>{{ scanResult?.metrics?.vulnerabilities }}</span>
-  </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Vulnerabilities</span>
+          <span>{{ scanResult?.metrics?.vulnerabilities }}</span>
+        </li>
 
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Security Hotspots</span>
-    <span>{{ scanResult?.metrics?.securityHotspots }}</span>
-  </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Security Hotspots</span>
+          <span>{{ scanResult?.metrics?.securityHotspots }}</span>
+        </li>
 
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Code Smells</span>
-    <span>{{ scanResult?.metrics?.codeSmells }}</span>
-  </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Code Smells</span>
+          <span>{{ scanResult?.metrics?.codeSmells }}</span>
+        </li>
 
-  <!-- Coverage & Duplication -->
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Coverage</span>
-    <span>{{ scanResult?.metrics?.coverage }}%</span>
-  </li>
+        <!-- Coverage & Duplication -->
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Coverage</span>
+          <span>{{ scanResult?.metrics?.coverage }}%</span>
+        </li>
 
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Duplicated Lines</span>
-    <span>{{ scanResult?.metrics?.duplicatedLinesDensity }}%</span>
-  </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Duplicated Lines</span>
+          <span>{{ scanResult?.metrics?.duplicatedLinesDensity }}%</span>
+        </li>
 
-  <!-- Technical Debt -->
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Technical Debt (min)</span>
-    <span>{{ scanResult?.metrics?.technicalDebtMinutes }}</span>
-  </li>
+        <!-- Technical Debt -->
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Technical Debt</span>
+          <span>{{ scanResult?.metrics?.technicalDebtMinutes | debtTime }}</span>
+        </li>
 
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Debt Ratio</span>
-    <span>{{ scanResult?.metrics?.debtRatio }}</span>
-  </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Debt Ratio</span>
+          <span>{{ scanResult?.metrics?.debtRatio | thbCurrency }}</span>
+        </li>
 
-  <!-- Ratings -->
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Maintainability</span>
-    <span>{{ scanResult?.metrics?.maintainabilityRating }}</span>
-  </li>
+        <!-- Ratings -->
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Maintainability</span>
+          <span>{{ scanResult?.metrics?.maintainabilityRating }}</span>
+        </li>
 
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Reliability</span>
-    <span>{{ scanResult?.metrics?.reliabilityRating }}</span>
-  </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Reliability</span>
+          <span>{{ scanResult?.metrics?.reliabilityRating }}</span>
+        </li>
 
-  <li class="list-group-item d-flex justify-content-between">
-    <span>Security</span>
-    <span>{{ scanResult?.metrics?.securityRating }}</span>
-  </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Security</span>
+          <span>{{ scanResult?.metrics?.securityRating }}</span>
+        </li>
 
-</ul>
+      </ul>
 
-<ng-template #noSonar>
-  <div class="text-muted p-3 text-center">
-    No SonarQube result available
-  </div>
-</ng-template>
+      <ng-template #noSonar>
+        <div class="text-muted p-3 text-center">
+          No SonarQube result available
+        </div>
+      </ng-template>
 
       <ng-template #noSonar>
         <p class="text-muted">No SonarQube results available.</p>
@@ -125,146 +126,140 @@
 
     <!-- Details -->
     <section class="mb-4">
-      <h4><i class="bi bi-list-ul"></i> Details</h4>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item" *ngFor="let d of scanResult?.metrics?.analysisLogs">{{ d.message }} - {{ d.timestamp | date:'dd/MM/yyyy HH:mm:ss':'Asia/Bangkok' }}</li>
+      <h4><i class="bi bi-list-ul"></i> Details Analysis</h4>
+      <ul class="list-group list-group-flush" *ngIf="scanResult?.metrics?.analysisLogs?.length; else noDetailsAnalysis">
+        <li class="list-group-item" *ngFor="let d of scanResult?.metrics?.analysisLogs">{{ d.message }} - {{ d.timestamp
+          | date:'dd/MM/yyyy HH:mm:ss.SSS':'Asia/Bangkok' }}</li>
       </ul>
+      <ng-template #noDetailsAnalysis>
+        <div class="text-muted p-3 text-center">
+          No Details Analysis result available
+        </div>
+      </ng-template>
     </section>
 
-<!-- Warnings -->
-<section class="mb-4" *ngIf="majorIssues?.length">
-  <h4 class="mb-3">
-    <i class="bi bi-exclamation-triangle text-warning"></i>
-    Warnings
-    <span class="badge bg-warning text-dark ms-2">
-      {{ majorIssues.length }}
-    </span>
-  </h4>
-<div class="table-responsive">
-  <table class="table table-sm table-bordered align-middle major-table">
-    <thead class="table-warning">
-      <tr>
-        <th class="col-no">#</th>
-        <th class="col-msg">Message</th>
-        <th class="col-comp">Component</th>
-        <th class="col-line">Line</th>
-      </tr>
-    </thead>
+    <!-- Warnings -->
+    <section class="mb-4" *ngIf="majorIssues?.length">
+      <h4 class="mb-3">
+        <i class="bi bi-exclamation-triangle text-warning"></i>
+        Warnings
+        <span class="badge bg-warning text-dark ms-2">
+          {{ majorIssues.length }}
+        </span>
+      </h4>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle major-table">
+          <thead class="table-warning">
+            <tr>
+              <th class="col-no">#</th>
+              <th class="col-msg">Message</th>
+              <th class="col-comp">Component</th>
+              <th class="col-line">Line</th>
+            </tr>
+          </thead>
 
-    <tbody>
-      <tr *ngFor="let w of pagedMajorIssues; let i = index">
-        <td class="text-center col-no">
-          {{ (currentPageMajor - 1) * pageSize + i + 1 }}
-        </td>
+          <tbody>
+            <tr *ngFor="let w of pagedMajorIssues; let i = index">
+              <td class="text-center col-no">
+                {{ (currentPageMajor - 1) * pageSize + i + 1 }}
+              </td>
 
-        <td class="col-msg">
-          {{ w.message }}
-        </td>
+              <td class="col-msg">
+                {{ w.message }}
+              </td>
 
-        <td class="col-comp text-truncate" [title]="w.component">
-          {{ w.component?.split('/').pop() }}
-        </td>
+              <td class="col-comp text-truncate" [title]="w.component">
+                {{ w.component?.split('/').pop() }}
+              </td>
 
-        <td class="text-center col-line">
-          {{ w.line }}
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+              <td class="text-center col-line">
+                {{ w.line }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
 
-  <!-- Pagination -->
-  <div class="d-flex justify-content-center align-items-center mt-2">
-    <button
-      class="btn btn-sm btn-outline-secondary me-2"
-      (click)="prevPageMajor()"
-      [disabled]="currentPageMajor === 1"
-    >
-        ก่อนหน้า
-    </button>
+      <!-- Pagination -->
+      <div class="d-flex justify-content-center align-items-center mt-2">
+        <button class="btn btn-sm btn-outline-secondary me-2" (click)="prevPageMajor()"
+          [disabled]="currentPageMajor === 1">
+          ก่อนหน้า
+        </button>
 
-    <span class="text-muted">
-     {{ currentPageMajor }} / {{ totalPagesMajor }}
-    </span>
+        <span class="text-muted">
+          {{ currentPageMajor }} / {{ totalPagesMajor }}
+        </span>
 
-    <button
-      class="btn btn-sm btn-outline-secondary ms-2"
-      (click)="nextPageMajor()"
-      [disabled]="currentPageMajor === totalPagesMajor"
-    >
-       ถัดไป
-    </button>
-  </div>
-</section>
+        <button class="btn btn-sm btn-outline-secondary ms-2" (click)="nextPageMajor()"
+          [disabled]="currentPageMajor === totalPagesMajor">
+          ถัดไป
+        </button>
+      </div>
+    </section>
 
 
 
     <!-- Errors -->
-<section class="mb-4" *ngIf="criticalIssues?.length">
-  <h4 class="mb-3">
-    <i class="bi bi-exclamation-triangle text-danger"></i>
-    Errors
-    <span class="badge bg-danger text-white  ms-2">
-      {{ criticalIssues.length }}
-    </span>
-  </h4>
-<div class="table-responsive">
-  <table class="table table-sm table-bordered align-middle major-table">
-    <thead class="table-danger">
-      <tr>
-        <th class="col-no">#</th>
-        <th class="col-msg">Message</th>
-        <th class="col-comp">Component</th>
-        <th class="col-line">Line</th>
-      </tr>
-    </thead>
+    <section class="mb-4" *ngIf="criticalIssues?.length">
+      <h4 class="mb-3">
+        <i class="bi bi-exclamation-triangle text-danger"></i>
+        Errors
+        <span class="badge bg-danger text-white  ms-2">
+          {{ criticalIssues.length }}
+        </span>
+      </h4>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle major-table">
+          <thead class="table-danger">
+            <tr>
+              <th class="col-no">#</th>
+              <th class="col-msg">Message</th>
+              <th class="col-comp">Component</th>
+              <th class="col-line">Line</th>
+            </tr>
+          </thead>
 
-    <tbody>
-      <tr *ngFor="let w of pagedCritical; let i = index">
-        <td class="text-center col-no">
-          {{ (currentPageCritical - 1) * pageSize + i + 1 }}
-        </td>
+          <tbody>
+            <tr *ngFor="let w of pagedCritical; let i = index">
+              <td class="text-center col-no">
+                {{ (currentPageCritical - 1) * pageSize + i + 1 }}
+              </td>
 
-        <td class="col-msg">
-          {{ w.message }}
-        </td>
+              <td class="col-msg">
+                {{ w.message }}
+              </td>
 
-        <td class="col-comp text-truncate" [title]="w.component">
-          {{ w.component?.split('/').pop() }}
-        </td>
+              <td class="col-comp text-truncate" [title]="w.component">
+                {{ w.component?.split('/').pop() }}
+              </td>
 
-        <td class="text-center col-line">
-          {{ w.line }}
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+              <td class="text-center col-line">
+                {{ w.line }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
 
-  <!-- Pagination -->
-  <div class="d-flex justify-content-center align-items-center mt-2">
-    <button
-      class="btn btn-sm btn-outline-secondary me-2"
-      (click)="prevPageCritical()"
-      [disabled]="currentPageCritical === 1"
-    >
-        ก่อนหน้า
-    </button>
+      <!-- Pagination -->
+      <div class="d-flex justify-content-center align-items-center mt-2">
+        <button class="btn btn-sm btn-outline-secondary me-2" (click)="prevPageCritical()"
+          [disabled]="currentPageCritical === 1">
+          ก่อนหน้า
+        </button>
 
-    <span class="text-muted">
-     {{ currentPageCritical }} / {{ totalPagesCritical }}
-    </span>
+        <span class="text-muted">
+          {{ currentPageCritical }} / {{ totalPagesCritical }}
+        </span>
 
-    <button
-      class="btn btn-sm btn-outline-secondary ms-2"
-      (click)="nextPageCritical()"
-      [disabled]="currentPageCritical === totalPagesCritical"
-    >
-       ถัดไป
-    </button>
-  </div>
-</section>
+        <button class="btn btn-sm btn-outline-secondary ms-2" (click)="nextPageCritical()"
+          [disabled]="currentPageCritical === totalPagesCritical">
+          ถัดไป
+        </button>
+      </div>
+    </section>
   </div>
 </div>

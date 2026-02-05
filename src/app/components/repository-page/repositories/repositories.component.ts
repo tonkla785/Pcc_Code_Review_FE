@@ -10,7 +10,8 @@ import { forkJoin } from 'rxjs';
 import { SseService } from '../../../services/scanservice/sse.service';        // <-- added
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
-import { WebSocketService, ScanEvent } from '../../../services/websocket/websocket.service';
+import { WebSocketService } from '../../../services/websocket/websocket.service';
+import { ScanEvent } from '../../../interface/websocket_interface';
 import Swal from 'sweetalert2';
 
 
@@ -70,9 +71,8 @@ export class RepositoriesComponent implements OnInit {
       this.updateSummaryStats();
     });
 
-    // 2. เช็คว่ามีข้อมูลแล้วหรือยัง
+    // 2. ถ้ายังไม่มี data Cache Fetch API ใหม่ (ถ้ามีแล้วใช้ของเดิม เพื่อรักษา Status 'Scanning')
     if (!this.sharedData.hasRepositoriesCache) {
-      // 3. ถ้ายังไม่มี → Fetch API
       this.loadRepositories();
     }
 
@@ -106,77 +106,7 @@ export class RepositoriesComponent implements OnInit {
       });
 
 
-    // WebSocket รอฟังสถานะสแกน
-    this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
-      const mappedStatus = this.mapStatus(event.status);
-
-      //เก็บข้อมูลลง localstorage
-      localStorage.setItem(
-        `repo-status-${event.projectId}`,
-        mappedStatus
-      );
-
-      //เก็บข้อมูลลง shared data
-      this.sharedData.updateRepoStatus(
-        event.projectId,
-        mappedStatus,
-        event.status === 'SCANNING'
-          ? 0
-          : event.status === 'SUCCESS'
-            ? 100
-            : undefined
-      );
-
-      console.log('WS Scan Event:', event);
-
-      const updated = this.repositories.map(repo =>
-        repo.projectId === event.projectId
-          ? {
-            ...repo,
-            status: mappedStatus,
-            scanningProgress: event.status === 'SCANNING' ? 0 :
-              event.status === 'SUCCESS' ? 100 : 0
-          }
-          : repo
-      );
-
-      // scan เสร็จ แจ้งผล
-      if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-
-        this.snack.open(
-          event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
-          '',
-          {
-            duration: 2500,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-            panelClass: [
-              'app-snack',
-              event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red'
-            ]
-          }
-        );
-
-        // ล้าง localStorage
-        localStorage.removeItem(`repo-status-${event.projectId}`);
-
-        // ดึงข้อมูลจริงมาแทน
-        this.repoService.getFullRepository(event.projectId).subscribe({
-          next: (fullRepo) => {
-            if (!fullRepo) return;
-
-            const merged = this.sharedData.repositoriesValue.map(repo =>
-              repo.projectId === event.projectId
-                ? { ...repo, ...fullRepo }
-                : repo
-            );
-
-            this.sharedData.setRepositories(merged);
-          },
-          error: err => console.error('Failed to refresh full repo', err)
-        });
-      }
-    });
+    // WebSocket logic moved to AppComponent for global updates
 
   }
 
@@ -209,30 +139,8 @@ export class RepositoriesComponent implements OnInit {
       .trim()
       .toLowerCase();
 
-    if (!keyword) {
-      // ไม่ค้นหา แสดงตามปกติ
-      this.filteredRepositories = this.sortRepositories([...this.repositories]);
-      this.updateSummaryStats();
-      return;
-    }
-
-    const matched: Repository[] = [];
-    const others: Repository[] = [];
-
-    this.repositories.forEach(repo => {
-      if (repo.name.toLowerCase().includes(keyword)) {
-        matched.push(repo);
-      } else {
-        others.push(repo);
-      }
-    });
-
-    this.filteredRepositories = [
-      ...this.sortRepositories(matched),
-      ...this.sortRepositories(others)
-    ];
-
-    this.updateSummaryStats();
+    this.searchText = keyword;
+    this.applyFilters();
   }
 
 
@@ -246,18 +154,38 @@ export class RepositoriesComponent implements OnInit {
   }
 
   private applyFilters(): void {
-    this.filteredRepositories = this.repositories.filter(repo =>
-      // 1. filter ตาม tab (framework)
+    // 1. Filter by Tab & Status first (Base List)
+    const baseList = this.repositories.filter(repo =>
       (this.activeFilter === 'all' || repo.projectType?.toLowerCase().includes(this.activeFilter.toLowerCase())) &&
-      // 2. filter ตาม status
-      (this.selectedStatus === 'all' || repo.status === this.selectedStatus) &&
-      // 3. filter ตาม search text
-      (this.searchText === '' ||
-        repo.name.toLowerCase().includes(this.searchText) ||
-        repo.projectType?.toLowerCase().includes(this.searchText))
+      (this.selectedStatus === 'all' || repo.status === this.selectedStatus)
     );
 
-    this.filteredRepositories = this.sortRepositories(this.filteredRepositories);
+    // 2. Handle Search Logic
+    if (this.searchText) {
+      const matched = baseList.filter(repo =>
+        repo.name.toLowerCase().includes(this.searchText) ||
+        repo.projectType?.toLowerCase().includes(this.searchText)
+      );
+
+      const others = baseList.filter(repo =>
+        !repo.name.toLowerCase().includes(this.searchText) &&
+        !repo.projectType?.toLowerCase().includes(this.searchText)
+      );
+
+      if (matched.length > 0) {
+        // ถ้าเจอ: เอาตัวที่เจอขึ้นก่อน + ตามด้วยตัวที่ไม่เจอ (Reorder)
+        this.filteredRepositories = [
+          ...this.sortRepositories(matched),
+          ...this.sortRepositories(others)
+        ];
+      } else {
+        // ถ้าไม่เจอเลย: ให้เป็นว่าง (เพื่อขึ้น No Data)
+        this.filteredRepositories = [];
+      }
+    } else {
+      // No search: Show all filtered by Tab/Status
+      this.filteredRepositories = this.sortRepositories(baseList);
+    }
 
     this.updateSummaryStats();
   }
@@ -298,7 +226,6 @@ export class RepositoriesComponent implements OnInit {
     ];
   }
 
-
   private mapStatus(
     wsStatus: string
   ): 'Active' | 'Scanning' | 'Error' {
@@ -314,7 +241,6 @@ export class RepositoriesComponent implements OnInit {
     }
   }
 
-
   runScan(repo: Repository) {
     if (repo.status === 'Scanning') return;
 
@@ -323,13 +249,61 @@ export class RepositoriesComponent implements OnInit {
       return;
     }
 
-    // update UI
+    Swal.fire({
+      title: 'ยืนยันการสแกน',
+      text: 'Repository นี้เป็นแบบ Public หรือ Private?',
+      icon: 'question',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Public',
+      denyButtonText: 'Private',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#28a745',
+      denyButtonColor: '#3085d6'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Public เริ่มได้เลย
+        this.executeScan(repo, null);
+      } else if (result.isDenied) {
+        // Private ต้องใส่ Token
+        Swal.fire({
+          title: 'ระบุ Git Token',
+          input: 'text',
+          inputLabel: 'Git Token',
+          inputPlaceholder: 'กรอก Git Token',
+          showCancelButton: true,
+          confirmButtonText: 'เริ่มสแกน',
+          cancelButtonText: 'ยกเลิก',
+          inputValidator: (value) => {
+            if (!value) {
+              return 'กรุณากรอกข้อมูล!';
+            }
+            return null;
+          }
+        }).then((tokenResult) => {
+          if (tokenResult.isConfirmed) {
+            this.executeScan(repo, tokenResult.value);
+          }
+        });
+      }
+    });
+  }
+
+  private executeScan(repo: Repository, token: string | null) {
+    // update UI and SharedDataService with 'Scanning' immediately to give feedback
     repo.status = 'Scanning';
     repo.scanningProgress = 0;
+
+    if (repo.projectId) {
+      this.sharedData.updateRepoStatus(repo.projectId, 'Scanning', 0);
+    }
+
     this.updateSummaryStats();
 
-    this.repoService.startScan(repo.projectId, 'main').subscribe({
-      next: () => {
+    this.repoService.startScan(repo.projectId!, 'main', token).subscribe({
+      next: (response: any) => {
+        console.log('[Repositories] Scan started successfully:', response);
+
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,
           horizontalPosition: 'right',
@@ -337,16 +311,28 @@ export class RepositoriesComponent implements OnInit {
           panelClass: ['app-snack', 'app-snack-green']
         });
 
-        // ตอนนี้ยังไม่รู้ว่า scan เสร็จเมื่อไร
-        // ปล่อย status เป็น Scanning ไว้
+        // Use backend status if available
+        if (response && response.status && repo.projectId) {
+          const mappedStatus = this.mapStatus(response.status);
+          this.sharedData.updateRepoStatus(repo.projectId, mappedStatus, 0);
+        }
       },
       error: (err) => {
         console.error('Scan failed:', err);
         repo.status = 'Error';
         repo.scanningProgress = 0;
+
+        // Update SharedDataService on error
+        if (repo.projectId) {
+          this.sharedData.updateRepoStatus(repo.projectId, 'Error', 0);
+        }
+
         this.updateSummaryStats();
 
-        this.snack.open('Scan failed to start', '', {
+        // Extract error message if possible
+        const msg = err?.error?.message || 'Scan failed to start';
+
+        this.snack.open(msg, '', {
           duration: 3000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -384,17 +370,12 @@ export class RepositoriesComponent implements OnInit {
   confirmScan(form: any) {
     if (!form.valid || !this.selectedRepo) return;
 
-    // กำหนด username/password ชั่วคราว
-    this.selectedRepo.username = this.scanUsername;
-    this.selectedRepo.password = this.scanPassword;
-
     // เรียก runScan
     this.runScan(this.selectedRepo);
 
     // ปิด modal
     this.closeScanModal();
   }
-
 
   editRepo(repo: Repository) {
     this.router.navigate(['/settingrepo', repo.projectId]);
@@ -420,65 +401,65 @@ export class RepositoriesComponent implements OnInit {
       return dateB - dateA; // ล่าสุด → เก่าสุด
     });
   }
-onDelete(repo: Repository) {
-  // กัน null / undefined แบบชัดเจน
-  if (!repo?.projectId) {
-    Swal.fire({
-      icon: 'error',
-      title: 'ข้อมูลไม่ถูกต้อง',
-      text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
-    });
-    return;
-  }
-
-  Swal.fire({
-    title: 'ยืนยันการลบ Repository',
-    text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'ลบข้อมูล',
-    cancelButtonText: 'ยกเลิก',
-    reverseButtons: true
-  }).then((result) => {
-    if (result.isConfirmed) {
-
-      // loading ตอนกำลังลบ
+  onDelete(repo: Repository) {
+    // กัน null / undefined แบบชัดเจน
+    if (!repo?.projectId) {
       Swal.fire({
-        title: 'กำลังลบข้อมูล...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
+        icon: 'error',
+        title: 'Invalid Data',
+        text: 'Repository project ID not found',
       });
-
-      this.repoService.deleteRepo(repo.projectId!).subscribe({
-        next: () => {
-          Swal.fire({
-            icon: 'success',
-            title: 'ลบสำเร็จ',
-            text: 'ลบ Repository เรียบร้อยแล้ว',
-            timer: 1800,
-            showConfirmButton: false
-          });
-
-          this.repoService.getAllRepo().subscribe(repos => {
-            this.sharedData.setRepositories(repos);
-            this.router.navigate(['/repositories']);
-          });
-        },
-        error: () => {
-          Swal.fire({
-            icon: 'error',
-            title: 'ลบไม่สำเร็จ',
-            text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
-          });
-        }
-      });
+      return;
     }
-  });
-}
+
+    Swal.fire({
+      title: 'Confirm Delete Repository',
+      text: 'This action cannot be undone',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+
+        // Loading while deleting
+        Swal.fire({
+          title: 'Deleting...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.repoService.deleteRepo(repo.projectId!).subscribe({
+          next: () => {
+            this.sharedData.removeRepository(repo.projectId!);
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted Successfully',
+              text: 'Repository has been deleted',
+              timer: 1800,
+              showConfirmButton: false
+            });
+            this.repoService.getAllRepo().subscribe(repos => {
+              this.sharedData.setRepositories(repos);
+              this.router.navigate(['/repositories']);
+            });
+          },
+          error: () => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Delete Failed',
+              text: 'An error occurred while deleting the repository',
+            });
+          }
+        });
+      }
+    });
+  }
 
 
 

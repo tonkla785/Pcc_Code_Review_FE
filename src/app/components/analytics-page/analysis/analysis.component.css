@@ -29,14 +29,14 @@
 }
 
 /* ตัวอักษรหัวข้อ */
-.analytics-header h3 {
+.analytics-header h3,
+.analytics-header h3.text-primary {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 800 !important;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 25px;
+  font-size: 1.5rem !important;
 }
 
 /* ===============================
@@ -44,13 +44,15 @@
    =============================== */
 :host {
   display: block;
-  background: transparent !important; /* ทั้ง light/dark โปร่งใส */
+  background: transparent !important;
+  /* ทั้ง light/dark โปร่งใส */
   color: #212529;
   font-family: "Inter", "Prompt", sans-serif;
 }
 
 :host-context(body.dark-mode) {
-  background: transparent !important; /* dark mode ก็โปร่งใส */
+  background: transparent !important;
+  /* dark mode ก็โปร่งใส */
   color: #f9fafb;
 }
 
@@ -115,8 +117,8 @@
   padding: 12px 16px;
   font-weight: 500;
   transition: transform 0.25s ease,
-              background-color 0.25s ease,
-              box-shadow 0.25s ease;
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .list-group-item:hover {
@@ -136,22 +138,65 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.red    { background-color: #ff6b6b; color: #fff; }
-.orange { background-color: #ffa94d; color: #fff; }
-.yellow { background-color: #ffd43b; color: #212529; }
-.green  { background-color: #51cf66; color: #fff; }
+.red {
+  background-color: #ff6b6b;
+  color: #fff;
+}
+
+.orange {
+  background-color: #ffa94d;
+  color: #fff;
+}
+
+.yellow {
+  background-color: #ffd43b;
+  color: #212529;
+}
+
+.green {
+  background-color: #51cf66;
+  color: #fff;
+}
+
+/* Match Technical Debt Colors */
+.bg-danger {
+  background: #ff6b6b !important;
+}
+
+.bg-warning {
+  background: #ffd43b !important;
+  color: #212529 !important;
+}
+
+.bg-success {
+  background: #51cf66 !important;
+}
+
+.bg-info {
+  background: #4dabf7 !important;
+  color: #fff !important;
+}
 
 /* ===============================
    🎨 TEXT COLORS OVERRIDE
    =============================== */
-.text-primary { color: #0d6efd !important; }
-.text-info    { color: #17a2b8 !important; }
-.text-warning { color: #ffc107 !important; }
+.text-primary {
+  color: #0d6efd !important;
+}
+
+.text-info {
+  color: #17a2b8 !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}
 
 /* ===============================
    🔠 HEADINGS
    =============================== */
-h3, h5 {
+h3,
+h5 {
   font-weight: 600;
   letter-spacing: 0.3px;
 }
@@ -194,7 +239,7 @@ p strong {
 :host-context(body.dark-mode) .list-group-item {
   background: #2c2c2c;
   border: 1px solid #4b5563;
-  color: #e5e7eb;
+  color: #ffffff !important;
 }
 
 :host-context(body.dark-mode) .list-group-item:hover {
@@ -203,7 +248,8 @@ p strong {
 
 /* Badge */
 :host-context(body.dark-mode) .badge.yellow {
-  color: #000; /* ให้ badge เหลืองยังอ่านออก */
+  color: #000;
+  /* ให้ badge เหลืองยังอ่านออก */
 }
 
 /* ===============================
@@ -222,9 +268,11 @@ p strong {
    📱 TABLET TEXT SCALE ONLY
    =============================== */
 @media (min-width: 768px) and (max-width: 1024px) {
+
   /* ย่อเฉพาะข้อความในการ์ด ไม่แตะกรอบ */
   .summary-card h5 {
-    font-size: 0.9rem !important;  /* จากเดิม ~1.1–1.2 → ย่อเล็กลง */
+    font-size: 0.9rem !important;
+    /* จากเดิม ~1.1–1.2 → ย่อเล็กลง */
     line-height: 1 !important;
     overflow: hidden !important;
     text-align: center;

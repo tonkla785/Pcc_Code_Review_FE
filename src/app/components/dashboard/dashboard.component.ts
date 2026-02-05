@@ -1,109 +1,88 @@
-
+import { QualityGates } from './../../interface/sonarqube_interface';
 import { AuthService } from './../../services/authservice/auth.service';
 import { Dashboard } from './../../services/dashboardservice/dashboard.service';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { NgApexchartsModule, ApexOptions, ApexYAxis, ApexMarkers, ApexStroke, ApexXAxis, ApexChart, ApexAxisChartSeries } from 'ng-apexcharts';
+import {
+  NgApexchartsModule,
+  ApexOptions,
+  ApexYAxis,
+  ApexMarkers,
+  ApexStroke,
+  ApexXAxis,
+  ApexChart,
+  ApexAxisChartSeries,
+} from 'ng-apexcharts';
 import { DashboardService } from '../../services/dashboardservice/dashboard.service';
 import { ScanService, Scan } from '../../services/scanservice/scan.service';
-import { UserService, ChangePasswordData } from '../../services/userservice/user.service';
+import {
+  UserService,
+  ChangePasswordData,
+} from '../../services/userservice/user.service';
 import { forkJoin, scan } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
-import { NotificationService, Notification } from '../../services/notiservice/notification.service';
+import { NotificationService } from '../../services/notiservice/notification.service';
+import { Notification } from '../../interface/notification_interface';
 import { ScanResponseDTO } from '../../interface/scan_interface';
 import { SharedDataService } from '../../services/shared-data/shared-data.service';
 import { LoginUser, UserInfo } from '../../interface/user_interface';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
-import { Repository, RepositoryService } from '../../services/reposervice/repository.service';
+import { WebSocketService } from '../../services/websocket/websocket.service';
+import {
+  Repository,
+  RepositoryService,
+} from '../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../interface/issues_interface';
 import Swal from 'sweetalert2';
-interface TopIssue {
-  message: string;
-  count: number;
-}
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import {
+  TopIssue,
+  Condition,
+  Issue,
+  SecurityHotspot,
+  ScanHistory,
+  DashboardData,
+  NotificationTab,
+  UserProfile
+} from '../../interface/dashboard_interface';
+import {
+  getTimeAgo,
+  formatISODate,
+  getGradeColor,
+  isValidGrade,
+  notEmpty
+} from '../../utils/format.utils';
+import {
+  getPasswordRules,
+  isPasswordValid,
+  isPasswordMismatch,
+  getPasswordError
+} from '../../utils/password-validator.utils';
+import {
+  buildQualityGatePieChart,
+  buildCoverageTrendChart,
+  generateLast30DaysLabels
+} from '../../utils/chart.utils';
 
-interface Condition {
-  metric: string;
-  status: 'OK' | 'ERROR';
-  actual: number;
-  threshold: number;
-}
-
-interface Issue {
-  id: number;
-  type: string;
-  severity: 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR';
-  message: string;
-  project: string;
-}
-
-interface SecurityHotspot {
-  id: number;
-  status: 'REVIEWED' | 'TO_REVIEW';
-  description: string;
-  project: string;
-}
-
-interface ScanHistory {
-  scanId: string;
-  projectId: string;
-  project: string;
-  typeproject: 'Angular' | 'SpringBoot';
-  status: 'Passed' | 'Failed' | '';   // เผื่อว่าง
-  grade: string | null;
-  time: string;
-  maintainabilityGate: string | null;
-}
-
-interface DashboardData {
-  id: string;
-  name: string;
-  qualityGate: { status: 'OK' | 'ERROR'; conditions: Condition[]; };
-  metrics: {
-    bugs: number;
-    vulnerabilities: number;
-    codeSmells: number;
-    coverage: number;
-    duplications?: number;
-    technicalDebt?: string;
-  };
-  issues: Issue[];
-  securityHotspots: SecurityHotspot[];
-  history: ScanHistory[];
-  coverageHistory: number[];
-  maintainabilityGate: string;
-  days: number[];
-}
-
-type NotificationTab = 'All' | 'Unread' | 'Repo' | 'scan' | 'Export';
-
-
-
-interface UserProfile {
-  username: string;
-  email: string;
-  phoneNumber?: string;
-  status: string;
-}
 export type ChartOptions = {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
   stroke: ApexStroke;
   markers: ApexMarkers;
-  yaxis:  ApexYAxis;
+  yaxis: ApexYAxis;
   colors: string[];
 };
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent {
   constructor(
@@ -118,6 +97,8 @@ export class DashboardComponent {
     private readonly sharedData: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
     private readonly repoService: RepositoryService,
+    private readonly snack: MatSnackBar,
+    private readonly ws: WebSocketService,
   ) { }
 
   loading = true;
@@ -133,15 +114,16 @@ export class DashboardComponent {
       codeSmells: 0,
       coverage: 0,
       duplications: 0,
-      technicalDebt: '0'
+      technicalDebt: '0',
     },
     issues: [],
     securityHotspots: [],
     history: [],
     coverageHistory: [],
     maintainabilityGate: '',
-    days: []
+    days: [],
   };
+  isNewPasswordFocused = false;
 
   Data = { passedCount: 0, failedCount: 0 };
   pieChartOptions!: ApexOptions;
@@ -149,11 +131,9 @@ export class DashboardComponent {
   grade = '';
   gradePercent = 0;
 
-
   recentScans: Scan[] = [];
   topIssues: { message: string; count: number }[] = [];
   maxTop = 5;
-
 
   userProfile: UserInfo | null = null;
   user: any = {};
@@ -172,9 +152,11 @@ export class DashboardComponent {
   failedCount = 0;
   coverageChartSeries!: ApexAxisChartSeries;
   coverageChartOptions!: Partial<ChartOptions>;
-    repositories: Repository[] = [];
+  repositories: Repository[] = [];
   allIssues: IssuesResponseDTO[] = [];
-    filteredRepositories: Repository[] = [];
+  filteredRepositories: Repository[] = [];
+  latestScans = this.getLatestScanByProject();
+
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
   AllScan: ScanResponseDTO[] = [];
@@ -184,28 +166,62 @@ export class DashboardComponent {
       this.router.navigate(['/login']);
       return;
     }
-        if(!this.sharedData.hasScansHistoryCache){
-      console.log("@")
+    if (!this.sharedData.hasScansHistoryCache) {
+      console.log('@');
       this.loadDashboard();
     }
-      const user = this.tokenStorage.getLoginUser();
-        if (user) {
-          this.sharedData.LoginUserShared = user;
-        }
-      this.sharedData.scansHistory$.subscribe(data => { 
-      this.DashboardData = data || [];
+    const user = this.tokenStorage.getLoginUser();
+    if (user) {
+      this.sharedData.LoginUserShared = user;
+    }
+
+    if (user?.id) {
+      this.ws.connect(user.id);
+
+      // Subscribe to personal notifications
+      this.ws.subscribeNotifications().subscribe((noti) => {
+        console.log('Realtime notification:', noti);
+
+        const exists = this.notifications.some(n => n.id === noti.id);
+        if (exists) return;
+
+        this.notifications.unshift(noti as any);
+      });
+
+      // Subscribe to global notifications (broadcast for all users)
+      // These include: scan complete, quality gate failed, new critical issues
+      this.ws.subscribeGlobalNotifications().subscribe((noti) => {
+        console.log('Global broadcast notification:', noti);
+
+        // Avoid duplicates (in case user also gets personal notification)
+        const exists = this.notifications.some(n => n.id === noti.id);
+        if (exists) return;
+
+        this.notifications.unshift(noti as any);
+      });
+
+    }
+    this.sharedData.scansHistory$.subscribe((data) => {
+      // Sort data: Pending (null completedAt) or Newest first
+      this.DashboardData = (data || []).sort((a, b) => {
+        const timeA = a.completedAt ? new Date(a.completedAt).getTime() : Date.now();
+        const timeB = b.completedAt ? new Date(b.completedAt).getTime() : Date.now();
+        return timeB - timeA;
+      });
+
       this.countQualityGate();
-      this.buildPieChart();
+      this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
+      this.generateQualityGateNotifications(this.DashboardData);
     });
-    this.sharedData.LoginUser$.subscribe(data => {
+    this.sharedData.LoginUser$.subscribe((data) => {
       this.UserLogin = data;
       console.log('User Login in Dashboard:', this.UserLogin);
     });
 
-        // 1. Subscribe รับข้อมูลจาก SharedDataService
-    this.sharedData.repositories$.subscribe(repos => {
+    // 1. Subscribe รับข้อมูลจาก SharedDataService
+    this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
       this.calculateProjectDistribution();
@@ -217,18 +233,28 @@ export class DashboardComponent {
       this.loadRepositories();
     }
 
-    this.sharedData.AllIssues$.subscribe(data => { 
+    this.sharedData.AllIssues$.subscribe((data) => {
       const all = data ?? [];
 
-      this.allIssues = all.filter(issue => issue.severity == "CRITICAL");
+      // Filter for notification-worthy issues (exclude MINOR and INFO)
+      const notifiableIssues = all.filter((issue) =>
+        ['CRITICAL', 'BLOCKER', 'MAJOR'].includes(issue.severity)
+      );
 
+      this.allIssues = notifiableIssues.filter((issue) => issue.severity === 'CRITICAL');
+
+      // Generate notifications for filtered issues
+      this.generateIssueNotifications(notifiableIssues);
     });
-    if(!this.sharedData.hasIssuesCache){
-      console.log("No cache - load from server");
+    if (!this.sharedData.hasIssuesCache) {
+      console.log('No cache - load from server');
       this.loadIssues();
     }
+
+    // Load existing notifications from DB on page load
+    this.loadNotifications();
   }
-    loadRepositories() {
+  loadRepositories() {
     this.sharedData.setLoading(true);
 
     this.repoService.getAllRepo().subscribe({
@@ -241,73 +267,101 @@ export class DashboardComponent {
       error: (err) => {
         console.error('Failed to load repositories:', err);
         this.sharedData.setLoading(false);
-      }
+      },
     });
   }
   loadDashboard() {
-    this.dashboardService.getDashboard().subscribe({
+    this.scanService.getAllScan().subscribe({
       next: (res: any[]) => {
         this.sharedData.Scans = res ?? [];
         this.countQualityGate();
         this.buildPieChart();
         this.countBug();
         this.mockCoverageTrend();
-        console.log('Dashboard Data', this.DashboardData);
+        this.loadDashboardData();
+        console.log('Dashboard Data (All Scans)', this.DashboardData);
       },
       error: (err) => {
         console.error('โหลด ประวัติการสแกน ล้มเหลว', err);
-      }
+      },
     });
   }
   loadIssues() {
-
-  this.sharedData.setLoading(true);
-  this.issueService.getAllIssues().subscribe({
-    next: (data) => {
-      this.sharedData.IssuesShared = data;
-      this.sharedData.setLoading(false);
-      console.log('Issues loaded:', data);
-    },
-    error: () => this.sharedData.setLoading(false)
-  });
-}
+    this.sharedData.setLoading(true);
+    this.issueService.getAllIssues().subscribe({
+      next: (data) => {
+        this.sharedData.IssuesShared = data;
+        this.sharedData.setLoading(false);
+        console.log('Issues loaded:', data);
+      },
+      error: () => this.sharedData.setLoading(false),
+    });
+  }
   countQualityGate() {
-  const scans = this.DashboardData ?? [];
-  this.passedCount = scans.filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS').length;
-  this.failedCount  = scans.filter(s => (s?.status ?? '').toUpperCase() === 'FAILED').length;
-  console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
-}
+    const scans = this.getLatestScanByProject() ?? [];
+    console.log('Latest Scans for Quality Gate Count:', scans);
+    this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
+    // ถ้าไม่ใช่ OK ให้เป็น failed ทั้งหมด
+    this.failedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() !== 'OK').length;
+    console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
+  }
   countBug() {
-  const bugs = this.DashboardData ?? [];
-  this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0),0);
-  this.securityCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0),0);
-  this.codeSmellCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0),0);
-  this.coverRateCount  = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0),0);
-  console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount,'CodeSmells:', this.codeSmellCount,'Coverage:', this.coverRateCount);
-}
-private dateTH(iso: string): string {
-  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-  // ได้ YYYY-MM-DD
-}
+    const bugs = this.getLatestScanByProject() ?? [];
+    this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
+    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0), 0);
+    this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
+    this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
+    console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
+  }
 
-countQuality(date: string): number {
-  return (this.DashboardData ?? []).filter(s => {
-    if (!s?.completedAt) return false;
-    const scanDate = this.dateTH(s.completedAt); 
-        console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
-    return scanDate === date && s.qualityGate === 'OK';
+  // ใช้ formatISODate จาก utils แทน
+  private dateTH = formatISODate;
 
-  }).length;
-}
+  countQuality(date: string): number {
+    return (this.DashboardData ?? []).filter(s => {
+      if (!s?.completedAt) return false;
+      const scanDate = formatISODate(s.completedAt);
+      console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
+      console.log('latestScans', this.getLatestScanByProject());
+      return scanDate === date && s.qualityGate === 'OK';
 
-buildPieChart() {
-  this.pieChartOptions = {
-    series: [this.passedCount, this.failedCount],
-    labels: ['Success', 'Failed'],
-    chart: { type: 'pie' },
-    legend: { position: 'bottom' }
-  };
-}
+    }).length;
+
+  }
+  getLatestScanByProject(): any[] {
+    const rows = (this.DashboardData ?? [])
+      .filter((s): s is any => typeof s?.completedAt === 'string')
+      .filter(s => !!(s?.project?.id));
+
+    const latestByProject = new Map<string, any>();
+
+    for (const s of rows) {
+      const projectId = s.project?.id ?? s.projectId;
+
+      const prev = latestByProject.get(projectId);
+      if (!prev) {
+        latestByProject.set(projectId, s);
+        continue;
+      }
+
+      const prevTime = new Date(prev.completedAt).getTime();
+      const curTime = new Date(s.completedAt).getTime();
+
+      if (curTime > prevTime) {
+        latestByProject.set(projectId, s);
+      }
+    }
+    console.log('Latest by Project:', Array.from(latestByProject.values()));
+    return Array.from(latestByProject.values());
+  }
+
+
+
+
+  // ใช้ chart utils สำหรับ Pie Chart
+  buildPieChart() {
+    this.pieChartOptions = buildQualityGatePieChart(this.passedCount, this.failedCount);
+  }
   // ================== FETCH FROM SERVER ==================
   fetchFromServer(userId: string | number) {
     this.loading = true;
@@ -317,21 +371,21 @@ buildPieChart() {
       history: this.dash.getHistory(userId),
       trends: this.dash.getTrendsWithAvg(userId),
       scans: this.scanService.getAllScan(),
-      issues: this.issueService.getAllIssue(String(userId))   // ✅ เพิ่ม
+      issues: this.issueService.getAllIssue(String(userId)), // ✅ เพิ่ม
     }).subscribe({
       next: ({ overview, history, trends, scans, issues }) => {
         // 1) metrics จาก overview
         const metrics = this.dash.getMetricsSummary(overview);
         this.dashboardData.metrics = {
           ...metrics,
-          technicalDebt: this.dashboardData.metrics.technicalDebt ?? '0'
+          technicalDebt: this.dashboardData.metrics.technicalDebt ?? '0',
         };
         console.log('[overview] metrics summary:', metrics);
 
-        // 2) history -> map
+        // 2. history -> map
         this.dashboardData.history = this.dash.mapHistory(history);
 
-        // 3) avg grade จาก trends
+        // 3. avg grade จาก trends
         if (trends?.length && this.isValidGateLetter(trends[0].avgGrade)) {
           this.avgGateLetter = trends[0].avgGrade.toUpperCase() as any;
           console.log('[trends] avgGrade from API =', trends[0].avgGrade);
@@ -346,27 +400,44 @@ buildPieChart() {
           }, new Map<string, any>());
           const rows = Array.from(latestMap.values());
 
-          const scoreMap: Record<'A' | 'B' | 'C' | 'D' | 'E', number> = { A: 5, B: 4, C: 3, D: 2, E: 1 };
-          const score = (g: string) => scoreMap[(g || 'E').toUpperCase() as keyof typeof scoreMap] || 1;
+          const scoreMap: Record<'A' | 'B' | 'C' | 'D' | 'E', number> = {
+            A: 5,
+            B: 4,
+            C: 3,
+            D: 2,
+            E: 1,
+          };
+          const score = (g: string) =>
+            scoreMap[(g || 'E').toUpperCase() as keyof typeof scoreMap] || 1;
 
           const grades = rows
-            .map(r => (r.grade || 'E').toUpperCase())
-            .filter(g => this.isValidGateLetter(g));
+            .map((r) => (r.grade || 'E').toUpperCase())
+            .filter((g) => this.isValidGateLetter(g));
 
           const avgScore = grades.length
             ? grades.map(score).reduce((a, b) => a + b, 0) / grades.length
             : 1;
 
-          const revMap: Record<1 | 2 | 3 | 4 | 5, 'A' | 'B' | 'C' | 'D' | 'E'> = {
-            1: 'E', 2: 'D', 3: 'C', 4: 'B', 5: 'A'
+          const revMap: Record<1 | 2 | 3 | 4 | 5, 'A' | 'B' | 'C' | 'D' | 'E'> =
+          {
+            1: 'E',
+            2: 'D',
+            3: 'C',
+            4: 'B',
+            5: 'A',
           };
 
-          const rounded = Math.max(1, Math.min(5, Math.round(avgScore))) as 1 | 2 | 3 | 4 | 5;
+          const rounded = Math.max(1, Math.min(5, Math.round(avgScore))) as
+            | 1
+            | 2
+            | 3
+            | 4
+            | 5;
           this.avgGateLetter = revMap[rounded];
           console.log('[fallback] avgGateLetter =', this.avgGateLetter);
         }
 
-        // 4) recent scans (เอา 5 อันล่าสุด)
+        // 4. recent scans (เอา 5 อันล่าสุด)
         this.recentScans = scans
           .sort((a, b) => {
             const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
@@ -375,19 +446,28 @@ buildPieChart() {
           })
           .slice(0, 5);
 
-        // 5) นับ passed / failed จาก history
+        // 5. นับ passed / failed จาก history
         this.recomputeStatusCountsFromHistory();
 
-        // 6) สรุป project distribution
+        // 6. สรุป project distribution
         this.calculateProjectDistribution();
 
-        // 7) คำนวณ donut / เกรด
+        // 7. คำนวณ donut / เกรด
         this.loadDashboardData();
 
-        // 8) ✅ ตรงนี้คือของใหม่: คำนวณ Top Issues จากรายการ issues ที่ดึงมา
-        this.buildTopIssues(issues);
+        // 8. ตรงนี้คือของใหม่: คำนวณ Top Issues จากรายการ issues ที่ดึงมา
+        // Filter out issues from deleted projects (which are not in history)
+        const activeProjectIds = new Set(this.dashboardData.history.map(h => h.projectId));
+        const activeIssues = (issues || []).filter(issue => activeProjectIds.has(issue.projectId));
 
-        console.log('[donut] pass/fail ->', this.Data, 'totalProjects =', this.totalProjects);
+        this.buildTopIssues(activeIssues);
+
+        console.log(
+          '[donut] pass/fail ->',
+          this.Data,
+          'totalProjects =',
+          this.totalProjects,
+        );
         console.log('[donut] center =', this.avgGateLetter);
 
         this.loading = false;
@@ -395,9 +475,8 @@ buildPieChart() {
       error: (err) => {
         console.error('Error fetching dashboard data:', err);
         this.loading = false;
-      }
+      },
     });
-
   }
 
   private buildTopIssuesFromDashboard() {
@@ -442,7 +521,7 @@ buildPieChart() {
 
     this.topIssues = Object.entries(counter)
       .map(([message, count]) => ({ message, count }))
-      .sort((a, b) => b.count - a.count)  // มาก -> น้อย
+      .sort((a, b) => b.count - a.count) // มาก -> น้อย
       .slice(0, this.maxTop);
   }
 
@@ -455,7 +534,7 @@ buildPieChart() {
   passwordData: ChangePasswordData = {
     oldPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   };
   submitted = false;
 
@@ -469,35 +548,91 @@ buildPieChart() {
   }
 
   resetForm() {
-    this.passwordData = { oldPassword: '', newPassword: '', confirmPassword: '' };
+    this.passwordData = {
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    };
   }
 
-submitChangePassword(form: any) {
-  this.submitted = true;
-  if (form.invalid || this.passwordData.newPassword !== this.passwordData.confirmPassword) return;
+  // ==== NEW PASSWORD VALIDATION (ใช้ utils) ====
+  get newPasswordRules() {
+    return getPasswordRules(this.passwordData?.newPassword || '');
+  }
 
-  this.userService.changePassword(this.passwordData).subscribe({
-    next: () => {
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: 'Password changed successfully',
-        confirmButtonColor: '#3085d6',
-      }).then(() => {
-        this.closeChangePasswordModal();
-      });
-    },
-    error: (err) => {
+  get newPasswordValid() {
+    return isPasswordValid(this.passwordData?.newPassword || '');
+  }
+
+  get newPasswordsMismatch() {
+    return isPasswordMismatch(
+      this.passwordData?.newPassword || '',
+      this.passwordData?.confirmPassword || ''
+    );
+  }
+
+  get newPasswordError() {
+    return getPasswordError(this.passwordData?.newPassword || '');
+  }
+
+  submitChangePassword(form: any) {
+    this.submitted = true;
+
+    if (form.invalid || this.newPasswordsMismatch || !this.newPasswordValid) {
       Swal.fire({
         icon: 'error',
-        title: 'Failed',
-        text: err.error?.message || err.message || 'Failed to change password',
+        title: 'Invalid password',
+        text: 'Please meet all password requirements.',
         confirmButtonColor: '#d33',
       });
+      return;
     }
-  });
-}
 
+    this.userService.changePassword(this.passwordData).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Password changed successfully',
+          confirmButtonColor: '#3085d6',
+        }).then(() => {
+          this.closeChangePasswordModal();
+        });
+      },
+      error: (err) => {
+        const backendMsg = (() => {
+          // 1) ถ้า backend ส่งเป็น object
+          if (
+            err?.error &&
+            typeof err.error === 'object' &&
+            err.error.message
+          ) {
+            return err.error.message;
+          }
+
+          // 2) ถ้าส่งเป็น string (เช่น JSON string)
+          if (typeof err?.error === 'string') {
+            try {
+              const parsed = JSON.parse(err.error);
+              if (parsed?.message) return parsed.message;
+            } catch (_) { }
+            // ถ้าไม่ใช่ JSON ก็ใช้ string ตรงๆ
+            return err.error;
+          }
+
+          // 3) fallback
+          return err?.message || 'Failed to change password';
+        })();
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: backendMsg,
+          confirmButtonColor: '#d33',
+        });
+      },
+    });
+  }
 
   // verifyEmail() {
   //   this.userService.verifyEmail(this.userProfile.email).subscribe({
@@ -515,34 +650,18 @@ submitChangePassword(form: any) {
   activeTab: NotificationTab = 'All';
   displayCount = 5;
   loadNotifications() {
-    this.notificationService.getAllNotification().subscribe({
+    this.notificationService.getAllNotifications().subscribe({
       next: (data) => {
-        // แปลง createdAt เป็น Date object
-        this.notifications = data.map(n => ({
-          ...n,
-          timestamp: new Date(n.createdAt) // ใช้ field timestamp ใน template
-        }));
+        this.notifications = data;
       },
       error: (err) => {
         console.error('Error loading notifications:', err);
-      }
+      },
     });
   }
 
-
-  getTimeAgo(value: Date | string | number): string {
-    const t = value instanceof Date ? value.getTime() : new Date(value).getTime();
-    if (Number.isNaN(t)) return 'Just now';
-    let diffSec = Math.floor((Date.now() - t) / 1000);
-    if (diffSec < 0) diffSec = 0;
-    const m = Math.floor(diffSec / 60),
-      h = Math.floor(diffSec / 3600),
-      d = Math.floor(diffSec / 86400);
-    if (m < 1) return 'Just now';
-    if (m < 60) return `${m}m ago`;
-    if (h < 24) return `${h}h ago`;
-    return `${d}d ago`;
-  }
+  // ใช้ getTimeAgo จาก utils (export เพื่อใช้ใน template)
+  getTimeAgo = getTimeAgo;
 
   toggleNotifications() {
     this.showNotifications = !this.showNotifications;
@@ -552,9 +671,14 @@ submitChangePassword(form: any) {
     this.showNotifications = false;
   }
 
-  // markAllRead() {
-  //   this.notifications.forEach((n) => (n.read = true));
-  // }
+  markAllRead() {
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach((n) => ((n as any).isRead = true));
+      },
+      error: (err) => console.error('Failed to mark all as read:', err)
+    });
+  }
 
   selectTab(tab: NotificationTab) {
     this.activeTab = tab;
@@ -562,31 +686,150 @@ submitChangePassword(form: any) {
   }
 
   viewNotification(n: Notification) {
-    this.notificationService.checkNotification(n.notiId).subscribe({
-      next: (res) => {
-        n.read = true; // อัปเดตสถานะใน frontend หลังจาก backend ตอบกลับสำเร็จ
-        console.log('Notification marked as read:', res);
+    // อัปเดต UI ก่อนทันที (ไม่ต้องรอ API)
+    (n as any).isRead = true;
+
+    // เรียก API แบบ fire-and-forget
+    this.notificationService.markAsRead(n.id).subscribe({
+      next: () => {
+        console.log('Notification marked as read');
       },
       error: (err) => {
         console.error('Failed to mark as read:', err);
-      }
+        // ไม่ต้อง revert เพราะ navigation ทำไปแล้ว
+      },
     });
   }
 
+  /**
+   * Handle View Issue click - validate issue exists before navigating
+   */
+  handleViewIssue(n: Notification) {
+    // Mark notification as read first
+    this.viewNotification(n);
+
+    // Check if issue exists
+    if (!n.relatedIssueId) {
+      this.snack.open('Can not open issue', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Validate issue existence via API
+    this.issueService.getAllIssuesById(n.relatedIssueId).subscribe({
+      next: (issue) => {
+        if (issue) {
+          // Issue exists - navigate to issue detail
+          this.router.navigate(['/issuedetail', n.relatedIssueId]);
+        } else {
+          // Issue data is empty
+          this.snack.open('Can not open issue', '', {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red']
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to fetch issue:', err);
+        // Issue not found or error occurred
+        this.snack.open('Can not open issue', '', {
+          duration: 2500,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      },
+    });
+  }
+
+  /**
+   * Handle View Scan click - navigate to scan results
+   */
+  handleViewScan(n: Notification) {
+    this.viewNotification(n);
+
+    if (!n.relatedScanId) {
+      this.snack.open('Can not open scan results', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+      return;
+    }
+
+    // Navigate to scan result page
+    this.router.navigate(['/scanresult', n.relatedScanId]);
+  }
+
+  /**
+   * Handle View System notification - navigate based on context
+   */
+  handleViewSystem(n: Notification) {
+    this.viewNotification(n);
+
+    // Report generation notification - navigate to report history
+    if (n.title?.includes('Generate') || n.title?.includes('Report')) {
+      this.router.navigate(['/reporthistory']);
+      return;
+    }
+
+    // Quality Gate Failed notification - navigate to detail repo
+    if (n.title?.includes('Quality Gate')) {
+      if (n.relatedProjectId && n.relatedScanId) {
+        this.router.navigate(['/detailrepo', n.relatedProjectId, n.relatedScanId]);
+      } else {
+        this.snack.open('Cannot open project details', '', {
+          duration: 2500,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      }
+      return;
+    }
+
+    // Navigate based on what's related
+    if (n.relatedCommentId && n.relatedIssueId) {
+      // Comment notification - go to issue detail
+      this.router.navigate(['/issuedetail', n.relatedIssueId]);
+    } else if (n.relatedScanId) {
+      // Quality Gate notification - go to scan result
+      this.router.navigate(['/scanresult', n.relatedScanId]);
+    } else if (n.relatedProjectId) {
+      // Project related - go to repository detail
+      this.router.navigate(['/detailrepository', n.relatedProjectId]);
+    } else {
+      this.snack.open('No details available', '', {
+        duration: 2500,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red']
+      });
+    }
+  }
 
   get filteredNotifications() {
     let filtered = this.notifications;
     if (this.activeTab === 'Unread') {
-      filtered = filtered.filter((n) => !n.read);
+      filtered = filtered.filter((n) => !n.isRead);
     } else if (this.activeTab !== 'All') {
-      filtered = filtered.filter((n) => n.typeNoti === this.activeTab);
+      filtered = filtered.filter((n) => n.type === this.activeTab);
     }
-    filtered = filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    filtered = filtered.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
     return filtered.slice(0, this.displayCount);
   }
 
   get unreadCount() {
-    return this.notifications.filter((n) => !n.read).length;
+    return this.notifications.filter((n) => !n.isRead).length;
   }
 
   loadMore() {
@@ -595,8 +838,26 @@ submitChangePassword(form: any) {
 
   get totalFilteredCount() {
     if (this.activeTab === 'All') return this.notifications.length;
-    if (this.activeTab === 'Unread') return this.notifications.filter((n) => !n.read).length;
-    return this.notifications.filter((n) => n.typeNoti === this.activeTab).length;
+    if (this.activeTab === 'Unread')
+      return this.notifications.filter((n) => !n.isRead).length;
+    return this.notifications.filter((n) => n.type === this.activeTab)
+      .length;
+  }
+
+  /**
+   * Generate issue notifications (ใช้ NotificationService)
+   */
+  generateIssueNotifications(issues: IssuesResponseDTO[]): void {
+    this.notificationService.generateIssueNotifications(issues);
+    // Refresh notification list after generating
+    setTimeout(() => this.loadNotifications(), 1000);
+  }
+
+  /**
+   * Generate quality gate notifications (ใช้ NotificationService)
+   */
+  generateQualityGateNotifications(scans: ScanResponseDTO[]): void {
+    this.notificationService.generateQualityGateNotifications(scans);
   }
 
   // ================== PROJECT DISTRIBUTION ==================
@@ -606,20 +867,22 @@ submitChangePassword(form: any) {
     const typeCounts: Record<string, number> = {};
     const total = this.repositories.length || 1;
     this.repositories.forEach((h) => {
-      typeCounts[h.projectType??'Unknown'] = (typeCounts[h.projectType??'Unknown'] || 0) + 1;
+      typeCounts[h.projectType ?? 'Unknown'] =
+        (typeCounts[h.projectType ?? 'Unknown'] || 0) + 1;
     });
-    this.projectDistribution = Object.entries(typeCounts).map(([type, count]) => ({
-      type,
-      count,
-      percent: Math.round((count / total) * 100)
-    }));
+    this.projectDistribution = Object.entries(typeCounts).map(
+      ([type, count]) => ({
+        type,
+        count,
+        percent: Math.round((count / total) * 100),
+      }),
+    );
   }
 
   // ================== ช่วยนับ passed / failed ==================
   /** ✅ แก้ตรงนี้ให้ normalize แล้ว */
   private recomputeStatusCountsFromHistory() {
     const norm = (s?: string) => (s || '').trim().toUpperCase();
-
 
     const passed = this.dashboardData.history.filter((h) => {
       const st = norm(h.status);
@@ -630,7 +893,6 @@ submitChangePassword(form: any) {
       const st = norm(h.status);
       return ['FAILED', 'ERROR', 'FAIL', 'FAILURE'].includes(st);
     }).length;
-
 
     this.Data = { passedCount: passed, failedCount: failed };
     this.totalProjects = passed + failed;
@@ -649,28 +911,14 @@ submitChangePassword(form: any) {
     return Array.from(map.values());
   }
 
-  private notEmpty(v: unknown): boolean {
-    return v !== null && v !== undefined && String(v).trim() !== '';
-  }
-
-  private isValidGateLetter(v?: string): boolean {
-    return /^[A-E]$/i.test((v || '').trim());
-  }
-
-  private getGradeColor(grade: string): string {
-    switch (grade?.toUpperCase()) {
-      case 'A': return '#10B981';      // เขียว
-      case 'B': return '#84CC16';
-      case 'C': return '#F59E0B';
-      case 'D': return '#FB923C';
-      case 'E': return '#EF4444';
-      default: return '#6B7280';      // เทา
-    }
-  }
+  // ใช้ utility functions จาก format.utils.ts
+  private notEmpty = notEmpty;
+  private isValidGateLetter = isValidGrade;  // isValidGrade ใน utils เหมือนกันกับ isValidGateLetter
+  private getGradeColor = getGradeColor;
 
   // ================== โหลดข้อมูลสำหรับโดนัทและการ์ด ==================
   loadDashboardData() {
-    const latest = this.getLatestPerProject(this.dashboardData.history);
+    const latest = this.getLatestScanByProject();
     const norm = (s?: string) => (s || '').trim().toUpperCase();
     const validLatest = latest.filter((s) => this.notEmpty(s.status));
 
@@ -685,7 +933,7 @@ submitChangePassword(form: any) {
       const st = norm(s.status);
       return !(st === 'PASSED' || st === 'OK' || st === 'SUCCESS');
     }).length;
-
+    console.log('Passed Count:', passedCount, 'Failed Count:', failedCount);
     // ใช้เฉพาะที่จบแล้ว (pass+fail) มาหาร
     const finishedTotal = passedCount + failedCount;
 
@@ -695,12 +943,17 @@ submitChangePassword(form: any) {
     const ratio = finishedTotal > 0 ? passedCount / finishedTotal : 0;
 
     this.grade =
-      ratio >= 0.8 ? 'A' :
-        ratio >= 0.7 ? 'B' :
-          ratio >= 0.6 ? 'C' :
-            ratio >= 0.5 ? 'D' :
-              ratio >= 0.4 ? 'E' :
-                'F';
+      ratio >= 0.8
+        ? 'A'
+        : ratio >= 0.7
+          ? 'B'
+          : ratio >= 0.6
+            ? 'C'
+            : ratio >= 0.5
+              ? 'D'
+              : ratio >= 0.4
+                ? 'E'
+                : 'F';
 
     this.gradePercent = Math.round(ratio * 100);
 
@@ -708,14 +961,40 @@ submitChangePassword(form: any) {
     if (this.isValidGateLetter(this.avgGateLetter)) {
       centerLetter = this.avgGateLetter;
     } else {
-      centerLetter = (this.grade === 'F' ? 'E' : this.grade) as 'A' | 'B' | 'C' | 'D' | 'E';
+      centerLetter = (this.grade === 'F' ? 'E' : this.grade) as
+        | 'A'
+        | 'B'
+        | 'C'
+        | 'D'
+        | 'E';
     }
+
+    // ถ้าไม่มีข้อมูล ให้แสดง E สีเทา
+    const hasData = this.totalProjects > 0;
+    const displayGrade = hasData ? this.grade : 'E';
+    const displayPercent = hasData ? this.gradePercent : 0;
+    const successColor = hasData ? this.getGradeColor(centerLetter) : this.getGradeColor(centerLetter); // grey-400
+    const failedColor = hasData ? '#EF4444' : '#E5E7EB'; // grey-200 when no data
 
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
-      series: [this.gradePercent, 100 - this.gradePercent],
-      labels: ['', ''],
-      colors: [this.getGradeColor(centerLetter), '#E5E7EB'],
+      series: hasData ? [displayPercent, 100 - displayPercent] : [0, 100],
+      labels: ['SUCCESS', 'FAILED'],
+      colors: [successColor, failedColor],
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+            value: 0.15
+          }
+        },
+        active: {
+          filter: {
+            type: 'darken',
+            value: 0.2
+          }
+        }
+      },
       plotOptions: {
         pie: {
           donut: {
@@ -725,49 +1004,73 @@ submitChangePassword(form: any) {
               name: { show: false },
               value: {
                 show: true,
-                // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => centerLetter,
+                formatter: () => displayGrade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
               },
               total: {
                 show: true,
-                // ใช้ formatter แทน label ตรง ๆ
-                formatter: () => centerLetter,
+                formatter: () => displayGrade,
                 fontSize: '50px',
                 fontWeight: 700,
                 color: 'var(--text-main)',
-              }
-            }
-          }
+              },
+            },
+          },
+        },
+      },
+      dataLabels: { enabled: true },
+      legend: {
+        show: true,
+        markers: {
+          fillColors: [this.getGradeColor(centerLetter), '#EF4444']
         }
       },
-      dataLabels: { enabled: false },
-
-      legend: { show: false },
-      tooltip: { enabled: false },
+      tooltip: {
+        enabled: true,
+        y: {
+          formatter: (val: number) => `${Math.round(val)}%`
+        }
+      },
     };
   }
 
-
   // ================== EXPORT PDF ==================
   onExport() {
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
     const margin = 12;
     let y = 15;
 
     pdf.setFontSize(20);
     pdf.setTextColor(33, 37, 41);
-    pdf.text('Dashboard Overview Report', pdf.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+    pdf.text(
+      'Dashboard Overview Report',
+      pdf.internal.pageSize.getWidth() / 2,
+      y,
+      { align: 'center' },
+    );
     y += 12;
 
     const today = new Date();
     const username = this.UserLogin?.username || 'Unknown User';
     pdf.setFontSize(11);
     pdf.setTextColor(85, 85, 85);
-    pdf.text(`Date: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`, margin, y);
-    pdf.text(`Username: ${username}`, pdf.internal.pageSize.getWidth() - margin, y, { align: 'right' });
+    pdf.text(
+      `Date: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`,
+      margin,
+      y,
+    );
+    pdf.text(
+      `Username: ${username}`,
+      pdf.internal.pageSize.getWidth() - margin,
+      y,
+      { align: 'right' },
+    );
     y += 10;
 
     pdf.setDrawColor(180);
@@ -797,7 +1100,7 @@ submitChangePassword(form: any) {
     const scansRows = this.DashboardData.map((s) => [
       s.project.name || 'N/A',
       s.status || 'N/A',
-      new Date(s.completedAt ?? '').toLocaleString()
+      new Date(s.completedAt ?? '').toLocaleString(),
     ]);
 
     (autoTable as any)(pdf, {
@@ -806,9 +1109,13 @@ submitChangePassword(form: any) {
       startY: y,
       theme: 'grid',
       styles: { fontSize: 10, cellPadding: 2 },
-      headStyles: { fillColor: [0, 123, 255], textColor: 255, halign: 'center' },
+      headStyles: {
+        fillColor: [0, 123, 255],
+        textColor: 255,
+        halign: 'center',
+      },
       bodyStyles: { textColor: 50 },
-      margin: { left: margin, right: margin }
+      margin: { left: margin, right: margin },
     });
 
     y = (pdf as any).lastAutoTable?.finalY + 8;
@@ -839,7 +1146,11 @@ submitChangePassword(form: any) {
     pdf.setTextColor(0);
     if (this.dashboardData.issues?.length > 0) {
       this.dashboardData.issues.forEach((i) => {
-        pdf.text(`- [${i.severity || 'N/A'}] ${i.type || 'Unknown'}: ${i.message || ''}`, margin, y);
+        pdf.text(
+          `- [${i.severity || 'N/A'}] ${i.type || 'Unknown'}: ${i.message || ''}`,
+          margin,
+          y,
+        );
         y += 5;
       });
     } else {
@@ -870,10 +1181,12 @@ submitChangePassword(form: any) {
       'Generated automatically by PCCTH Automate Code Review',
       pdf.internal.pageSize.getWidth() / 2,
       pageHeight - 10,
-      { align: 'center' }
+      { align: 'center' },
     );
 
-    const fileName = `Dashboard_Report_${today.getFullYear()}${(today.getMonth() + 1)
+    const fileName = `Dashboard_Report_${today.getFullYear()}${(
+      today.getMonth() + 1
+    )
       .toString()
       .padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}.pdf`;
     pdf.save(fileName);
@@ -884,67 +1197,60 @@ submitChangePassword(form: any) {
     // TODO: Get userId from token when available
     this.fetchFromServer('');
   }
+  sendVerifyEmail() {
+    const userId = (this.UserLogin as any)?.id; // ถ้า type LoginUser ยังไม่มี id
+    if (!userId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing userId',
+        text: 'Cannot send verification email (userId not found).',
+        confirmButtonColor: '#d33',
+      });
+      return;
+    }
 
-  viewDetail(scan : ScanResponseDTO) {
-    this.sharedData.ScansDetail = scan;     
+    this.userService.sendVerifyEmail(userId).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sent',
+          text: 'Verification email has been sent. Please check your inbox.',
+          confirmButtonColor: '#3085d6',
+        });
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.error ||
+          err?.message ||
+          'Failed to send verification email';
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: msg,
+          confirmButtonColor: '#d33',
+        });
+      },
+    });
+  }
+
+  viewDetail(scan: ScanResponseDTO) {
+    this.sharedData.ScansDetail = scan;
     this.router.navigate(['/scanresult', scan.id]);
   }
-   mockCoverageTrend() {
-    // mock วันที่ย้อนหลัง 30 วัน
-    const dates: string[] = [];
-    const coverageValues: number[] = [];
 
+  // ใช้ chart utils สำหรับ Coverage Trend
+  mockCoverageTrend() {
+    const { dates, dateKeys } = generateLast30DaysLabels();
+    const coverageValues = dateKeys.map(dateKey => this.countQuality(dateKey));
 
-for (let i = 29; i >= 0; i--) {
-  const d = new Date();
-  d.setDate(d.getDate() - i);
-
-  const dateKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
-
-
-  const label = d.toLocaleDateString('th-TH', {
-    day: '2-digit',
-    month: '2-digit',
-  });
-
-  dates.push(label);
-
-
-  coverageValues.push(
-    this.countQuality(dateKey)
-  );
-}
-    const maxY = Math.max(1,...coverageValues);
-    this.coverageChartSeries = [
-      {
-        name: 'Quality Grade',
-        data: coverageValues
-      }
-    ];
-
-    this.coverageChartOptions = {
-      chart: {
-        type: 'line',
-        height: 300,
-        toolbar: { show: false }
-      },
-      xaxis: {
-        categories: dates
-      },
-      yaxis: {
-        min: 0,
-         max: maxY,
-        title: { text: 'Quality Grade' }
-      },
-      stroke: {
-        curve: 'smooth',
-        width: 3
-      },
-      markers: {
-        size: 4
-      },
-      colors: ['#0d6efd'] // bootstrap primary
-    };
+    const chartConfig = buildCoverageTrendChart(dates, coverageValues);
+    this.coverageChartSeries = chartConfig.series as any;
+    this.coverageChartOptions = chartConfig.options as any;
   }
-}
 
+  // ngOnDestroy() {
+  //   this.ws.disconnect();
+  // }
+}

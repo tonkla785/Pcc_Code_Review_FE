@@ -46,9 +46,9 @@ export class AssignmentComponent implements OnInit {
   showStatus = false; // สำหรับ modal status
   currentIssue: AssignHistory | null = null; // แทน issue สำหรับ modal
   remark = '';
-  issues:Issue [] = [];
+  issues: Issue[] = [];
   issuesAll: IssuesResponseDTO[] = [];
-  originalData: IssuesResponseDTO[] = []; 
+  originalData: IssuesResponseDTO[] = [];
   constructor(
     private readonly router: Router,
     private readonly assignService: AssignhistoryService,
@@ -60,30 +60,30 @@ export class AssignmentComponent implements OnInit {
 
 
   ngOnInit(): void {
-    this.sharedData.AllIssues$.subscribe(data => { 
+    this.sharedData.AllIssues$.subscribe(data => {
       const all = data ?? [];
       this.originalData = all.filter(issue => issue.assignedTo !== null);
-       this.issuesAll = [...this.originalData];
-       console.log('Issues loaded Assignment from sharedData:', this.issuesAll);
+      this.issuesAll = [...this.originalData];
+      console.log('Issues loaded Assignment from sharedData:', this.issuesAll);
     });
-    if(!this.sharedData.hasIssuesCache){
+    if (!this.sharedData.hasIssuesCache) {
       console.log("No cache - load from server");
       this.loadIssues();
     }
 
   }
 
-loadIssues() {
-  this.sharedData.setLoading(true);
-  this.issuesService.getAllIssues().subscribe({
-    next: (data) => {
-      this.sharedData.IssuesShared = data;
-      this.sharedData.setLoading(false);
-      console.log('Issues loaded:', this.sharedData.IssuesShared);
-    },
-    error: () => this.sharedData.setLoading(false)
-  });
-}
+  loadIssues() {
+    this.sharedData.setLoading(true);
+    this.issuesService.getAllIssues().subscribe({
+      next: (data) => {
+        this.sharedData.IssuesShared = data;
+        this.sharedData.setLoading(false);
+        console.log('Issues loaded:', this.sharedData.IssuesShared);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
 
   // ฟังก์ชันโหลดข้อมูล assignment ทั้งหมด
   loadAssignments() {
@@ -116,9 +116,9 @@ loadIssues() {
   //   this.assignModal.openAddAssign();
   // }
 
-  updateStatus(assign: AssignHistory, status: string) {
-    this.assignModal.openStatus(assign, status);
-  }
+  // updateStatus(assign: AssignHistory, status: string) {
+  //   this.assignModal.openStatus(assign, status);
+  // }
 
   // ส่ง assignment ไป backend
   handleAssignSubmit(data: { issue: Partial<Issue>, isEdit: boolean }) {
@@ -196,19 +196,29 @@ loadIssues() {
   statusClass(status: string) {
     if (!status) return '';
 
-    switch (status.toLowerCase()) {
-      case 'open':
-        return 'status-open';
-      case 'in progress':
-      case 'in-progress':
-        return 'status-in-progress';
-      case 'done':
-        return 'status-done';
-      case 'reject':
-        return 'status-reject';
-      default:
-        return 'status-unknown';
-    }
+    const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+
+    // Check various formats
+    if (normalized === 'open') return 'status-open';
+    if (normalized === 'in progress' || normalized === 'inprogress') return 'status-in-progress';
+    if (normalized === 'resolved' || normalized === 'done') return 'status-done';
+    if (normalized === 'closed') return 'status-reject';
+
+    return 'status-unknown';
+  }
+
+  formatStatus(status: string): string {
+    if (!status) return '';
+
+    // Normalize string: remove underscores, double spaces
+    const clean = status.replace(/_/g, ' ').toUpperCase();
+
+    if (clean === 'IN PROGRESS' || clean === 'INPROGRESS') return 'In Progress';
+    if (clean === 'OPEN') return 'Open';
+    if (clean === 'RESOLVED' || clean === 'DONE') return 'Resolved';
+    if (clean === 'CLOSED') return 'Closed';
+
+    return status;
   }
 }
 

@@ -8,15 +8,17 @@ import { filter, map } from 'rxjs/operators';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { RepositoryService } from '../../../services/reposervice/repository.service';
 import { AssignhistoryService } from '../../../services/assignservice/assignhistory.service';
-import { LoginUser, UserInfo} from '../../../interface/user_interface';
+import { LoginUser, UserInfo } from '../../../interface/user_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 import { UserService } from '../../../services/userservice/user.service';
+import { WebSocketService } from '../../../services/websocket/websocket.service';
+import { Subscription } from 'rxjs';
 /** === เพิ่มสำหรับคอมเมนต์ === */
 import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../../services/commentservice/comment.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { IssuesDetailResponseDTO, IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
-import { commentRequestDTO } from '../../../interface/comment_interface';
-
+import { commentRequestDTO, commentResponseDTO } from '../../../interface/comment_interface';
+type SortOrder = 'ASC' | 'DESC';
 interface Attachment { filename: string; url: string; }
 interface IssueComment {
   issueId: string; userId: string; comment: string; timestamp: Date | string;
@@ -69,7 +71,7 @@ export class IssuedetailComponent implements OnInit {
   currentUserId = '';
   currentUserName = '';
 
-  newComment = { mention: '', comment: '' };
+  newComment: commentRequestDTO = { comment: '' };
 
   /** === state คอมเมนต์ === */
   comments: IssueComment[] = [];
@@ -77,10 +79,15 @@ export class IssuedetailComponent implements OnInit {
   sendingComment = false;
   issuesResult: IssuesResponseDTO | null = null;
   issueForModal: IssuesRequestDTO = { id: '', status: '', assignedTo: '' };
-  UserLogin: LoginUser | null = null; 
+  UserLogin: LoginUser | null = null;
   UserData: UserInfo[] = [];
   filteredUsers: UserInfo[] = [];
   issuesDetails: IssuesDetailResponseDTO | null = null;
+  rootComments: commentResponseDTO[] = [];
+  replies = new Map<string, commentResponseDTO[]>();
+  replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
+  sortedComments: commentResponseDTO[] = [];
+
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
@@ -92,50 +99,93 @@ export class IssuedetailComponent implements OnInit {
     private readonly sharedData: SharedDataService,
     private readonly issesService: IssueService,
     private readonly tokenStorage: TokenStorageService,
-    private readonly userDataService: UserService
+    private readonly userDataService: UserService,
+    private readonly ws: WebSocketService
   ) { }
 
   ngOnInit(): void {
-           this.sharedData.AllUser$.subscribe(data => { 
-        this.UserData = data ?? [];
-        // this.applyFilter();
-        console.log('User loaded Modal from sharedData in issuedetail:', data);
-      });
-       if(!this.sharedData.hasUserCache){
+    this.sharedData.AllUser$.subscribe(data => {
+      this.UserData = data ?? [];
+      // this.applyFilter();
+      console.log('User loaded Modal from sharedData in issuedetail:', data);
+    });
+    if (!this.sharedData.hasUserCache) {
       this.loadUser();
       console.log("No cache - load from server");
-       }
+    }
     this.route.paramMap.subscribe(pm => {
       const id = pm.get('issuesId');
       if (!id) return;
-      console.log('scanId from route:', id);
-      if(!this.sharedData.hasSelectedIssuesCache){
-      this.loadIssueById(id);
-      this.loadIssueDetails(id);
-          }
-    });
-      this.sharedData.selectedIssues$.subscribe(data => { 
-        this.issuesResult = data;
-        if (data) {
-          this.issueForModal = {
-            id: data.id ?? '',
-            status: data.status ?? '',
-            assignedTo: data.assignedTo.id ?? ''
-          };
-        }
-        console.log('Issues Detail from sharedData:', this.issuesResult);
+
+      console.log('issuesId from route:', id);
+      const cached = this.sharedData.selectIssueValue;
+      const isSame = cached?.id === id;
+
+      if (!isSame) {
+        this.loadIssueDetails(id);
+        this.loadIssueById(id);
+        console.log('Same')
+      } else {
+        this.issuesResult = cached;
         this.applyUserFilter();
-      });
-      const user = this.tokenStorage.getLoginUser();  
-              if (user) {
-                this.sharedData.LoginUserShared = user;
-        }
-      this.sharedData.LoginUser$.subscribe(data => {
+        this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
+        console.log("Not Same")
+      }
+    });
+
+    this.sharedData.selectedIssues$.subscribe(data => {
+      this.issuesResult = data;
+      console.log('Issues Detail from sharedData:', this.issuesResult);
+      this.replycomment(this.issuesResult?.commentData ?? []); // Update rootComments for empty state check
+      this.applyUserFilter();
+      this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
+    });
+
+    const user = this.tokenStorage.getLoginUser();
+    if (user) {
+      this.sharedData.LoginUserShared = user;
+    }
+    this.sharedData.LoginUser$.subscribe(data => {
       this.UserLogin = data;
       console.log('User Login in Issues:', this.UserLogin);
 
     });
+
+    // Subscribe to Real-time Comments
+    this.route.paramMap.subscribe(pm => {
+      const id = pm.get('issuesId');
+      if (id) {
+        this.subscribeToRealtimeComments(id);
+      }
+    });
+  }
+
+  private commentSub?: Subscription;
+
+  subscribeToRealtimeComments(issueId: string) {
+    // Unsubscribe previous if exists
+    if (this.commentSub) {
+      this.commentSub.unsubscribe();
     }
+
+    const topicId = issueId.toLowerCase();
+    console.log('[Issuedetail] Subscribing to comments for:', topicId);
+
+    this.commentSub = this.ws.subscribeToIssueComments(topicId).subscribe({
+      next: (comment: any) => {
+        console.log('Real-time comment received:', comment);
+        // Add to SharedData to update UI
+        this.sharedData.addComments(comment);
+      },
+      error: (err: any) => console.error('WS comment error:', err)
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.commentSub) {
+      this.commentSub.unsubscribe();
+    }
+  }
 
   loadIssueById(issueId: string) {
     this.sharedData.setLoading(true);
@@ -143,13 +193,14 @@ export class IssuedetailComponent implements OnInit {
       next: (data) => {
         this.sharedData.SelectedIssues = data;
         this.sharedData.setLoading(false);
+        this.replycomment(this.issuesResult?.commentData ?? []);
         console.log('IssuesById loaded:', data);
         this.applyUserFilter();
       },
       error: () => this.sharedData.setLoading(false)
     });
   }
-    loadIssueDetails(issueId: string) {
+  loadIssueDetails(issueId: string) {
     this.issesService.getAllIssuesDetails(issueId).subscribe({
       next: (data) => {
         this.issuesDetails = data;
@@ -171,17 +222,35 @@ export class IssuedetailComponent implements OnInit {
       error: () => this.sharedData.setLoading(false)
     });
   }
-applyUserFilter() {
-  if (!this.issuesResult || !this.UserData.length) {
-    return;
-  }
+  applyUserFilter() {
+    if (!this.issuesResult || !this.UserData.length) {
+      return;
+    }
     this.filteredUsers = this.UserData.filter(u =>
       this.issuesResult?.commentData?.some(c => c.user.id === u.id)
     );
 
-  console.log('Filtered Users:', this.filteredUsers);
-}
+    console.log('Filtered Users:', this.filteredUsers);
+  }
+  sortComments(list: commentResponseDTO[], order: string) {
+    // 1. Deduplicate by ID to ensure UI never doubless
+    const uniqueMap = new Map<string, commentResponseDTO>();
+    (list ?? []).forEach(c => {
+      const id = String(c.id).toLowerCase();
+      if (!uniqueMap.has(id)) {
+        uniqueMap.set(id, c);
+      }
+    });
 
+    // 2. Sort
+    return Array.from(uniqueMap.values()).sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime();
+      const timeB = new Date(b.createdAt).getTime();
+      return order === 'ASC'
+        ? timeA - timeB
+        : timeB - timeA;
+    });
+  }
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
     console.log('Raw API issue:', r);
@@ -245,8 +314,9 @@ applyUserFilter() {
     if (!this.issue?.id) return;
     this.loadingComments = true;
     this.commentService.getIssueComments(this.issue.id).subscribe({
-      next: (list: IssueCommentModel[]) =>
-        this.comments = (list ?? []).map((x: IssueCommentModel) => this.mapComment(x)),
+      next: (list: IssueCommentModel[]) => {
+        this.comments = (list ?? []).map((x: IssueCommentModel) => this.mapComment(x));
+      },
       error: (e: unknown) => console.error('loadComments error:', e),
       complete: () => (this.loadingComments = false),
     });
@@ -254,25 +324,33 @@ applyUserFilter() {
 
 
   postComment() {
-  const payload: commentRequestDTO = {
-    issueId: this.issuesResult?.id,
-    userId: this.UserLogin?.id || '',   
-    comment: this.newComment.comment,
-  };
+    const text = (this.newComment?.comment ?? '').trim();
+    if (!text || this.sendingComment) return;
 
-  console.log('Submitting issue assignment payload:', payload);
+    const payload: commentRequestDTO = {
+      issueId: this.issuesResult?.id,
+      userId: this.UserLogin?.id || '',
+      comment: text,
+      parentCommentId: this.replyTo?.commentId || ''
+    };
 
-  this.commentService.updateComments(payload).subscribe({
-    next: (updated) => {
-      this.sharedData.addComments(updated)
-      console.log('Issue updated:', updated);
-    },
-    error: (err) => {
-      console.error('Update issue failed:', err);
-      console.error('Payload was:', payload);
-    }
-  });
+    this.sendingComment = true;
+
+    this.commentService.updateComments(payload).subscribe({
+      next: (updated) => {
+        this.sharedData.addComments(updated);
+        this.newComment = { comment: '' };
+        this.replyTo = null;
+        this.sendingComment = false;
+      },
+      error: (err) => {
+        this.sendingComment = false;
+        console.error('Update comment failed:', err);
+        console.error('Payload was:', payload);
+      }
+    });
   }
+
 
   onCommentKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -293,17 +371,21 @@ applyUserFilter() {
         id: this.issuesResult.id,
         status: this.issuesResult.status,
         assignedTo: this.issuesResult.assignedTo.id,
-        });
+      });
     } else {
       const issueId = this.issuesResult?.id || this.issue?.id;
       if (!issueId) return;
       this.assignModal.openAddAssign(issueId);
     }
   }
-
   openStatusModal() {
-    this.autoUpdateStatus(this.issue);
+    if (!this.issuesResult) return;
+    this.assignModal.openEditStatus({
+      id: this.issuesResult.id,
+      status: this.issuesResult.status,
+    });
   }
+
 
   closeModal() {
     this.showAssignModal = false;
@@ -322,6 +404,7 @@ applyUserFilter() {
       this.issue.dueDate
     ).subscribe({
       next: (res: any) => {
+        this.sharedData.updateIssueSelect(res);
         console.log('Assigned successfully:', res);
       },
       error: (err: any) => console.error('Error:', err),
@@ -329,26 +412,26 @@ applyUserFilter() {
   }
 
   // auto-update status ตาม logic เดิม
-  autoUpdateStatus(issue: Issue) {
-    let nextStatus: string;
+  // autoUpdateStatus(issue: Issue) {
+  //   let nextStatus: string;
 
-    switch (issue.status) {
-      case 'open':
-        alert('กรุณา Assign ก่อนเปลี่ยนสถานะ');
-        return;
-      case 'pending':
-        alert('กรุณายืนยัน assignment ก่อนเปลี่ยนสถานะ');
-        return;
-      case 'in-progress': nextStatus = 'DONE'; break;
-      case 'done':
-        alert('ยินดีด้วยค่ะ งานมอบหมายนี้ของคุณเสร็จสมบูรณ์เรียบร้อยแล้ว');
-        return;
-      default: nextStatus = issue.status;
-    }
+  //   switch (issue.status) {
+  //     case 'open':
+  //       alert('กรุณา Assign ก่อนเปลี่ยนสถานะ');
+  //       return;
+  //     case 'pending':
+  //       alert('กรุณายืนยัน assignment ก่อนเปลี่ยนสถานะ');
+  //       return;
+  //     case 'in-progress': nextStatus = 'DONE'; break;
+  //     case 'done':
+  //       alert('ยินดีด้วยค่ะ งานมอบหมายนี้ของคุณเสร็จสมบูรณ์เรียบร้อยแล้ว');
+  //       return;
+  //     default: nextStatus = issue.status;
+  //   }
 
-    this.assignModal.openStatus(issue, nextStatus);
-    console.log('🟩 openStatus called with:', issue.status, '->', nextStatus);
-  }
+  //   this.assignModal.openStatus(issue, nextStatus);
+  //   console.log('🟩 openStatus called with:', issue.status, '->', nextStatus);
+  // }
 
   handleStatusSubmit(updated: { id?: string, issueId?: string, status: Issue['status'], annotation?: string }) {
     const issueId = updated.id || updated.issueId;
@@ -386,4 +469,41 @@ applyUserFilter() {
       }
     });
   }
+  startReply(c: commentResponseDTO) {
+    if (c.user?.id === this.UserLogin?.id) {
+      return;
+    } else {
+      this.replyTo = { commentId: c.id, username: c.user?.username, parentCommentId: c.parentCommentId || '' };
+      this.newComment = { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
+      console.log('Replying to comment:', this.replyTo);
+    }
+  }
+  cancelReply() {
+    this.replyTo = null;
+    this.newComment = { comment: '' };
+  }
+  private replycomment(comments: commentResponseDTO[]) {
+    this.rootComments = [];
+    this.replies.clear();
+
+    const list = comments ?? [];
+
+    // เรียงตามเวลา 
+    const sorted = [...list].sort((a, b) =>
+      new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
+    );
+
+    for (const c of sorted) {
+      const parentId = (c as commentResponseDTO).parentCommentId || null;
+
+      if (!parentId) {
+        this.rootComments.push(c);
+      } else {
+        const arr = this.replies.get(parentId) ?? [];
+        arr.push(c);
+        this.replies.set(parentId, arr);
+      }
+    }
+  }
+
 }

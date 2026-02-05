@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/authservice/auth.service';
+import { EmailService } from '../../../services/emailservice/email.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { catchError, finalize, of, switchMap, tap } from 'rxjs';
@@ -12,7 +13,7 @@ import { catchError, finalize, of, switchMap, tap } from 'rxjs';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule],
   templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+  styleUrls: ['./register.component.css'],
 })
 export class RegisterComponent {
   username = '';
@@ -25,8 +26,12 @@ export class RegisterComponent {
 
   constructor(
     private readonly auth: AuthService,
+    private readonly emailService: EmailService,
     private readonly router: Router,
-    private readonly snack: MatSnackBar) { }
+    private readonly snack: MatSnackBar,
+  ) { }
+  emailPattern = '^[^@\\s]+@[^@\\s]+\\.[a-zA-Z]{2,}$';
+  phonePattern = '^[0-9]{10,15}$';
 
   get passwordError() {
     const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*]).{8,}$/;
@@ -35,8 +40,31 @@ export class RegisterComponent {
       : '';
   }
 
+  markTouched(ctrl: any) {
+    ctrl?.control?.markAsTouched();
+  }
+
   get passwordsMismatch() {
-    return this.password && this.confirmPassword && this.password !== this.confirmPassword;
+    return (
+      this.password &&
+      this.confirmPassword &&
+      this.password !== this.confirmPassword
+    );
+  }
+  get passwordRules() {
+    const pwd = this.password || '';
+    return {
+      minLength: pwd.length >= 8,
+      upper: /[A-Z]/.test(pwd),
+      lower: /[a-z]/.test(pwd),
+      number: /\d/.test(pwd),
+      special: /[!@#$%&*]/.test(pwd),
+    };
+  }
+
+  get passwordValid() {
+    const r = this.passwordRules;
+    return r.minLength && r.upper && r.lower && r.number && r.special;
   }
 
   clearForm(form: NgForm) {
@@ -61,78 +89,127 @@ export class RegisterComponent {
     return !!ctrl?.errors?.duplicate;
   }
 
-
-
-
   onSubmit(form: NgForm) {
-  this.submitted = true;
+    this.submitted = true;
 
-  if (form.invalid || this.passwordsMismatch) {
-    this.snack.open('Registration failed', '', { duration: 2500, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['app-snack', 'app-snack-red'] });
-    return;
-  }
-
-  this.loading = true;
-
-  const username = this.username.trim();
-  const email = this.email.trim();
-
-  this.auth.register({
-    username,
-    email,
-    phone: this.phoneNumber.trim(),
-    password: this.password.trim()
-  }).pipe(
-    tap(() => {
-      this.snack.open('Successfully registered!', '', {
-        duration: 2500,
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-blue'],
-      });
-      this.router.navigate(['/login']);
-    }),
-    switchMap(() =>
-      this.auth.registerEmail({
-        type: 'Register',
-        email,
-        username,
-      }).pipe(
-        catchError((e) => {
-          console.warn('Email webhook failed:', e);
-          return of(null);
-        })
-      )
-    ),
-    finalize(() => this.loading = false)
-  ).subscribe({
-    error: (err: HttpErrorResponse) => {
-      this.loading = false;
-
-      if (err.status === 409 && Array.isArray(err.error?.fields)) {
-        (err.error.fields as Array<'username' | 'email' | 'phoneNumber'>).forEach(f => {
-          const ctrl = form.controls[f];
-          ctrl?.setErrors({ ...(ctrl.errors || {}), duplicate: true });
-          ctrl?.markAsTouched();
-        });
-        return;
-      }
-
-      if (err.status === 409 && err.error?.message) {
-        const msg = String(err.error.message).toLowerCase();
-        if (msg.includes('username')) form.controls['username']?.setErrors({ ...(form.controls['username']?.errors || {}), duplicate: true });
-        if (msg.includes('email')) form.controls['email']?.setErrors({ ...(form.controls['email']?.errors || {}), duplicate: true });
-        if (msg.includes('phone')) form.controls['phoneNumber']?.setErrors({ ...(form.controls['phoneNumber']?.errors || {}), duplicate: true });
-      }
-
+    if (form.invalid || this.passwordsMismatch || !this.passwordValid) {
       this.snack.open('Registration failed', '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
         panelClass: ['app-snack', 'app-snack-red'],
       });
+      return;
     }
-  });
-}
 
+    this.loading = true;
+
+    const username = this.username.trim();
+    const email = this.email.trim();
+
+    this.auth
+      .register({
+        username,
+        email,
+        phone: this.phoneNumber.trim(),
+        password: this.password.trim(),
+      })
+      .pipe(
+        tap(() => {
+          this.snack.open('Successfully registered!', '', {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-blue'],
+          });
+          this.router.navigate(['/login']);
+        }),
+        switchMap(() =>
+          this.emailService
+            .registerEmail({
+              type: 'Register',
+              email,
+              username,
+            })
+            .pipe(
+              catchError((e) => {
+                console.warn('Email webhook failed:', e);
+                return of(null);
+              }),
+            ),
+        ),
+        finalize(() => (this.loading = false)),
+      )
+      .subscribe({
+        error: (err: HttpErrorResponse) => {
+          this.loading = false;
+
+          const status = err.status;
+          const rawMsg = err.error?.message ?? err.message ?? '';
+          const msg = String(rawMsg).toLowerCase();
+
+          if (
+            (status === 400 || status === 409) &&
+            Array.isArray(err.error?.fields)
+          ) {
+            (
+              err.error.fields as Array<'username' | 'email' | 'phoneNumber'>
+            ).forEach((f) => {
+              const ctrl = form.controls[f];
+              ctrl?.setErrors({ ...(ctrl.errors || {}), duplicate: true });
+              ctrl?.markAsTouched();
+            });
+
+            this.snack.open(String(rawMsg) || 'Registration failed', '', {
+              duration: 2500,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-red'],
+            });
+            return;
+          }
+
+          if ((status === 400 || status === 409) && msg) {
+            let handled = false;
+
+            if (msg.includes('username')) {
+              const c = form.controls['username'];
+              c?.setErrors({ ...(c.errors || {}), duplicate: true });
+              c?.markAsTouched();
+              handled = true;
+            }
+            if (msg.includes('email')) {
+              const c = form.controls['email'];
+              c?.setErrors({ ...(c.errors || {}), duplicate: true });
+              c?.markAsTouched();
+              handled = true;
+            }
+            if (msg.includes('phone')) {
+              const c = form.controls['phoneNumber'];
+              c?.setErrors({ ...(c.errors || {}), duplicate: true });
+              c?.markAsTouched();
+              handled = true;
+            }
+
+            if (handled) {
+              this.snack.open(String(rawMsg), '', {
+                duration: 2500,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-red'],
+              });
+              return;
+            }
+          }
+
+          // 3) fallback
+          this.snack.open('Registration failed', '', {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red'],
+          });
+        },
+      });
+  }
 }

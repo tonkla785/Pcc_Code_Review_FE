@@ -65,20 +65,22 @@ export class SharedDataService {
     private readonly scansHistory =
         new BehaviorSubject<ScanResponseDTO[] | null>(null);
 
+    private _isScansLoaded = false; // Track if full history has been loaded from API
+
     readonly scansHistory$ = this.scansHistory.asObservable();
 
     //เคยโหลดแล้วหรือยัง (ไม่สนว่าข้อมูลว่างไหม) 
     get hasScansHistoryLoaded(): boolean {
-        return this.scansHistory.value !== null;
+        return this._isScansLoaded;
     }
     // มีข้อมูลจริง ๆ ไหม (length > 0) 
     get hasScansHistoryCache(): boolean {
-        const data = this.scansHistory.value;
-        return data !== null;
+        return this._isScansLoaded;
     }
     //update cache 
     set Scans(data: ScanResponseDTO[]) {
         this.scansHistory.next(data ?? []);
+        this._isScansLoaded = true; // Mark as fully loaded
     }
     get scanValue(): ScanResponseDTO[] {
         return this.scansHistory.value ?? [];
@@ -87,6 +89,31 @@ export class SharedDataService {
         const next = [newScan, ...this.scanValue];
         this.scansHistory.next(next);
     }
+
+    /** Update existing scan or Add if new (prevents duplicates) */
+    upsertScan(scan: ScanResponseDTO): void {
+        if (!scan.id) {
+            return;
+        }
+        const current = this.scanValue;
+        const index = current.findIndex(s => s.id === scan.id);
+
+        if (index > -1) {
+            // Update existing
+            const next = [...current];
+            next[index] = { ...next[index], ...scan };
+            this.scansHistory.next(next);
+        } else {
+            // Add new (prepend)
+            this.scansHistory.next([scan, ...current]);
+        }
+    }
+    removeScansByProject(projectId: string): void {
+        const current = this.scanValue;
+        const next = current.filter(s => s.project?.id !== projectId && s.project.id);
+        this.scansHistory.next(next);
+    }
+
     private readonly selectedScan = new BehaviorSubject<ScanResponseDTO | null>(null);
     readonly selectedScan$ = this.selectedScan.asObservable();
 
@@ -101,6 +128,10 @@ export class SharedDataService {
 
     set ScansDetail(data: ScanResponseDTO) {
         this.selectedScan.next(data);
+    }
+
+    get selectedScanValue(): ScanResponseDTO | null {
+        return this.selectedScan.getValue();
     }
 
     private readonly AllUser = new BehaviorSubject<UserInfo[] | null>(null);
@@ -134,91 +165,150 @@ export class SharedDataService {
     }
 
     removeUser(userId: string) {
-            const next = this.usersValue.filter(u => u.id !== userId);
-            this.AllUser.next(next);
-}
+        const next = this.usersValue.filter(u => u.id !== userId);
+        this.AllUser.next(next);
+    }
     private readonly AllIssues = new BehaviorSubject<IssuesResponseDTO[] | null>(null);
-        readonly AllIssues$ = this.AllIssues.asObservable();
-      
-        get hasIssuesLoaded(): boolean {
+    readonly AllIssues$ = this.AllIssues.asObservable();
+
+    get hasIssuesLoaded(): boolean {
         return this.AllIssues.value !== null;
-        }
-   
-        get hasIssuesCache(): boolean {
+    }
+
+    get hasIssuesCache(): boolean {
         const data = this.AllIssues.value;
         return data !== null;
-        }
-  
-        set IssuesShared(data: IssuesResponseDTO[]) {
+    }
+
+    set IssuesShared(data: IssuesResponseDTO[]) {
         this.AllIssues.next(data ?? []);
-        }
+    }
 
-        get issuesValue(): IssuesResponseDTO[] {
-            return this.AllIssues.value ?? [];
-            }
+    get issuesValue(): IssuesResponseDTO[] {
+        return this.AllIssues.value ?? [];
+    }
 
-            updateIssues(updated: IssuesResponseDTO) {
-            const next = this.issuesValue.map(u => u.id === updated.id ? updated : u);
-            this.AllIssues.next(next);
-            }
+    updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
+        const list = Array.isArray(updated) ? updated : [updated];
+        const Id = new Map(list.map(i => [i.id, i]));
 
-            addIssues(newIssue: IssuesResponseDTO) {
-            const next = [newIssue, ...this.issuesValue];
-            this.AllIssues.next(next);
-            }
+        const next = this.issuesValue.map(u => Id.get(u.id) ?? u);
+        this.AllIssues.next(next);
+    }
 
-            removeIssues(issueId: string) {
-            const next = this.issuesValue.filter(u => u.id !== issueId);
-            this.AllIssues.next(next);
-}
-    private readonly selectedIssues= new BehaviorSubject<IssuesResponseDTO | null>(null);
-        readonly selectedIssues$ = this.selectedIssues.asObservable();
-      
-        get hasSelectedIssuesLoaded(): boolean {
+    addIssues(newIssue: IssuesResponseDTO) {
+        const next = [newIssue, ...this.issuesValue];
+        this.AllIssues.next(next);
+    }
+
+    removeIssues(issueId: string) {
+        const next = this.issuesValue.filter(u => u.id !== issueId);
+        this.AllIssues.next(next);
+    }
+
+    removeIssuesByProject(projectId: string) {
+        const projectScanIds = new Set(
+            this.scanValue
+                .filter(s =>
+                    // Fix: รองรับทั้ง project.id และ projectId (Flat)
+                    (s.project?.id === projectId) ||
+                    ((s as any).projectId === projectId)
+                )
+                .map(s => s.id)
+        );
+
+        // 2. Filter out issues that belong to these scans OR match project ID directly
+        const currentIssues = this.issuesValue;
+        const nextIssues = currentIssues.filter(issue => {
+            // Check direct project mapping (Works even if Scans are not loaded)
+            if (issue.projectData?.id === projectId) return false;
+            if ((issue as any).projectId === projectId) return false;
+
+            // Check nested scan mapping
+            if (projectScanIds.has(issue.scanId)) return false;
+
+            return true;
+        });
+
+        console.log(`[SharedData] Removing issues for project ${projectId}. Removed: ${currentIssues.length - nextIssues.length}`);
+        this.AllIssues.next(nextIssues);
+    }
+    private readonly selectedIssues = new BehaviorSubject<IssuesResponseDTO | null>(null);
+    readonly selectedIssues$ = this.selectedIssues.asObservable();
+
+    get hasSelectedIssuesLoaded(): boolean {
         return this.selectedIssues.value !== null;
-        }
-   
-        get hasSelectedIssuesCache(): boolean {
+    }
+
+    get hasSelectedIssuesCache(): boolean {
         const data = this.selectedIssues.value;
         return data !== null;
-        }
-  
-        set SelectedIssues(data: IssuesResponseDTO) {
+    }
+
+    set SelectedIssues(data: IssuesResponseDTO) {
         this.selectedIssues.next(data);
+    }
+    get selectIssueValue(): IssuesResponseDTO {
+        return this.selectedIssues.value ?? null!;
+    }
+    updateIssueSelect(patch: Partial<IssuesResponseDTO> & { id: string }) {
+        const current = this.selectIssueValue;
+        if (!current) return;
+        if (current.id !== patch.id) return;
+
+        const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
+        this.selectedIssues.next(next);
+        this.updateIssues(next);
+    }
+    private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
+    readonly Comments$ = this.Comments.asObservable();
+
+
+    get hasSelectedCommentLoaded(): boolean {
+        return this.Comments.value !== null;
+    }
+
+    get hasSelectedCommentCache(): boolean {
+        const data = this.Comments.value;
+        return data !== null;
+    }
+
+    set SelectedComment(data: commentResponseDTO) {
+        this.Comments.next(data);
+    }
+    get commentValue(): commentResponseDTO {
+        return this.Comments.value ?? null!;
+    }
+    addComments(newComment: commentResponseDTO) {
+        const current = this.selectIssueValue;
+        if (!current) {
+            console.warn('[addComments] No selected issue in SharedData. Cannot update.');
+            return;
         }
-        get issueValue(): IssuesResponseDTO {
-            return this.selectedIssues.value ?? null!;
-            }
-        updateIssue(patch: Partial<IssuesResponseDTO> & { id: string }) {
-            const current = this.issueValue;
-            if (!current) return;
-            if (current.id !== patch.id) return;
 
-            // merge ของเดิม + ของใหม่ แล้ว next -> ทุก component ที่ subscribe จะอัปเดตทันที
-            const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
-            this.selectedIssues.next(next);
-            }
-                addComments(newComment: commentResponseDTO) {
-                const current = this.issueValue;
-                if (!current) return;
+        // กันเผื่อ backend ส่ง issue เป็น id หรือ object
+        const issueId =
+            typeof newComment.issue === 'string'
+                ? newComment.issue
+                : (newComment.issue as any)?.id;
 
-                // กันเผื่อ backend ส่ง issue เป็น id หรือ object
-                const issueId =
-                    typeof newComment.issue === 'string'
-                    ? newComment.issue
-                    : (newComment.issue as any)?.id;
+        if (current.id !== issueId) return;
 
-                if (current.id !== issueId) return;
+        const commentData = current.commentData ?? [];
 
-                const commentData = current.commentData ?? [];
+        // Prevent duplicates (Realtime + API response race condition)
+        if (commentData.some(c => c.id === newComment.id)) {
+            console.warn('[addComments] Duplicate comment detected. Ignoring ID:', newComment.id);
+            return;
+        }
 
-                const next: IssuesResponseDTO = {
-                    ...current,
-                    commentData: [...commentData, newComment],
-                };
-
-                this.selectedIssues.next(next);
-                }
+        const next: IssuesResponseDTO = {
+            ...current,
+            commentData: [...commentData, newComment],
+        };
+        console.log('Updated Issue with new comment:', next);
+        this.selectedIssues.next(next);
+    }
 
     private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
     readonly LoginUser$ = this.LoginUser.asObservable();
@@ -236,7 +326,6 @@ export class SharedDataService {
         this.LoginUser.next(data);
     }
 
-
     // ==================== LOADING STATE ====================
     private _isLoading$ = new BehaviorSubject<boolean>(false);
     readonly isLoading$ = this._isLoading$.asObservable();
@@ -250,24 +339,24 @@ export class SharedDataService {
     }
 
     /** เรียกหลัง login สำเร็จ */
-    setUserFromLoginResponse(response: {
-        id: string;
-        username: string;
-        password: string;
-        email: string;
-        phone?: string;
-        role: string;
-    }): void {
-        const user: UserInfo = {
-            id: response.id,
-            username: response.username,
-            password: response.password || '',
-            email: response.email,
-            phone: response.phone,
-            role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
-        };
-        this._currentUser$.next(user);
-    }
+    // setUserFromLoginResponse(response: {
+    //     id: string;
+    //     username: string;
+    //     password: string;
+    //     email: string;
+    //     phone?: string;
+    //     role: string;
+    // }): void {
+    //     const user: UserInfo = {
+    //         id: response.id,
+    //         username: response.username,
+    //         password: response.password || '',
+    //         email: response.email,
+    //         phone: response.phone,
+    //         role: (response.role?.toUpperCase() as 'USER' | 'ADMIN') || 'USER'
+    //     };
+    //     this._currentUser$.next(user);
+    // }
 
     clearUser(): void {
         this._currentUser$.next(null);
@@ -283,7 +372,15 @@ export class SharedDataService {
     /** เพิ่ม repository ใหม่ (หลัง create สำเร็จ) */
     addRepository(repo: Repository): void {
         const current = this._repositories$.getValue();
-        this._repositories$.next([repo, ...current]);
+        // Prevent Duplicates: Check if projectId already exists
+        const exists = current.some(r => r.projectId === repo.projectId);
+
+        if (exists) {
+            // If exists, update instead of adding duplicate
+            this.updateRepository(repo.projectId!, repo);
+        } else {
+            this._repositories$.next([repo, ...current]);
+        }
     }
 
     /** อัปเดต repository (หลัง update สำเร็จ) */
@@ -293,6 +390,23 @@ export class SharedDataService {
         if (index >= 0) {
             current[index] = { ...current[index], ...updates };
             this._repositories$.next([...current]);
+
+            // Sync changes to Scans History (e.g. Project Name change)
+            if (this.hasScansHistoryCache) {
+                const currentScans = this.scanValue;
+                const updatedScans = currentScans.map(scan => {
+                    // Check ID map (sometimes scan.project has id or projectId)
+                    const p = scan.project;
+                    if (p && (p.id === projectId || p.projectId === projectId)) {
+                        return {
+                            ...scan,
+                            project: { ...p, ...updates } // Sync Reponame/Type changes
+                        };
+                    }
+                    return scan;
+                });
+                this.scansHistory.next(updatedScans);
+            }
         }
     }
 
@@ -300,6 +414,8 @@ export class SharedDataService {
     removeRepository(projectId: string): void {
         const current = this._repositories$.getValue();
         this._repositories$.next(current.filter(r => r.projectId !== projectId));
+        this.removeIssuesByProject(projectId); // ✅ Remove issues first
+        this.removeScansByProject(projectId);
     }
 
     /** เซ็ต repository ที่เลือก (สำหรับหน้า detail) */
@@ -367,6 +483,68 @@ export class SharedDataService {
 
     setQualityGates(gates: QualityGates): void {
         this._qualityGates$.next(gates);
+    }
+
+
+    // ==================== SECURITY DASHBOARD STATE  ====================
+    private readonly securityIssuesSubject = new BehaviorSubject<any[]>([]);
+    readonly securityIssues$ = this.securityIssuesSubject.asObservable();
+
+    private readonly securityScoreSubject = new BehaviorSubject<number>(0);
+    readonly securityScore$ = this.securityScoreSubject.asObservable();
+
+    private readonly riskLevelSubject = new BehaviorSubject<string>('SAFE');
+    readonly riskLevel$ = this.riskLevelSubject.asObservable();
+
+    private readonly hotIssuesSubject = new BehaviorSubject<{ name: string; count: number }[]>([]);
+    readonly hotIssues$ = this.hotIssuesSubject.asObservable();
+
+    get securityIssuesValue(): any[] {
+        return this.securityIssuesSubject.value;
+    }
+
+    get securityScoreValue(): number {
+        return this.securityScoreSubject.value;
+    }
+
+    get riskLevelValue(): string {
+        return this.riskLevelSubject.value;
+    }
+
+    get hotIssuesValue(): { name: string; count: number }[] {
+        return this.hotIssuesSubject.value;
+    }
+
+    get hasSecurityIssuesCache(): boolean {
+        return this.securityIssuesSubject.value.length > 0;
+    }
+
+    setSecurityIssues(issues: any[]): void {
+        this.securityIssuesSubject.next(issues);
+    }
+
+    setSecurityScore(score: number): void {
+        this.securityScoreSubject.next(score);
+    }
+
+    setRiskLevel(level: string): void {
+        this.riskLevelSubject.next(level);
+    }
+
+    setHotIssues(issues: { name: string; count: number }[]): void {
+        this.hotIssuesSubject.next(issues);
+    }
+
+    updateSecurityState(data: {
+        issues?: any[];
+        score?: number;
+        riskLevel?: string;
+        hotIssues?: { name: string; count: number }[];
+    }): void {
+        if (data.issues) this.securityIssuesSubject.next(data.issues);
+        if (data.score !== undefined) this.securityScoreSubject.next(data.score);
+        if (data.riskLevel) this.riskLevelSubject.next(data.riskLevel);
+        if (data.hotIssues) this.hotIssuesSubject.next(data.hotIssues);
     }
 
 }

@@ -2,22 +2,19 @@
   <!-- Header -->
 
   <div class="dashboard-header shadow-sm">
-
     <div class="dashboard-title">
       <i class="bi bi-speedometer2"></i>
       <strong>Dashboard Overview</strong>
     </div>
 
     <div class="dashboard-actions">
-
       <!-- ปุ่ม Export -->
       <button class="export-btn" (click)="onExport()" title="Export">
         <i class="bi bi-download"></i>
-      </button> 
+      </button>
 
       <!-- ปุ่ม Notification -->
       <div class="notification-wrapper">
-
         <button class="notification-wrapper" (click)="toggleNotifications()" title="Notification" type="button">
           <!-- ไอคอนกระดิ่ง -->
           <i class="bi bi-bell-fill notification-icon"></i>
@@ -30,31 +27,60 @@
 
         <!-- Panel แสดง Notifications -->
         <div class="notifications-panel" *ngIf="showNotifications" (mousedown)="$event.stopPropagation()">
-
           <!-- Header -->
           <div class="notifications-header">
-            <span><i class="bi bi-bell-fill notification-icon"></i> Notifications</span>
-            <button class="close-btn" (click)="closeNotifications()" type="button">✕</button>
+            <span><i class="bi bi-bell-fill notification-icon"></i>
+              Notifications</span>
+            <button class="close-btn" (click)="closeNotifications()" type="button">
+              ✕
+            </button>
           </div>
 
           <!-- Tabs -->
           <div class="notification-tabs">
-            <button [class.active]="activeTab==='All'" (click)="selectTab('All')" type="button">All</button>
-            <button [class.active]="activeTab==='Unread'" (click)="selectTab('Unread')" type="button">Unread</button>
-            <button [class.active]="activeTab==='Repo'" (click)="selectTab('Repo')" type="button"> Repo</button>
-            <button [class.active]="activeTab==='scan'" (click)="selectTab('scan')" type="button">Scan</button>
-            <button [class.active]="activeTab==='Export'" (click)="selectTab('Export')" type="button">Export</button>
-            <!-- <button class="mark-all" (click)="markAllRead()" type="button">Mark All Read</button> -->
+            <button [class.active]="activeTab === 'All'" (click)="selectTab('All')" type="button">
+              All
+            </button>
+            <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')" type="button">
+              Unread
+            </button>
+            <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')" type="button">
+              Scans
+            </button>
+            <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')" type="button">
+              Issues
+            </button>
+            <button [class.active]="activeTab === 'System'" (click)="selectTab('System')" type="button">
+              System
+            </button>
+            <button class="mark-all" (click)="markAllRead()" type="button">
+              Mark All Read
+            </button>
           </div>
 
           <!-- รายการ Notifications -->
-          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.read"
+          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.isRead"
+            [class.notification-critical]="n.title?.includes('🔴')" [class.notification-major]="n.title?.includes('🟠')"
             (click)="viewNotification(n)">
             <div class="item-header">
-              <!-- <span>{{ n.icon }} {{ n.title }}</span> -->
-              <span class="item-time">{{ getTimeAgo(n.timestamp) }}</span>
+              <span class="notification-title">{{ n.title || 'Notification' }}</span>
+              <span class="item-time">{{ getTimeAgo(n.createdAt) }}</span>
             </div>
             <div class="item-message">{{ n.message }}</div>
+            <!-- Action button for Issues -->
+            <a *ngIf="n.type === 'Issues'" class="view-issue-link"
+              (click)="handleViewIssue(n); $event.stopPropagation()">
+              View Issue →
+            </a>
+            <!-- Action button for Scans -->
+            <a *ngIf="n.type === 'Scans'" class="view-issue-link" (click)="handleViewScan(n); $event.stopPropagation()">
+              View Results →
+            </a>
+            <!-- Action button for System -->
+            <a *ngIf="n.type === 'System'" class="view-issue-link"
+              (click)="handleViewSystem(n); $event.stopPropagation()">
+              View Details →
+            </a>
           </div>
 
           <!-- ปุ่ม Load More -->
@@ -63,7 +89,7 @@
           </button>
         </div>
       </div>
-       <!-- ปุ่ม profile-dropdown -->
+      <!-- ปุ่ม profile-dropdown -->
       <div class="profile-dropdown" (click)="toggleProfileDropdown()">
         <div class="profile-info">
           <i class="bi bi-person-circle"></i>
@@ -74,16 +100,26 @@
           <div class="profile-details">
             <p><strong>Username:</strong> {{ UserLogin?.username }}</p>
             <p><strong>Email:</strong> {{ UserLogin?.email }}</p>
-            <p><strong>Phone Number:</strong> {{ UserLogin?.phone}}</p>
-            <!-- <p>
+            <p><strong>Phone Number:</strong> {{ UserLogin?.phone }}</p>
+            <p>
               <strong>Status:</strong>
               <span [ngClass]="{
-            'status-pending': userProfile?.status === 'PENDING_VERIFICATION',
-            'status-active': userProfile?.status === 'ACTIVE'
-          }">
-                {{ userProfile?.status }}
+                  'status-unverified':
+                    (UserLogin?.status || '').toUpperCase() === 'UNVERIFIED',
+                  'status-pending':
+                    (UserLogin?.status || '').toUpperCase() ===
+                    'PENDING_VERIFICATION',
+                  'status-verified':
+                    (UserLogin?.status || '').toUpperCase() === 'VERIFIED',
+                }">
+                {{ UserLogin?.status }}
               </span>
-            </p> -->
+            </p>
+
+            <!-- ถ้า ACTIVE แล้ว แสดงเป็นข้อความ -->
+            <p *ngIf="(UserLogin?.status || '').toUpperCase() === 'VERIFIED'" class="text-success">
+              Email verified ✔
+            </p>
           </div>
 
           <!-- ปุ่มเปลี่ยนรหัสผ่าน -->
@@ -92,14 +128,12 @@
           </button>
 
           <!-- ปุ่ม Verify Email เฉพาะตอน Pending -->
-          <!-- <button *ngIf="userProfile?.status === 'PENDING_VERIFICATION'" class="btn-verify" (click)="verifyEmail()">
+          <button *ngIf="(UserLogin?.status || '').toUpperCase() !== 'VERIFIED'" class="btn-verify" type="button"
+            (click)="sendVerifyEmail()">
             Verify Email
-          </button> -->
+          </button>
         </div>
       </div>
-
-
-
     </div>
   </div>
 
@@ -123,10 +157,10 @@
             <apx-chart [series]="pieChartOptions.series!" [chart]="pieChartOptions.chart!"
               [labels]="pieChartOptions.labels!" [plotOptions]="pieChartOptions.plotOptions!"
               [colors]="pieChartOptions.colors!" [dataLabels]="pieChartOptions.dataLabels!"
-              [legend]="pieChartOptions.legend!" [tooltip]="pieChartOptions.tooltip!">
+              [legend]="pieChartOptions.legend!" [tooltip]="pieChartOptions.tooltip!"
+              [states]="pieChartOptions.states!">
             </apx-chart>
           </div>
-
         </div>
         <div class="status-summary">
           <div class="status-item passed">
@@ -149,9 +183,7 @@
 
     <!-- Recent Scans Table -->
     <div class="recent-scans">
-      <h4 class="title">
-        <i class="bi bi-clock-history"></i> Recent Scans
-      </h4>
+      <h4 class="title"><i class="bi bi-clock-history"></i> Recent Scans</h4>
 
       <div class="table-wrapper">
         <table>
@@ -165,12 +197,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let scan of DashboardData | slice:0:5">
+            <tr *ngFor="let scan of DashboardData | slice: 0 : 5">
               <td>{{ scan.project.name }}</td>
               <td [ngClass]="{
-              'status-cell status--passed':  scan.status === 'SUCCESS',
-              'status-cell status--failed':  scan.status === 'FAILED'
-            }">{{ scan.status }}</td>
+                  'status-cell status--passed': scan.status === 'SUCCESS',
+                  'status-cell status--warning': scan.status === 'PENDING',
+                  'status-cell status--failed': scan.status === 'FAILED',
+                }">
+                {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
+              </td>
               <!-- <td [ngClass]="{
               'grade-cell grade--a': scan.grade === 'A',
               'grade-cell grade--b': scan.grade === 'B',  
@@ -178,14 +213,18 @@
               'grade-cell grade--d': scan.grade === 'D',
               'grade-cell grade--e': scan.grade === 'E'
             }">{{ scan.grade }}</td> -->
-              <td>{{ scan.completedAt | date:'dd/MM/yyyy, hh:mm a' }}</td>
+              <td>{{ scan.completedAt | date: "dd/MM/yyyy, hh:mm a" }}</td>
               <td>
                 <button class="btn btn-primary btn-sm text-white" title="View scan detail" type="button"
                   (click)="viewDetail(scan)">
                   <i class="bi bi-eye"></i>
                 </button>
-
-
+              </td>
+            </tr>
+            <!-- Empty State -->
+            <tr *ngIf="DashboardData?.length === 0">
+              <td colspan="4" class="text-center text-muted py-4">
+                <i class="bi bi-inbox"></i> No Data
               </td>
             </tr>
           </tbody>
@@ -199,7 +238,6 @@
       </div>
     </div>
   </div>
-
 
   <!-- Metrics -->
   <div class="metrics">
@@ -235,10 +273,11 @@
   <!-- Quality Trend -->
   <div class="quality-trend">
     <h4><i class="bi bi-graph-up"></i> Quality Trend (Last 30 Days)</h4>
-    <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!" [xaxis]="coverageChartOptions.xaxis!"
-    [stroke]="coverageChartOptions.stroke!" [markers]="coverageChartOptions.markers!"
-    [colors]="coverageChartOptions.colors!" [yaxis]="coverageChartOptions.yaxis!">
-  </apx-chart>
+    <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!"
+      [xaxis]="coverageChartOptions.xaxis!" [stroke]="coverageChartOptions.stroke!"
+      [markers]="coverageChartOptions.markers!" [colors]="coverageChartOptions.colors!"
+      [yaxis]="coverageChartOptions.yaxis!">
+    </apx-chart>
   </div>
 
   <!-- Top Issues & Project Distribution -->
@@ -247,7 +286,7 @@
     <div class="col">
       <h4><i class="bi bi-exclamation-circle"></i> Top Issues</h4>
       <ul>
-        <li *ngFor="let i of allIssues | slice:0:5">
+        <li *ngFor="let i of allIssues | slice: 0 : 5">
           <div class="d-flex justify-content-between align-items-center">
             <span>{{ i.message }}</span>
             <span class="badge bg-danger rounded-pill">{{ i.severity }}</span>
@@ -260,7 +299,6 @@
       <a [routerLink]="['/issue']" class="view-all-link">
         Manage Issues <i class="bi bi-arrow-right"></i>
       </a>
-
     </div>
 
     <!-- Project Distribution -->
@@ -272,11 +310,11 @@
           <span>{{ p.type }}( {{ p.count }} )</span>
           <span>{{ p.percent }}%</span>
         </div>
-        <div class="progress" style="height: 20px;">
+        <div class="progress" style="height: 20px">
           <progress class="progress-bar" [value]="p.percent" max="100" [ngClass]="{
-            'bg-primary': p.type === 'Angular',
-            'bg-success': p.type === 'SpringBoot'
-          }">
+              'bg-primary': p.type === 'Angular',
+              'bg-success': p.type === 'SpringBoot',
+            }">
             {{ p.percent }}%
           </progress>
         </div>
@@ -286,12 +324,12 @@
 </div>
 
 <!-- Change Password Modal -->
-<div class="modal-backdrop-custom" *ngIf="showChangePasswordModal" (click)="closeChangePasswordModal()">
-  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
+<div class="modal-backdrop-custom" *ngIf="showChangePasswordModal" (mousedown)="closeChangePasswordModal()">
+  <div class="modal-dialog-custom" (mousedown)="$event.stopPropagation()">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Change Password</h5>
-        <button class="btn-close" (click)="closeChangePasswordModal()"></button>
+        <button class="btn-close" (mousedown)="closeChangePasswordModal()"></button>
       </div>
 
       <form #passwordForm="ngForm" (ngSubmit)="submitChangePassword(passwordForm)">
@@ -300,7 +338,9 @@
           <div class="form-group mb-3">
             <label>Old Password</label>
             <input type="password" class="form-control" name="oldPassword" [(ngModel)]="passwordData.oldPassword"
-              #oldpassRef="ngModel" required />
+              required #oldpassRef="ngModel" [class.is-invalid]="
+                (oldpassRef.touched || submitted) && !passwordData.oldPassword
+              " />
             <div *ngIf="oldpassRef.dirty || oldpassRef.touched || submitted">
               <small *ngIf="oldpassRef.errors?.['required']" class="text-danger">Old password is required</small>
             </div>
@@ -310,43 +350,98 @@
           <div class="form-group mb-3">
             <label>New Password</label>
             <input type="password" class="form-control" name="newPassword" [(ngModel)]="passwordData.newPassword"
-              required minlength="8" #newpassRef="ngModel" />
-            <div *ngIf="newpassRef.dirty || newpassRef.touched || submitted">
-              <small *ngIf="newpassRef.errors?.['required']" class="text-danger">New password is required</small>
-              <small *ngIf="newpassRef.errors?.['minlength']" class="text-danger">New password must be at least 8
-                characters</small>
-            </div>
+              required minlength="8" #newpassRef="ngModel" (focus)="isNewPasswordFocused = true" [class.is-invalid]="
+                isNewPasswordFocused &&
+                (newpassRef.invalid || !newPasswordValid)
+              " />
+
+            <!-- Checklist -->
+            <ul class="password-rules" *ngIf="isNewPasswordFocused">
+              <li [class.pass]="newPasswordRules.minLength" [class.fail]="!newPasswordRules.minLength">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.minLength
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                At least 8 characters
+              </li>
+
+              <li [class.pass]="newPasswordRules.upper" [class.fail]="!newPasswordRules.upper">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.upper
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains an uppercase letter
+              </li>
+
+              <li [class.pass]="newPasswordRules.lower" [class.fail]="!newPasswordRules.lower">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.lower
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains a lowercase letter
+              </li>
+
+              <li [class.pass]="newPasswordRules.number" [class.fail]="!newPasswordRules.number">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.number
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains a number
+              </li>
+
+              <li [class.pass]="newPasswordRules.special" [class.fail]="!newPasswordRules.special">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.special
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains a special character
+              </li>
+            </ul>
           </div>
+        </div>
 
-          <!-- Confirm Password -->
-          <div class="form-group mb-3">
-            <label>Confirm Password</label>
-            <input type="password" class="form-control" name="confirmPassword"
-              [(ngModel)]="passwordData.confirmPassword" required #confRef="ngModel" />
-            <div *ngIf="confRef.dirty || confRef.touched || submitted">
-              <small *ngIf="confRef.errors?.['required']" class="text-danger">
-                Confirm password is required
-              </small>
-              <small *ngIf="passwordData.confirmPassword && passwordData.confirmPassword !== passwordData.newPassword"
-                class="text-danger">
-                Passwords do not match
-              </small>
-            </div>
+        <!-- Confirm Password -->
+        <div class="form-group mb-3">
+          <label>Confirm Password</label>
+          <input type="password" class="form-control" name="confirmPassword" [(ngModel)]="passwordData.confirmPassword"
+            required #confRef="ngModel" [class.is-invalid]="
+              (confRef.touched || submitted) &&
+              (!passwordData.confirmPassword ||
+                passwordData.confirmPassword !== passwordData.newPassword)
+            " />
 
+          <div *ngIf="confRef.dirty || confRef.touched || submitted">
+            <small *ngIf="confRef.errors?.['required']" class="text-danger">
+              Confirm password is required
+            </small>
+            <small *ngIf="
+                passwordData.confirmPassword &&
+                passwordData.confirmPassword !== passwordData.newPassword
+              " class="text-danger">
+              Passwords do not match
+            </small>
           </div>
         </div>
 
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary">Change Password</button>
-          <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">Cancel</button>
+          <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">
+            Cancel
+          </button>
         </div>
       </form>
-
-
     </div>
   </div>
-
-
 
   <!-- Profile Modal -->
   <!-- <div class="modal-backdrop-custom" *ngIf="showEditModal" (click)="closeEditProfileModal()">
@@ -407,3 +502,4 @@
     </div>
   </div>
 </div>-->
+</div>
