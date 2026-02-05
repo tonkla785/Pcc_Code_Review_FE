@@ -364,20 +364,12 @@
     padding: 6px 10px;
     gap: 4px;
   }
-<<<<<<< HEAD
-=======
-}
->>>>>>> dev
 
   .pagination .page-link {
     padding: 4px 8px;
     font-size: 13px;
   }
-<<<<<<< HEAD
 }
-=======
-
->>>>>>> dev
 
 @media (max-width: 768px) {
   .issues-header h2 {
