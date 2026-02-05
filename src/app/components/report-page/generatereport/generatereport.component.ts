@@ -365,7 +365,7 @@ export class GeneratereportComponent implements OnInit {
       this.exportToFormat(context);
       this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections);
       this.createReportNotification(projectName, true);  // success notification
-      this.snackBar.open('Report generated successfully', 'Close', {
+      this.snackBar.open('Report generated successfully','', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',

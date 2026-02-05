@@ -159,7 +159,7 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
           this.pdfService.generatePdf(context);
           break;
         default:
-          this.snack.open('Format not supported', 'close', {
+          this.snack.open('Format not supported', '', {
             duration: 2000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
@@ -169,7 +169,7 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error('Error downloading report:', error);
-      this.snack.open('Error downloading report', 'close', {
+      this.snack.open('Error downloading report', '', {
         duration: 2000,
         horizontalPosition: 'right',
         verticalPosition: 'top',
