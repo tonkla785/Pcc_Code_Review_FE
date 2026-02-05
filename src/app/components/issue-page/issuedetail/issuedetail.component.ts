@@ -107,26 +107,39 @@ export class IssuedetailComponent implements OnInit {
     if (!this.sharedData.hasUserCache) {
       this.loadUser();
       console.log("No cache - load from server");
-    }
-    this.route.paramMap.subscribe(pm => {
-      const id = pm.get('issuesId');
-      if (!id) return;
-      this.loadIssueDetails(id);
-      console.log('issueId from route:', id);
-      // Always load issue when navigating - don't use cache for route changes
-      this.loadIssueById(id);
-    });
-    this.sharedData.selectedIssues$.subscribe(data => {
-      this.issuesResult = data;
-      console.log('Issues Detail from sharedData:', this.issuesResult);
-      this.applyUserFilter();
-      this.replycomment(this.issuesResult?.commentData ?? []);
-    });
-    const user = this.tokenStorage.getLoginUser();
-    if (user) {
-      this.sharedData.LoginUserShared = user;
-    }
-    this.sharedData.LoginUser$.subscribe(data => {
+       }
+this.route.paramMap.subscribe(pm => {
+  const id = pm.get('issuesId');
+  if (!id) return;
+
+  console.log('issuesId from route:', id);
+  const cached = this.sharedData.selectIssueValue; 
+  const isSame = cached?.id === id;
+
+  if (!isSame) {
+    this.loadIssueDetails(id);
+    this.loadIssueById(id);
+    console.log('Same')
+  } else {
+    this.issuesResult = cached;
+    this.applyUserFilter();
+    this.replycomment(this.issuesResult?.commentData ?? []);
+    console.log("Not Same")
+  }
+});
+
+this.sharedData.selectedIssues$.subscribe(data => { 
+  this.issuesResult = data;
+  console.log('Issues Detail from sharedData:', this.issuesResult);
+  this.applyUserFilter();
+  this.replycomment(this.issuesResult?.commentData ?? []);
+});
+
+      const user = this.tokenStorage.getLoginUser();  
+              if (user) {
+                this.sharedData.LoginUserShared = user;
+        }
+      this.sharedData.LoginUser$.subscribe(data => {
       this.UserLogin = data;
       console.log('User Login in Issues:', this.UserLogin);
 
@@ -332,7 +345,7 @@ export class IssuedetailComponent implements OnInit {
       this.issue.dueDate
     ).subscribe({
       next: (res: any) => {
-        this.sharedData.updateIssue(res);
+        this.sharedData.updateIssueSelect(res);
         console.log('Assigned successfully:', res);
       },
       error: (err: any) => console.error('Error:', err),
