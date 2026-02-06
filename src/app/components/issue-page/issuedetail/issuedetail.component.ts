@@ -11,6 +11,8 @@ import { AssignhistoryService } from '../../../services/assignservice/assignhist
 import { LoginUser, UserInfo } from '../../../interface/user_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 import { UserService } from '../../../services/userservice/user.service';
+import { WebSocketService } from '../../../services/websocket/websocket.service';
+import { Subscription } from 'rxjs';
 /** === เพิ่มสำหรับคอมเมนต์ === */
 import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../../services/commentservice/comment.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
@@ -97,7 +99,8 @@ export class IssuedetailComponent implements OnInit {
     private readonly sharedData: SharedDataService,
     private readonly issesService: IssueService,
     private readonly tokenStorage: TokenStorageService,
-    private readonly userDataService: UserService
+    private readonly userDataService: UserService,
+    private readonly ws: WebSocketService
   ) { }
 
   ngOnInit(): void {
@@ -109,43 +112,79 @@ export class IssuedetailComponent implements OnInit {
     if (!this.sharedData.hasUserCache) {
       this.loadUser();
       console.log("No cache - load from server");
-       }
-this.route.paramMap.subscribe(pm => {
-  const id = pm.get('issuesId');
-  if (!id) return;
+    }
+    this.route.paramMap.subscribe(pm => {
+      const id = pm.get('issuesId');
+      if (!id) return;
 
-  console.log('issuesId from route:', id);
-  const cached = this.sharedData.selectIssueValue; 
-  const isSame = cached?.id === id;
+      console.log('issuesId from route:', id);
+      const cached = this.sharedData.selectIssueValue;
+      const isSame = cached?.id === id;
 
-  if (!isSame) {
-    this.loadIssueDetails(id);
-    this.loadIssueById(id);
-    console.log('Same')
-  } else {
-    this.issuesResult = cached;
-    this.applyUserFilter();
-    this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
-    console.log("Not Same")
-  }
-});
+      if (!isSame) {
+        this.loadIssueDetails(id);
+        this.loadIssueById(id);
+        console.log('Same')
+      } else {
+        this.issuesResult = cached;
+        this.applyUserFilter();
+        this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
+        console.log("Not Same")
+      }
+    });
 
-this.sharedData.selectedIssues$.subscribe(data => { 
-  this.issuesResult = data;
-  console.log('Issues Detail from sharedData:', this.issuesResult);
-  this.applyUserFilter();
-  this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
-});
+    this.sharedData.selectedIssues$.subscribe(data => {
+      this.issuesResult = data;
+      console.log('Issues Detail from sharedData:', this.issuesResult);
+      this.replycomment(this.issuesResult?.commentData ?? []); // Update rootComments for empty state check
+      this.applyUserFilter();
+      this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
+    });
 
-      const user = this.tokenStorage.getLoginUser();  
-              if (user) {
-                this.sharedData.LoginUserShared = user;
-        }
-      this.sharedData.LoginUser$.subscribe(data => {
+    const user = this.tokenStorage.getLoginUser();
+    if (user) {
+      this.sharedData.LoginUserShared = user;
+    }
+    this.sharedData.LoginUser$.subscribe(data => {
       this.UserLogin = data;
       console.log('User Login in Issues:', this.UserLogin);
 
     });
+
+    // Subscribe to Real-time Comments
+    this.route.paramMap.subscribe(pm => {
+      const id = pm.get('issuesId');
+      if (id) {
+        this.subscribeToRealtimeComments(id);
+      }
+    });
+  }
+
+  private commentSub?: Subscription;
+
+  subscribeToRealtimeComments(issueId: string) {
+    // Unsubscribe previous if exists
+    if (this.commentSub) {
+      this.commentSub.unsubscribe();
+    }
+
+    const topicId = issueId.toLowerCase();
+    console.log('[Issuedetail] Subscribing to comments for:', topicId);
+
+    this.commentSub = this.ws.subscribeToIssueComments(topicId).subscribe({
+      next: (comment: any) => {
+        console.log('Real-time comment received:', comment);
+        // Add to SharedData to update UI
+        this.sharedData.addComments(comment);
+      },
+      error: (err: any) => console.error('WS comment error:', err)
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.commentSub) {
+      this.commentSub.unsubscribe();
+    }
   }
 
   loadIssueById(issueId: string) {
@@ -193,15 +232,25 @@ this.sharedData.selectedIssues$.subscribe(data => {
 
     console.log('Filtered Users:', this.filteredUsers);
   }
-sortComments(list: commentResponseDTO[], order: string) {
-  return [...list].sort((a, b) => {
-    const timeA = new Date(a.createdAt).getTime();
-    const timeB = new Date(b.createdAt).getTime();
-    return order === 'ASC'
-      ? timeA - timeB
-      : timeB - timeA;
-  });
-}
+  sortComments(list: commentResponseDTO[], order: string) {
+    // 1. Deduplicate by ID to ensure UI never doubless
+    const uniqueMap = new Map<string, commentResponseDTO>();
+    (list ?? []).forEach(c => {
+      const id = String(c.id).toLowerCase();
+      if (!uniqueMap.has(id)) {
+        uniqueMap.set(id, c);
+      }
+    });
+
+    // 2. Sort
+    return Array.from(uniqueMap.values()).sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime();
+      const timeB = new Date(b.createdAt).getTime();
+      return order === 'ASC'
+        ? timeA - timeB
+        : timeB - timeA;
+    });
+  }
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
     console.log('Raw API issue:', r);
@@ -287,20 +336,20 @@ sortComments(list: commentResponseDTO[], order: string) {
 
     this.sendingComment = true;
 
-  this.commentService.updateComments(payload).subscribe({
-    next: (updated) => {
-      this.sharedData.addComments(updated);
-      this.newComment = { comment: '' };
-      this.replyTo = null;
-      this.sendingComment = false;
-    },
-    error: (err) => {
-      this.sendingComment = false;
-      console.error('Update comment failed:', err);
-      console.error('Payload was:', payload);
-    }
-  });
-}
+    this.commentService.updateComments(payload).subscribe({
+      next: (updated) => {
+        this.sharedData.addComments(updated);
+        this.newComment = { comment: '' };
+        this.replyTo = null;
+        this.sendingComment = false;
+      },
+      error: (err) => {
+        this.sendingComment = false;
+        console.error('Update comment failed:', err);
+        console.error('Payload was:', payload);
+      }
+    });
+  }
 
 
   onCommentKeydown(e: KeyboardEvent) {
@@ -421,12 +470,12 @@ sortComments(list: commentResponseDTO[], order: string) {
     });
   }
   startReply(c: commentResponseDTO) {
-    if(c.user?.id === this.UserLogin?.id){ 
-      return; 
-    }else{
-    this.replyTo = { commentId: c.id, username: c.user?.username, parentCommentId: c.parentCommentId || '' };
-    this.newComment = { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
-    console.log('Replying to comment:', this.replyTo);
+    if (c.user?.id === this.UserLogin?.id) {
+      return;
+    } else {
+      this.replyTo = { commentId: c.id, username: c.user?.username, parentCommentId: c.parentCommentId || '' };
+      this.newComment = { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
+      console.log('Replying to comment:', this.replyTo);
     }
   }
   cancelReply() {

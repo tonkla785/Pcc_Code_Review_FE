@@ -99,14 +99,7 @@ export class RepositoryService {
     return this.http.delete<void>(`${environment.apiUrl}/repository/delete-repository/${projectId}`);
   }
 
-  //เก็บ status ใน localstorage  
-  private getCachedStatus(projectId: string): 'Active' | 'Scanning' | 'Error' | null {
-    const value = localStorage.getItem(`repo-status-${projectId}`);
-    if (value === 'Active' || value === 'Scanning' || value === 'Error') {
-      return value;
-    }
-    return null;
-  }
+
 
   private deriveRepoStatusFromScan(
     scan?: any
@@ -172,42 +165,30 @@ export class RepositoryService {
 
   // ดึง repo ทั้งหมด
   getAllRepo(): Observable<Repository[]> {
-    const opts = this.authOpts(); // ใส่ Authorization header อย่างเดียว
+    const opts = this.authOpts();
 
-    return this.http.get<any[]>(`${environment.apiUrl}/api/scans`, opts).pipe(
-      map(scans => {
-        // Group scans by project.id
-        const projectMap = new Map<string, { project: any, scans: any[] }>();
+    // Use /repository/all-repository to get ALL projects including those without scans
+    return this.http.get<any[]>(`${environment.apiUrl}/repository/all-repository`, opts).pipe(
+      map(projects => {
+        const repos: Repository[] = projects.map(project => {
 
-        scans.forEach(scan => {
-          const projectId = scan.project.id;
-          if (!projectMap.has(projectId)) {
-            projectMap.set(projectId, {
-              project: scan.project,
-              scans: []
-            });
-          }
-          projectMap.get(projectId)!.scans.push(scan);
-        });
-
-        // Map to Repository[]
-        const repos: Repository[] = Array.from(projectMap.values()).map(({ project, scans }) => {
-
-          // map scans แปลง Date ให้เรียบร้อย
-          const mappedScans = scans.map(scan => ({
+          // Map scans from nested scanData
+          const mappedScans = (project.scanData || []).map((scan: any) => ({
             ...scan,
             startedAt: scan.startedAt ? new Date(scan.startedAt) : undefined,
             completedAt: scan.completedAt ? new Date(scan.completedAt) : undefined
           }));
 
-          // ใช้ util หา scan ล่าสุด
+          // Find latest scan
           const latestScan = getLatestScan(
             mappedScans,
-            s => s.startedAt
+            (s: any) => s.startedAt
           );
-          const cachedStatus = this.getCachedStatus(project.id);
+
           const gates = this.SonarQubeService.getQualityGates();
-          console.log('Repo QualityGates from config:', gates);
+
+          // Status from backend takes priority
+          const finalStatus: 'Active' | 'Scanning' | 'Error' = this.deriveRepoStatusFromScan(latestScan);
 
           return {
             projectId: project.id,
@@ -218,10 +199,10 @@ export class RepositoryService {
             sonarProjectKey: project.sonarProjectKey,
             createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
-            scanId: latestScan?.id, //เอาไว้ส่งให้หน้า detailrepo
-            scans: mappedScans.map(scan => ({
+            scanId: latestScan?.id,
+            scans: mappedScans.map((scan: any) => ({
               id: scan.id,
-              project: scan.project,
+              project: project, // project is the parent object here
               status: scan.status as 'PENDING' | 'SUCCESS' | 'FAILED',
               startedAt: scan.startedAt ? scan.startedAt.toISOString() : '',
               completedAt: scan.completedAt ? scan.completedAt.toISOString() : undefined,
@@ -244,10 +225,7 @@ export class RepositoryService {
               issueData: []
             } as ScanResponseDTO)),
 
-            // summary จาก startedAt ใหม่สุด
-            status: cachedStatus
-              ?? this.deriveRepoStatusFromScan(latestScan),
-
+            status: finalStatus,
             lastScan: latestScan?.startedAt,
 
             qualityGate: gates.failOnError
@@ -277,6 +255,7 @@ export class RepositoryService {
               : undefined
           };
         });
+
         // Sort by lastScan or updatedAt
         return repos.sort((a, b) => {
           const aTime = a.lastScan?.getTime() ?? a.updatedAt?.getTime() ?? a.createdAt?.getTime() ?? 0;
