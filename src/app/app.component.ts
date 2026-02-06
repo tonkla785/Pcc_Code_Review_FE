@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { WebSocketService } from './services/websocket/websocket.service';
 import { SharedDataService } from './services/shared-data/shared-data.service';
+import { TechnicalDebtDataService } from './services/shared-data/technicaldebt-data.service';
 import { RepositoryService } from './services/reposervice/repository.service';
 import { ScanService } from './services/scanservice/scan.service';
 import { IssueService } from './services/issueservice/issue.service';
@@ -27,6 +28,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private ws: WebSocketService,
     private sharedData: SharedDataService,
+    private technicalDebtData: TechnicalDebtDataService,
     private repoService: RepositoryService,
     private scanService: ScanService,
     private issueService: IssueService,
@@ -119,6 +121,9 @@ export class AppComponent implements OnInit, OnDestroy {
       if (event.action === 'DELETED') {
         // Optimized: Remove directly from SharedData without refetching
         this.sharedData.removeRepository(event.projectId);
+
+        // Clear technical debt data when project is deleted
+        this.technicalDebtData.clearAllDebtData();
 
         this.snack.open(
           `Project "${event.projectName}" was deleted`,
