@@ -191,7 +191,7 @@ export class SharedDataService {
     updateIssues(updated: IssuesResponseDTO | IssuesResponseDTO[]) {
         const list = Array.isArray(updated) ? updated : [updated];
         const Id = new Map(list.map(i => [i.id, i]));
-        
+
         const next = this.issuesValue.map(u => Id.get(u.id) ?? u);
         this.AllIssues.next(next);
     }
@@ -281,7 +281,10 @@ export class SharedDataService {
     }
     addComments(newComment: commentResponseDTO) {
         const current = this.selectIssueValue;
-        if (!current) return;
+        if (!current) {
+            console.warn('[addComments] No selected issue in SharedData. Cannot update.');
+            return;
+        }
 
         // กันเผื่อ backend ส่ง issue เป็น id หรือ object
         const issueId =
@@ -295,6 +298,12 @@ export class SharedDataService {
         const commentData = current.commentData ?? [];
         const newKey = this.getCommentKey(newComment);
         if (commentData.some(c => this.getCommentKey(c) === newKey)) return;
+
+        // Prevent duplicates (Realtime + API response race condition)
+        if (commentData.some(c => c.id === newComment.id)) {
+            console.warn('[addComments] Duplicate comment detected. Ignoring ID:', newComment.id);
+            return;
+        }
 
         const next: IssuesResponseDTO = {
             ...current,

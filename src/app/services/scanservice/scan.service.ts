@@ -150,6 +150,7 @@ export class ScanService {
       case 'FAILED':
       case 'ERROR':    // ถ้า backend บางครั้งส่ง Error
         return 'Error';
+      case 'PENDING':
       case 'SCANNING':
         return 'Scanning';
       default:

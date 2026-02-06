@@ -5,447 +5,617 @@
 /* ===============================
    🧱 Layout
    =============================== */
-   .page-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #eef2ff, #dbeafe);
-    padding: 40px 20px;
-  }
-  
-  .form-card {
-    width: 100%;
-    max-width: 860px;
-    background: #fff;
-    padding: 32px;
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  .form-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
-  }
-  
-  /* ===============================
+.page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eef2ff, #dbeafe);
+  padding: 40px 20px;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 860px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+/* ===============================
      🏷️ Headings & Structure
      =============================== */
-  h2 {
-    text-align: center;
-    margin-bottom: 24px;
-    color: #1e40af;
-    font-size: 1.8rem;
-  }
-  
-  fieldset {
-    border: 1px solid #e5e7eb;
-    margin-bottom: 22px;
-    padding: 20px;
-    border-radius: 12px;
-    transition: border 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  fieldset:focus-within {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  }
-  
-  legend {
-    font-weight: bold;
-    color: #111827;
-    padding: 0 10px;
-    font-size: 1.1rem;
-  }
-  
-  /* ===============================
+h2 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1e40af;
+  font-size: 1.8rem;
+}
+
+fieldset {
+  border: 1px solid #e5e7eb;
+  margin-bottom: 22px;
+  padding: 20px;
+  border-radius: 12px;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+fieldset:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+legend {
+  font-weight: bold;
+  color: #111827;
+  padding: 0 10px;
+  font-size: 1.1rem;
+}
+
+/* ===============================
      🔘 Radio Button
      =============================== */
-  .form-check-input[type="radio"] {
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #2563eb;
-    background-color: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .form-check-input[type="radio"]:checked {
-    background-color: #2563eb;
-    border-color: #2563eb;
-    box-shadow: inset 0 0 0 3px #2f0cdf;
-  }
-  
-  /* ===============================
+.form-check-input[type="radio"] {
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #2563eb;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-check-input[type="radio"]:checked {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  box-shadow: inset 0 0 0 3px #2f0cdf;
+}
+
+/* ===============================
      ☑️ Checkbox (Custom Green)
      =============================== */
-  .form-check-input.custom-check {
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    border: 2px solid #16a34a;
-    background-color: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .form-check-input.custom-check:checked {
-    background-color: #16a34a;
-    border-color: #16a34a;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
-    background-size: 12px 12px;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  
-  .form-check-input.custom-check:focus {
-    box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.25);
-  }
-  
-  /* ===============================
+.form-check-input.custom-check {
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #16a34a;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-check-input.custom-check:checked {
+  background-color: #16a34a;
+  border-color: #16a34a;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+  background-size: 12px 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.form-check-input.custom-check:focus {
+  box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.25);
+}
+
+/* ===============================
      ⚠️ Error Text
      =============================== */
-  .error {
-    color: #dc2626;
-    font-size: 0.85em;
-    margin-top: 4px;
-  }
-  
-  /* ===============================
+.error {
+  color: #dc2626;
+  font-size: 0.85em;
+  margin-top: 4px;
+}
+
+/* ===============================
      🎯 Actions (Buttons)
      =============================== */
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 14px;
-    margin-top: 22px;
-  }
-  
-  .actions button {
-    flex: 1 1 auto;
-    min-width: 120px;
-  }
-  
-  button {
-    padding: 12px 18px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
-  }
-  
-  button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  }
-  
-  .required {
-    color: red;
-  }
-  
-  /* ===============================
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.actions button {
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.required {
+  color: red;
+}
+
+/* ===============================
      📱 Responsive (Mobile)
      =============================== */
-  @media (max-width: 576px) {
-    .actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
+@media (max-width: 576px) {
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
   }
-  
-  /* ===========================================================
+}
+
+/* ===========================================================
      🌙 DARK MODE (FORM PAGE)
      =========================================================== */
-  
-  /* Background */
-  :host-context(.dark-mode) .page-wrapper {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-  }
-  
-  /* Card */
-  :host-context(.dark-mode) .form-card {
-    background: #1f2937;
-    color: #f9fafb;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  }
-  
-  :host-context(.dark-mode) .form-card:hover {
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75);
-  }
-  
-  /* Heading */
-  :host-context(.dark-mode) h2 {
-    color: #60a5fa;
-  }
-  
-  /* Fieldset */
-  :host-context(.dark-mode) fieldset {
-    border: 1px solid #374151;
-    background: #111827;
-  }
-  
-  :host-context(.dark-mode) fieldset:focus-within {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
-  }
-  
-  :host-context(.dark-mode) legend {
-    color: #f3f4f6;
-  }
-  
-  /* Labels & Inputs */
-  :host-context(.dark-mode) .input-group label {
-    color: #d1d5db;
-  }
-  
-  :host-context(.dark-mode) .input-group input {
-    background: #1f2937;
-    color: #f9fafb;
-    border: 1px solid #374151;
-  }
-  
-  :host-context(.dark-mode) .input-group input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-  }
-  
-  /* Radio */
-  :host-context(.dark-mode) .form-check-input[type="radio"] {
-    background-color: #111827;
-    border-color: #3b82f6;
-  }
-  
-  :host-context(.dark-mode) .form-check-input[type="radio"]:checked {
-    background-color: #3b82f6;
-    border-color: #2563eb;
-    box-shadow: inset 0 0 0 3px #111827;
-  }
-  
-  /* Checkbox */
-  :host-context(.dark-mode) .form-check-input.custom-check {
-    background-color: #111827;
-    border-color: #22c55e;
-  }
-  
-  :host-context(.dark-mode) .form-check-input.custom-check:checked {
-    background-color: #22c55e;
-    border-color: #16a34a;
-  }
-  
-  /* Error */
-  :host-context(.dark-mode) .error {
-    color: #f87171;
-  }
-  
-  /* Buttons */
-  :host-context(.dark-mode) button {
-    background: #2563eb;
-    color: #fff;
-  }
-  
-  :host-context(.dark-mode) button:hover {
-    background: #1d4ed8;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
-  }
-  
-  /* Links */
-  :host-context(.dark-mode) .extra-links a {
-    color: #60a5fa;
-  }
-  
-  :host-context(.dark-mode) .extra-links a:hover {
-    color: #93c5fd;
-  }
-  
-  /* ===============================
+
+/* Background */
+:host-context(.dark-mode) .page-wrapper {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+/* Card */
+:host-context(.dark-mode) .form-card {
+  background: #1f2937;
+  color: #f9fafb;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+:host-context(.dark-mode) .form-card:hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75);
+}
+
+/* Heading */
+:host-context(.dark-mode) h2 {
+  color: #60a5fa;
+}
+
+/* Fieldset */
+:host-context(.dark-mode) fieldset {
+  border: 1px solid #374151;
+  background: #111827;
+}
+
+:host-context(.dark-mode) fieldset:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+}
+
+:host-context(.dark-mode) legend {
+  color: #f3f4f6;
+}
+
+/* Labels & Inputs */
+:host-context(.dark-mode) .input-group label {
+  color: #d1d5db;
+}
+
+:host-context(.dark-mode) .input-group input {
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+}
+
+:host-context(.dark-mode) .input-group input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+}
+
+/* Radio */
+:host-context(.dark-mode) .form-check-input[type="radio"] {
+  background-color: #111827;
+  border-color: #3b82f6;
+}
+
+:host-context(.dark-mode) .form-check-input[type="radio"]:checked {
+  background-color: #3b82f6;
+  border-color: #2563eb;
+  box-shadow: inset 0 0 0 3px #111827;
+}
+
+/* Checkbox */
+:host-context(.dark-mode) .form-check-input.custom-check {
+  background-color: #111827;
+  border-color: #22c55e;
+}
+
+:host-context(.dark-mode) .form-check-input.custom-check:checked {
+  background-color: #22c55e;
+  border-color: #16a34a;
+}
+
+/* Error */
+:host-context(.dark-mode) .error {
+  color: #f87171;
+}
+
+/* Buttons */
+:host-context(.dark-mode) button {
+  background: #2563eb;
+  color: #fff;
+}
+
+:host-context(.dark-mode) button:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
+}
+
+/* Links */
+:host-context(.dark-mode) .extra-links a {
+  color: #60a5fa;
+}
+
+:host-context(.dark-mode) .extra-links a:hover {
+  color: #93c5fd;
+}
+
+/* ===============================
      🩶 Dark Mode: Bootstrap Controls
      =============================== */
-  :host-context(.dark-mode) .form-control,
-  :host-context(.dark-mode) select.form-control,
-  :host-context(.dark-mode) textarea.form-control {
-    background-color: #111827 !important;
-    color: #f9fafb !important;
-    border: 1px solid #374151 !important;
-  }
-  
-  :host-context(.dark-mode) .form-control:focus,
-  :host-context(.dark-mode) select.form-control:focus,
-  :host-context(.dark-mode) textarea.form-control:focus {
-    background-color: #1f2937 !important;
-    color: #fff !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35) !important;
-  }
-  
-  :host-context(.dark-mode) .form-control::placeholder {
-    color: #9ca3af !important;
-  }
-  
-  /* ===============================
+:host-context(.dark-mode) .form-control,
+:host-context(.dark-mode) select.form-control,
+:host-context(.dark-mode) textarea.form-control {
+  background-color: #111827 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+
+:host-context(.dark-mode) .form-control:focus,
+:host-context(.dark-mode) select.form-control:focus,
+:host-context(.dark-mode) textarea.form-control:focus {
+  background-color: #1f2937 !important;
+  color: #fff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35) !important;
+}
+
+:host-context(.dark-mode) .form-control::placeholder {
+  color: #9ca3af !important;
+}
+
+/* ===============================
      🧩 Dark Mode: Select Dropdown
      =============================== */
-  :host-context(.dark-mode) select.form-control,
-  :host-context(.dark-mode) select.form-select {
-    background-color: #111827 !important;
-    color: #f9fafb !important;
-    border: 1px solid #374151 !important;
-  }
-  
-  :host-context(.dark-mode) select.form-control:focus,
-  :host-context(.dark-mode) select.form-select:focus {
-    background-color: #1f2937 !important;
-    color: #fff !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35) !important;
-  }
-  
-  :host-context(.dark-mode) select.form-control option,
-  :host-context(.dark-mode) select.form-select option {
-    background: #1f2937 !important;
-    color: #f9fafb !important;
-  }
-  
-  /* ===============================
+:host-context(.dark-mode) select.form-control,
+:host-context(.dark-mode) select.form-select {
+  background-color: #111827 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+
+:host-context(.dark-mode) select.form-control:focus,
+:host-context(.dark-mode) select.form-select:focus {
+  background-color: #1f2937 !important;
+  color: #fff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35) !important;
+}
+
+:host-context(.dark-mode) select.form-control option,
+:host-context(.dark-mode) select.form-select option {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* ===============================
      🎨 Dark Mode: Button Variants
      =============================== */
-  :host-context(.dark-mode) .btn-danger {
-    background-color: #dc2626 !important;
-    border-color: #dc2626 !important;
-    color: #fff !important;
-  }
-  
-  :host-context(.dark-mode) .btn-danger:hover {
-    background-color: #b91c1c !important;
-    border-color: #b91c1c !important;
-  }
-  
-  :host-context(.dark-mode) .btn-warning {
-    background-color: #facc15 !important;
-    border-color: #facc15 !important;
-    color: #1f2937 !important;
-  }
-  
-  :host-context(.dark-mode) .btn-warning:hover {
-    background-color: #eab308 !important;
-    border-color: #eab308 !important;
-  }
-  
-  :host-context(.dark-mode) .btn-primary {
-    background-color: #2563eb !important;
-    border-color: #2563eb !important;
-    color: #fff !important;
-  }
-  
-  :host-context(.dark-mode) .btn-primary:hover {
-    background-color: #1e40af !important;
-    border-color: #1e40af !important;
-  }
-  
-  :host-context(.dark-mode) .btn-success {
-    background-color: #16a34a !important;
-    border-color: #16a34a !important;
-    color: #fff !important;
-  }
-  
-  :host-context(.dark-mode) .btn-success:hover {
-    background-color: #15803d !important;
-    border-color: #15803d !important;
-  }
-  
-  /* ===========================================================
+:host-context(.dark-mode) .btn-danger {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
+}
+
+:host-context(.dark-mode) .btn-danger:hover {
+  background-color: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+:host-context(.dark-mode) .btn-warning {
+  background-color: #facc15 !important;
+  border-color: #facc15 !important;
+  color: #1f2937 !important;
+}
+
+:host-context(.dark-mode) .btn-warning:hover {
+  background-color: #eab308 !important;
+  border-color: #eab308 !important;
+}
+
+:host-context(.dark-mode) .btn-primary {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #fff !important;
+}
+
+:host-context(.dark-mode) .btn-primary:hover {
+  background-color: #1e40af !important;
+  border-color: #1e40af !important;
+}
+
+:host-context(.dark-mode) .btn-success {
+  background-color: #16a34a !important;
+  border-color: #16a34a !important;
+  color: #fff !important;
+}
+
+:host-context(.dark-mode) .btn-success:hover {
+  background-color: #15803d !important;
+  border-color: #15803d !important;
+}
+
+/* ===========================================================
      🔔 Minimal Red Alert Box
      =========================================================== */
-  .alert-note {
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #7f1d1d;
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: 14px;
-  }
-  
-  .alert-note i {
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    color: #b91c1c;
-    margin-top: 2px;
-  }
-  
-  /* Dark Mode Alert */
-  :host-context(.dark-mode) .alert-note {
-    background-color: #3f1d1d;
-    border-color: #7f1d1d;
-    color: #fecaca;
-  }
-  
-  :host-context(.dark-mode) .alert-note i {
-    color: #fca5a5;
-  }
-  
-  /* ===========================================================
+.alert-note {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #7f1d1d;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.alert-note i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  color: #b91c1c;
+  margin-top: 2px;
+}
+
+/* Dark Mode Alert */
+:host-context(.dark-mode) .alert-note {
+  background-color: #3f1d1d;
+  border-color: #7f1d1d;
+  color: #fecaca;
+}
+
+:host-context(.dark-mode) .alert-note i {
+  color: #fca5a5;
+}
+
+/* ===========================================================
      ✨ Rounded Inputs + Spacing
      =========================================================== */
-  input.form-control,
-  input[type="text"],
-  input[type="password"],
-  select.form-select {
-    border-radius: 10px !important;
-    border: 1px solid #d1d5db !important;
-    background-color: #fff !important;
-    transition: all 0.25s ease;
-  }
-  
-  input.form-control:focus,
-  input[type="text"]:focus,
-  input[type="password"]:focus,
-  select.form-select:focus {
-    border-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
-    outline: none !important;
-  }
-  
-  /* Dark Mode Inputs */
-  :host-context(.dark-mode) input.form-control,
-  :host-context(.dark-mode) input[type="text"],
-  :host-context(.dark-mode) input[type="password"],
-  :host-context(.dark-mode) select.form-select {
-    background-color: #111827 !important;
-    color: #f9fafb !important;
-    border: 1px solid #374151 !important;
-  }
-  
-  :host-context(.dark-mode) input.form-control:focus,
-  :host-context(.dark-mode) input[type="text"]:focus,
-  :host-context(.dark-mode) input[type="password"]:focus,
-  :host-context(.dark-mode) select.form-select:focus {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
-  }
-  
-  /* Label-Input Spacing */
-  label + input.form-control,
-  label + input[type="text"],
-  label + input[type="password"],
-  label + select.form-select {
-    margin-left: 8px;
-  }
-  
+input.form-control,
+input[type="text"],
+input[type="password"],
+select.form-select {
+  border-radius: 10px !important;
+  border: 1px solid #d1d5db !important;
+  background-color: #fff !important;
+  transition: all 0.25s ease;
+}
+
+input.form-control:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+select.form-select:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  outline: none !important;
+}
+
+/* Dark Mode Inputs */
+:host-context(.dark-mode) input.form-control,
+:host-context(.dark-mode) input[type="text"],
+:host-context(.dark-mode) input[type="password"],
+:host-context(.dark-mode) select.form-select {
+  background-color: #111827 !important;
+  color: #f9fafb !important;
+  border: 1px solid #374151 !important;
+}
+
+:host-context(.dark-mode) input.form-control:focus,
+:host-context(.dark-mode) input[type="text"]:focus,
+:host-context(.dark-mode) input[type="password"]:focus,
+:host-context(.dark-mode) select.form-select:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Label-Input Spacing */
+label+input.form-control,
+label+input[type="text"],
+label+input[type="password"],
+label+select.form-select {
+  margin-left: 8px;
+}
+
+input[name="username"] {
+  margin-right: 16px;
+}
+
+/* Responsive Fix for iPad */
+@media (min-width: 577px) and (max-width: 1024px) {
   input[name="username"] {
-    margin-right: 16px;
+    margin-bottom: 14px;
   }
-  
-  /* Responsive Fix for iPad */
-  @media (min-width: 577px) and (max-width: 1024px) {
-    input[name="username"] {
-      margin-bottom: 14px;
-    }
-  }
-  
+}
+
+/* ===========================================================
+   ℹ️ Git Token Info Tooltip (Clean + Mobile-friendly)
+   =========================================================== */
+
+.form-label .info-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.10);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.form-label .info-icon:hover {
+  transform: translateY(-1px);
+  background: rgba(37, 99, 235, 0.16);
+  border-color: rgba(37, 99, 235, 0.40);
+}
+
+/* focus สำหรับคีย์บอร์ด/มือถือ */
+.form-label .info-icon:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+/* Tooltip box */
+.form-label .info-icon .info-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+
+  width: 360px;
+  max-width: 82vw;
+
+  padding: 12px 14px;
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
+  z-index: 3000;
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+}
+
+/* Arrow */
+.form-label .info-icon .info-tooltip::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 14px;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  transform: rotate(45deg);
+  border-left: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Show on hover + focus */
+.form-label .info-icon:hover .info-tooltip,
+.form-label .info-icon:focus .info-tooltip,
+.form-label .info-icon:focus-within .info-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Content style */
+.form-label .info-icon .info-tooltip strong {
+  display: block;
+  font-size: 0.92rem;
+  margin-bottom: 6px;
+}
+
+.form-label .info-icon .info-tooltip ol {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.45;
+}
+
+.form-label .info-icon .info-tooltip li {
+  margin: 3px 0;
+}
+
+.form-label .info-icon .info-tooltip code {
+  background: #f1f5f9;
+  color: #334155;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  border: 1px solid #e2e8f0;
+}
+
+.form-label .info-icon .info-tooltip .tip {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  font-size: 0.82rem;
+  color: #1e40af;
+}
+
+/* ===========================================================
+   🌙 Dark Mode overrides (your system: .dark-mode)
+   =========================================================== */
+
+:host-context(.dark-mode) .form-label .info-icon {
+  color: #93c5fd;
+  background: rgba(147, 197, 253, 0.10);
+  border: 1px solid rgba(147, 197, 253, 0.22);
+}
+
+:host-context(.dark-mode) .form-label .info-icon:hover {
+  background: rgba(147, 197, 253, 0.16);
+  border-color: rgba(147, 197, 253, 0.35);
+}
+
+:host-context(.dark-mode) .form-label .info-icon:focus-visible {
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.22);
+}
+
+:host-context(.dark-mode) .form-label .info-icon .info-tooltip {
+  background: #0b1220;
+  color: #f9fafb;
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
+}
+
+:host-context(.dark-mode) .form-label .info-icon .info-tooltip::before {
+  background: #0b1220;
+  border-left-color: rgba(255, 255, 255, 0.10);
+  border-top-color: rgba(255, 255, 255, 0.10);
+}
+
+:host-context(.dark-mode) .form-label .info-icon .info-tooltip code {
+  background: rgba(147, 197, 253, 0.12);
+  color: #f9fafb;
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+:host-context(.dark-mode) .form-label .info-icon .info-tooltip .tip {
+  background: rgba(96, 165, 250, 0.10);
+  border-color: rgba(96, 165, 250, 0.18);
+  color: #bfdbfe;
+}
+
+/* กัน tooltip โดนตัดจาก container ใดๆ ที่เผลอใส่ overflow */
+.form-card,
+fieldset {
+  overflow: visible;
+}

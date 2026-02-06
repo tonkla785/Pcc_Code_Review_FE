@@ -7,6 +7,9 @@ import autoTable from 'jspdf-autotable';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { EmailService } from '../../../services/emailservice/email.service';
+import { LoginUser } from '../../../interface/user_interface';
+import Swal from 'sweetalert2';
 
 import { ActivatedRoute } from '@angular/router';
 @Component({
@@ -14,28 +17,41 @@ import { ActivatedRoute } from '@angular/router';
   standalone: true,
   imports: [RouterLink, CommonModule, RouterOutlet],
   templateUrl: './scanresult.component.html',
-  styleUrl: './scanresult.component.css'
+  styleUrl: './scanresult.component.css',
 })
 export class ScanresultComponent {
+  constructor(
+    private readonly router: Router,
+    private readonly scanService: ScanService,
+    private readonly authService: AuthService,
+    private sharedData: SharedDataService,
+    private route: ActivatedRoute,
+    private readonly emailService: EmailService,
+  ) {}
 
-  constructor(private readonly router: Router, private readonly scanService: ScanService,
-    private readonly authService: AuthService, private sharedData: SharedDataService, private route: ActivatedRoute,) { }
-
-  goBack() { window.history.back(); }
+  goBack() {
+    window.history.back();
+  }
 
   scanInfo: Scan | null = null;
   scanResult: ScanResponseDTO | null = null;
+  currentUser: LoginUser | null = null;
 
   ngOnInit(): void {
+    // Subscribe to LoginUser
+    this.sharedData.LoginUser$.subscribe((user) => {
+      this.currentUser = user;
+    });
+
     // Subscribe to cached data for real-time updates
-    this.sharedData.selectedScan$.subscribe(data => {
+    this.sharedData.selectedScan$.subscribe((data) => {
       if (data) {
         this.scanResult = data;
       }
     });
 
     // Check route params and decide whether to use cache or fetch from API
-    this.route.paramMap.subscribe(pm => {
+    this.route.paramMap.subscribe((pm) => {
       const id = pm.get('scanId');
       if (!id) return;
 
@@ -62,26 +78,29 @@ export class ScanresultComponent {
         this.sharedData.setLoading(false);
         console.log('Scan history loaded:', data);
       },
-      error: () => this.sharedData.setLoading(false)
+      error: () => this.sharedData.setLoading(false),
     });
   }
 
   hasOverallOrMetrics(scan: any): boolean {
-    const isValid = (v: any) => v !== null && v !== undefined && v !== '' && v !== 'null';
+    const isValid = (v: any) =>
+      v !== null && v !== undefined && v !== '' && v !== 'null';
 
     const overallGates = [
       scan.reliabilityGate,
       scan.securityGate,
       scan.maintainabilityGate,
-      scan.securityReviewGate
+      scan.securityReviewGate,
     ];
 
-    const metrics = scan.metrics ? [
-      scan.metrics.bugs,
-      scan.metrics.vulnerabilities,
-      scan.metrics.codeSmells,
-      scan.metrics.coverage
-    ] : [];
+    const metrics = scan.metrics
+      ? [
+          scan.metrics.bugs,
+          scan.metrics.vulnerabilities,
+          scan.metrics.codeSmells,
+          scan.metrics.coverage,
+        ]
+      : [];
 
     return overallGates.some(isValid) || metrics.some(isValid);
   }
@@ -107,8 +126,8 @@ export class ScanresultComponent {
         ['Reliability', scan?.reliabilityGate ?? '-'],
         ['Security', scan?.securityGate ?? '-'],
         ['Maintainability', scan?.maintainabilityGate ?? '-'],
-        ['Security Review', scan?.securityReviewGate ?? '-']
-      ]
+        ['Security Review', scan?.securityReviewGate ?? '-'],
+      ],
     });
 
     // Metrics Table
@@ -120,8 +139,8 @@ export class ScanresultComponent {
           ['Bugs', scan.metrics.bugs ?? '-'],
           ['Vulnerabilities', scan.metrics.vulnerabilities ?? '-'],
           ['Code Smells', scan.metrics.codeSmells ?? '-'],
-          ['Coverage (%)', scan.metrics.coverage ?? '-']
-        ]
+          ['Coverage (%)', scan.metrics.coverage ?? '-'],
+        ],
       });
     }
 
@@ -132,32 +151,135 @@ export class ScanresultComponent {
     this.router.navigate(['/generatereport']);
   }
 
-  /** ✅ ปุ่มส่ง Email (จำลอง) */
-  emailReport() {
-    if (!this.scanInfo) {
-      alert('No scan data available');
-      return;
-    }
-    const doc = this.generatePDF();
-    const pdfBlob = doc.output('blob');
+ emailReport(): void {
+  const toEmail = this.currentUser?.email;
 
-    // ในระบบจริง คุณจะส่ง pdfBlob ไป backend
-    console.log('PDF ready to send by email', pdfBlob);
-    alert('Report prepared for email (demo only)');
+  if (!toEmail) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Cannot send email',
+      text: 'No email address found for the current user.',
+    });
+    return;
+  }
+
+  if (!this.scanResult) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Cannot send email',
+      text: 'No scan data available to send.',
+    });
+    return;
+  }
+
+  const applicationName = this.scanResult.project?.name || 'Unknown Project';
+  const subject = `Scan Report: ${applicationName}`;
+
+  const md = this.generateMarkdown();
+  const html = this.wrapAsPre(md);
+
+  // Loading popup
+  Swal.fire({
+    title: 'Sending email...',
+    text: 'Please wait a moment.',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  this.emailService
+    .scanReportEmail({
+      type: 'ScanReport',
+      email: toEmail,
+      applicationName,
+      subject,
+      html,
+    })
+    .subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Email sent',
+          text: `The report has been sent to ${toEmail}.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      },
+      error: (err) => {
+        console.error('Send email failed', err);
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Email failed',
+          text: 'An error occurred while sending the email. Please try again.',
+        });
+      },
+    });
+}
+
+
+  generateMarkdown(): string {
+    const scan = this.scanResult;
+    const metrics = scan?.metrics;
+
+    const formatDate = (date: string | number | undefined) => {
+      if (!date) return '-';
+      const d = new Date(date);
+      return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    };
+
+    const val = (v: any) => (v !== null && v !== undefined ? v : '-');
+
+    return `# Scan Results: ${scan?.project?.name ?? '-'}
+
+## Scan Info
+- **Started At**: ${formatDate(scan?.startedAt)}
+- **Completed At**: ${formatDate(scan?.completedAt)}
+- **Quality Gate**: ${scan?.qualityGate === 'OK' ? 'Passed' : 'Failed'}
+
+## Overall Gates
+| Gate | Grade |
+| --- | --- |
+| Reliability | ${val(metrics?.reliabilityRating)} |
+| Security | ${val(metrics?.securityRating)} |
+| Maintainability | ${val(metrics?.maintainabilityRating)} |
+| Security Review | ${this.getAverageRating()} |
+
+## Metrics Overview
+- **Bugs**: ${val(metrics?.bugs)}
+- **Vulnerabilities**: ${val(metrics?.vulnerabilities)}
+- **Code Smells**: ${val(metrics?.codeSmells)}
+- **Coverage**: ${val(metrics?.coverage)}%
+`;
+  }
+
+  private wrapAsPre(md: string): string {
+    const esc = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    return `
+  <pre style="white-space: pre-wrap; font-family: ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace;">
+${esc}
+  </pre>`;
   }
 
   viewIssues() {
     this.router.navigate(['/issues', this.scanInfo?.scanId]);
   }
 
-  // คำนวณค่าเฉลี่ย rating จาก reliability, security, maintainability
   getAverageRating(): string {
     const metrics = this.scanResult?.metrics;
     if (!metrics) return '-';
 
     const ratingToNumber = (rating: string | undefined): number | null => {
       if (!rating) return null;
-      const map: { [key: string]: number } = { 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5 };
+      const map: { [key: string]: number } = { A: 1, B: 2, C: 3, D: 4, E: 5 };
       return map[rating.toUpperCase()] ?? null;
     };
 
@@ -172,7 +294,7 @@ export class ScanresultComponent {
     const ratings = [
       ratingToNumber(metrics.reliabilityRating),
       ratingToNumber(metrics.securityRating),
-      ratingToNumber(metrics.maintainabilityRating)
+      ratingToNumber(metrics.maintainabilityRating),
     ].filter((r): r is number => r !== null);
 
     if (ratings.length === 0) return '-';

@@ -31,20 +31,18 @@
       <option value="open">Open</option>
       <option value="pending">Pending</option>
       <option value="in-progress">In Progress</option>
-      <option value="done">Done</option>
-      <option value="reject">Reject</option>
+      <option value="resolved">Resolved</option>
+      <option value="closed">Closed</option>
     </select>
 
-    <select class="form-select w-auto"
-        [(ngModel)]="filterProject"
-        (change)="applyFilter()">
+    <select class="form-select w-auto" [(ngModel)]="filterProject" (change)="applyFilter()">
       <option value="All Projects">All Projects</option>
-      <option *ngFor="let project of repositories"
-              [value]="project.name">
+      <option *ngFor="let project of repositories" [value]="project.name">
         {{ project.name }}
       </option>
     </select>
-    <input class="form-control w-auto" type="text" placeholder="Search issues..." [(ngModel)]="searchText" (ngModelChange)="onSearchChange($event)">
+    <input class="form-control w-auto" type="text" placeholder="Search issues..." [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange($event)">
     <button class="btn btn-outline-primary" (click)="clearFilters()">Clear</button>
   </div>
 
@@ -81,7 +79,7 @@
               {{ issue.severity | uppercase }}
             </span>
           </td>
-          
+
           <td>
             <strong class="issue-message">{{ issue.message }}</strong><br>
           </td>
@@ -89,14 +87,20 @@
           <td>{{issue.assignedTo?.username ?? 'Unassigned'}}</td>
           <td>
             <span class="status-badge" [ngClass]="statusClass(issue.status)">
-              {{ issue.status | uppercase }}
+              {{ formatStatus(issue.status) }}
             </span>
           </td>
-          
+
           <td class="text-center sticky-col">
             <button *ngIf="issue?.id" (click)="viewResult(issue)" class="btn btn-info btn-sm">
               <i class="bi bi-eye"></i>
             </button>
+          </td>
+        </tr>
+        <!-- Empty State -->
+        <tr *ngIf="paginatedIssues?.length === 0">
+          <td colspan="8" class="text-center text-muted py-4">
+            <i class="bi bi-inbox"></i> No Data
           </td>
         </tr>
       </tbody>
@@ -127,12 +131,7 @@
         <!-- Assign to user -->
         <div class="mb-3">
           <label class="form-label">Assign to:</label>
-          <select
-            class="form-control"
-            [(ngModel)]="issueDraft.assignedTo"
-            name="assignedTo"
-            required
-          >
+          <select class="form-control" [(ngModel)]="issueDraft.assignedTo" name="assignedTo" required>
             <option value="" disabled>-- Select user --</option>
             <option *ngFor="let u of UserData" [value]="u.id">
               {{ u.username }}
@@ -168,7 +167,8 @@
       <i class="bi bi-chevron-left"></i>
     </button>
     <span class="page-label mb-0">Page {{ currentPage }} / {{totalPages}}</span>
-    <button class="page-btn" [class.disabled]="currentPage === totalPages" [disabled]="currentPage === totalPages" (click)="nextPage()">
+    <button class="page-btn" [class.disabled]="currentPage === totalPages" [disabled]="currentPage === totalPages"
+      (click)="nextPage()">
       <i class="bi bi-chevron-right"></i>
     </button>
   </div>
@@ -181,5 +181,5 @@
       <i class="bi bi-download"></i>
     </button>
   </div>
-  
+
 </div>
