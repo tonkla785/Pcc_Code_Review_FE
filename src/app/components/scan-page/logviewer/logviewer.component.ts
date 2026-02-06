@@ -14,6 +14,8 @@ import {
 } from '../../../interface/scan_page_interface';
 import { LoginUser } from '../../../interface/user_interface';
 import { EmailService } from '../../../services/emailservice/email.service';
+import Swal from 'sweetalert2';
+
 
 @Component({
   selector: 'app-logviewer',
@@ -249,31 +251,64 @@ export class LogviewerComponent {
   }
 
   sendEmail(): void {
-    const toEmail = this.currentUser?.email;
-    if (!toEmail) {
-      console.error('No recipient email');
-      return;
-    }
+  const toEmail = this.currentUser?.email;
 
-    const applicationName = this.log.applicationName;
-    const subject = `Scan Report: ${applicationName}`;
-
-    const md = this.generateMarkdown();
-    const html = this.wrapAsPre(md);
-
-    this.emailService
-      .scanReportEmail({
-        type: 'ScanReport',
-        email: toEmail,
-        applicationName,
-        subject,
-        html,
-      })
-      .subscribe({
-        next: () => console.log('Scan report email queued'),
-        error: (err) => console.error('Send email failed', err),
-      });
+  if (!toEmail) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Cannot send email',
+      text: 'No email address found for the current user.',
+    });
+    return;
   }
+
+  const applicationName = this.log.applicationName;
+  const subject = `Scan Report: ${applicationName}`;
+
+  const md = this.generateMarkdown();
+  const html = this.wrapAsPre(md);
+
+
+  // 🔄 Loading popup
+  Swal.fire({
+    title: 'Sending email...',
+    text: 'Please wait a moment',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  this.emailService
+    .scanReportEmail({
+      type: 'ScanReport',
+      email: toEmail,
+      applicationName,
+      subject,
+      html,
+    })
+    .subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Email sent successfully',
+          text: `The scan report has been sent to ${toEmail}.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      },
+      error: (err) => {
+        console.error('Send email failed', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Email failed',
+          text: 'An error occurred while sending the email. Please try again.',
+        });
+      },
+    });
+}
+
   private wrapAsPre(md: string): string {
     const esc = md
       .replaceAll('&', '&amp;')
