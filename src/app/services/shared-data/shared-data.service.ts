@@ -285,13 +285,16 @@ export class SharedDataService {
 
         // กันเผื่อ backend ส่ง issue เป็น id หรือ object
         const issueId =
-            typeof newComment.issue === 'string'
+            (newComment as any)?.issueId ??
+            (typeof newComment.issue === 'string'
                 ? newComment.issue
-                : (newComment.issue as any)?.id;
+                : (newComment.issue as any)?.id);
 
         if (current.id !== issueId) return;
 
         const commentData = current.commentData ?? [];
+        const newKey = this.getCommentKey(newComment);
+        if (commentData.some(c => this.getCommentKey(c) === newKey)) return;
 
         const next: IssuesResponseDTO = {
             ...current,
@@ -299,6 +302,14 @@ export class SharedDataService {
         };
         console.log('Updated Issue with new comment:', next);
         this.selectedIssues.next(next);
+    }
+
+    private getCommentKey(c: commentResponseDTO): string {
+        if (c.id) return `id:${c.id}`;
+        const userId = c.user?.id ?? 'unknown';
+        const createdAt = c.createdAt ?? '';
+        const text = c.comment ?? '';
+        return `fallback:${userId}:${createdAt}:${text}`;
     }
 
     private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
@@ -539,5 +550,3 @@ export class SharedDataService {
     }
 
 }
-
-
