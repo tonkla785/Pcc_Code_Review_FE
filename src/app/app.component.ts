@@ -63,6 +63,7 @@ export class AppComponent implements OnInit, OnDestroy {
     // Global WebSocket Listener
     this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
       console.log('[AppComponent] WS Event:', event);
+      console.log('[AppComponent] WS Event projectId:', event.projectId, 'status:', event.status);
 
       const mappedStatus = this.mapStatus(event.status);
 
@@ -76,6 +77,7 @@ export class AppComponent implements OnInit, OnDestroy {
       // กรณีที่ 1: เริ่มต้น Scan (SCANNING)
       if (event.status === 'SCANNING') {
         // 1. เก็บลง LocalStorage เพื่อจำสถานะ
+        console.log('[AppComponent] Setting localStorage for:', event.projectId);
         localStorage.setItem(`repo-status-${event.projectId}`, mappedStatus);
 
         // 2. ดึงข้อมูลรอบแรก (เพื่ออัปเดต UI และ History ว่ากำลังหมุน)
@@ -85,6 +87,7 @@ export class AppComponent implements OnInit, OnDestroy {
       // กรณีที่ 2: Scan เสร็จสิ้น (SUCCESS หรือ FAILED)
       else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
         // 1. ลบ LocalStorage
+        console.log('[AppComponent] Removing localStorage for:', event.projectId);
         localStorage.removeItem(`repo-status-${event.projectId}`);
 
         // 2. แจ้งเตือน User (Snackbar)
@@ -106,6 +109,49 @@ export class AppComponent implements OnInit, OnDestroy {
         if (event.status === 'SUCCESS' || event.status === 'FAILED') {
           this.fetchAndOverwriteIssues();
         }
+      }
+    });
+
+    // Global WebSocket Listener for Project Changes
+    this.ws.subscribeProjectChanges().subscribe(event => {
+      console.log('[AppComponent] Project change event:', event);
+
+      if (event.action === 'DELETED') {
+        // Optimized: Remove directly from SharedData without refetching
+        this.sharedData.removeRepository(event.projectId);
+
+        this.snack.open(
+          `Project "${event.projectName}" was deleted`,
+          '',
+          {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-blue']
+          }
+        );
+      } else {
+        // For ADDED / UPDATED -> Refresh repository list
+        this.repoService.getAllRepo().subscribe({
+          next: (repos: any[]) => {
+            this.sharedData.setRepositories(repos);
+            console.log('[AppComponent] Repositories refreshed after project change:', event.action);
+
+            // Show notification to user
+            const actionText = event.action === 'ADDED' ? 'added' : 'updated';
+            this.snack.open(
+              `Project "${event.projectName}" was ${actionText}`,
+              '',
+              {
+                duration: 3000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-blue']
+              }
+            );
+          },
+          error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err)
+        });
       }
     });
   }
@@ -141,8 +187,17 @@ export class AppComponent implements OnInit, OnDestroy {
           );
 
           // แก้ไข Race condition เผื่อไว้ (ถ้า DB status ยังไม่อัปเดต ให้เชื่อ WebSocket)
-          if (latestScan.status === 'PENDING' && (wsStatus === 'SUCCESS' || wsStatus === 'FAILED')) {
-            latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
+          // Map WebSocket status to DB status if there's a mismatch
+          if (latestScan.status === 'PENDING') {
+            if (wsStatus === 'SCANNING' || wsStatus === 'SUCCESS' || wsStatus === 'FAILED') {
+              // DB ยังเป็น PENDING แต่ WebSocket บอกสถานะใหม่
+              // สำหรับ SCANNING ให้คง PENDING เพราะ PENDING คือสถานะที่ถูกต้องใน DB
+              // สำหรับ SUCCESS/FAILED ให้ override เพราะ WebSocket เร็วกว่า DB update  
+              if (wsStatus === 'SUCCESS' || wsStatus === 'FAILED') {
+                latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
+              }
+              // Note: PENDING stays as PENDING, scanhistory UI should show this as "In Progress"
+            }
           }
 
           // [สำคัญ] อัปเดต scanId ของ Repo ให้ชี้ไปที่ Scan ล่าสุดเสมอ
@@ -201,9 +256,11 @@ export class AppComponent implements OnInit, OnDestroy {
             (new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()) ? current : prev
           );
 
-          // แก้ไข Race condition เผื่อไว้
-          if (latestScan.status === 'PENDING' && (wsStatus === 'SUCCESS' || wsStatus === 'FAILED')) {
-            latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
+          // แก้ไข Race condition เผื่อไว้ (ถ้า DB status ยังไม่อัปเดต ให้เชื่อ WebSocket)
+          if (latestScan.status === 'PENDING') {
+            if (wsStatus === 'SUCCESS' || wsStatus === 'FAILED') {
+              latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
+            }
           }
 
           // อัปเดต scanId
@@ -267,7 +324,8 @@ export class AppComponent implements OnInit, OnDestroy {
       title,
       message,
       relatedProjectId: projectId,
-      relatedScanId: scanId
+      relatedScanId: scanId,
+      isBroadcast: true // Broadcast scan notifications to all users
     }).subscribe({
       next: (noti) => console.log('[AppComponent] Scan notification created:', noti),
       error: (err) => console.error('[AppComponent] Failed to create scan notification:', err)

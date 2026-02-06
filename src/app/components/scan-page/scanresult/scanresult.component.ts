@@ -151,8 +151,6 @@ export class ScanresultComponent {
     this.router.navigate(['/generatereport']);
   }
 
-  /** ✅ ปุ่มส่ง Email (ทำงานเหมือน LogViewer) */
-  /** ✅ ปุ่มส่ง Email (มี SweetAlert: loading -> success/error) */
  emailReport(): void {
   const toEmail = this.currentUser?.email;
 
