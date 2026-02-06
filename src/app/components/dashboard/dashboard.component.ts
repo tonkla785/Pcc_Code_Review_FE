@@ -166,10 +166,7 @@ export class DashboardComponent {
       this.router.navigate(['/login']);
       return;
     }
-    if (!this.sharedData.hasScansHistoryCache) {
-      console.log('@');
-      this.loadDashboard();
-    }
+
     const user = this.tokenStorage.getLoginUser();
     if (user) {
       this.sharedData.LoginUserShared = user;
@@ -199,8 +196,9 @@ export class DashboardComponent {
 
         this.notifications.unshift(noti as any);
       });
-
     }
+
+    // ==================== STEP 1: Setup all subscriptions FIRST ====================
     this.sharedData.scansHistory$.subscribe((data) => {
       // Sort data: Pending (null completedAt) or Newest first
       this.DashboardData = (data || []).sort((a, b) => {
@@ -210,28 +208,23 @@ export class DashboardComponent {
       });
 
       this.countQualityGate();
+      this.buildPieChart(); // Rebuild pie chart when data changes
       this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
       this.generateQualityGateNotifications(this.DashboardData);
     });
+
     this.sharedData.LoginUser$.subscribe((data) => {
       this.UserLogin = data;
       console.log('User Login in Dashboard:', this.UserLogin);
     });
 
-    // 1. Subscribe รับข้อมูลจาก SharedDataService
     this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
       this.calculateProjectDistribution();
     });
-
-    // 2. เช็คว่ามีข้อมูลแล้วหรือยัง
-    if (!this.sharedData.hasRepositoriesCache) {
-      // 3. ถ้ายังไม่มี → Fetch API
-      this.loadRepositories();
-    }
 
     this.sharedData.AllIssues$.subscribe((data) => {
       const all = data ?? [];
@@ -246,6 +239,15 @@ export class DashboardComponent {
       // Generate notifications for filtered issues
       this.generateIssueNotifications(notifiableIssues);
     });
+
+    // ==================== STEP 2: Load data from API AFTER subscriptions are ready ====================
+    // Always load scan data on page refresh to ensure dashboard has data
+    this.loadDashboard();
+
+    if (!this.sharedData.hasRepositoriesCache) {
+      this.loadRepositories();
+    }
+
     if (!this.sharedData.hasIssuesCache) {
       console.log('No cache - load from server');
       this.loadIssues();
@@ -254,6 +256,7 @@ export class DashboardComponent {
     // Load existing notifications from DB on page load
     this.loadNotifications();
   }
+
   loadRepositories() {
     this.sharedData.setLoading(true);
 
@@ -270,8 +273,9 @@ export class DashboardComponent {
       },
     });
   }
+
   loadDashboard() {
-    this.scanService.getAllScan().subscribe({
+    this.scanService.getScansHistory().subscribe({
       next: (res: any[]) => {
         this.sharedData.Scans = res ?? [];
         this.countQualityGate();
@@ -286,6 +290,7 @@ export class DashboardComponent {
       },
     });
   }
+
   loadIssues() {
     this.sharedData.setLoading(true);
     this.issueService.getAllIssues().subscribe({
@@ -1197,8 +1202,11 @@ export class DashboardComponent {
     // TODO: Get userId from token when available
     this.fetchFromServer('');
   }
+
+  isSendingVerifyEmail = false;
+
   sendVerifyEmail() {
-    const userId = (this.UserLogin as any)?.id; // ถ้า type LoginUser ยังไม่มี id
+    const userId = (this.UserLogin as any)?.id; // if LoginUser type doesn't have id yet
     if (!userId) {
       Swal.fire({
         icon: 'error',
@@ -1209,8 +1217,24 @@ export class DashboardComponent {
       return;
     }
 
+    if (this.isSendingVerifyEmail) return;
+    this.isSendingVerifyEmail = true;
+
+    // ✅ Loading popup
+    Swal.fire({
+      title: 'Sending...',
+      text: 'Please wait a moment.',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     this.userService.sendVerifyEmail(userId).subscribe({
       next: () => {
+        this.isSendingVerifyEmail = false;
+
         Swal.fire({
           icon: 'success',
           title: 'Sent',
@@ -1219,6 +1243,8 @@ export class DashboardComponent {
         });
       },
       error: (err) => {
+        this.isSendingVerifyEmail = false;
+
         const msg =
           err?.error?.message ||
           err?.error ||
