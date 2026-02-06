@@ -9,6 +9,7 @@ import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { EmailService } from '../../../services/emailservice/email.service';
 import { LoginUser } from '../../../interface/user_interface';
+import Swal from 'sweetalert2';
 
 import { ActivatedRoute } from '@angular/router';
 @Component({
@@ -16,20 +17,21 @@ import { ActivatedRoute } from '@angular/router';
   standalone: true,
   imports: [RouterLink, CommonModule, RouterOutlet],
   templateUrl: './scanresult.component.html',
-  styleUrl: './scanresult.component.css'
+  styleUrl: './scanresult.component.css',
 })
 export class ScanresultComponent {
-
   constructor(
     private readonly router: Router,
     private readonly scanService: ScanService,
     private readonly authService: AuthService,
     private sharedData: SharedDataService,
     private route: ActivatedRoute,
-    private readonly emailService: EmailService
-  ) { }
+    private readonly emailService: EmailService,
+  ) {}
 
-  goBack() { window.history.back(); }
+  goBack() {
+    window.history.back();
+  }
 
   scanInfo: Scan | null = null;
   scanResult: ScanResponseDTO | null = null;
@@ -42,14 +44,14 @@ export class ScanresultComponent {
     });
 
     // Subscribe to cached data for real-time updates
-    this.sharedData.selectedScan$.subscribe(data => {
+    this.sharedData.selectedScan$.subscribe((data) => {
       if (data) {
         this.scanResult = data;
       }
     });
 
     // Check route params and decide whether to use cache or fetch from API
-    this.route.paramMap.subscribe(pm => {
+    this.route.paramMap.subscribe((pm) => {
       const id = pm.get('scanId');
       if (!id) return;
 
@@ -76,26 +78,29 @@ export class ScanresultComponent {
         this.sharedData.setLoading(false);
         console.log('Scan history loaded:', data);
       },
-      error: () => this.sharedData.setLoading(false)
+      error: () => this.sharedData.setLoading(false),
     });
   }
 
   hasOverallOrMetrics(scan: any): boolean {
-    const isValid = (v: any) => v !== null && v !== undefined && v !== '' && v !== 'null';
+    const isValid = (v: any) =>
+      v !== null && v !== undefined && v !== '' && v !== 'null';
 
     const overallGates = [
       scan.reliabilityGate,
       scan.securityGate,
       scan.maintainabilityGate,
-      scan.securityReviewGate
+      scan.securityReviewGate,
     ];
 
-    const metrics = scan.metrics ? [
-      scan.metrics.bugs,
-      scan.metrics.vulnerabilities,
-      scan.metrics.codeSmells,
-      scan.metrics.coverage
-    ] : [];
+    const metrics = scan.metrics
+      ? [
+          scan.metrics.bugs,
+          scan.metrics.vulnerabilities,
+          scan.metrics.codeSmells,
+          scan.metrics.coverage,
+        ]
+      : [];
 
     return overallGates.some(isValid) || metrics.some(isValid);
   }
@@ -121,8 +126,8 @@ export class ScanresultComponent {
         ['Reliability', scan?.reliabilityGate ?? '-'],
         ['Security', scan?.securityGate ?? '-'],
         ['Maintainability', scan?.maintainabilityGate ?? '-'],
-        ['Security Review', scan?.securityReviewGate ?? '-']
-      ]
+        ['Security Review', scan?.securityReviewGate ?? '-'],
+      ],
     });
 
     // Metrics Table
@@ -134,8 +139,8 @@ export class ScanresultComponent {
           ['Bugs', scan.metrics.bugs ?? '-'],
           ['Vulnerabilities', scan.metrics.vulnerabilities ?? '-'],
           ['Code Smells', scan.metrics.codeSmells ?? '-'],
-          ['Coverage (%)', scan.metrics.coverage ?? '-']
-        ]
+          ['Coverage (%)', scan.metrics.coverage ?? '-'],
+        ],
       });
     }
 
@@ -147,58 +152,86 @@ export class ScanresultComponent {
   }
 
   /** ✅ ปุ่มส่ง Email (ทำงานเหมือน LogViewer) */
-  emailReport(): void {
-    const toEmail = this.currentUser?.email;
-    if (!toEmail) {
-      alert('No recipient email found for current user.');
-      return;
-    }
+  /** ✅ ปุ่มส่ง Email (มี SweetAlert: loading -> success/error) */
+ emailReport(): void {
+  const toEmail = this.currentUser?.email;
 
-    if (!this.scanResult) {
-      alert('No scan data available to send.');
-      return;
-    }
-
-    const applicationName = this.scanResult.project?.name || 'Unknown Project';
-    const subject = `Scan Report: ${applicationName}`;
-
-    // Generate Markdown summary similar to what is displayed
-    const md = this.generateMarkdown();
-    const html = this.wrapAsPre(md);
-
-    this.emailService
-      .scanReportEmail({
-        type: 'ScanReport',
-        email: toEmail,
-        applicationName,
-        subject,
-        html,
-      })
-      .subscribe({
-        next: () => {
-          console.log('Scan report email queued');
-          // You might want to show a snackbar or alert here
-          alert('Scan report email sent successfully!');
-        },
-        error: (err) => {
-          console.error('Send email failed', err);
-          alert('Failed to send email.');
-        },
-      });
+  if (!toEmail) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Cannot send email',
+      text: 'No email address found for the current user.',
+    });
+    return;
   }
+
+  if (!this.scanResult) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Cannot send email',
+      text: 'No scan data available to send.',
+    });
+    return;
+  }
+
+  const applicationName = this.scanResult.project?.name || 'Unknown Project';
+  const subject = `Scan Report: ${applicationName}`;
+
+  const md = this.generateMarkdown();
+  const html = this.wrapAsPre(md);
+
+  // Loading popup
+  Swal.fire({
+    title: 'Sending email...',
+    text: 'Please wait a moment.',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  this.emailService
+    .scanReportEmail({
+      type: 'ScanReport',
+      email: toEmail,
+      applicationName,
+      subject,
+      html,
+    })
+    .subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Email sent',
+          text: `The report has been sent to ${toEmail}.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      },
+      error: (err) => {
+        console.error('Send email failed', err);
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Email failed',
+          text: 'An error occurred while sending the email. Please try again.',
+        });
+      },
+    });
+}
+
 
   generateMarkdown(): string {
     const scan = this.scanResult;
     const metrics = scan?.metrics;
 
-    // Helper to format date
     const formatDate = (date: string | number | undefined) => {
       if (!date) return '-';
       const d = new Date(date);
       return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
     };
 
-    // Helper for safe values
     const val = (v: any) => (v !== null && v !== undefined ? v : '-');
 
     return `# Scan Results: ${scan?.project?.name ?? '-'}
@@ -242,14 +275,13 @@ ${esc}
     this.router.navigate(['/issues', this.scanInfo?.scanId]);
   }
 
-  // คำนวณค่าเฉลี่ย rating จาก reliability, security, maintainability
   getAverageRating(): string {
     const metrics = this.scanResult?.metrics;
     if (!metrics) return '-';
 
     const ratingToNumber = (rating: string | undefined): number | null => {
       if (!rating) return null;
-      const map: { [key: string]: number } = { 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5 };
+      const map: { [key: string]: number } = { A: 1, B: 2, C: 3, D: 4, E: 5 };
       return map[rating.toUpperCase()] ?? null;
     };
 
@@ -264,7 +296,7 @@ ${esc}
     const ratings = [
       ratingToNumber(metrics.reliabilityRating),
       ratingToNumber(metrics.securityRating),
-      ratingToNumber(metrics.maintainabilityRating)
+      ratingToNumber(metrics.maintainabilityRating),
     ].filter((r): r is number => r !== null);
 
     if (ratings.length === 0) return '-';
