@@ -166,10 +166,7 @@ export class DashboardComponent {
       this.router.navigate(['/login']);
       return;
     }
-    if (!this.sharedData.hasScansHistoryCache) {
-      console.log('@');
-      this.loadDashboard();
-    }
+
     const user = this.tokenStorage.getLoginUser();
     if (user) {
       this.sharedData.LoginUserShared = user;
@@ -178,6 +175,7 @@ export class DashboardComponent {
     if (user?.id) {
       this.ws.connect(user.id);
 
+      // Subscribe to personal notifications
       this.ws.subscribeNotifications().subscribe((noti) => {
         console.log('Realtime notification:', noti);
 
@@ -187,32 +185,46 @@ export class DashboardComponent {
         this.notifications.unshift(noti as any);
       });
 
+      // Subscribe to global notifications (broadcast for all users)
+      // These include: scan complete, quality gate failed, new critical issues
+      this.ws.subscribeGlobalNotifications().subscribe((noti) => {
+        console.log('Global broadcast notification:', noti);
+
+        // Avoid duplicates (in case user also gets personal notification)
+        const exists = this.notifications.some(n => n.id === noti.id);
+        if (exists) return;
+
+        this.notifications.unshift(noti as any);
+      });
     }
+
+    // ==================== STEP 1: Setup all subscriptions FIRST ====================
     this.sharedData.scansHistory$.subscribe((data) => {
-      this.DashboardData = data || [];
+      // Sort data: Pending (null completedAt) or Newest first
+      this.DashboardData = (data || []).sort((a, b) => {
+        const timeA = a.completedAt ? new Date(a.completedAt).getTime() : Date.now();
+        const timeB = b.completedAt ? new Date(b.completedAt).getTime() : Date.now();
+        return timeB - timeA;
+      });
+
       this.countQualityGate();
+      this.buildPieChart(); // Rebuild pie chart when data changes
       this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
-      this.generateQualityGateNotifications(data || []);
+      this.generateQualityGateNotifications(this.DashboardData);
     });
+
     this.sharedData.LoginUser$.subscribe((data) => {
       this.UserLogin = data;
       console.log('User Login in Dashboard:', this.UserLogin);
     });
 
-    // 1. Subscribe รับข้อมูลจาก SharedDataService
     this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
       this.calculateProjectDistribution();
     });
-
-    // 2. เช็คว่ามีข้อมูลแล้วหรือยัง
-    if (!this.sharedData.hasRepositoriesCache) {
-      // 3. ถ้ายังไม่มี → Fetch API
-      this.loadRepositories();
-    }
 
     this.sharedData.AllIssues$.subscribe((data) => {
       const all = data ?? [];
@@ -227,6 +239,15 @@ export class DashboardComponent {
       // Generate notifications for filtered issues
       this.generateIssueNotifications(notifiableIssues);
     });
+
+    // ==================== STEP 2: Load data from API AFTER subscriptions are ready ====================
+    // Always load scan data on page refresh to ensure dashboard has data
+    this.loadDashboard();
+
+    if (!this.sharedData.hasRepositoriesCache) {
+      this.loadRepositories();
+    }
+
     if (!this.sharedData.hasIssuesCache) {
       console.log('No cache - load from server');
       this.loadIssues();
@@ -235,6 +256,7 @@ export class DashboardComponent {
     // Load existing notifications from DB on page load
     this.loadNotifications();
   }
+
   loadRepositories() {
     this.sharedData.setLoading(true);
 
@@ -251,8 +273,9 @@ export class DashboardComponent {
       },
     });
   }
+
   loadDashboard() {
-    this.dashboardService.getDashboard().subscribe({
+    this.scanService.getScansHistory().subscribe({
       next: (res: any[]) => {
         this.sharedData.Scans = res ?? [];
         this.countQualityGate();
@@ -260,13 +283,14 @@ export class DashboardComponent {
         this.countBug();
         this.mockCoverageTrend();
         this.loadDashboardData();
-        console.log('Dashboard Data', this.DashboardData);
+        console.log('Dashboard Data (All Scans)', this.DashboardData);
       },
       error: (err) => {
         console.error('โหลด ประวัติการสแกน ล้มเหลว', err);
       },
     });
   }
+
   loadIssues() {
     this.sharedData.setLoading(true);
     this.issueService.getAllIssues().subscribe({
@@ -1178,8 +1202,11 @@ export class DashboardComponent {
     // TODO: Get userId from token when available
     this.fetchFromServer('');
   }
+
+  isSendingVerifyEmail = false;
+
   sendVerifyEmail() {
-    const userId = (this.UserLogin as any)?.id; // ถ้า type LoginUser ยังไม่มี id
+    const userId = (this.UserLogin as any)?.id; // if LoginUser type doesn't have id yet
     if (!userId) {
       Swal.fire({
         icon: 'error',
@@ -1190,8 +1217,24 @@ export class DashboardComponent {
       return;
     }
 
+    if (this.isSendingVerifyEmail) return;
+    this.isSendingVerifyEmail = true;
+
+    // ✅ Loading popup
+    Swal.fire({
+      title: 'Sending...',
+      text: 'Please wait a moment.',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     this.userService.sendVerifyEmail(userId).subscribe({
       next: () => {
+        this.isSendingVerifyEmail = false;
+
         Swal.fire({
           icon: 'success',
           title: 'Sent',
@@ -1200,6 +1243,8 @@ export class DashboardComponent {
         });
       },
       error: (err) => {
+        this.isSendingVerifyEmail = false;
+
         const msg =
           err?.error?.message ||
           err?.error ||
@@ -1231,7 +1276,7 @@ export class DashboardComponent {
     this.coverageChartOptions = chartConfig.options as any;
   }
 
-  ngOnDestroy() {
-    this.ws.disconnect();
-  }
+  // ngOnDestroy() {
+  //   this.ws.disconnect();
+  // }
 }

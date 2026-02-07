@@ -221,6 +221,12 @@
                 </button>
               </td>
             </tr>
+            <!-- Empty State -->
+            <tr *ngIf="DashboardData?.length === 0">
+              <td colspan="4" class="text-center text-muted py-4">
+                <i class="bi bi-inbox"></i> No Data
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

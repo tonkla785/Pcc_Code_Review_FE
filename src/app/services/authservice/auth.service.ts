@@ -128,7 +128,7 @@ export class AuthService {
       .pipe(
         tap(() => {
           // Disconnect WebSocket on logout
-          this.notificationService.disconnect();
+          // this.notificationService.disconnect();
 
           // Clear all shared data
           this.userSettingsData.clearAll();

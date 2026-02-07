@@ -22,7 +22,7 @@
   <table class="table table-bordered assignment-table">
     <thead>
       <tr>
-        <th class="text-center" >Assigned To</th>
+        <th class="text-center">Assigned To</th>
         <th class="text-center">Issue</th>
         <th class="text-center">Severity</th>
         <th class="text-center">Create Date</th>
@@ -47,18 +47,18 @@
 
 
         <td class="text-center">{{ a.createdAt | date:'yyyy-MM-dd' }}</td>
-        <td class="text-center"> 
+        <td class="text-center">
           <span class="status-box" [ngClass]="statusClass(a.status)">
-            {{ a.status }}
+            {{ formatStatus(a.status) }}
           </span>
         </td>
 
         <!-- <td>{{ a.resolution || '-' }}</td> -->
 
-        <td class="text-center" >
+        <td class="text-center">
           <!-- สำหรับ PENDING -->
           <ng-container>
-            <button  class="btn btn-success btn-sm me-1" >
+            <button class="btn btn-success btn-sm me-1">
               <i class="bi bi-check-lg"></i>
             </button>
             <button class="btn btn-danger btn-sm">
