@@ -1,442 +1,673 @@
-/* Container */
-.repo-detail {
-  padding: 24px;
-  background-color: #f8f9fa;
-  border-radius: 20px;
+/* ==========================================================================
+   🎨 PREMIUM DASHBOARD THEME (Detail Page)
+   ========================================================================== */
+
+:host {
+  /* Color Palette */
+  --primary: #4f46e5;
+  --primary-light: #818cf8;
+  --primary-bg: #eef2ff;
+
+  --success: #10b981;
+  --success-bg: #d1fae5;
+
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+
+  --danger: #ef4444;
+  --danger-bg: #fee2e2;
+
+  --info: #3b82f6;
+  --info-bg: #dbeafe;
+
+  --dark: #1f2937;
+  --gray: #6b7280;
+  --light-gray: #f3f4f6;
+  --white: #ffffff;
+
+  --angular: #dd0031;
+  --angular-bg: #fff0f2;
+  --spring: #6db33f;
+  --spring-bg: #f0fdf4;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  --radius: 16px;
+  --radius-sm: 8px;
 }
 
-/* Back button */
-.back-btn {
-  display: inline-flex;
+/* --- Layout & Animation --- */
+.page-container {
+  padding: 2rem;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  font-family: 'Check Project', 'Inter', sans-serif;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Header Section --- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  font-size: 1.5rem;
-  color: #2563eb;
-  text-decoration: none;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  transition: background 0.25s, transform 0.25s;
-}
-.back-btn:hover {
-  background: #e0edff;
-  transform: scale(1.1);
-}
-.back-btn i {
-  font-size: 1.6rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-/* Header Repo Name */
-.repo-detail h3 {
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: #1f2937;
+.header-content {
   display: flex;
   align-items: center;
-}
-.repo-detail h3 i {
-  background: #e6efff;
-  color: #2563eb;
-  padding: 6px;
-  border-radius: 12px;
-  margin-right: 10px;
+  gap: 1.5rem;
 }
 
-/* Repo link */
-.repo-link {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 5px;
-  color: #2563eb;
-  text-decoration: none;
-  transition: color 0.25s ease;
-  font-size: 16px;
-  font-weight: 500;
+.back-link {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  border: 1px solid var(--light-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
-
-.repo-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 0%;
-  height: 2px;
-  background: #2563eb;
-  transition: width 0.25s ease;
-}
-.repo-link:hover {
-  color: #1d4ed8;
-}
-.repo-link:hover::after {
-  width: 100%;
+.back-link:hover {
+  color: var(--primary);
+  border-color: var(--primary-light);
+  transform: translateX(-2px);
 }
 
-/* Status badge */
-.status-badge {
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.status-badge.active { background: #16a34a; }
-.status-badge.scanning { background: linear-gradient(90deg, #3b82f6, #2563eb); }
-.status-badge.paused { background: #f59e0b; }
-.status-badge.failed { background: #dc2626; }
-.status-badge:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(37,99,235,0.4);
+.project-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-/* Buttons */
-.repo-detail .btn {
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-}
-.repo-detail .btn:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+.project-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Tabs */
-.nav-tabs .nav-link {
-  border: none;
-  color: #6b7280;
-  font-weight: 500;
-  padding: 10px 18px;
-  position: relative;
-  transition: color 0.25s ease;
-}
-.nav-tabs .nav-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 0%;
-  height: 3px;
-  background: #2563eb;
-  border-radius: 999px;
-  transition: width 0.25s ease;
-}
-.nav-tabs .nav-link:hover::after {
-  width: 100%;
-}
-.nav-tabs .nav-link.active {
-  color: #2563eb;
-  font-weight: 600;
-}
-.nav-tabs .nav-link.active::after {
-  width: 100%;
+.icon-angular {
+  background: var(--angular-bg);
+  color: var(--angular);
 }
 
-/* Card */
-.card {
-  border: none;
-  border-radius: 16px;
-  background: #fafafa;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  margin-bottom: 20px;
+.icon-spring {
+  background: var(--spring-bg);
+  color: var(--spring);
 }
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-.card-title {
+
+.project-name {
+  margin: 0;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #1e40af;
-  border-left: 4px solid #2563eb;
-  padding-left: 10px;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.type-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.badge-angular {
+  background: var(--angular-bg);
+  color: var(--angular);
+}
+
+.badge-spring {
+  background: var(--spring-bg);
+  color: var(--spring);
+}
+
+.repo-url {
+  font-size: 0.875rem;
+  color: var(--gray);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.repo-url:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* --- Header Actions --- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-indicator {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--white);
+  border: 1px solid var(--light-gray);
+  box-shadow: var(--shadow-sm);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+/* Override styles from .ts logic if needed, but assuming TS returns badge classes */
+/* Here we style based on the classes returned by getStatusClass OR we can override if HTML uses [ngClass] logic */
+
+/* Fallback for status classes if using standard bootstrap names, otherwise custom: */
+.badge.bg-success {
+  background: var(--success-bg) !important;
+  color: var(--success) !important;
+  border: 1px solid var(--success);
+}
+
+.badge.bg-primary {
+  background: var(--primary-bg) !important;
+  color: var(--primary) !important;
+  border: 1px solid var(--primary);
+}
+
+.badge.bg-danger {
+  background: var(--danger-bg) !important;
+  color: var(--danger) !important;
+  border: 1px solid var(--danger);
+}
+
+.btn-settings {
+  background: var(--white);
+  border: 1px solid var(--light-gray);
+  color: var(--dark);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-settings:hover {
+  border-color: var(--gray);
+  background: #f8fafc;
+}
+
+/* --- Key Metrics Grid --- */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s;
+  border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-/* Progress */
-.custom-progress {
-  width: 100%;
-  height: 12px;
-  border-radius: 999px;
-  overflow: hidden;
-}
-.custom-progress::-webkit-progress-bar {
-  background-color: #f3f4f6;
-  border-radius: 999px;
-}
-.custom-progress::-webkit-progress-value {
-  background: linear-gradient(90deg, #60a5fa, #2563eb);
-  border-radius: 999px;
-}
-
-/* Coverage chart */
-.coverage-chart {
-  height: 160px;
+.icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e6efff, #f3f8ff);
-  border-radius: 16px;
+  font-size: 1.25rem;
+  background: var(--light-gray);
+  color: var(--gray);
+}
+
+.bug-icon {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.vuln-icon {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.coverage-icon {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 2rem;
   font-weight: 700;
-  color: #2563eb;
-  font-size: 1.6rem;
-  box-shadow: inset 0 2px 6px rgba(37,99,235,0.15);
-}
-/* =========================
-   DARK MODE: REPO DETAIL PAGE
-========================= */
-
-/* Container */
-:host-context(.dark-mode) .repo-detail {
-  background-color: #111827;   /* เทาดำ */
-  color: #f9fafb;             /* ตัวอักษรอ่อน */
+  color: var(--dark);
+  line-height: 1;
 }
 
-/* Back button */
-:host-context(.dark-mode) .back-btn {
-  color: #60a5fa;
-}
-:host-context(.dark-mode) .back-btn:hover {
-  background: rgba(37,99,235,0.2);
-  color: #93c5fd;
-}
-
-/* Header Repo Name */
-:host-context(.dark-mode) .repo-detail h3 {
-  color: #f3f4f6;
-}
-:host-context(.dark-mode) .repo-detail h3 i {
-  background: rgba(37,99,235,0.2);
-  color: #60a5fa;
+.gate-badge {
+  font-size: 1rem;
+  padding: 0.25rem 1rem;
+  border-radius: 6px;
+  display: inline-block;
+  text-transform: uppercase;
 }
 
-/* Repo link */
-:host-context(.dark-mode) .repo-link {
-  color: #60a5fa;
-}
-:host-context(.dark-mode) .repo-link::after {
-  background: #60a5fa;
-}
-:host-context(.dark-mode) .repo-link:hover {
-  color: #93c5fd;
+.gate-badge.active {
+  background: var(--success);
+  color: white;
 }
 
-/* Status badge (ใช้สีเดิมได้ เพราะ contrast ชัด) */
-:host-context(.dark-mode) .status-badge {
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+.gate-badge.failed {
+  background: var(--danger);
+  color: white;
 }
 
-/* Buttons */
-:host-context(.dark-mode) .repo-detail .btn {
-  background: #2563eb;
-  color: #fff;
+.progress-mini {
+  height: 6px;
+  background: var(--light-gray);
+  border-radius: 999px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+/* --- Content Section --- */
+.content-section {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.tabs-header {
+  display: flex;
+  border-bottom: 1px solid var(--light-gray);
+  padding: 0 1.5rem;
+  background: #ffffff;
+}
+
+.tab-item {
+  padding: 1rem 1.5rem;
   border: none;
-}
-:host-context(.dark-mode) .repo-detail .btn:hover {
-  background: #1e40af;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.5);
-}
-
-/* Tabs */
-:host-context(.dark-mode) .nav-tabs .nav-link {
-  color: #9ca3af;
-}
-:host-context(.dark-mode) .nav-tabs .nav-link.active {
-  color: #60a5fa;
-}
-:host-context(.dark-mode) .nav-tabs .nav-link::after {
-  background: #60a5fa;
+  background: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gray);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-/* Card */
-:host-context(.dark-mode) .card {
-  background: #1f2937;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.6);
-}
-:host-context(.dark-mode) .card-title {
-  color: #93c5fd;
-  border-left: 4px solid #3b82f6;
+.tab-item:hover {
+  color: var(--primary);
+  background: rgba(0, 0, 0, 0.01);
 }
 
-/* Progress bar */
-:host-context(.dark-mode) .custom-progress::-webkit-progress-bar {
-  background-color: #374151;
-}
-:host-context(.dark-mode) .custom-progress::-webkit-progress-value {
-  background: linear-gradient(90deg, #3b82f6, #1e40af);
+.tab-item.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
-/* Coverage chart */
-:host-context(.dark-mode) .coverage-chart {
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  color: #60a5fa;
-  box-shadow: inset 0 2px 6px rgba(37,99,235,0.3);
-}
-/* =========================
-   Dark Mode: Fix Text Visibility
-========================= */
-
-/* Text ทั่วไปใน repo-detail */
-:host-context(.dark-mode) .repo-detail,
-:host-context(.dark-mode) .repo-detail * {
-  color: #e5e7eb; /* ข้อความเทาอ่อนชัดขึ้น */
+.count-badge {
+  font-size: 0.75rem;
+  background: var(--danger-bg);
+  color: var(--danger);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
-/* Header/Title ให้สว่างกว่าข้อความทั่วไป */
-:host-context(.dark-mode) .repo-detail h3,
-:host-context(.dark-mode) .card-title {
-  color: #f9fafb;
+.tab-content {
+  padding: 2rem;
 }
 
-/* Subtitle / labels */
-:host-context(.dark-mode) .repo-detail .text-muted,
-:host-context(.dark-mode) .repo-detail small,
-:host-context(.dark-mode) .repo-detail .label {
-  color: #9ca3af !important; /* เทากลาง */
+/* --- Overview Panel --- */
+.overview-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-/* Scan & Quality Overview Section */
-:host-context(.dark-mode) .card {
-  background: #1f2937;
-  color: #e5e7eb;
-}
-:host-context(.dark-mode) .card-title {
-  color: #93c5fd; /* น้ำเงินอ่อน highlight */
-  border-left: 4px solid #3b82f6;
-}
-
-/* Progress/Badge คงสีสด */
-:host-context(.dark-mode) .status-badge.active { background: #16a34a; color: #fff; }
-:host-context(.dark-mode) .status-badge.scanning { background: linear-gradient(90deg, #3b82f6, #2563eb); color: #fff; }
-:host-context(.dark-mode) .status-badge.paused { background: #fbbf24; color: #111827; }
-:host-context(.dark-mode) .status-badge.failed { background: #ef4444; color: #fff; }
-
-/* =========================
-   Dark Mode: Tables
-========================= */
-
-/* พื้นหลังตาราง */
-:host-context(.dark-mode) .card table,
-:host-context(.dark-mode) .card .table {
-  background: #1f2937;   /* เทาเข้ม */
-  color: #e5e7eb;        /* ข้อความเทาอ่อน */
-  border-color: #374151; /* เส้นแบ่ง */
+.scanning-alert {
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-sm);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-/* หัวตาราง */
-:host-context(.dark-mode) .card table thead th {
-  background: #111827;   /* ดำเข้ม */
-  color: #f9fafb;        /* ตัวอักษรสว่าง */
-  border-bottom: 1px solid #374151;
-}
-
-/* แถวข้อมูล */
-:host-context(.dark-mode) .card table tbody td {
-  background: #1f2937;
-  color: #e5e7eb;
-  border-top: 1px solid #374151;
-}
-
-/* Hover row */
-:host-context(.dark-mode) .card table tbody tr:hover td {
-  background: #374151;   /* เทา hover */
-  color: #f9fafb;
-}
-
-/* คอลัมน์ที่เน้น เช่น Severity, Status */
-:host-context(.dark-mode) .card table tbody td:nth-child(2),
-:host-context(.dark-mode) .card table tbody td:nth-child(3) {
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--primary);
   font-weight: 600;
 }
-/* ===============================
-   📱 Mobile Ultra Ultra Compact (320px - 768px)
-   =============================== */
-   @media (max-width: 768px) {
-    .repo-detail {
-      padding: 6px;
-      max-width: 100%;
-      overflow-x: hidden;
-    }
-  
-    /* Back button */
-    .back-btn {
-      font-size: 1.7rem;
-      padding: 2px 4px;
-      margin-bottom: 4px;
-    }
-    .back-btn i {
-      font-size: 1.1rem;
-    }
-  
-    /* Title */
-    .repo-detail h3 {
-      font-size: 1.4rem !important;
-      font-weight: 600;
-      line-height: 1.1;
-      margin: 0 0 2px 0;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      white-space: nowrap;
-    }
-    .repo-detail h3 i {
-      font-size: 1.2rem;
-      padding: 2px;
-      border-radius: 4px;
-    }
-  
-    /* Status badge */
-    .status-badge {
-      font-size: 0.6rem;
-      padding: 1px 5px;
-      border-radius: 999px;
-      margin-left: 4px;
-      margin-top: 32px; 
-    }
-  
-    /* Buttons */
-    .repo-detail .btn {
-      font-size: 0.65rem;
-      padding: 3px 6px;
-      border-radius: 4px;
-    }
-  
-    /* Tabs */
-    .nav-tabs .nav-link {
-      font-size: 0.65rem;
-      padding: 3px 6px;
-    }
-  
-    /* Table */
-    .card table,
-    .assignment-table,
-    .table {
-      font-size: 0.6rem;      /* ย่อมาก */
-      table-layout: fixed;
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .card table th,
-    .assignment-table th,
-    .table th,
-    .card table td,
-    .assignment-table td,
-    .table td {
-      padding: 2px 3px;
-      text-align: center;     /* ให้ตัวเลข/Status อยู่ตรงกลาง */
-      word-wrap: break-word;
-      white-space: normal;
-    }
-  }
-/* Repo link */
-.repo-link {
-  font-size: 0.9rem !important;   /* ย่อฟอนต์ลง */
-  word-break: break-all;           /* ให้ตัดคำอัตโนมัติ */
-  display: inline-block;
-  max-width: 100%;
+
+.scan-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  overflow: hidden;
 }
-  
+
+.bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.details-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--light-gray);
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-item .label {
+  font-size: 0.875rem;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.detail-item .value {
+  font-size: 1.1rem;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.code-style {
+  font-family: monospace;
+  background: var(--light-gray);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+/* --- Table Styles --- */
+.table-container {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--gray);
+  border-bottom: 2px solid var(--light-gray);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--light-gray);
+  vertical-align: middle;
+  color: var(--dark);
+  font-size: 0.95rem;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background: #f9fafb;
+}
+
+/* Badges in Table */
+.type-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.pill-bug {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.pill-vuln {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.severity-tag {
+  font-weight: 600;
+  color: var(--dark);
+  display: inline-flex;
+  align-items: center;
+}
+
+.sev-blocker,
+.sev-critical {
+  color: var(--danger);
+}
+
+.sev-major {
+  color: var(--warning);
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 3rem !important;
+  color: var(--gray);
+  font-style: italic;
+}
+
+/* --- History Table Minis --- */
+.mini-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.stat-bug {
+  color: var(--danger);
+}
+
+.stat-vuln {
+  color: var(--warning);
+}
+
+.stat-cov {
+  color: var(--info);
+}
+
+.status-pill-sm {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  background: var(--light-gray);
+  color: var(--gray);
+}
+
+.gate-tag {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.gate-tag.active {
+  color: var(--success);
+}
+
+.gate-tag.failed {
+  color: var(--danger);
+}
+
+/* --- Dark Mode Overrides (Optional but good to have) --- */
+:host-context(.dark-mode) {
+  --dark: #f9fafb;
+  --gray: #9ca3af;
+  --light-gray: #374151;
+  --white: #1f2937;
+  background-color: #111827;
+}
+
+:host-context(.dark-mode) .page-container {
+  background-color: #111827;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs-header {
+    overflow-x: auto;
+  }
+}

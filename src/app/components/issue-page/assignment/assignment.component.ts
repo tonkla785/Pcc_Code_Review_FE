@@ -8,6 +8,7 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { Issue, IssueService } from '../../../services/issueservice/issue.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 
 interface StatusUpdate {
   issueId: string;
@@ -28,15 +29,11 @@ export class AssignmentComponent implements OnInit {
 
   goToDetail(issueId: string) {
     if (!this.auth.isLoggedIn || !issueId) return;
-
     this.router.navigate(
       ['/issuedetail', issueId],
-      { queryParams: {} }        // ✅ ส่ง query params ไปกับ URL
+      { queryParams: {} }     
     );
   }
-
-
-
   // ปุ่มย้อนกลับ
   goBack(): void {
     window.history.back();
@@ -56,13 +53,19 @@ export class AssignmentComponent implements OnInit {
     private readonly issue: IssueService,
     private readonly issuesService: IssueService,
     private readonly sharedData: SharedDataService,
+    private readonly tokenStorage: TokenStorageService,
   ) { }
 
 
   ngOnInit(): void {
+    const user = this.tokenStorage.getLoginUser();
+    if (user) {
+      this.sharedData.LoginUserShared = user;
+      console.log('Assignment Component - Loaded user from token:', user);
+    }
     this.sharedData.AllIssues$.subscribe(data => {
       const all = data ?? [];
-      this.originalData = all.filter(issue => issue.assignedTo !== null);
+      this.originalData = all.filter(issue => issue.assignedTo?.id === user?.id);
       this.issuesAll = [...this.originalData];
       console.log('Issues loaded Assignment from sharedData:', this.issuesAll);
     });
@@ -89,7 +92,7 @@ export class AssignmentComponent implements OnInit {
   loadAssignments() {
     if (!this.auth.isLoggedIn) return;
     // TODO: Get userId from token when available
-    const userId = '';
+    const userId = this.tokenStorage.getLoginUser()?.id ?? '';
 
     this.assignService.getAllAssign(userId).subscribe({
       next: (data: any[]) => {
@@ -141,7 +144,7 @@ export class AssignmentComponent implements OnInit {
   // ส่ง status update ไป backend
   handleStatusSubmit(update: StatusUpdate) {
     // TODO: Get userId from token when available
-    const userId = '';
+    const userId = this.tokenStorage.getLoginUser()?.id ?? '';
     const { issueId, status, annotation } = update;
 
     if (!this.auth.isLoggedIn || !issueId) {

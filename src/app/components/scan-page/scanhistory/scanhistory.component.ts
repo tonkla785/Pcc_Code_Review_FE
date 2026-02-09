@@ -36,6 +36,12 @@ export class ScanhistoryComponent {
   ScanHistory: ScanResponseDTO[] = [];
   originalData: ScanResponseDTO[] = [];
   filteredScan:  ScanResponseDTO[] = [];
+  showGrade = true;
+showBugs = true;
+showCodeSmells = true;
+showCoverage = false;
+showDuplications = false;
+
   filterType = 'ALL';
   constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
     private sharedData: SharedDataService,
@@ -375,6 +381,17 @@ applyFilterStatus() {
 
   this.currentPage = 1;
   this.updatePage();
+}
+metricsConfig = [
+  { key: 'grade', label: 'Grade', selected: true },
+  { key: 'bugs', label: 'Bugs', selected: true },
+  { key: 'codeSmells', label: 'Code Smells', selected: true },
+  { key: 'coverage', label: 'Coverage (%)', selected: false },
+  { key: 'duplicatedLinesDensity', label: 'Duplications', selected: false },
+];
+getMetricValue(scan: any, key: string) {
+  if (key === 'grade') return scan.qualityGate;
+  return scan.metrics?.[key] ?? 0;
 }
 
 
