@@ -67,6 +67,7 @@ import {
   buildCoverageTrendChart,
   generateLast30DaysLabels
 } from '../../utils/chart.utils';
+import { UserStatusPipe } from '../../pipes/user-status.pipe';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -80,7 +81,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule, UserStatusPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })

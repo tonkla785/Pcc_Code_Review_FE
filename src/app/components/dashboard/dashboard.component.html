@@ -112,7 +112,7 @@
                   'status-verified':
                     (UserLogin?.status || '').toUpperCase() === 'VERIFIED',
                 }">
-                {{ UserLogin?.status }}
+                {{ UserLogin?.status | userStatus }}
               </span>
             </p>
 
