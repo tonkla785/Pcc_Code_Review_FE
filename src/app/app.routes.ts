@@ -62,7 +62,7 @@ export const routes: Routes = [
       { path: 'reporthistory', component: ReporthistoryComponent },
       { path: 'sonarqubeconfig', component: SonarqubeconfigComponent },
       { path: 'notificationsetting', component: NotificationsettingComponent },
-      { path: 'usermanagement', component: UsermanagementComponent },
+      { path: 'usermanagement', component: UsermanagementComponent, canActivate: [roleGuard(['ADMIN'])] },
     ]
   },
 
