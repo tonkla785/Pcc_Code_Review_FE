@@ -171,24 +171,44 @@ export class IssueComponent {
       (this.searchText === '' || i.message.toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
-  applyFilter() {
-    const keyword = this.searchText.trim().toLowerCase();
-    const matchType = (this.filterType || 'All Types').toLowerCase();
-    const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
-    const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
-    const matchProject = (this.filterProject || 'All Projects').toLowerCase();
-    this.filteredIssue = this.issuesAll.filter(i => {
+applyFilter() {
+  const keyword = this.searchText.trim().toLowerCase();
+  const matchType = (this.filterType || 'All Types').toLowerCase();
+  const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
+  const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
+  const matchProject = (this.filterProject || 'All Projects').toLowerCase();
+
+  this.filteredIssue = this.issuesAll
+    .filter(i => {
       const type = matchType === 'all types' || (i.type || '').toLowerCase() === matchType;
       const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
       const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
-      const projectName = (i.projectData?.name || '').toString().toLowerCase();
+
+      const projectName = (i.projectData?.name || '').toLowerCase();
       const project = matchProject === 'all projects' || projectName === matchProject;
-      const messageOk = keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+
+      const messageOk =
+        keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+
       return type && severity && status && project && messageOk;
+    })
+    .sort((a, b) => {
+      const dateDiff =
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime();
+
+      if (dateDiff !== 0){
+        return dateDiff;
+      }else{
+      return a.id.localeCompare(b.id); 
+      }
     });
-    this.currentPage = 1;
-    this.updatePage();
-  }
+
+
+  this.currentPage = 1;
+  this.updatePage();
+}
+
   onSearchChange(value: string) {
     this.searchText = value;
     this.applyFilter();
