@@ -1,5 +1,5 @@
 import { SharedDataService } from './../../../services/shared-data/shared-data.service';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -15,7 +15,7 @@ import { TokenStorageService } from '../../../services/tokenstorageService/token
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   loading = false;
@@ -28,6 +28,22 @@ export class LoginComponent {
     private readonly sharedDataService: SharedDataService,
     private readonly tokenStorage: TokenStorageService,
   ) { }
+
+  ngOnInit(): void {
+    // ✅ เช็คว่า user มี session อยู่แล้วหรือไม่ (ยังไม่ได้ logout)
+    // ถ้ามี token อยู่แล้ว redirect ไป dashboard เลย
+    if (this.auth.isLoggedIn) {
+      console.log('User is already logged in, redirecting to dashboard...');
+      this.snack.open('Already! Login', '', {
+        duration: 2500,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-blue'],
+      });
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+  }
 
   onSubmit(form: NgForm) {
     this.submitted = true;
