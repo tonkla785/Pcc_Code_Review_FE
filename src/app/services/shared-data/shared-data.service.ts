@@ -1,4 +1,4 @@
-import { IssuesRequestDTO } from './../../interface/issues_interface';
+import { IssuesDetailResponseDTO, IssuesRequestDTO } from './../../interface/issues_interface';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
@@ -259,6 +259,24 @@ export class SharedDataService {
         const next: IssuesResponseDTO = { ...current, ...patch } as IssuesResponseDTO;
         this.selectedIssues.next(next);
         this.updateIssues(next);
+    }
+    private readonly issueDetail = new BehaviorSubject<IssuesDetailResponseDTO | null>(null);
+    readonly issueDetail$ = this.issueDetail.asObservable();
+
+    get hasSelectedIssueDetailLoaded(): boolean {
+        return this.issueDetail.value !== null;
+    }
+
+    get hasSelectedIssueDetailCache(): boolean {
+        const data = this.issueDetail.value;
+        return data !== null;
+    }
+
+    set SelectedIssueDetail(data: IssuesDetailResponseDTO) {
+        this.issueDetail.next(data);
+    }
+    get selectIssueDetailValue(): IssuesDetailResponseDTO {
+        return this.issueDetail.value ?? null!;
     }
     private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
     readonly Comments$ = this.Comments.asObservable();

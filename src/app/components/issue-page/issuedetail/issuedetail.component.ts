@@ -127,6 +127,7 @@ export class IssuedetailComponent implements OnInit {
         console.log('Same')
       } else {
         this.issuesResult = cached;
+        this.issuesDetails = this.sharedData.selectIssueDetailValue;
         this.applyUserFilter();
         this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
         console.log("Not Same")
@@ -203,6 +204,8 @@ export class IssuedetailComponent implements OnInit {
   loadIssueDetails(issueId: string) {
     this.issesService.getAllIssuesDetails(issueId).subscribe({
       next: (data) => {
+        this.sharedData.SelectedIssueDetail = data;
+        this.sharedData.setLoading(false);
         this.issuesDetails = data;
         console.log('Issues Detail loaded:', data);
         this.applyUserFilter();
