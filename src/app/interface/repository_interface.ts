@@ -11,6 +11,7 @@ export interface Repository {
     projectTypeLabel?: string;
     branch?: string;
     sonarProjectKey?: string;
+    costPerDay?: number;
     createdAt?: Date;
     updatedAt?: Date;
     scans?: ScanResponseDTO[];

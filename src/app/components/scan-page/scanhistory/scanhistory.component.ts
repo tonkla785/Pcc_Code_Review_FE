@@ -389,11 +389,28 @@ metricsConfig = [
   { key: 'coverage', label: 'Coverage (%)', selected: false },
   { key: 'duplicatedLinesDensity', label: 'Duplications', selected: false },
 ];
-getMetricValue(scan: any, key: string) {
-  if (key === 'grade') return scan.qualityGate;
-  return scan.metrics?.[key] ?? 0;
-}
 
+diffMetric(metric: string): number | null {
+  if (this.selectedScans.length < 2) return null;
+
+  const first = this.selectedScans[0];
+  const last = this.selectedScans[this.selectedScans.length - 1];
+  console.log('Diff metric calculation:', { metric, first, last });
+  const getValue = (scan: any) => {
+    if (metric === 'grade') return scan.qualityGate;
+    return scan.metrics?.[metric] ?? 0;
+  };
+
+  const oldVal = getValue(first);
+  const newVal = getValue(last);
+
+  if (typeof oldVal !== 'number' || typeof newVal !== 'number') {
+    return null;
+  }
+  const result = (newVal - oldVal);
+  console.log('Diff metric result:', result);
+  return result ;
+}
 
 }
 

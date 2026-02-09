@@ -38,7 +38,7 @@
         <i class="bi bi-graph-up"></i> Analytics
       </a>
 
-      <a class="nav-link" (click)="toggleSubmenu('report')">
+      <a class="nav-link" (click)="toggleSubmenu('report', $event)">
         <i class="bi bi-file-earmark-text-fill"></i> Report
       </a>
       <ul *ngIf="submenuOpen['report']" class="submenu-down">
@@ -52,22 +52,17 @@
     <!-- กลุ่ม Setting , logout-->
     <li class="nav-item mt-auto">
       <ul *ngIf="submenuOpen['Setting']" class="submenu-up">
-        <li><a routerLink="/sonarqubeconfig"
-           routerLinkActive="active" 
-           [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeNavbar()"> <i class="bi bi-gear"></i>Sonarqube Config</a></li>
+        <li><a routerLink="/sonarqubeconfig" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeNavbar()"> <i class="bi bi-gear"></i>Sonarqube Config</a></li>
 
-        <li><a routerLink="/notificationsetting" 
-          routerLinkActive="active" 
-          [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeNavbar()"><i class="bi bi-bell"></i> Notification Setting</a></li>
-          
-        <li><a routerLink="/usermanagement" 
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" 
-          (click)="closeNavbar()"><i class="bi bi-people"></i>UserManagement</a></li>
+        <li><a routerLink="/notificationsetting" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeNavbar()"><i class="bi bi-bell"></i> Notification Setting</a></li>
+
+        <li *ngIf="isAdmin"><a routerLink="/usermanagement" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i
+              class="bi bi-people"></i>UserManagement</a></li>
       </ul>
-      <a class="nav-link" (click)="toggleSubmenu('Setting')">
+      <a class="nav-link" (click)="toggleSubmenu('Setting', $event)">
         <i class="bi bi-gear-fill"></i> Setting
       </a>
 
