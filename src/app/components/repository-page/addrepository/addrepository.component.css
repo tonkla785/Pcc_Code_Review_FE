@@ -619,3 +619,26 @@ input[name="username"] {
 fieldset {
   overflow: visible;
 }
+
+/* ===============================
+     🚫 Disabled / Readonly State
+     =============================== */
+input:disabled,
+input[readonly],
+select:disabled,
+textarea:disabled {
+  background-color: #f3f4f6 !important; /* Light Gray */
+  color: #6b7280 !important; /* Text Gray */
+  cursor: not-allowed;
+  opacity: 1; /* Fix for iOS */
+}
+
+/* Dark Mode Disabled */
+:host-context(.dark-mode) input:disabled,
+:host-context(.dark-mode) input[readonly],
+:host-context(.dark-mode) select:disabled,
+:host-context(.dark-mode) textarea:disabled {
+  background-color: #374151 !important; /* Dark Gray */
+  color: #9ca3af !important; /* Lighter Text */
+  border-color: #4b5563 !important;
+}
