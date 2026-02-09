@@ -1,59 +1,97 @@
 <div class="page-wrapper fade-in">
   <div class="form-card">
-
     <!-- Header -->
     <div class="form-header">
       <div class="header-icon">
         <i class="bi bi-git"></i>
       </div>
       <div>
-        <h2>{{ isEditMode ? 'Edit Repository' : 'New Repository' }}</h2>
-        <p class="text-muted">Configure your repository connection and analysis settings</p>
+        <h2>{{ isEditMode ? "Edit Repository" : "New Repository" }}</h2>
+        <p class="text-muted">
+          Configure your repository connection and analysis settings
+        </p>
       </div>
     </div>
 
     <form #repoForm="ngForm" (ngSubmit)="onSubmit(repoForm)">
-
       <!-- Section 1: Project Details -->
       <div class="form-section">
-        <h4 class="section-title"><i class="bi bi-hdd-network"></i> Project Details</h4>
+        <h4 class="section-title">
+          <i class="bi bi-hdd-network"></i> Project Details
+        </h4>
 
         <div class="row g-3">
           <!-- Name -->
           <div class="col-md-6">
-            <label for="name" class="form-label">Repository Name <span class="required">*</span></label>
+            <label for="name" class="form-label"
+              >Repository Name <span class="required">*</span></label
+            >
             <div class="input-group-custom">
               <span class="input-icon"><i class="bi bi-tag"></i></span>
-              <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required
-                #name="ngModel" (ngModelChange)="onNameChange($event)" placeholder="e.g. My Project">
+              <input
+                type="text"
+                class="form-control"
+                name="name"
+                [(ngModel)]="gitRepository.name"
+                required
+                #name="ngModel"
+                (ngModelChange)="onNameChange($event)"
+                placeholder="e.g. My Project"
+              />
             </div>
-            <div class="error-msg" *ngIf="name.invalid && name.touched">Repository name is required</div>
+            <div class="error-msg" *ngIf="name.invalid && name.touched">
+              Repository name is required
+            </div>
           </div>
 
           <!-- Type -->
           <div class="col-md-6">
-            <label for="type" class="form-label">Project Type <span class="required">*</span></label>
+            <label for="type" class="form-label"
+              >Project Type <span class="required">*</span></label
+            >
             <div class="input-group-custom">
               <span class="input-icon"><i class="bi bi-code-slash"></i></span>
-              <select class="form-select" name="type" [(ngModel)]="gitRepository.projectTypeLabel" required
-                #type="ngModel" [disabled]="isEditMode">
-                <option [ngValue]="undefined" disabled>-- Select Framework --</option>
+              <select
+                class="form-select"
+                name="type"
+                [(ngModel)]="gitRepository.projectTypeLabel"
+                required
+                #type="ngModel"
+                [disabled]="isEditMode"
+              >
+                <option [ngValue]="undefined" disabled>
+                  -- Select Framework --
+                </option>
                 <option [ngValue]="'ANGULAR'">Angular</option>
                 <option [ngValue]="'SPRING BOOT'">Spring Boot</option>
               </select>
             </div>
-            <div class="error-msg" *ngIf="type.invalid && type.touched">Project type required</div>
+            <div class="error-msg" *ngIf="type.invalid && type.touched">
+              Project type required
+            </div>
           </div>
 
           <!-- URL -->
           <div class="col-12">
-            <label for="url" class="form-label">Git URL <span class="required">*</span></label>
+            <label for="url" class="form-label"
+              >Git URL <span class="required">*</span></label
+            >
             <div class="input-group-custom">
               <span class="input-icon"><i class="bi bi-link-45deg"></i></span>
-              <input type="url" class="form-control" name="url" [(ngModel)]="gitRepository.repositoryUrl" required
-                #url="ngModel" [disabled]="isEditMode" placeholder="https://github.com/user/repo.git">
+              <input
+                type="url"
+                class="form-control"
+                name="url"
+                [(ngModel)]="gitRepository.repositoryUrl"
+                required
+                #url="ngModel"
+                [disabled]="isEditMode"
+                placeholder="https://github.com/user/repo.git"
+              />
             </div>
-            <div class="error-msg" *ngIf="url.invalid && url.touched">Valid Git URL is required</div>
+            <div class="error-msg" *ngIf="url.invalid && url.touched">
+              Valid Git URL is required
+            </div>
           </div>
         </div>
       </div>
@@ -78,32 +116,52 @@
                   <li>Select <code>Fine-grained token</code></li>
                   <li>Permissions: <code>Read-only</code> (Contents)</li>
                 </ol>
-                <div class="tooltip-note">No token needed for public repositories.</div>
+                <div class="tooltip-note">
+                  No token needed for public repositories.
+                </div>
               </div>
             </span>
           </label>
 
           <div class="input-group-custom">
             <span class="input-icon"><i class="bi bi-key"></i></span>
-            <input type="password" class="form-control" name="gitToken" [(ngModel)]="gitToken" #gitTokenRef="ngModel"
-              placeholder="github_pat_..." autocomplete="new-password">
+            <input
+              type="password"
+              class="form-control"
+              name="gitToken"
+              [(ngModel)]="gitToken"
+              #gitTokenRef="ngModel"
+              placeholder="github_pat_..."
+              autocomplete="new-password"
+            />
           </div>
           <div class="helper-text">
-            <i class="bi bi-shield-check"></i> Token is used once for cloning and not stored permanently.
+            <i class="bi bi-shield-check"></i> Token is used once for cloning
+            and not stored permanently.
           </div>
         </div>
       </div>
 
       <!-- Section 3: Analysis Config -->
       <div class="form-section">
-        <h4 class="section-title"><i class="bi bi-bar-chart-steps"></i> Analysis Configuration</h4>
+        <h4 class="section-title">
+          <i class="bi bi-bar-chart-steps"></i> Analysis Configuration
+        </h4>
 
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">SonarQube Server</label>
             <div class="input-group-custom readonly-group">
               <span class="input-icon"><i class="bi bi-server"></i></span>
-              <input type="url" class="form-control" name="serverUrl" [(ngModel)]="sonarConfig.serverUrl" readonly>
+              <input
+                type="url"
+                class="form-control"
+                name="serverUrl"
+                [(ngModel)]="sonarConfig.serverUrl"
+                [disabled]="isEditMode"
+
+                readonly
+              />
             </div>
           </div>
 
@@ -111,52 +169,55 @@
             <label class="form-label">Project Key</label>
             <div class="input-group-custom readonly-group">
               <span class="input-icon"><i class="bi bi-hash"></i></span>
-              <input type="text" class="form-control" name="sonarProjectKey" [(ngModel)]="sonarConfig.projectKey"
-                readonly>
+              <input
+                type="text"
+                class="form-control"
+                name="sonarProjectKey"
+                [(ngModel)]="sonarConfig.projectKey"
+                [disabled]="isEditMode"
+                readonly
+              />
             </div>
           </div>
 
           <!-- Toggles -->
-          <div class="col-12 mt-3">
-            <div class="d-flex gap-4 flex-wrap">
-              <label class="toggle-switch">
-                <input type="checkbox" [(ngModel)]="sonarConfig.enableAutoScan" name="enableAutoScan"
-                  [disabled]="isEditMode">
-                <span class="slider"></span>
-                <span class="toggle-label">Auto Scan</span>
-              </label>
-
-              <label class="toggle-switch">
-                <input type="checkbox" [(ngModel)]="sonarConfig.enableQualityGate" name="enableQualityGate"
-                  [disabled]="isEditMode">
-                <span class="slider"></span>
-                <span class="toggle-label">Quality Gate</span>
-              </label>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- Actions -->
       <div class="form-actions">
-        <button type="button" class="btn btn-text" (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn btn-text" (click)="onCancel()">
+          Cancel
+        </button>
 
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-soft-warning" (click)="clearForm(repoForm)">
+          <button
+            type="button"
+            class="btn btn-soft-warning"
+            (click)="clearForm(repoForm)"
+          >
             <i class="bi bi-eraser"></i> Clear
           </button>
 
-          <button *ngIf="isEditMode" type="button" class="btn btn-soft-danger" (click)="onDelete()">
+          <button
+            *ngIf="isEditMode"
+            type="button"
+            class="btn btn-soft-danger"
+            (click)="onDelete()"
+          >
             <i class="bi bi-trash"></i> Delete
           </button>
 
-          <button type="submit" class="btn btn-primary-gradient" [disabled]="!repoForm.valid">
+          <button
+            type="submit"
+            class="btn btn-primary-gradient"
+            [disabled]="!repoForm.valid"
+          >
             <i class="bi" [ngClass]="isEditMode ? 'bi-save' : 'bi-plus-lg'"></i>
-            {{ isEditMode ? 'Save Changes' : 'Add Repository' }}
+            {{ isEditMode ? "Save Changes" : "Add Repository" }}
           </button>
         </div>
       </div>
-
     </form>
   </div>
 </div>

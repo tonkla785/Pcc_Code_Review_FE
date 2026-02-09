@@ -211,6 +211,7 @@
             <th class="text-center pe-3">Change</th>
           </tr>
         </thead>
+<<<<<<< HEAD
 
         <tbody>
           <!-- Grade -->
@@ -378,6 +379,38 @@
             </td>
           </tr>
         </tbody>
+=======
+<tbody>
+  <tr *ngIf="showGrade">
+    <td>Grade</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.qualityGate }}</td>
+  </tr>
+
+  <tr *ngIf="showBugs">
+    <td>Bugs</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.metrics?.bugs ?? 0 }}</td>
+  </tr>
+
+  <tr *ngIf="showCodeSmells">
+    <td>Code Smells</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.metrics?.codeSmells ?? 0 }}</td>
+  </tr>
+
+  <tr *ngIf="showCoverage">
+    <td>Coverage (%)</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.metrics?.coverage ?? 0 }}</td>
+  </tr>
+
+  <tr *ngIf="showDuplications">
+    <td>Duplications</td>
+    <td *ngFor="let scan of selectedScans">
+      {{ scan.metrics?.duplicatedLinesDensity ?? 0 }}
+    </td>
+  </tr>
+</tbody>
+
+
+>>>>>>> dev
       </table>
 
     </div>
