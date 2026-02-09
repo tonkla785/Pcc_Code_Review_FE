@@ -87,7 +87,7 @@ export class IssuedetailComponent implements OnInit {
   replies = new Map<string, commentResponseDTO[]>();
   replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
   sortedComments: commentResponseDTO[] = [];
-
+  selectedScans: any[] = [];
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,

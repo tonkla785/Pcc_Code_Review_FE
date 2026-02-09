@@ -64,11 +64,6 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngIf="paginatedIssues?.length === 0">
-          <td colspan="8" class="text-center text-muted py-4">
-            <i class="bi bi-inbox"></i> No Data
-          </td>
-        </tr>
         <tr *ngFor="let issue of paginatedIssues">
           <td (click)="$event.stopPropagation()">
             <input type="checkbox" [checked]="isSelected(issue)" (change)="toggleIssueSelection(issue, $event)" />
