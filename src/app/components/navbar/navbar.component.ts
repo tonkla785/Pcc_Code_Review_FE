@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/authservice/auth.service';
@@ -62,7 +62,8 @@ export class NavbarComponent implements OnInit {
   constructor(
     private readonly router: Router,
     public readonly authService: AuthService,
-    private readonly tokenStorage: TokenStorageService
+    private readonly tokenStorage: TokenStorageService,
+    private readonly elementRef: ElementRef
   ) {
 
 
@@ -96,8 +97,34 @@ export class NavbarComponent implements OnInit {
     this.navbarOpen = false;
   }
 
-  toggleSubmenu(key: string) {
+  toggleSubmenu(key: string, event?: Event) {
+    // หยุด event propagation เพื่อไม่ให้ HostListener จับได้
+    if (event) {
+      event.stopPropagation();
+    }
+    // ปิด submenu อื่นทั้งหมดก่อนเปิดตัวที่คลิก
+    Object.keys(this.submenuOpen).forEach(k => {
+      if (k !== key) {
+        this.submenuOpen[k] = false;
+      }
+    });
     this.submenuOpen[key] = !this.submenuOpen[key];
+  }
+
+  // ฟัง click event นอก dropdown เพื่อปิด submenu
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    // ตรวจสอบว่า click อยู่นอก navbar หรือไม่
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.closeAllSubmenus();
+    }
+  }
+
+  // ปิด submenu ทั้งหมด
+  closeAllSubmenus() {
+    Object.keys(this.submenuOpen).forEach(key => {
+      this.submenuOpen[key] = false;
+    });
   }
 
   logout(): void {
