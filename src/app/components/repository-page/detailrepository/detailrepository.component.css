@@ -651,6 +651,72 @@
   background-color: #111827;
 }
 
+/* Dark Mode Hover Fixes */
+:host-context(.dark-mode) .metric-card {
+  background-color: var(--white);
+  /* Uses dark mode --white */
+  border-color: #374151;
+}
+
+:host-context(.dark-mode) .metric-card:hover {
+  background-color: #262f3e;
+  /* Slightly lighter than bg */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  /* Stronger shadow for dark mode */
+}
+
+:host-context(.dark-mode) .back-link {
+  background-color: var(--white);
+  border-color: #374151;
+  color: var(--gray);
+}
+
+:host-context(.dark-mode) .back-link:hover {
+  background-color: #262f3e;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+:host-context(.dark-mode) .btn-settings {
+  background-color: var(--white);
+  border-color: #374151;
+  color: var(--dark);
+}
+
+:host-context(.dark-mode) .btn-settings:hover {
+  background-color: #262f3e;
+  border-color: var(--gray);
+}
+
+:host-context(.dark-mode) .tab-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  /* Proper hover for dark tabs */
+}
+
+:host-context(.dark-mode) .data-table th {
+  background-color: #1f2937;
+  /* Match card bg */
+  border-bottom-color: #374151;
+}
+
+:host-context(.dark-mode) .data-table td {
+  border-bottom-color: #374151;
+}
+
+:host-context(.dark-mode) .data-table tr:hover td {
+  background-color: #262f3e;
+  /* Visible hover row in dark mode */
+}
+
+:host-context(.dark-mode) .details-list {
+  border-top-color: #374151;
+}
+
+:host-context(.dark-mode) .tabs-header {
+  border-bottom-color: #374151;
+  background-color: var(--white);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .page-header {
