@@ -96,6 +96,17 @@ export class AddrepositoryComponent implements OnInit {
 
     // Fetch SonarQube Config to ensure we have the token for validation
     this.userSettingService.getSonarQubeConfig().subscribe();
+
+    // Fix: Load repositories if cache is empty (for Duplicate Name Validation on refresh)
+    if (!this.sharedData.hasRepositoriesCache) {
+      this.repositoryService.getAllRepo().subscribe({
+        next: (repos) => {
+          console.log('Repositories loaded for validation:', repos.length);
+          this.sharedData.setRepositories(repos);
+        },
+        error: (err) => console.error('Failed to load repositories for validation', err)
+      });
+    }
   }
 
   loadRepository(projectId: string) {
