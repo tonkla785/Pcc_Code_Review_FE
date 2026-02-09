@@ -149,6 +149,41 @@
       <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">X</button>
     </div>
     <div class="modal-body-custom">
+      <div class="mb-3">
+
+  <div class="d-flex flex-wrap gap-3">
+<div class="mb-3">
+  <label class="fw-bold d-block mb-2">เลือกข้อมูลที่ต้องการเปรียบเทียบ</label>
+
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" [(ngModel)]="showGrade">
+    <label class="form-check-label">Grade</label>
+  </div>
+
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" [(ngModel)]="showBugs">
+    <label class="form-check-label">Bugs</label>
+  </div>
+
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" [(ngModel)]="showCodeSmells">
+    <label class="form-check-label">Code Smells</label>
+  </div>
+
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" [(ngModel)]="showCoverage">
+    <label class="form-check-label">Coverage (%)</label>
+  </div>
+
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" [(ngModel)]="showDuplications">
+    <label class="form-check-label">Duplications</label>
+  </div>
+</div>
+
+  </div>
+</div>
+
       <table class="table table-bordered table-striped">
         <thead>
           <tr>
@@ -156,30 +191,36 @@
             <th *ngFor="let scan of selectedScans">{{scan.project?.name}} ({{scan.startedAt | date:'yyyy-MM-dd'}})</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>Grade</td>
-            <td *ngFor="let scan of selectedScans">{{scan.qualityGate}} </td>
-          </tr>
-          <tr>
-            <td>Bugs</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.bugs ?? 0 }}</td>
-          </tr>
-          <tr>
-            <td>Code Smells</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.codeSmells ?? 0 }}</td>
-          </tr>
+<tbody>
+  <tr *ngIf="showGrade">
+    <td>Grade</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.qualityGate }}</td>
+  </tr>
 
-          <tr>
-            <td>Coverage (%)</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.coverage ?? 0 }}</td>
-          </tr>
+  <tr *ngIf="showBugs">
+    <td>Bugs</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.metrics?.bugs ?? 0 }}</td>
+  </tr>
 
-          <tr>
-            <td>Duplications</td>
-            <td *ngFor="let scan of selectedScans">{{ scan.metrics?.duplicatedLinesDensity ?? 0 }}</td>
-          </tr>
-        </tbody>
+  <tr *ngIf="showCodeSmells">
+    <td>Code Smells</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.metrics?.codeSmells ?? 0 }}</td>
+  </tr>
+
+  <tr *ngIf="showCoverage">
+    <td>Coverage (%)</td>
+    <td *ngFor="let scan of selectedScans">{{ scan.metrics?.coverage ?? 0 }}</td>
+  </tr>
+
+  <tr *ngIf="showDuplications">
+    <td>Duplications</td>
+    <td *ngFor="let scan of selectedScans">
+      {{ scan.metrics?.duplicatedLinesDensity ?? 0 }}
+    </td>
+  </tr>
+</tbody>
+
+
       </table>
     </div>
     <div class="modal-footer-custom">
