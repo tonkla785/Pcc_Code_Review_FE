@@ -49,6 +49,7 @@
   font-weight: bold;
   border-left: 4px solid transparent;
   transition: all 0.3s;
+  cursor: pointer;
 }
 
 .vertical-navbar a i {
