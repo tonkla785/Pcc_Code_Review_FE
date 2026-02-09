@@ -166,9 +166,9 @@ export class AddrepositoryComponent implements OnInit {
     if (isDuplicate) {
       Swal.fire({
         icon: 'warning',
-        title: 'ชื่อโปรเจกต์ซ้ำ',
-        text: 'มีโปรเจกต์ชื่อนี้อยู่แล้วในระบบ กรุณาใช้ชื่ออื่น',
-        confirmButtonText: 'ตกลง',
+        title: 'Duplicate Project Name',
+        text: 'This project name already exists in the system. Please use a different name.',
+        confirmButtonText: 'OK',
         confirmButtonColor: '#3085d6',
       });
       return;
