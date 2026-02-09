@@ -349,7 +349,15 @@ applyFilter() {
     const dateStr = datenow.toISOString().split('T')[0].replaceAll('-', '');
     const fileType = selectedIssues.length ? 'selected' : 'all';
     const fileName = `issues_${fileType}_${dateStr}.csv`;
-
+    if (this.selectedIssues.length < 2) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Not enough items selected',
+        text: 'Please select at least 1 items to export',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
     const csvContent = [
       ['No.', 'Title', 'Severity', 'Status', 'Assignee'].join(','),
       ...exportIssues.map((i, idx) => [
