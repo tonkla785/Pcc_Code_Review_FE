@@ -36,7 +36,7 @@ export class UsermanagementComponent {
   isEmail: boolean = false;
   filteredUsers: UserInfo[] = [];
   emptyUser(): UserInfo {
-    return { id: "0", username: '', password: '', email: '', role: 'USER', status: '' };
+    return { id: "0", username: '', password: '', email: '', role: 'USER' };
   }
 
   // filteredUsers(): User[] {
@@ -147,11 +147,8 @@ export class UsermanagementComponent {
       email: this.modalData.email,
       phone: this.modalData.phone,
       role: this.modalData.role,
-      status: this.modalData.status,
       password: this.modalData.password
     };
-    console.log('Submitting user payload:', payload);
-
     if (this.editingUser === true) {
       this.userDateService.EditUser(payload).subscribe({
         next: (updatedUser) => {
@@ -166,6 +163,7 @@ export class UsermanagementComponent {
         next: (newUser) => {
           this.closeModal();
           this.sharedData.addUser(payload);
+          console.log('User added:', newUser);
         },
         error: (err) => console.error(err)
       });
