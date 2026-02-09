@@ -342,8 +342,8 @@ applyFilter() {
   }
 
   exportData() {
-    const selectedIssues = this.issues.filter(i => i.selected);
-    const exportIssues = selectedIssues.length ? selectedIssues : this.issues;
+    const selectedIssues = this.selectedIssues
+    const exportIssues = selectedIssues.length ? selectedIssues : this.selectedIssues;
 
     const datenow = new Date();
     const dateStr = datenow.toISOString().split('T')[0].replaceAll('-', '');
@@ -357,7 +357,7 @@ applyFilter() {
         `"${i.message.replaceAll('"', '""')}"`,
         i.severity,
         i.status,
-        i.assignee || '-'
+        i.assignedTo?.username || '-'
       ].join(','))
     ].join('\n');
 
@@ -376,7 +376,7 @@ applyFilter() {
     this.searchText = '';
     this.currentPage = 1;
     this.selectAllCheckbox = false;
-    this.issues.forEach(i => i.selected = false);
+    this.selectedIssues = [];
     this.applyFilter();
   }
 
