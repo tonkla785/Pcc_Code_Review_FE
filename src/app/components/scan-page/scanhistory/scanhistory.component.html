@@ -149,48 +149,237 @@
       <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">X</button>
     </div>
     <div class="modal-body-custom">
-      <div class="mb-3">
+      
+      <!-- Metrics Selection - แนวนอน -->
+      <div class="mb-4">
+        <label class="fw-bold d-block mb-3">เลือกข้อมูลที่ต้องการเปรียบเทียบ</label>
+        
+        <div class="d-flex flex-wrap gap-3">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkGrade" [(ngModel)]="showGrade">
+            <label class="form-check-label" for="checkGrade">
+              <i class="bi bi-award-fill text-primary me-1"></i>
+              Grade
+            </label>
+          </div>
 
-  <div class="d-flex flex-wrap gap-3">
-<div class="mb-3">
-  <label class="fw-bold d-block mb-2">เลือกข้อมูลที่ต้องการเปรียบเทียบ</label>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkBugs" [(ngModel)]="showBugs">
+            <label class="form-check-label" for="checkBugs">
+              <i class="bi bi-bug-fill text-danger me-1"></i>
+              Bugs
+            </label>
+          </div>
 
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" [(ngModel)]="showGrade">
-    <label class="form-check-label">Grade</label>
-  </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkSmells" [(ngModel)]="showCodeSmells">
+            <label class="form-check-label" for="checkSmells">
+              <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+              Code Smells
+            </label>
+          </div>
 
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" [(ngModel)]="showBugs">
-    <label class="form-check-label">Bugs</label>
-  </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkCoverage" [(ngModel)]="showCoverage">
+            <label class="form-check-label" for="checkCoverage">
+              <i class="bi bi-shield-check text-success me-1"></i>
+              Coverage
+            </label>
+          </div>
 
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" [(ngModel)]="showCodeSmells">
-    <label class="form-check-label">Code Smells</label>
-  </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkDuplications" [(ngModel)]="showDuplications">
+            <label class="form-check-label" for="checkDuplications">
+              <i class="bi bi-files text-info me-1"></i>
+              Duplications
+            </label>
+          </div>
+        </div>
+      </div>
 
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" [(ngModel)]="showCoverage">
-    <label class="form-check-label">Coverage (%)</label>
-  </div>
-
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" [(ngModel)]="showDuplications">
-    <label class="form-check-label">Duplications</label>
-  </div>
-</div>
-
-  </div>
-</div>
-
-      <table class="table table-bordered table-striped">
+      <!-- Comparison Table -->
+      <table class="table table-hover align-middle compare-table">
         <thead>
           <tr>
-            <th>Metric</th>
-            <th *ngFor="let scan of selectedScans">{{scan.project?.name}} ({{scan.startedAt | date:'yyyy-MM-dd'}})</th>
+            <th class="ps-3">Metric</th>
+            <th *ngFor="let scan of selectedScans" class="text-center">
+              {{ scan.project?.name }}
+              <div class="text-muted small">
+                {{ scan.startedAt | date:'yyyy-MM-dd' }}
+              </div>
+            </th>
+            <th class="text-center pe-3">Change</th>
           </tr>
         </thead>
+<<<<<<< HEAD
+
+        <tbody>
+          <!-- Grade -->
+          <tr *ngIf="showGrade">
+            <td class="fw-semibold ps-3">
+              <i class="bi bi-award-fill text-primary me-2"></i>
+              Grade
+            </td>
+            <td *ngFor="let scan of selectedScans" class="text-center">
+              <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                {{ scan.qualityGate }}
+              </span>
+            </td>
+            <td class="text-center pe-3">
+              <ng-container *ngIf="diffMetric('grade') as diff; else showZero">
+                <span
+                  class="badge px-3 py-2"
+                  [ngClass]="{
+                    'bg-success-subtle text-success': diff > 0,
+                    'bg-danger-subtle text-danger': diff < 0
+                  }"
+                >
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
+                </span>
+              </ng-container>
+              <ng-template #showZero>
+                <ng-container *ngIf="diffMetric('grade') === 0">
+                  <span class="badge px-3 py-2 bg-secondary-subtle text-secondary">
+                    – 0
+                  </span>
+                </ng-container>
+              </ng-template>
+            </td>
+          </tr>
+
+          <!-- Bugs -->
+          <tr *ngIf="showBugs">
+            <td class="fw-semibold ps-3">
+              <i class="bi bi-bug-fill text-danger me-2"></i>
+              Bugs
+            </td>
+            <td *ngFor="let scan of selectedScans" class="text-center">
+              <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                {{ scan.metrics?.bugs ?? 0 }}
+              </span>
+            </td>
+            <td class="text-center pe-3">
+              <ng-container *ngIf="diffMetric('bugs') as diff; else showZeroBugs">
+                <span
+                  class="badge px-3 py-2"
+                  [ngClass]="{
+                    'bg-success-subtle text-success': diff < 0,
+                    'bg-danger-subtle text-danger': diff > 0
+                  }"
+                >
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
+                </span>
+              </ng-container>
+              <ng-template #showZeroBugs>
+                <ng-container *ngIf="diffMetric('bugs') === 0">
+                  <span class="badge px-3 py-2 bg-secondary-subtle text-secondary">
+                    – 0
+                  </span>
+                </ng-container>
+              </ng-template>
+            </td>
+          </tr>
+
+          <!-- Code Smells -->
+          <tr *ngIf="showCodeSmells">
+            <td class="fw-semibold ps-3">
+              <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+              Code Smells
+            </td>
+            <td *ngFor="let scan of selectedScans" class="text-center">
+              <span class="badge bg-warning-subtle text-warning px-3 py-2">
+                {{ scan.metrics?.codeSmells ?? 0 }}
+              </span>
+            </td>
+            <td class="text-center pe-3">
+              <ng-container *ngIf="diffMetric('codeSmells') as diff; else showZeroSmells">
+                <span
+                  class="badge px-3 py-2"
+                  [ngClass]="{
+                    'bg-success-subtle text-success': diff < 0,
+                    'bg-danger-subtle text-danger': diff > 0
+                  }"
+                >
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
+                </span>
+              </ng-container>
+              <ng-template #showZeroSmells>
+                <ng-container *ngIf="diffMetric('codeSmells') === 0">
+                  <span class="badge px-3 py-2 bg-secondary-subtle text-secondary">
+                    – 0
+                  </span>
+                </ng-container>
+              </ng-template>
+            </td>
+          </tr>
+
+          <!-- Coverage -->
+          <tr *ngIf="showCoverage">
+            <td class="fw-semibold ps-3">
+              <i class="bi bi-shield-check text-success me-2"></i>
+              Coverage
+            </td>
+            <td *ngFor="let scan of selectedScans" class="text-center">
+              <span class="badge bg-success-subtle text-success px-3 py-2">
+                {{ scan.metrics?.coverage ?? 0 }}%
+              </span>
+            </td>
+            <td class="text-center pe-3">
+              <ng-container *ngIf="diffMetric('coverage') as diff; else showZeroCoverage">
+                <span
+                  class="badge px-3 py-2"
+                  [ngClass]="{
+                    'bg-success-subtle text-success': diff > 0,
+                    'bg-danger-subtle text-danger': diff < 0
+                  }"
+                >
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}%
+                </span>
+              </ng-container>
+              <ng-template #showZeroCoverage>
+                <ng-container *ngIf="diffMetric('coverage') === 0">
+                  <span class="badge px-3 py-2 bg-secondary-subtle text-secondary">
+                    – 0%
+                  </span>
+                </ng-container>
+              </ng-template>
+            </td>
+          </tr>
+
+          <!-- Duplications -->
+          <tr *ngIf="showDuplications">
+            <td class="fw-semibold ps-3">
+              <i class="bi bi-files text-info me-2"></i>
+              Duplications
+            </td>
+            <td *ngFor="let scan of selectedScans" class="text-center">
+              <span class="badge bg-info-subtle text-info px-3 py-2">
+                {{ scan.metrics?.duplicatedLinesDensity ?? 0 }}%
+              </span>
+            </td>
+            <td class="text-center pe-3">
+              <ng-container *ngIf="diffMetric('duplicatedLinesDensity') as diff; else showZeroDuplications">
+                <span
+                  class="badge px-3 py-2"
+                  [ngClass]="{
+                    'bg-success-subtle text-success': diff < 0,
+                    'bg-danger-subtle text-danger': diff > 0
+                  }"
+                >
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}%
+                </span>
+              </ng-container>
+              <ng-template #showZeroDuplications>
+                <ng-container *ngIf="diffMetric('duplicatedLinesDensity') === 0">
+                  <span class="badge px-3 py-2 bg-secondary-subtle text-secondary">
+                    – 0%
+                  </span>
+                </ng-container>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+=======
 <tbody>
   <tr *ngIf="showGrade">
     <td>Grade</td>
@@ -221,11 +410,12 @@
 </tbody>
 
 
+>>>>>>> dev
       </table>
+
     </div>
     <div class="modal-footer-custom">
       <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">Close</button>
     </div>
   </div>
-
 </div>
