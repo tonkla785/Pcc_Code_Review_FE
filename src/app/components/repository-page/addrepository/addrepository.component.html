@@ -1,66 +1,37 @@
 <div class="page-wrapper">
   <div class="form-card">
-    <h2>{{ isEditMode ? "Edit Repository" : "Add Repository" }}</h2>
+
+    <h2>{{ isEditMode ? 'Edit Repository' : 'Add Repository' }}</h2>
 
     <form #repoForm="ngForm" (ngSubmit)="onSubmit(repoForm)">
+
       <!-- Repository Information -->
       <fieldset>
         <legend>Repository Information</legend>
 
         <div class="mb-3">
-          <label for="name" class="form-label"
-            >Repository Name <span class="required">*</span></label
-          >
-          <input
-            type="text"
-            class="form-control"
-            name="name"
-            [(ngModel)]="gitRepository.name"
-            required
-            #name="ngModel"
-            (ngModelChange)="onNameChange($event)"
-          />
-          <div class="error" *ngIf="name.invalid && name.touched">
-            Repository name is required
-          </div>
+          <label for="name" class="form-label">Repository Name <span class="required">*</span></label>
+          <input type="text" class="form-control" name="name" [(ngModel)]="gitRepository.name" required #name="ngModel"
+            (ngModelChange)="onNameChange($event)">
+          <div class="error" *ngIf="name.invalid && name.touched">Repository name is required</div>
         </div>
 
         <div class="mb-3">
-          <label for="url" class="form-label"
-            >Git URL <span class="required">*</span></label
-          >
-          <input
-            type="url"
-            class="form-control"
-            name="url"
-            [(ngModel)]="gitRepository.repositoryUrl"
-            required
-            #url="ngModel"
-            [disabled]="isEditMode"
-          />
-          <div class="error" *ngIf="url.invalid && url.touched">
-            Valid URL required.
-          </div>
+          <label for="url" class="form-label">Git URL <span class="required">*</span></label>
+          <input type="url" class="form-control" name="url" [(ngModel)]="gitRepository.repositoryUrl" required
+            #url="ngModel" [disabled]="isEditMode">
+          <div class="error" *ngIf="url.invalid && url.touched">Valid URL required.</div>
         </div>
 
         <div class="mb-3">
-          <label for="type" class="form-label"
-            >Project Type <span class="required">*</span></label
-          >
-          <select
-            class="form-select"
-            name="type"
-            [(ngModel)]="gitRepository.projectTypeLabel"
-            required
-            #type="ngModel"
-          >
+          <label for="type" class="form-label">Project Type <span class="required">*</span></label>
+          <select class="form-select" name="type" [(ngModel)]="gitRepository.projectTypeLabel" required #type="ngModel"
+            [disabled]="isEditMode">
             <option [ngValue]="undefined" disabled>-- Select Type --</option>
             <option [ngValue]="'ANGULAR'">Angular</option>
             <option [ngValue]="'SPRING BOOT'">Spring Boot</option>
           </select>
-          <div class="error" *ngIf="type.invalid && type.touched">
-            Project type required.
-          </div>
+          <div class="error" *ngIf="type.invalid && type.touched">Project type required.</div>
         </div>
       </fieldset>
 
@@ -69,138 +40,99 @@
         <legend>Authentication</legend>
 
         <div class="mb-3">
-          <label for="gitToken" class="form-label">
+          <label for="gitToken" class="form-label d-flex align-items-center">
             Git Token (สำหรับ Private Repo เท่านั้น)
+
+            <span class="info-icon" tabindex="0" role="button" aria-label="วิธีเอา Git Token">
+              <i class="bi bi-info-circle"></i>
+
+              <div class="info-tooltip" role="tooltip">
+                <strong>Git Token เอามาจากไหน?</strong>
+                <ol>
+                  <li>GitHub → Settings</li>
+                  <li>Developer settings → Personal access tokens</li>
+                  <li>แนะนำใช้ <code>Fine-grained token</code></li>
+                  <li>เลือก repo ที่จะสแกน</li>
+                  <li>Permissions: ให้ <code>Read-only</code></li>
+                </ol>
+
+                <div class="tip">
+                  ถ้า repo เป็น public ไม่ต้องใส่ token นะ ระบบใช้แค่ตอน clone
+                  แล้วไม่เก็บไว้
+                </div>
+              </div>
+            </span>
           </label>
-          <input
-            type="text"
-            class="form-control"
-            name="gitToken"
-            [(ngModel)]="gitToken"
-            #gitTokenRef="ngModel"
-            placeholder="github_pat_... (optional)"
-          />
+
+          <input type="text" class="form-control" name="gitToken" [(ngModel)]="gitToken" #gitTokenRef="ngModel"
+            placeholder="github_pat_... (optional)" />
+
           <div class="form-text">
             ถ้า repo เป็น public ไม่ต้องกรอก ช่องนี้ใช้เฉพาะตอนสแกน
             และระบบจะไม่เก็บไว้
           </div>
-        </div>
 
-        <div class="alert-note" role="alert">
-          <i class="bi bi-shield-lock-fill"></i>
-          <div>
-            <strong>หมายเหตุ:</strong>
-            ระบบนี้จะไม่เก็บ <strong>Git Token</strong>
-            ข้อมูลนี้จะถูกใช้สำหรับการเชื่อมต่อ (clone) เพียงครั้งเดียวเท่านั้น
+          <div class="alert-note" role="alert">
+            <i class="bi bi-shield-lock-fill"></i>
+            <div>
+              <strong>หมายเหตุ:</strong>
+              ระบบนี้จะไม่เก็บ <strong>Git Token</strong>
+              ข้อมูลนี้จะถูกใช้สำหรับการเชื่อมต่อ (clone)
+              เพียงครั้งเดียวเท่านั้น
+            </div>
           </div>
         </div>
       </fieldset>
+
 
       <!-- SonarQube Config -->
       <fieldset>
         <legend>SonarQube Configuration</legend>
 
         <div class="mb-3">
-          <label for="serverUrl" class="form-label"
-            >SonarQube Server <span class="required">*</span></label
-          >
-          <input
-            type="url"
-            class="form-control"
-            name="serverUrl"
-            [(ngModel)]="sonarConfig.serverUrl"
-            required
-            #serverUrl="ngModel"
-            readonly
-          />
-          <div class="error" *ngIf="serverUrl.invalid && serverUrl.touched">
-            Valid server URL required.
-          </div>
+          <label for="serverUrl" class="form-label">SonarQube Server <span class="required">*</span></label>
+          <input type="url" class="form-control" name="serverUrl" [(ngModel)]="sonarConfig.serverUrl" required
+            #serverUrl="ngModel" readonly>
+          <div class="error" *ngIf="serverUrl.invalid && serverUrl.touched">Valid server URL required.</div>
         </div>
 
         <div class="mb-3">
-          <label for="sonarProjectKey" class="form-label"
-            >Project Key <span class="required">*</span>
-          </label>
-          <input
-            type="text"
-            class="form-control"
-            name="sonarProjectKey"
-            [(ngModel)]="sonarConfig.projectKey"
-            [disabled]="true"
-            required
-            #sonarProjectKey="ngModel"
-          />
+          <label for="sonarProjectKey" class="form-label">Project Key <span class="required">*</span> </label>
+          <input type="text" class="form-control" name="sonarProjectKey" [(ngModel)]="sonarConfig.projectKey"
+            [disabled]="true" required #sonarProjectKey="ngModel">
 
-          <div
-            class="error"
-            *ngIf="sonarProjectKey.invalid && sonarProjectKey.touched"
-          >
-            Project key required.
-          </div>
+          <div class="error" *ngIf="sonarProjectKey.invalid && sonarProjectKey.touched">Project key required.</div>
         </div>
 
         <div class="form-check">
-          <input
-            class="form-check-input custom-check"
-            type="checkbox"
-            id="autoScan"
-            [(ngModel)]="sonarConfig.enableAutoScan"
-            name="enableAutoScan"
-            checked
-          />
-          <label class="form-check-label" for="autoScan"
-            >Enable Automatic Scanning</label
-          >
+          <input class="form-check-input custom-check" type="checkbox" id="autoScan"
+            [(ngModel)]="sonarConfig.enableAutoScan" name="enableAutoScan" checked [disabled]="isEditMode">
+          <label class="form-check-label" for="autoScan">Enable Automatic Scanning</label>
         </div>
 
         <div class="form-check">
-          <input
-            class="form-check-input custom-check"
-            type="checkbox"
-            id="qualityGate"
-            [(ngModel)]="sonarConfig.enableQualityGate"
-            name="enableQualityGate"
-            checked
-          />
-          <label class="form-check-label" for="qualityGate"
-            >Enable Quality Gate Check</label
-          >
+          <input class="form-check-input custom-check" type="checkbox" id="qualityGate"
+            [(ngModel)]="sonarConfig.enableQualityGate" name="enableQualityGate" checked [disabled]="isEditMode">
+          <label class="form-check-label" for="qualityGate">Enable Quality Gate Check</label>
         </div>
       </fieldset>
 
       <!-- Actions -->
       <div class="actions">
-        <button type="button" class="btn btn-danger" (click)="onCancel()">
-          Cancel
-        </button>
-        <button
-          type="button"
-          class="btn btn-warning"
-          (click)="clearForm(repoForm)"
-        >
-          Clear Form
-        </button>
+        <button type="button" class="btn btn-danger" (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn btn-warning" (click)="clearForm(repoForm)">Clear Form</button>
         <!-- <button type="button" class="btn btn-primary" (click)="onTest()">Test Connection</button> -->
 
         <!-- ปุ่ม Delete จะโชว์เฉพาะ Edit Mode -->
-        <button
-          *ngIf="isEditMode"
-          type="button"
-          class="btn btn-outline-danger"
-          (click)="onDelete()"
-        >
+        <button *ngIf="isEditMode" type="button" class="btn btn-outline-danger" (click)="onDelete()">
           Delete
         </button>
 
-        <button
-          type="submit"
-          class="btn btn-success"
-          [disabled]="!repoForm.valid"
-        >
-          {{ isEditMode ? "Update" : "Save" }}
+        <button type="submit" class="btn btn-success" [disabled]="!repoForm.valid">
+          {{ isEditMode ? 'Update' : 'Save' }}
         </button>
       </div>
+
     </form>
   </div>
 </div>

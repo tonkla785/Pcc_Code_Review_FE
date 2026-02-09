@@ -45,7 +45,7 @@ export class IssueComponent {
   repositories: Repository[] = [];
   filteredRepositories: Repository[] = [];
   projects: { name: string }[] = [];
-  issues:Issue [] = [];
+  issues: Issue[] = [];
   issuesAll: IssuesResponseDTO[] = [];
   originalData: IssuesResponseDTO[] = [];
   filteredIssue: IssuesResponseDTO[] = [];
@@ -68,50 +68,50 @@ export class IssueComponent {
   ) { }
 
   ngOnInit(): void {
-           if(!this.sharedData.hasUserCache){
+    if (!this.sharedData.hasUserCache) {
       this.loadUser();
       console.log("No cache - load from server");
     }
-    this.sharedData.AllUser$.subscribe(data => { 
-        this.UserData = data ?? [];
-        // this.applyFilter();
-        console.log('User loaded Modal from sharedData:', data);
-      });
-      if(!this.sharedData.hasIssuesCache){
+    this.sharedData.AllUser$.subscribe(data => {
+      this.UserData = data ?? [];
+      // this.applyFilter();
+      console.log('User loaded Modal from sharedData:', data);
+    });
+    if (!this.sharedData.hasIssuesCache) {
       this.loadIssues();
       console.log("No cache - load from server");
     }
-    this.sharedData.AllIssues$.subscribe(data => { 
-       this.originalData = data || [];
-       this.issuesAll = [...this.originalData];
+    this.sharedData.AllIssues$.subscribe(data => {
+      this.originalData = data || [];
+      this.issuesAll = [...this.originalData];
       this.applyFilter();
     });
-    if(!this.sharedData.hasIssuesCache){
+    if (!this.sharedData.hasIssuesCache) {
       console.log("No cache - load from server");
       this.loadIssues();
     }
-    if(!this.sharedData.hasRepositoriesCache){
+    if (!this.sharedData.hasRepositoriesCache) {
       this.loadRepositories();
       console.log("No cache - load from server");
     }
-     this.sharedData.repositories$.subscribe((repos) => {
+    this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
     });
 
   }
 
-loadIssues() {
-  this.sharedData.setLoading(true);
-  this.issuesService.getAllIssues().subscribe({
-    next: (data) => {
-      this.sharedData.IssuesShared = data;
-      this.sharedData.setLoading(false);
-      console.log('Issues loaded:', );
-    },
-    error: () => this.sharedData.setLoading(false)
-  });
-}
+  loadIssues() {
+    this.sharedData.setLoading(true);
+    this.issuesService.getAllIssues().subscribe({
+      next: (data) => {
+        this.sharedData.IssuesShared = data;
+        this.sharedData.setLoading(false);
+        console.log('Issues loaded:',);
+      },
+      error: () => this.sharedData.setLoading(false)
+    });
+  }
   loadUser() {
     this.sharedData.setLoading(true);
     this.userDataService.getUser().subscribe({
@@ -123,7 +123,7 @@ loadIssues() {
       error: () => this.sharedData.setLoading(false)
     });
   }
-  
+
   loadRepositories() {
     this.sharedData.setLoading(true);
 
@@ -190,22 +190,22 @@ loadIssues() {
     this.updatePage();
   }
   onSearchChange(value: string) {
-  this.searchText = value;
-  this.applyFilter();
-}
+    this.searchText = value;
+    this.applyFilter();
+  }
 
 
 
-    updatePage() {
-        const start = (this.currentPage - 1) * this.pageSize;
-        this.paginatedIssues = this.filteredIssue.slice(start, start + this.pageSize);
-    }
+  updatePage() {
+    const start = (this.currentPage - 1) * this.pageSize;
+    this.paginatedIssues = this.filteredIssue.slice(start, start + this.pageSize);
+  }
 
   allSelected(): boolean {
     // Check if ALL currently displayed (paged) items are selected
     return this.paginatedIssues.length > 0 && this.paginatedIssues.every(issue => this.isSelected(issue));
   }
-    toggleSelectAll(event: Event): void {
+  toggleSelectAll(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
 
     if (checked) {
@@ -249,77 +249,77 @@ loadIssues() {
   // }
 
   // ---------    //   const selectedIssues = this.issues.filter(i => i.selected);
-    //   if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
+  //   if (!selectedIssues.length) { alert('กรุณาเลือก Issue ก่อน'); return; }
 
-    //   const developers = ['userA', 'userB', 'userC']; // สมมุติ user_id; ถ้ามี list จริงให้แทนที่
-    //   const dev = prompt('เลือก Developer (พิมพ์ user id): ' + developers.join(', '));
-    //   if (!dev || !developers.includes(dev)) { alert('Developer ไม่ถูกต้อง'); return; }
+  //   const developers = ['userA', 'userB', 'userC']; // สมมุติ user_id; ถ้ามี list จริงให้แทนที่
+  //   const dev = prompt('เลือก Developer (พิมพ์ user id): ' + developers.join(', '));
+  //   if (!dev || !developers.includes(dev)) { alert('Developer ไม่ถูกต้อง'); return; }
 
-    //   // call API แบบทีละรายการ (คงโครงเดิมให้เบา ๆ)
-    //   let ok = 0;
-    //   selectedIssues.forEach(row => {
-    //     this.issueApi.assignDeveloper(row.issuesId, dev).subscribe({
-    //       next: () => {
-    //         row.assignee = `@${dev}`;
-    //         ok++;
-    //       },
-    //       error: (e) => console.error('assign failed', e)
-    //     });
-    //   });
+  //   // call API แบบทีละรายการ (คงโครงเดิมให้เบา ๆ)
+  //   let ok = 0;
+  //   selectedIssues.forEach(row => {
+  //     this.issueApi.assignDeveloper(row.issuesId, dev).subscribe({
+  //       next: () => {
+  //         row.assignee = `@${dev}`;
+  //         ok++;
+  //       },
+  //       error: (e) => console.error('assign failed', e)
+  //     });
+  //   });
 
-    //   alert(`Sent assign requests for ${selectedIssues.length} issue(s).`); // แจ้งแบบง่าย ๆ- Actions (ยังคงเค้าโครงเดิม) ----------
+  //   alert(`Sent assign requests for ${selectedIssues.length} issue(s).`); // แจ้งแบบง่าย ๆ- Actions (ยังคงเค้าโครงเดิม) ----------
   assignDeveloper() {
     const ids = Array.from(this.selectedIssues);
     if (ids.length === 0) return;
 
   }
-openAssignModal() {
-  const ids = this.selectedIssues.map(i => i.id);
-  if (ids.length === 0){
-          Swal.fire({
-            icon: 'error',
-            title: 'Invalid Data',
-            text: 'Don\'t Select Issue',
-          });
-          this.showAssignModal = false;
-          return;
-  }
-
-  this.selectedIdsForAssign = ids;       
-  this.issueDraft = { id: '', assignedTo: '', status: 'OPEN' }; 
-  this.showAssignModal = true;
-}
-closeAssignModal() {
-  this.showAssignModal = false;
-}
-saveAssign(form: any) {
-  if (!form.valid) return;
-
-  const reqs = this.selectedIdsForAssign.map((id) => {
-    const payload: IssuesRequestDTO = {
-      id,
-      assignedTo: this.issueDraft.assignedTo,
-      status: 'IN PROGRESS'  
-    };
-    return this.issuesService.updateIssues(payload); 
-  });
-
-  this.savingAssign = true;
-
-  forkJoin(reqs).subscribe({
-    next: (results) => {
-      this.sharedData.updateIssues(results)
-      console.log('Assign successful for all selected issues:', results);
-      this.selectedIdsForAssign = [];
-      this.savingAssign = false;
-      this.closeAssignModal();
-    },
-    error: (err) => {
-      console.error('Assign failed:', err);
-      this.savingAssign = false;
+  openAssignModal() {
+    const ids = this.selectedIssues.map(i => i.id);
+    if (ids.length === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Data',
+        text: 'Don\'t Select Issue',
+      });
+      this.showAssignModal = false;
+      return;
     }
-  });
-}
+
+    this.selectedIdsForAssign = ids;
+    this.issueDraft = { id: '', assignedTo: '', status: 'OPEN' };
+    this.showAssignModal = true;
+  }
+  closeAssignModal() {
+    this.showAssignModal = false;
+  }
+  saveAssign(form: any) {
+    if (!form.valid) return;
+
+    const reqs = this.selectedIdsForAssign.map((id) => {
+      const payload: IssuesRequestDTO = {
+        id,
+        assignedTo: this.issueDraft.assignedTo,
+        status: 'IN PROGRESS'
+      };
+      return this.issuesService.updateIssues(payload);
+    });
+
+    this.savingAssign = true;
+
+    forkJoin(reqs).subscribe({
+      next: (results) => {
+        this.sharedData.updateIssues(results)
+        console.log('Assign successful for all selected issues:', results);
+        this.selectedIdsForAssign = [];
+        this.savingAssign = false;
+        this.closeAssignModal();
+      },
+      error: (err) => {
+        console.error('Assign failed:', err);
+        this.savingAssign = false;
+      }
+    });
+  }
 
   exportData() {
     const selectedIssues = this.issues.filter(i => i.selected);
@@ -381,32 +381,48 @@ saveAssign(form: any) {
   }
 
   statusClass(status: string) {
-    switch (status.toLowerCase()) {
-      case 'open': return 'text-danger';
-      case 'in-progress': return 'text-warning';
-      case 'done': return 'text-success';
-      case 'reject': return 'text-secondary';
-      case 'pending': return 'text-info';  // <-- เพิ่ม pending
-      default: return '';
-    }
+    if (!status) return '';
+    const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+    const clean = normalized.replace(/\s/g, '-'); // normalize to hyphenated for some cases if needed, but here we just check strings
+
+    if (normalized === 'open') return 'text-danger';
+    if (normalized === 'in progress' || normalized === 'inprogress' || normalized === 'in-progress') return 'text-warning'; // Handle all forms
+    if (normalized === 'resolved' || normalized === 'done') return 'text-success';
+    if (normalized === 'closed') return 'text-secondary';
+    if (normalized === 'pending') return 'text-info';
+
+    return '';
   }
-  viewResult(issue : IssuesResponseDTO) {
-  this.router.navigate(['/issuedetail', issue.id]);
-}
+
+  formatStatus(status: string): string {
+    if (!status) return '';
+    const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+
+    if (normalized === 'in progress' || normalized === 'inprogress' || normalized === 'in-progress') return 'In Progress';
+    if (normalized === 'open') return 'Open';
+    if (normalized === 'done' || normalized === 'resolved') return 'Resolved';
+    if (normalized === 'reject') return 'Reject';
+    if (normalized === 'pending') return 'Pending';
+
+    return status;
+  }
+  viewResult(issue: IssuesResponseDTO) {
+    this.router.navigate(['/issuedetail', issue.id]);
+  }
   isSelected(issue: IssuesResponseDTO): boolean {
     return this.selectedIssues.some(s => s.id === issue.id);
-  } 
-    toggleIssueSelection(issue: IssuesResponseDTO, event?: Event): void {
-      if (event) {
-        event.stopPropagation();
-      }
-  
-      // Toggle logic
-      const index = this.selectedIssues.findIndex(s => s.id === issue.id);
-      if (index >= 0) {
-        this.selectedIssues.splice(index, 1);
-      } else {
-        this.selectedIssues.push(issue);
-      }
+  }
+  toggleIssueSelection(issue: IssuesResponseDTO, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
     }
+
+    // Toggle logic
+    const index = this.selectedIssues.findIndex(s => s.id === issue.id);
+    if (index >= 0) {
+      this.selectedIssues.splice(index, 1);
+    } else {
+      this.selectedIssues.push(issue);
+    }
+  }
 }

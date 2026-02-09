@@ -23,4 +23,5 @@ export interface NotificationRequest {
     relatedScanId?: string;
     relatedIssueId?: string;
     relatedCommentId?: string;
+    isBroadcast?: boolean; // If true, broadcast to all users (for scan complete, quality gate failed, new issues)
 }

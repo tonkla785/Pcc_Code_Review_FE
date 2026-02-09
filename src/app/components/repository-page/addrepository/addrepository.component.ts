@@ -34,7 +34,7 @@ export class AddrepositoryComponent implements OnInit {
     private readonly sse: SseService,
     private readonly userSettingService: UserSettingService,
     private readonly userSettingsData: UserSettingsDataService,
-  ) {}
+  ) { }
 
   private extractApiError(err: any): string {
     return (
@@ -159,7 +159,7 @@ export class AddrepositoryComponent implements OnInit {
     const isDuplicate = currentRepos.some(
       (r) =>
         r.name.trim().toLowerCase() ===
-          this.gitRepository.name.trim().toLowerCase() &&
+        this.gitRepository.name.trim().toLowerCase() &&
         r.projectId !== this.gitRepository.projectId,
     );
 
@@ -372,40 +372,55 @@ export class AddrepositoryComponent implements OnInit {
   }
 
   clearForm(form?: NgForm) {
-    this.gitRepository = {
-      projectId: undefined,
-      user: '',
-      name: '',
-      projectType: undefined,
-      repositoryUrl: '',
-    };
+    if (this.isEditMode) {
+      // Edit Mode: Clear only editable fields (Name & Git Token)
+      this.gitRepository.name = '';
+      this.gitToken = '';
 
-    this.sonarConfig = {
-      projectKey: '',
-      projectName: '',
-      projectVersion: '',
-      sources: 'src',
-      serverUrl: 'https://code.pccth.com',
-      token: '',
-      enableAutoScan: true,
-      enableQualityGate: true,
-    };
-
-    this.authMethod = null;
-    this.gitToken = '';
-
-    if (form) {
-      form.resetForm({
+      if (form) {
+        // Reset form controls only for editable fields to clear validation states
+        form.controls['name']?.reset('');
+        form.controls['gitToken']?.reset('');
+      }
+    } else {
+      // Add Mode: Clear everything
+      this.gitRepository = {
+        projectId: undefined,
+        user: '',
         name: '',
-        repositoryUrl: '',
         projectType: undefined,
-        branch: 'main',
-        serverUrl: 'https://code.pccth.com',
+        repositoryUrl: '',
+      };
+
+      this.sonarConfig = {
         projectKey: '',
+        projectName: '',
+        projectVersion: '',
+        sources: 'src',
+        serverUrl: 'https://code.pccth.com',
+        token: '',
         enableAutoScan: true,
         enableQualityGate: true,
-        gitToken: null,
-      });
+      };
+
+      this.authMethod = null;
+      this.gitToken = '';
+
+      if (form) {
+        form.resetForm({
+          name: '',
+          repositoryUrl: '',
+          projectType: undefined,
+          branch: 'main',
+          serverUrl: 'https://code.pccth.com',
+          projectKey: '',
+          enableAutoScan: true,
+          enableQualityGate: true,
+          gitToken: null,
+        });
+      }
     }
   }
+
 }
+
