@@ -136,6 +136,7 @@ export class AddrepositoryComponent implements OnInit {
           repositoryUrl: repo.repositoryUrl || '',
           projectTypeLabel: normalizedType,
           sonarProjectKey: repo.sonarProjectKey || '',
+          costPerDay: repo.costPerDay
         };
 
         // Edit Mode: Use existing Project Key from DB
@@ -156,6 +157,16 @@ export class AddrepositoryComponent implements OnInit {
   }
 
   onSubmit(form: NgForm) {
+    if (this.gitRepository.costPerDay !== undefined && this.gitRepository.costPerDay < 1000) {
+      this.snack.open('Cost Per Day must be at least 1000', '', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['app-snack', 'app-snack-red'],
+      });
+      return;
+    }
+
     if (!form.valid) {
       this.snack.open('Please fill in all required fields', '', {
         duration: 2500,
@@ -398,6 +409,7 @@ export class AddrepositoryComponent implements OnInit {
       // Edit Mode: Clear only editable fields (Name & Git Token)
       this.gitRepository.name = '';
       this.gitToken = '';
+      this.gitRepository.costPerDay = 1000;
 
       if (form) {
         // Reset form controls only for editable fields to clear validation states

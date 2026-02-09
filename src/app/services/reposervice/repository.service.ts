@@ -196,6 +196,7 @@ export class RepositoryService {
             projectType: project.projectType,
             projectTypeLabel: this.mapProjectTypeLabel(project.projectType),
             sonarProjectKey: project.sonarProjectKey,
+            costPerDay: project.costPerDay,
             createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
             updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
             scanId: latestScan?.id,
@@ -304,6 +305,7 @@ export class RepositoryService {
           projectType: project.projectType,
           projectTypeLabel: this.mapProjectTypeLabel(project.projectType),
           sonarProjectKey: project.sonarProjectKey,
+          costPerDay: project.costPerDay,
           createdAt: project.createdAt ? new Date(project.createdAt) : undefined,
           updatedAt: project.updatedAt ? new Date(project.updatedAt) : undefined,
           scanId: latest?.id, // Explicitly return latest scan ID for navigation support
