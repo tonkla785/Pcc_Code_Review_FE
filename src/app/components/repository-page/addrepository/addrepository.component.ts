@@ -136,6 +136,7 @@ export class AddrepositoryComponent implements OnInit {
           repositoryUrl: repo.repositoryUrl || '',
           projectTypeLabel: normalizedType,
           sonarProjectKey: repo.sonarProjectKey || '',
+          costPerDay: repo.costPerDay
         };
 
         // Edit Mode: Use existing Project Key from DB
