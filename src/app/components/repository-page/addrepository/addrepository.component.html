@@ -57,9 +57,13 @@
           <div class="col-md-6">
             <label for="cost" class="form-label">Cost Per Day <span class="required">*</span></label>
             <div class="input-group-custom">
-              <span class="input-icon"><i class="bi bi-currency-dollar"></i></span>
+              <span class="input-icon" style="font-weight: bold; font-family: sans-serif;">฿</span>
               <input type="number" class="form-control" name="cost" [(ngModel)]="gitRepository.costPerDay" required
-                min="0" placeholder="e.g. 1000" />
+                min="1000" placeholder="Min 1000" #cost="ngModel" />
+            </div>
+            <div class="error-msg" *ngIf="cost.invalid && (cost.dirty || cost.touched)">
+              <div *ngIf="cost.errors?.['required']">Cost is required</div>
+              <div *ngIf="cost.errors?.['min']">Minimum cost is 1000</div>
             </div>
           </div>
 

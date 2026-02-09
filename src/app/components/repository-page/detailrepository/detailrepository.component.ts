@@ -95,6 +95,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     this.repoService.getFullRepository(repoId).subscribe({
       next: (repo) => {
         if (repo) {
+          console.log('Detail Repo loaded:', repo); // Debug costPerDay
           this.repo = repo;
           this.scans = (repo.scans ?? [])
             .filter(scan => scan.completedAt)
