@@ -100,7 +100,6 @@ export class RepositoryService {
   }
 
 
-
   private deriveRepoStatusFromScan(
     scan?: any
   ): 'Active' | 'Scanning' | 'Error' {
@@ -120,35 +119,35 @@ export class RepositoryService {
   }
 
   //เทียบ config กับ metric qualityGate
-  evaluateQualityGate(
-    metrics: {
-      bugs?: number;
-      vulnerabilities?: number;
-      codeSmells?: number;
-      coverage?: number;
-    },
-    gates: QualityGates
-  ): 'Passed' | 'Failed' {
-    console.log('Evaluating quality gate with metrics:', metrics, 'and gates:', gates);
+  // evaluateQualityGate(
+  //   metrics: {
+  //     bugs?: number;
+  //     vulnerabilities?: number;
+  //     codeSmells?: number;
+  //     coverage?: number;
+  //   },
+  //   gates: QualityGates
+  // ): 'Passed' | 'Failed' {
+  //   console.log('Evaluating quality gate with metrics:', metrics, 'and gates:', gates);
 
-    if ((metrics.coverage ?? 0) > gates.coverageThreshold) {
-      return 'Failed';
-    }
+  //   if ((metrics.coverage ?? 0) > gates.coverageThreshold) {
+  //     return 'Failed';
+  //   }
 
-    if ((metrics.bugs ?? 0) > gates.maxBugs) {
-      return 'Failed';
-    }
+  //   if ((metrics.bugs ?? 0) > gates.maxBugs) {
+  //     return 'Failed';
+  //   }
 
-    if ((metrics.vulnerabilities ?? 0) > gates.maxVulnerabilities) {
-      return 'Failed';
-    }
+  //   if ((metrics.vulnerabilities ?? 0) > gates.maxVulnerabilities) {
+  //     return 'Failed';
+  //   }
 
-    if ((metrics.codeSmells ?? 0) > gates.maxCodeSmells) {
-      return 'Failed';
-    }
+  //   if ((metrics.codeSmells ?? 0) > gates.maxCodeSmells) {
+  //     return 'Failed';
+  //   }
 
-    return 'Passed';
-  }
+  //   return 'Passed';
+  // }
 
   private mapProjectTypeLabel(
     type?: 'ANGULAR' | 'SPRING_BOOT'
@@ -228,13 +227,9 @@ export class RepositoryService {
             status: finalStatus,
             lastScan: latestScan?.startedAt,
 
-            qualityGate: gates.failOnError
-              ? (latestScan?.metrics
-                ? this.evaluateQualityGate(latestScan.metrics, gates)
-                : undefined)
-              : (latestScan?.qualityGate
-                ? this.scanService.mapQualityStatus(latestScan.qualityGate)
-                : undefined),
+            qualityGate: latestScan?.qualityGate
+              ? this.scanService.mapQualityStatus(latestScan.qualityGate)
+              : undefined,
 
             metrics: latestScan?.metrics
               ? {
@@ -342,13 +337,9 @@ export class RepositoryService {
           status: this.deriveRepoStatusFromScan(latest),
           lastScan: (latest as any)?.completedAt,
 
-          qualityGate: gates.failOnError
-            ? ((latest as any)?.metrics
-              ? this.evaluateQualityGate((latest as any).metrics, gates)
-              : undefined)
-            : ((latest as any)?.qualityGate
-              ? this.scanService.mapQualityStatus((latest as any).qualityGate)
-              : undefined),
+          qualityGate: (latest as any)?.qualityGate
+            ? this.scanService.mapQualityStatus((latest as any).qualityGate)
+            : undefined,
 
 
           metrics: (latest as any)?.metrics

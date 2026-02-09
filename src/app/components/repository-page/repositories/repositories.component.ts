@@ -94,9 +94,11 @@ export class RepositoriesComponent implements OnInit {
         const recalculated = this.repositories.map(repo => {
           if (!repo.metrics) return repo;
 
+          // Note: evaluateQualityGate is deprecated/removed in service
           return {
             ...repo,
-            qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
+            // qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
+            qualityGate: repo.qualityGate // Use existing value for now
           };
         });
 
