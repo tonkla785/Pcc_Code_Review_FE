@@ -58,7 +58,7 @@ export class AddrepositoryComponent implements OnInit {
     name: '',
     projectType: undefined,
     repositoryUrl: '',
-    costPerDay:1000 //default value
+    costPerDay: 1000 //default value
   };
 
   // ❌ ไม่ใช้แล้ว (BE ไม่ได้เอา username/password ไป clone)
@@ -215,6 +215,7 @@ export class AddrepositoryComponent implements OnInit {
       type: this.gitRepository.projectTypeLabel === 'ANGULAR'
         ? 'ANGULAR'
         : 'SPRING_BOOT',
+      costPerDay: this.gitRepository.costPerDay || 1000
     };
 
     const saveOrUpdate$ = this.isEditMode
