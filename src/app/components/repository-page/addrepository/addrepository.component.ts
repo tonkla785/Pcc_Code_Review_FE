@@ -218,83 +218,92 @@ export class AddrepositoryComponent implements OnInit {
             : savedRepo.projectId || savedRepo.id;
 
         if (targetId) {
-          // Fetch full data to ensure consistency (Status, Metrics, Scans)
+          // 1. Fetch full data FIRST to ensure consistency
           this.repositoryService.getFullRepository(targetId).subscribe({
             next: (fullRepo) => {
               if (fullRepo) {
+                // 2. Update Shared Data (This sets the base state, e.g., Status = Active/Created)
                 if (this.isEditMode) {
                   this.sharedData.updateRepository(targetId, fullRepo);
                 } else {
                   this.sharedData.addRepository(fullRepo);
                 }
               }
-            },
-            error: (err) =>
-              console.error('Failed to fetch full repo after save', err),
-          });
-        }
 
-        this.snack.open(
-          this.isEditMode
-            ? 'Repository updated successfully!'
-            : 'Repository added successfully!',
-          '',
-          {
-            duration: 2500,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-blue'],
-          },
-        );
-
-        // ✅ เรียก startScan ทันที และส่ง gitToken ไปด้วย (optional)
-        if (savedRepo?.projectId) {
-          const tokenToUse = this.gitToken?.trim() || null;
-
-          this.repositoryService
-            .startScan(savedRepo.projectId, 'main', tokenToUse as any)
-            .subscribe({
-              next: (newScan) => {
-                // ล้าง token หลังส่ง (กันค้างใน UI)
-                this.gitToken = '';
-
-                if (newScan) {
-                  this.sharedData.upsertScan(newScan);
-                }
-
-                this.sharedData.updateRepoStatus(
-                  savedRepo.projectId!,
-                  'Scanning',
-                  0,
-                );
-
-                this.router.navigate(['/repositories'], {
-                  state: { message: 'Scan started successfully!' },
-                });
-              },
-
-              error: (err) => {
-                // ล้าง token แม้ fail
-                this.gitToken = '';
-
-                const msgErr = this.extractApiError(err);
-                this.snack.open(`Scan failed to start: ${msgErr}`, '', {
-                  duration: 3000,
+              this.snack.open(
+                this.isEditMode
+                  ? 'Repository updated successfully!'
+                  : 'Repository added successfully!',
+                '',
+                {
+                  duration: 2500,
                   horizontalPosition: 'right',
                   verticalPosition: 'top',
-                  panelClass: ['app-snack', 'app-snack-red'],
-                });
+                  panelClass: ['app-snack', 'app-snack-blue'],
+                }
+              );
 
+              // 3. Start Scan (Only after repo is firmly in SharedData)
+              if (savedRepo?.projectId) {
+                const tokenToUse = this.gitToken?.trim() || null;
+
+                // Optimistic Update: Set status to Scanning immediately
                 this.sharedData.updateRepoStatus(
-                  savedRepo.projectId!,
-                  'Error',
-                  0,
+                  savedRepo.projectId,
+                  'Scanning',
+                  0
                 );
+
+                this.repositoryService
+                  .startScan(savedRepo.projectId, 'main', tokenToUse as any)
+                  .subscribe({
+                    next: (newScan) => {
+                      // ล้าง token หลังส่ง
+                      this.gitToken = '';
+
+                      if (newScan) {
+                        this.sharedData.upsertScan(newScan);
+                      }
+
+                      // Update status again to confirm
+                      this.sharedData.updateRepoStatus(
+                        savedRepo.projectId!,
+                        'Scanning',
+                        0
+                      );
+
+                      this.router.navigate(['/repositories'], {
+                        state: { message: 'Scan started successfully!' },
+                      });
+                    },
+                    error: (err) => {
+                      this.gitToken = '';
+                      const msgErr = this.extractApiError(err);
+                      this.snack.open(`Scan failed to start: ${msgErr}`, '', {
+                        duration: 3000,
+                        horizontalPosition: 'right',
+                        verticalPosition: 'top',
+                        panelClass: ['app-snack', 'app-snack-red'],
+                      });
+
+                      this.sharedData.updateRepoStatus(
+                        savedRepo.projectId!,
+                        'Error',
+                        0
+                      );
+                      this.router.navigate(['/repositories']);
+                    },
+                  });
+              } else {
                 this.router.navigate(['/repositories']);
-              },
-            });
-        } else {
-          this.router.navigate(['/repositories']);
+              }
+            },
+            error: (err) => {
+              console.error('Failed to fetch full repo after save', err);
+              // Even if fetch fails, try to redirect
+              this.router.navigate(['/repositories']);
+            },
+          });
         }
       },
       error: (err) => {
@@ -318,26 +327,26 @@ export class AddrepositoryComponent implements OnInit {
     if (!repo?.projectId) {
       Swal.fire({
         icon: 'error',
-        title: 'ข้อมูลไม่ถูกต้อง',
-        text: 'ไม่พบรหัสโปรเจกต์ของ Repository',
+        title: 'Invalid Data',
+        text: 'Repository ID not found',
       });
       return;
     }
 
     Swal.fire({
-      title: 'ยืนยันการลบ Repository',
-      text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนข้อมูลได้',
+      title: 'Delete Repository?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'ลบข้อมูล',
-      cancelButtonText: 'ยกเลิก',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
       reverseButtons: true,
     }).then((result: any) => {
       if (result.isConfirmed) {
         Swal.fire({
-          title: 'กำลังลบข้อมูล...',
+          title: 'Deleting...',
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
@@ -349,8 +358,8 @@ export class AddrepositoryComponent implements OnInit {
             this.sharedData.removeRepository(repo.projectId!);
             Swal.fire({
               icon: 'success',
-              title: 'ลบสำเร็จ',
-              text: 'ลบ Repository เรียบร้อยแล้ว',
+              title: 'Deleted Successfully',
+              text: 'Repository has been deleted.',
               timer: 1800,
               showConfirmButton: false,
             });
@@ -362,8 +371,8 @@ export class AddrepositoryComponent implements OnInit {
           error: () => {
             Swal.fire({
               icon: 'error',
-              title: 'ลบไม่สำเร็จ',
-              text: 'เกิดข้อผิดพลาดระหว่างการลบ Repository',
+              title: 'Delete Failed',
+              text: 'An error occurred while deleting the repository.',
             });
           },
         });

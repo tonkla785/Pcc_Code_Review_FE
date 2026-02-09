@@ -250,33 +250,33 @@ export class RepositoriesComponent implements OnInit {
     }
 
     Swal.fire({
-      title: 'ยืนยันการสแกน',
-      text: 'Repository นี้เป็นแบบ Public หรือ Private?',
+      title: 'Confirm Scan',
+      text: 'Is this repository Public or Private?',
       icon: 'question',
       showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: 'Public',
       denyButtonText: 'Private',
-      cancelButtonText: 'ยกเลิก',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#28a745',
       denyButtonColor: '#3085d6'
     }).then((result) => {
       if (result.isConfirmed) {
-        // Public เริ่มได้เลย
+        // Public start now
         this.executeScan(repo, null);
       } else if (result.isDenied) {
-        // Private ต้องใส่ Token
+        // Private needs Token
         Swal.fire({
-          title: 'ระบุ Git Token',
+          title: 'Enter Git Token',
           input: 'text',
           inputLabel: 'Git Token',
-          inputPlaceholder: 'กรอก Git Token',
+          inputPlaceholder: 'Enter Git Token',
           showCancelButton: true,
-          confirmButtonText: 'เริ่มสแกน',
-          cancelButtonText: 'ยกเลิก',
+          confirmButtonText: 'Start Scan',
+          cancelButtonText: 'Cancel',
           inputValidator: (value) => {
             if (!value) {
-              return 'กรุณากรอกข้อมูล!';
+              return 'Please enter a token!';
             }
             return null;
           }
