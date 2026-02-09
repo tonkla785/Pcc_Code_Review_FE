@@ -197,8 +197,8 @@ export class AppComponent implements OnInit, OnDestroy {
       if (systemNotis.length > 0) {
         const settings = this.userSettingsData.notificationSettings;
         if (!settings || settings.systemEnabled) {
-          const hasQualityGate = systemNotis.some(n => n.title.includes('Quality Gate'));
-          const hasComment = systemNotis.some(n => n.title.includes('Comment') || n.message.includes('comment'));
+          const hasQualityGate = systemNotis.some(n => n.title.toLowerCase().includes('quality gate'));
+          const hasComment = systemNotis.some(n => n.title.toLowerCase().includes('comment') || n.message.toLowerCase().includes('comment'));
 
           if (hasQualityGate) {
             this.snack.open('🔔 Quality Gate is failed', '', {
