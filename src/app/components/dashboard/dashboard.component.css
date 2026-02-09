@@ -285,10 +285,7 @@
   line-height: 1.4;
 }
 
-.status-pending {
-  color: #f59e0b;
-  font-weight: 600;
-}
+
 
 .status-active {
   color: #10b981;
@@ -1115,5 +1112,19 @@ body.dark-mode .dashboard-container .recent-scans thead th:last-child {
   color: #2e7d32; /* เขียว */
 }
 .password-rules li.fail {
+  color: #dc3545 !important; /* แดง */
+}
+ 
+
+
+/* จัดสีสถานะ gmail*/
+.status-verified {
+  color: rgb(65, 209, 46);
+}
+.status-pending {
+  color: #f59e0b;
+  font-weight: 600;
+}
+.status-unverified {
   color: #dc3545 !important; /* แดง */
 }
