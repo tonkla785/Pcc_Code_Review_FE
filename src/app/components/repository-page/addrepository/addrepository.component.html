@@ -25,7 +25,8 @@
 
         <div class="mb-3">
           <label for="type" class="form-label">Project Type <span class="required">*</span></label>
-          <select class="form-select" name="type" [(ngModel)]="gitRepository.projectTypeLabel" required #type="ngModel">
+          <select class="form-select" name="type" [(ngModel)]="gitRepository.projectTypeLabel" required #type="ngModel"
+            [disabled]="isEditMode">
             <option [ngValue]="undefined" disabled>-- Select Type --</option>
             <option [ngValue]="'ANGULAR'">Angular</option>
             <option [ngValue]="'SPRING BOOT'">Spring Boot</option>
@@ -105,13 +106,13 @@
 
         <div class="form-check">
           <input class="form-check-input custom-check" type="checkbox" id="autoScan"
-            [(ngModel)]="sonarConfig.enableAutoScan" name="enableAutoScan" checked>
+            [(ngModel)]="sonarConfig.enableAutoScan" name="enableAutoScan" checked [disabled]="isEditMode">
           <label class="form-check-label" for="autoScan">Enable Automatic Scanning</label>
         </div>
 
         <div class="form-check">
           <input class="form-check-input custom-check" type="checkbox" id="qualityGate"
-            [(ngModel)]="sonarConfig.enableQualityGate" name="enableQualityGate" checked>
+            [(ngModel)]="sonarConfig.enableQualityGate" name="enableQualityGate" checked [disabled]="isEditMode">
           <label class="form-check-label" for="qualityGate">Enable Quality Gate Check</label>
         </div>
       </fieldset>
