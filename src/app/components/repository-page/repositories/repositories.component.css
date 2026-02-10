@@ -647,3 +647,51 @@
 .btn-text:hover {
   color: var(--text-main);
 }
+
+/* ===============================
+   DARK MODE OVERRIDES (Explicit)
+   =============================== */
+:host-context(.dark-mode) .modal-content {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+:host-context(.dark-mode) .modal-header {
+  border-bottom: 1px solid var(--border-color);
+  background: var(--card-bg);
+  /* Use card-bg or bg-main if panel is not defined */
+}
+
+:host-context(.dark-mode) .modal-footer {
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg);
+}
+
+:host-context(.dark-mode) .modal-title {
+  color: var(--text-main);
+}
+
+:host-context(.dark-mode) .btn-close {
+  filter: invert(1);
+}
+
+:host-context(.dark-mode) .modal-body .form-control {
+  background: var(--bg-main);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+:host-context(.dark-mode) .modal-body .form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+:host-context(.dark-mode) .modal-footer .btn-text {
+  color: var(--text-sub);
+}
+
+:host-context(.dark-mode) .modal-footer .btn-text:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}

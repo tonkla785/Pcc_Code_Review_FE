@@ -405,3 +405,23 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+.text-muted {
+  color: var(--text-sub) !important;
+}
+
+/* Placeholder Styling */
+::placeholder {
+  color: var(--text-sub) !important;
+  opacity: 0.7;
+}
+
+::-webkit-input-placeholder {
+  color: var(--text-sub) !important;
+  opacity: 0.7;
+}
+
+::-ms-input-placeholder {
+  color: var(--text-sub) !important;
+  opacity: 0.7;
+}
