@@ -260,14 +260,15 @@ export class ExcelService {
             context.scans.forEach(scan => {
                 const scanDate = this.formatScanDate(scan.startedAt);
                 const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
-                const debtRatio = scan.metrics?.debtRatio || 0;
+                const costPerDay = scan.project?.costPerDay || 1000;
+                const cost = (debtMinutes / 480) * costPerDay;
                 const debtTimeStr = this.formatTechnicalDebt(debtMinutes);
 
                 debtData.push([
                     scanDate,
                     context.projectName,
                     debtTimeStr,
-                    `THB ${debtRatio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    `THB ${cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 ]);
             });
         } else {
