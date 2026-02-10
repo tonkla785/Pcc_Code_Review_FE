@@ -92,7 +92,7 @@
     <!-- 1. Welcome Banner -->
     <div class="dashboard-card welcome-card">
       <div class="welcome-text">
-        <h2>Welcome back, {{ userProfile?.username || 'Dev' }}! 👋</h2>
+        <h2>Welcome back, {{ UserLogin?.username || userProfile?.username }}! 👋</h2>
         <p>Here's what's happening with your projects today.</p>
       </div>
       <div class="quick-stats">
