@@ -695,3 +695,82 @@
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.05);
 }
+
+/* ===============================
+   RESPONSIVE OVERHAUL
+   =============================== */
+
+/* Tablet & Smaller Desktop (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .repo-dashboard {
+    padding: 20px;
+  }
+
+  .toolbar-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .search-actions {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+  }
+
+  .search-input {
+    flex: 1;
+  }
+
+  .search-input input {
+    width: 100%;
+  }
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .dashboard-header .btn-primary-gradient {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    /* Stack stats */
+    gap: 12px;
+  }
+
+  .repo-grid {
+    grid-template-columns: 1fr;
+    /* Single column cards */
+  }
+
+  .search-actions {
+    flex-direction: column;
+  }
+
+  .status-select {
+    width: 100%;
+  }
+
+  .status-select select {
+    width: 100%;
+  }
+
+  .modal-dialog-custom {
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+}

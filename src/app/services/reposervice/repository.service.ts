@@ -107,6 +107,7 @@ export class RepositoryService {
 
     switch (scan.status) {
       case 'SCANNING':
+      case 'PENDING':
         return 'Scanning';
       case 'SUCCESS':
         return 'Active';
