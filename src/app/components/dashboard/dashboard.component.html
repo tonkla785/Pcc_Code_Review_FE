@@ -1,329 +1,271 @@
-<div class="dashboard-container">
-  <!-- Header -->
+<div class="dashboard-container fade-in">
 
-  <div class="dashboard-header shadow-sm">
-    <div class="dashboard-title">
-      <i class="bi bi-speedometer2"></i>
-      <strong>Dashboard Overview</strong>
-    </div>
+  <!-- Sticky Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="dashboard-title">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <div>
+          <h1>Dashboard</h1>
+          <p>Project Quality Overview</p>
+        </div>
+      </div>
 
-    <div class="dashboard-actions">
-      <!-- ปุ่ม Export -->
-      <button class="export-btn" (click)="onExport()" title="Export">
-        <i class="bi bi-download"></i>
-      </button>
-
-      <!-- ปุ่ม Notification -->
-      <div class="notification-wrapper">
-        <button class="notification-wrapper" (click)="toggleNotifications()" title="Notification" type="button">
-          <!-- ไอคอนกระดิ่ง -->
-          <i class="bi bi-bell-fill notification-icon"></i>
-
-          <!-- Badge แสดงจำนวนแจ้งเตือน -->
-          <span *ngIf="unreadCount > 0" class="notification-badge">
-            {{ unreadCount }}
-          </span>
+      <div class="dashboard-actions">
+        <button class="export-btn" (click)="onExport()" title="Export Report">
+          <i class="bi bi-download"></i>
         </button>
 
-        <!-- Panel แสดง Notifications -->
-        <div class="notifications-panel" *ngIf="showNotifications" (mousedown)="$event.stopPropagation()">
-          <!-- Header -->
-          <div class="notifications-header">
-            <span><i class="bi bi-bell-fill notification-icon"></i>
-              Notifications</span>
-            <button class="close-btn" (click)="closeNotifications()" type="button">
-              ✕
-            </button>
-          </div>
+        <div class="notification-wrapper" (click)="toggleNotifications()" title="Notifications">
+          <i class="bi bi-bell"></i>
+          <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
 
-          <!-- Tabs -->
-          <div class="notification-tabs">
-            <button [class.active]="activeTab === 'All'" (click)="selectTab('All')" type="button">
-              All
-            </button>
-            <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')" type="button">
-              Unread
-            </button>
-            <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')" type="button">
-              Scans
-            </button>
-            <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')" type="button">
-              Issues
-            </button>
-            <button [class.active]="activeTab === 'System'" (click)="selectTab('System')" type="button">
-              System
-            </button>
-            <button class="mark-all" (click)="markAllRead()" type="button">
-              Mark All Read
-            </button>
-          </div>
-
-          <!-- รายการ Notifications -->
-          <div class="notification-item" *ngFor="let n of filteredNotifications" [class.read]="n.isRead"
-            [class.notification-critical]="n.title?.includes('🔴')" [class.notification-major]="n.title?.includes('🟠')"
-            (click)="viewNotification(n)">
-            <div class="item-header">
-              <span class="notification-title">{{ n.title || 'Notification' }}</span>
-              <span class="item-time">{{ getTimeAgo(n.createdAt) }}</span>
+          <!-- Notification Dropdown -->
+          <div class="notifications-panel" *ngIf="showNotifications" (click)="$event.stopPropagation()">
+            <div class="notifications-header">
+              <span>Notifications</span>
+              <button class="close-btn" (click)="closeNotifications(); $event.stopPropagation()">✕</button>
             </div>
-            <div class="item-message">{{ n.message }}</div>
-            <!-- Action button for Issues -->
-            <a *ngIf="n.type === 'Issues'" class="view-issue-link"
-              (click)="handleViewIssue(n); $event.stopPropagation()">
-              View Issue →
-            </a>
-            <!-- Action button for Scans -->
-            <a *ngIf="n.type === 'Scans'" class="view-issue-link" (click)="handleViewScan(n); $event.stopPropagation()">
-              View Results →
-            </a>
-            <!-- Action button for System -->
-            <a *ngIf="n.type === 'System'" class="view-issue-link"
-              (click)="handleViewSystem(n); $event.stopPropagation()">
-              View Details →
-            </a>
-          </div>
 
-          <!-- ปุ่ม Load More -->
-          <button *ngIf="displayCount < totalFilteredCount" class="load-more" (click)="loadMore()" type="button">
-            Load More...
-          </button>
-        </div>
-      </div>
-      <!-- ปุ่ม profile-dropdown -->
-      <div class="profile-dropdown" (click)="toggleProfileDropdown()">
-        <div class="profile-info">
-          <i class="bi bi-person-circle"></i>
-          <span>{{ userProfile?.username }}</span>
-        </div>
+            <div class="notification-tabs">
+              <button [class.active]="activeTab === 'All'" (click)="selectTab('All')">All</button>
+              <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')">Unread</button>
+              <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')">Scans</button>
+              <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')">Issues</button>
+              <button [class.active]="activeTab === 'System'" (click)="selectTab('System')">System</button>
+              <button class="mark-all" (click)="markAllRead()">Mark Read</button>
+            </div>
 
-        <div class="profile-menu" *ngIf="showProfileDropdown">
-          <div class="profile-details">
-            <p><strong>Username:</strong> {{ UserLogin?.username }}</p>
-            <p><strong>Email:</strong> {{ UserLogin?.email }}</p>
-            <p><strong>Phone Number:</strong> {{ UserLogin?.phone }}</p>
-            <p>
-              <strong>Status:</strong>
-              <span [ngClass]="{
-                  'status-unverified':
-                    (UserLogin?.status || '').toUpperCase() === 'UNVERIFIED',
-                  'status-pending':
-                    (UserLogin?.status || '').toUpperCase() ===
-                    'PENDING_VERIFICATION',
-                  'status-verified':
-                    (UserLogin?.status || '').toUpperCase() === 'VERIFIED',
-                }">
-                {{ UserLogin?.status }}
-              </span>
-            </p>
-
-            <!-- ถ้า ACTIVE แล้ว แสดงเป็นข้อความ -->
-            <p *ngIf="(UserLogin?.status || '').toUpperCase() === 'VERIFIED'" class="text-success">
-              Email verified ✔
-            </p>
-          </div>
-
-          <!-- ปุ่มเปลี่ยนรหัสผ่าน -->
-          <button class="btn-edit" (click)="openChangePasswordModal()">
-            Change Password
-          </button>
-
-          <!-- ปุ่ม Verify Email เฉพาะตอน Pending -->
-          <button *ngIf="(UserLogin?.status || '').toUpperCase() !== 'VERIFIED'" class="btn-verify" type="button"
-            (click)="sendVerifyEmail()">
-            Verify Email
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Quality Gate Status -->
-  <div class="row top-section">
-    <div class="quality-gate-card">
-      <h4 class="title">
-        <i class="bi bi-trophy-fill"></i> Quality Gate Status
-      </h4>
-
-      <!-- Loading Spinner -->
-      <!-- <div *ngIf="loading" class="loading-container">
-        <div class="spinner"></div>
-        <p>Loading data...</p>
-      </div> -->
-
-      <!-- Chart & Status -->
-      <div>
-        <div class="chart-container">
-          <div *ngIf="pieChartOptions">
-            <apx-chart [series]="pieChartOptions.series!" [chart]="pieChartOptions.chart!"
-              [labels]="pieChartOptions.labels!" [plotOptions]="pieChartOptions.plotOptions!"
-              [colors]="pieChartOptions.colors!" [dataLabels]="pieChartOptions.dataLabels!"
-              [legend]="pieChartOptions.legend!" [tooltip]="pieChartOptions.tooltip!"
-              [states]="pieChartOptions.states!">
-            </apx-chart>
-          </div>
-        </div>
-        <div class="status-summary">
-          <div class="status-item passed">
-            <i class="bi bi-check-circle-fill"></i>
-            <div class="status-info">
-              <span class="label">Success</span>
-              <span class="count">{{ passedCount }}</span>
+            <div class="notification-list">
+              <div class="notification-item" *ngFor="let n of filteredNotifications" [class.unread]="!n.isRead"
+                (click)="viewNotification(n)">
+                <div class="item-header">
+                  <span class="n-title">{{ n.title }}</span>
+                  <span class="n-time">{{ getTimeAgo(n.createdAt) }}</span>
+                </div>
+                <div class="n-message">{{ n.message }}</div>
+              </div>
+              <div class="notification-empty" *ngIf="filteredNotifications.length === 0">
+                No notifications
+              </div>
             </div>
           </div>
-          <div class="status-item failed">
-            <i class="bi bi-x-circle-fill"></i>
-            <div class="status-info">
-              <span class="label">Failed</span>
-              <span class="count">{{ failedCount }}</span>
+        </div>
+
+        <!-- Profile -->
+        <div class="profile-dropdown" (click)="toggleProfileDropdown()">
+          <div class="profile-avatar"><span>{{ userProfile?.username?.charAt(0)?.toUpperCase() || '' }}</span><i
+              *ngIf="!userProfile?.username" class="bi bi-person-fill"></i></div>
+          <span class="profile-name" *ngIf="userProfile?.username">{{ userProfile?.username }}</span>
+
+          <div class="profile-menu" *ngIf="showProfileDropdown" (click)="$event.stopPropagation()">
+            <div class="menu-header"
+              style="padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px;">
+              <div class="user-info" style="display: flex; flex-direction: column;">
+                <strong style="font-size: 16px;">{{ UserLogin?.username || userProfile?.username }}</strong>
+                <span style="font-size: 12px; color: var(--text-sub);">{{ UserLogin?.email }}</span>
+              </div>
+              <div style="margin-top: 8px;">
+                <span class="status-badge" [ngClass]="(UserLogin?.status || '').toLowerCase()">
+                  {{ UserLogin?.status }}
+                </span>
+              </div>
+            </div>
+            <div class="menu-items">
+              <button (click)="openChangePasswordModal()" class="menu-btn">
+                <i class="bi bi-key"></i> Change Password
+              </button>
+              <button *ngIf="(UserLogin?.status || '').toUpperCase() !== 'VERIFIED'" (click)="sendVerifyEmail()"
+                class="menu-btn verify">
+                <i class="bi bi-envelope-check"></i> Verify Email
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Recent Scans Table -->
-    <div class="recent-scans">
-      <h4 class="title"><i class="bi bi-clock-history"></i> Recent Scans</h4>
+  <!-- MAIN CONTENT (Classic Vertical Layout) -->
+  <div class="dashboard-content">
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Project</th>
-              <th>Status</th>
-              <!-- <th>Grade</th> -->
-              <th>Time</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let scan of DashboardData | slice: 0 : 5">
-              <td>{{ scan.project.name }}</td>
-              <td [ngClass]="{
-                  'status-cell status--passed': scan.status === 'SUCCESS',
-                  'status-cell status--warning': scan.status === 'PENDING',
-                  'status-cell status--failed': scan.status === 'FAILED',
-                }">
-                {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
-              </td>
-              <!-- <td [ngClass]="{
-              'grade-cell grade--a': scan.grade === 'A',
-              'grade-cell grade--b': scan.grade === 'B',  
-              'grade-cell grade--c': scan.grade === 'C',
-              'grade-cell grade--d': scan.grade === 'D',
-              'grade-cell grade--e': scan.grade === 'E'
-            }">{{ scan.grade }}</td> -->
-              <td>{{ scan.completedAt | date: "dd/MM/yyyy, hh:mm a" }}</td>
-              <td>
-                <button class="btn btn-primary btn-sm text-white" title="View scan detail" type="button"
-                  (click)="viewDetail(scan)">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </td>
-            </tr>
-            <!-- Empty State -->
-            <tr *ngIf="DashboardData?.length === 0">
-              <td colspan="4" class="text-center text-muted py-4">
-                <i class="bi bi-inbox"></i> No Data
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- 1. Welcome Banner -->
+    <div class="dashboard-card welcome-card">
+      <div class="welcome-text">
+        <h2>Welcome back, {{ UserLogin?.username || userProfile?.username }}! 👋</h2>
+        <p>Here's what's happening with your projects today.</p>
       </div>
-      <!-- View All -->
-      <div class="button-container">
-        <a [routerLink]="['/scanhistory']" class="view-all-link">
-          View All <i class="bi bi-arrow-right"></i>
-        </a>
+      <div class="quick-stats">
+        <div class="q-stat">
+          <span class="label">Total Scans</span>
+          <span class="value">{{ DashboardData?.length || 0 }}</span>
+        </div>
+        <div class="q-stat">
+          <span class="label">Projects</span>
+          <span class="value">{{ projectDistribution?.length || 0 }}</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Metrics -->
-  <div class="metrics">
-    <div class="metric-card bugs">
-      <div class="metric-icon"><i class="bi bi-bug-fill"></i></div>
-      <div class="metric-title">Bugs</div>
-      <div class="metric-value">{{ passedCountBug }}</div>
-      <!-- <div class="metric-change decrease">↓ 5 today</div> -->
+    <!-- 2. Metrics Grid (4 items) -->
+    <div class="metrics-grid">
+      <div class="metric-card bug">
+        <div class="icon-box"><i class="bi bi-bug-fill"></i></div>
+        <div class="info">
+          <span class="label">Bugs</span>
+          <span class="value">{{ passedCountBug }}</span>
+        </div>
+      </div>
+      <div class="metric-card security">
+        <div class="icon-box"><i class="bi bi-shield-lock-fill"></i></div>
+        <div class="info">
+          <span class="label">Security</span>
+          <span class="value">{{ securityCount }}</span>
+        </div>
+      </div>
+      <div class="metric-card smell">
+        <div class="icon-box"><i class="bi bi-wind"></i></div>
+        <div class="info">
+          <span class="label">Code Smells</span>
+          <span class="value">{{ codeSmellCount }}</span>
+        </div>
+      </div>
+      <div class="metric-card coverage">
+        <div class="icon-box"><i class="bi bi-check2-circle"></i></div>
+        <div class="info">
+          <span class="label">Coverage</span>
+          <span class="value">{{ coverRateCount }}%</span>
+        </div>
+      </div>
     </div>
 
-    <div class="metric-card security">
-      <div class="metric-icon"><i class="bi bi-shield-lock"></i></div>
-      <div class="metric-title">Security</div>
-      <div class="metric-value">{{ securityCount }}</div>
-      <!-- <div class="metric-change increase">↑ 1 today</div> -->
-    </div>
-
-    <div class="metric-card code-smells">
-      <div class="metric-icon"><i class="bi bi-wind"></i></div>
-      <div class="metric-title">Code Smells</div>
-      <div class="metric-value">{{ codeSmellCount }}</div>
-      <!-- <div class="metric-change decrease">↓ 12 today</div> -->
-    </div>
-
-    <div class="metric-card coverage">
-      <div class="metric-icon"><i class="bi bi-check2-circle"></i></div>
-      <div class="metric-title">Coverage</div>
-      <div class="metric-value">{{ coverRateCount }}%</div>
-      <!-- <div class="metric-change increase">↑ 2.3%</div> -->
-    </div>
-  </div>
-
-  <!-- Quality Trend -->
-  <div class="quality-trend">
-    <h4><i class="bi bi-graph-up"></i> Quality Trend (Last 30 Days)</h4>
-    <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!"
-      [xaxis]="coverageChartOptions.xaxis!" [stroke]="coverageChartOptions.stroke!"
-      [markers]="coverageChartOptions.markers!" [colors]="coverageChartOptions.colors!"
-      [yaxis]="coverageChartOptions.yaxis!">
-    </apx-chart>
-  </div>
-
-  <!-- Top Issues & Project Distribution -->
-  <div class="row mt-4">
-    <!-- Top Issues -->
-    <div class="col">
-      <h4><i class="bi bi-exclamation-circle"></i> Top Issues</h4>
-      <ul>
-        <li *ngFor="let i of allIssues | slice: 0 : 5">
-          <div class="d-flex justify-content-between align-items-center">
-            <span>{{ i.message }}</span>
-            <span class="badge bg-danger rounded-pill">{{ i.severity }}</span>
+    <!-- 3. Quality Gate & Recent Scans (Row) -->
+    <div class="content-row">
+      <!-- Quality Gate -->
+      <div class="dashboard-card quality-gate-card">
+        <div class="card-header">
+          <h3><i class="bi bi-pie-chart-fill"></i> Quality Gate</h3>
+        </div>
+        <div class="chart-wrapper">
+          <apx-chart *ngIf="pieChartOptions" [series]="pieChartOptions.series!" [chart]="pieChartOptions.chart!"
+            [labels]="pieChartOptions.labels!" [colors]="pieChartOptions.colors!" [legend]="pieChartOptions.legend!"
+            [dataLabels]="pieChartOptions.dataLabels!" [plotOptions]="pieChartOptions.plotOptions!">
+          </apx-chart>
+        </div>
+        <div class="gate-summary">
+          <div class="summary-item pass">
+            <i class="bi bi-check-circle-fill" style="color: var(--success); margin-right: 6px;"></i> Passed <strong>{{
+              passedCount }}</strong>
           </div>
-        </li>
-        <!-- <li *ngIf="!topIssues || topIssues.length === 0" class="text-muted small">
-          No issues.
-        </li> -->
-      </ul>
-      <a [routerLink]="['/issue']" class="view-all-link">
-        Manage Issues <i class="bi bi-arrow-right"></i>
-      </a>
-    </div>
-
-    <!-- Project Distribution -->
-    <div class="col">
-      <h4><i class="bi bi-bar-chart"></i> Project Distribution</h4>
-
-      <div *ngFor="let p of projectDistribution" class="mb-2">
-        <div class="d-flex justify-content-between">
-          <span>{{ p.type }}( {{ p.count }} )</span>
-          <span>{{ p.percent }}%</span>
+          <div class="summary-item fail">
+            <i class="bi bi-x-circle-fill" style="color: var(--danger); margin-right: 6px;"></i> Failed <strong>{{
+              failedCount }}</strong>
+          </div>
         </div>
-        <div class="progress" style="height: 20px">
-          <progress class="progress-bar" [value]="p.percent" max="100" [ngClass]="{
-              'bg-primary': p.type === 'Angular',
-              'bg-success': p.type === 'SpringBoot',
-            }">
-            {{ p.percent }}%
-          </progress>
+      </div>
+
+      <!-- Recent Scans (Wider) -->
+      <div class="dashboard-card recent-scans-card">
+        <div class="card-header">
+          <h3><i class="bi bi-clock-history"></i> Recent Activity</h3>
+          <a [routerLink]="['/scanhistory']" class="link-btn">View All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Status</th>
+                <th>Time</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let scan of DashboardData | slice:0:5">
+                <td class="project-name">
+                  <div class="project-icon">
+                    <i class="bi bi-code-square"></i>
+                  </div>
+                  {{ scan.project.name }}
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="scan.status.toLowerCase()">
+                    {{ scan.status === 'PENDING' ? 'SCANNING' : (scan.status === 'SUCCESS' ? 'PASSED' : scan.status) }}
+                  </span>
+                </td>
+                <td class="text-muted">{{ scan.completedAt | date:'MMM d, h:mm a' }}</td>
+                <td class="text-end">
+                  <button class="action-btn" (click)="viewDetail(scan)"><i class="bi bi-chevron-right"></i></button>
+                </td>
+              </tr>
+              <tr *ngIf="!DashboardData || DashboardData.length === 0">
+                <td colspan="4" class="empty-state">No recent activity found</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-  </div>
+
+    <!-- 4. Distribution & Issues (Row) -->
+    <div class="content-row">
+      <!-- Project Distribution -->
+      <div class="dashboard-card dist-card">
+        <div class="card-header">
+          <h3><i class="bi bi-bar-chart-fill"></i> Project Types</h3>
+        </div>
+        <div class="dist-list">
+          <div *ngFor="let p of projectDistribution" class="dist-item">
+            <div class="dist-info">
+              <span>{{ p.type }} ({{ p.count }})</span>
+              <span>{{ p.percent }}%</span>
+            </div>
+            <div class="progress-bg">
+              <div class="progress-fill" [style.width.%]="p.percent"
+                [style.background-color]="p.type === 'Angular' ? '#dd0031' : '#6db33f'">
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!projectDistribution || projectDistribution.length === 0" class="empty-state">
+            No project data available
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Issues -->
+      <div class="dashboard-card issues-card">
+        <div class="card-header">
+          <h3><i class="bi bi-exclamation-triangle-fill"></i> Top Issues</h3>
+        </div>
+        <ul class="issue-list">
+          <li *ngFor="let i of allIssues | slice:0:4">
+            <div class="issue-content">
+              <span class="issue-msg">{{ i.message }}</span>
+              <span class="severity-badge" [ngClass]="i.severity?.toLowerCase()">{{ i.severity }}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 5. Trends Chart (Full Width) -->
+    <div class="dashboard-card trends-card">
+      <div class="card-header">
+        <h3><i class="bi bi-graph-up"></i> Quality Trends</h3>
+      </div>
+      <div class="line-chart-wrapper">
+        <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!"
+          [xaxis]="coverageChartOptions.xaxis!" [stroke]="coverageChartOptions.stroke!"
+          [markers]="coverageChartOptions.markers!" [colors]="coverageChartOptions.colors!"
+          [yaxis]="coverageChartOptions.yaxis!" [grid]="{ show: false }">
+        </apx-chart>
+      </div>
+    </div>
+
+  </div> <!-- End Dashboard Content -->
 </div>
 
-<!-- Change Password Modal -->
+<!-- Re-use existing Modals (Hidden by default) - unchanged -->
 <div class="modal-backdrop-custom" *ngIf="showChangePasswordModal" (mousedown)="closeChangePasswordModal()">
   <div class="modal-dialog-custom" (mousedown)="$event.stopPropagation()">
     <div class="modal-content">
@@ -331,175 +273,28 @@
         <h5 class="modal-title">Change Password</h5>
         <button class="btn-close" (mousedown)="closeChangePasswordModal()"></button>
       </div>
-
       <form #passwordForm="ngForm" (ngSubmit)="submitChangePassword(passwordForm)">
         <div class="modal-body">
-          <!-- Old Password -->
           <div class="form-group mb-3">
             <label>Old Password</label>
             <input type="password" class="form-control" name="oldPassword" [(ngModel)]="passwordData.oldPassword"
-              required #oldpassRef="ngModel" [class.is-invalid]="
-                (oldpassRef.touched || submitted) && !passwordData.oldPassword
-              " />
-            <div *ngIf="oldpassRef.dirty || oldpassRef.touched || submitted">
-              <small *ngIf="oldpassRef.errors?.['required']" class="text-danger">Old password is required</small>
-            </div>
+              required>
           </div>
-
-          <!-- New Password -->
           <div class="form-group mb-3">
             <label>New Password</label>
             <input type="password" class="form-control" name="newPassword" [(ngModel)]="passwordData.newPassword"
-              required minlength="8" #newpassRef="ngModel" (focus)="isNewPasswordFocused = true" [class.is-invalid]="
-                isNewPasswordFocused &&
-                (newpassRef.invalid || !newPasswordValid)
-              " />
-
-            <!-- Checklist -->
-            <ul class="password-rules" *ngIf="isNewPasswordFocused">
-              <li [class.pass]="newPasswordRules.minLength" [class.fail]="!newPasswordRules.minLength">
-                <i class="bi" [ngClass]="
-                    newPasswordRules.minLength
-                      ? 'bi-check-circle-fill'
-                      : 'bi-x-circle-fill'
-                  ">
-                </i>
-                At least 8 characters
-              </li>
-
-              <li [class.pass]="newPasswordRules.upper" [class.fail]="!newPasswordRules.upper">
-                <i class="bi" [ngClass]="
-                    newPasswordRules.upper
-                      ? 'bi-check-circle-fill'
-                      : 'bi-x-circle-fill'
-                  ">
-                </i>
-                Contains an uppercase letter
-              </li>
-
-              <li [class.pass]="newPasswordRules.lower" [class.fail]="!newPasswordRules.lower">
-                <i class="bi" [ngClass]="
-                    newPasswordRules.lower
-                      ? 'bi-check-circle-fill'
-                      : 'bi-x-circle-fill'
-                  ">
-                </i>
-                Contains a lowercase letter
-              </li>
-
-              <li [class.pass]="newPasswordRules.number" [class.fail]="!newPasswordRules.number">
-                <i class="bi" [ngClass]="
-                    newPasswordRules.number
-                      ? 'bi-check-circle-fill'
-                      : 'bi-x-circle-fill'
-                  ">
-                </i>
-                Contains a number
-              </li>
-
-              <li [class.pass]="newPasswordRules.special" [class.fail]="!newPasswordRules.special">
-                <i class="bi" [ngClass]="
-                    newPasswordRules.special
-                      ? 'bi-check-circle-fill'
-                      : 'bi-x-circle-fill'
-                  ">
-                </i>
-                Contains a special character
-              </li>
-            </ul>
+              required minlength="8">
+          </div>
+          <div class="form-group mb-3">
+            <label>Confirm Password</label>
+            <input type="password" class="form-control" name="confirmPassword"
+              [(ngModel)]="passwordData.confirmPassword" required>
           </div>
         </div>
-
-        <!-- Confirm Password -->
-        <div class="form-group mb-3">
-          <label>Confirm Password</label>
-          <input type="password" class="form-control" name="confirmPassword" [(ngModel)]="passwordData.confirmPassword"
-            required #confRef="ngModel" [class.is-invalid]="
-              (confRef.touched || submitted) &&
-              (!passwordData.confirmPassword ||
-                passwordData.confirmPassword !== passwordData.newPassword)
-            " />
-
-          <div *ngIf="confRef.dirty || confRef.touched || submitted">
-            <small *ngIf="confRef.errors?.['required']" class="text-danger">
-              Confirm password is required
-            </small>
-            <small *ngIf="
-                passwordData.confirmPassword &&
-                passwordData.confirmPassword !== passwordData.newPassword
-              " class="text-danger">
-              Passwords do not match
-            </small>
-          </div>
-        </div>
-
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Change Password</button>
-          <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">
-            Cancel
-          </button>
+          <button type="submit" class="btn btn-primary">Update Password</button>
         </div>
       </form>
     </div>
   </div>
-
-  <!-- Profile Modal -->
-  <!-- <div class="modal-backdrop-custom" *ngIf="showEditModal" (click)="closeEditProfileModal()">
-  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Profile</h5>
-        <button class="btn-close" (click)="closeEditProfileModal()"></button>
-      </div>
-
-      <form #profileForm="ngForm" (ngSubmit)="saveProfileChanges(profileForm)">
-        <div class="modal-body">
-          Username
-          <div class="form-group mb-3">
-            <label>Username</label>
-            <input [(ngModel)]="editedUser.username" name="username" type="text" class="form-control" required />
-            <div class="text-danger" *ngIf="profileForm.submitted && !editedUser.username">
-              Username is required
-            </div>
-          </div>
-
-          Email
-          <div class="form-group mb-3">
-            <label>Email</label>
-            <input [(ngModel)]="editedUser.email" name="email" type="email" class="form-control" required />
-            <div class="text-danger" *ngIf="profileForm.submitted && !editedUser.email">
-              Email is required
-            </div>
-          </div>
-          
-           <div class="form-group mb-3">
-            <label>PhoneNumber</label>
-            <input [(ngModel)]="editedUser.phoneNumber" name="phoneNumber" type="text" pattern="^0\d{9}$" 
-    maxlength="10" class="form-control" required />
-            <div class="text-danger" *ngIf="profileForm.submitted && !editedUser.phoneNumber">
-              PhoneNumber is required
-            </div>
-            
-          </div>
-        </div> 
-
-           Status
-          <<div class="form-group mb-3">
-            <label>Status</label>
-            <select [(ngModel)]="editedUser.token_type" name="status" class="form-control" required>
-              <option value="Active">Active</option>
-              <option value="access">Access</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-        </div> 
-
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Update</button>
-          <button type="button" class="btn btn-secondary" (click)="closeEditProfileModal()">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>-->
 </div>

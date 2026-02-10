@@ -10,7 +10,7 @@ import { ApexOptions, ApexAxisChartSeries } from 'ng-apexcharts';
 export function buildQualityGatePieChart(passedCount: number, failedCount: number): ApexOptions {
     return {
         series: [passedCount, failedCount],
-        labels: ['Success', 'Failed'],
+        labels: ['Passed', 'Failed'],
         chart: { type: 'pie' },
         legend: { position: 'bottom' },
         states: {
