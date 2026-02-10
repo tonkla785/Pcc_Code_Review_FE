@@ -31,7 +31,7 @@
         <div *ngFor="let p of ScanHistoy;" class="mb-3">
           <div class="d-flex justify-content-between">
             <span>{{ p.project.name }}</span>
-            <span>{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} - {{ formatTHB(p.metrics?.debtRatio || 0) }}</span>
+            <span>{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} - {{ formatTHB(toTechDebtDays(p.metrics?.technicalDebtMinutes || 0) * (p.project?.costPerDay || 1000)) }} ({{ formatTHB(p.project?.costPerDay || 1000) }}/day)</span>
           </div>
           <div class="card p-3 mb-3 shadow-sm">
             <h6 class="card-title mb-2">{{ p.project.name }}</h6>
