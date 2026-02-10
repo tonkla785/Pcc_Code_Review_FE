@@ -332,7 +332,7 @@ export class DashboardComponent {
   countBug() {
     const bugs = this.getLatestScanByProject() ?? [];
     this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
-    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0), 0);
+    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.vulnerabilities ?? 0), 0);
     this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
     this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
     console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
@@ -963,20 +963,21 @@ export class DashboardComponent {
   loadDashboardData() {
     const latest = this.getLatestScanByProject();
     const norm = (s?: string) => (s || '').trim().toUpperCase();
-    const validLatest = latest.filter((s) => this.notEmpty(s.status));
+    // Filter scans that have a qualityGate result
+    const validLatest = latest.filter((s) => this.notEmpty(s.qualityGate));
 
-    // ✅ pass ได้เฉพาะ 3 ตัวนี้เท่านั้น
+    // ✅ pass = qualityGate is 'OK'
     const passedCount = validLatest.filter((s) => {
-      const st = norm(s.status);
-      return st === 'PASSED' || st === 'OK' || st === 'SUCCESS';
+      const qg = norm(s.qualityGate);
+      return qg === 'OK';
     }).length;
 
-    // ✅ ที่เหลือคือ failed ทั้งหมด
+    // ✅ failed = qualityGate is NOT 'OK' (e.g. ERROR, WARN, NONE etc.)
     const failedCount = validLatest.filter((s) => {
-      const st = norm(s.status);
-      return !(st === 'PASSED' || st === 'OK' || st === 'SUCCESS');
+      const qg = norm(s.qualityGate);
+      return qg !== 'OK' && qg !== 'NONE' && qg !== '';
     }).length;
-    console.log('Passed Count:', passedCount, 'Failed Count:', failedCount);
+    console.log('QG Passed Count:', passedCount, 'QG Failed Count:', failedCount);
     // ใช้เฉพาะที่จบแล้ว (pass+fail) มาหาร
     const finishedTotal = passedCount + failedCount;
 
@@ -1000,29 +1001,21 @@ export class DashboardComponent {
 
     this.gradePercent = Math.round(ratio * 100);
 
-    let centerLetter: 'A' | 'B' | 'C' | 'D' | 'E';
-    if (this.isValidGateLetter(this.avgGateLetter)) {
-      centerLetter = this.avgGateLetter;
-    } else {
-      centerLetter = (this.grade === 'F' ? 'E' : this.grade) as
-        | 'A'
-        | 'B'
-        | 'C'
-        | 'D'
-        | 'E';
-    }
+    // Use the computed grade directly for the center letter
+    const centerLetter: 'A' | 'B' | 'C' | 'D' | 'E' =
+      (this.grade === 'F' ? 'E' : this.grade) as 'A' | 'B' | 'C' | 'D' | 'E';
 
     // ถ้าไม่มีข้อมูล ให้แสดง E สีเทา
     const hasData = this.totalProjects > 0;
     const displayGrade = hasData ? this.grade : 'E';
     const displayPercent = hasData ? this.gradePercent : 0;
-    const successColor = hasData ? this.getGradeColor(centerLetter) : this.getGradeColor(centerLetter); // grey-400
+    const successColor = hasData ? '#10B981' : '#E5E7EB'; // grey-400
     const failedColor = hasData ? '#EF4444' : '#E5E7EB'; // grey-200 when no data
 
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
       series: hasData ? [displayPercent, 100 - displayPercent] : [0, 100],
-      labels: ['SUCCESS', 'FAILED'],
+      labels: ['PASSED', 'FAILED'],
       colors: [successColor, failedColor],
       states: {
         hover: {
@@ -1067,7 +1060,7 @@ export class DashboardComponent {
       legend: {
         show: true,
         markers: {
-          fillColors: [this.getGradeColor(centerLetter), '#EF4444']
+          fillColors: ['#10B981', '#EF4444']
         }
       },
       tooltip: {
