@@ -222,10 +222,13 @@ export class NotificationService {
   /**
    * Generate notifications for failed quality gates (prevent duplicates)
    */
+  private _qgInProgress = false;
+
   generateQualityGateNotifications(
     scans: { id: string; qualityGate?: string | null; project?: { id: string; name?: string } }[]
   ): void {
     if (!scans?.length) return;
+    if (this._qgInProgress) return; // Prevent concurrent calls
 
     const userId = this.getUserId();
     if (!userId) return;
@@ -237,6 +240,15 @@ export class NotificationService {
     );
 
     if (!failedScans.length) return;
+
+    // Quick check: skip if all failed scans are already in local cache
+    const uncached = failedScans.filter(s => !this.notifiedQualityGateScanIds.has(s.id));
+    if (!uncached.length) {
+      console.log('No new quality gate failures to notify (local cache)');
+      return;
+    }
+
+    this._qgInProgress = true;
 
     this.getAllNotifications().subscribe({
       next: (existingNotifications) => {
@@ -254,9 +266,14 @@ export class NotificationService {
 
         if (!newFailedScans.length) {
           console.log('No new quality gate failures to notify');
+          this._qgInProgress = false;
           return;
         }
 
+        // Add to local cache IMMEDIATELY to prevent concurrent calls from processing the same scan
+        newFailedScans.forEach(s => this.notifiedQualityGateScanIds.add(s.id));
+
+        let completed = 0;
         for (const scan of newFailedScans) {
           const projectName = scan.project?.name || 'Unknown';
 
@@ -270,14 +287,24 @@ export class NotificationService {
             isBroadcast: true // Broadcast quality gate failures to all users
           }).subscribe({
             next: () => {
-              this.notifiedQualityGateScanIds.add(scan.id);
               console.log(`Quality Gate notification created for scan: ${scan.id}`);
+              completed++;
+              if (completed >= newFailedScans.length) this._qgInProgress = false;
             },
-            error: (err) => console.error('Failed to create notification:', err)
+            error: (err) => {
+              console.error('Failed to create notification:', err);
+              // On error, remove from cache so we can retry later
+              this.notifiedQualityGateScanIds.delete(scan.id);
+              completed++;
+              if (completed >= newFailedScans.length) this._qgInProgress = false;
+            }
           });
         }
       },
-      error: (err) => console.error('Failed to load notifications:', err)
+      error: (err) => {
+        console.error('Failed to load notifications:', err);
+        this._qgInProgress = false;
+      }
     });
   }
 
