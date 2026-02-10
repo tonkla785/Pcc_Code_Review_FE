@@ -263,44 +263,6 @@ body {
 
 
 /* ===============================
-     Dark mode Table Override
-     =============================== */
-body.dark-mode .scan-history-container .table {
-  background-color: var(--bg-card) !important;
-  /* พื้นหลังการ์ด */
-  color: var(--text-main) !important;
-  /* ข้อความ */
-  border-color: var(--card-border) !important;
-  /* กรอบ */
-}
-
-body.dark-mode .scan-history-container .table th {
-  background-color: var(--table-header-bg) !important;
-  /* พื้นหลัง header */
-  color: var(--table-header-text) !important;
-  /* สีข้อความ header */
-}
-
-body.dark-mode .scan-history-container .table td {
-  background-color: var(--bg-card) !important;
-  color: var(--text-main) !important;
-  border-color: var(--card-border) !important;
-}
-
-/* Stripe */
-body.dark-mode .scan-history-container .table-striped tbody tr:nth-of-type(odd) {
-  background-color: var(--bg-panel) !important;
-  /* สลับสีแถว */
-}
-
-/* Hover */
-body.dark-mode .scan-history-container .table tbody tr:hover {
-  background-color: var(--table-header-bg2) !important;
-  /* hover แถว */
-}
-
-
-/* ===============================
      Dark mode Pagination
      =============================== */
 body.dark-mode .pagination {
