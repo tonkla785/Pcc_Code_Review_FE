@@ -198,7 +198,8 @@ export class AppComponent implements OnInit, OnDestroy {
         const settings = this.userSettingsData.notificationSettings;
         if (!settings || settings.systemEnabled) {
           const hasQualityGate = systemNotis.some(n => n.title.toLowerCase().includes('quality gate'));
-          const hasComment = systemNotis.some(n => n.title.toLowerCase().includes('comment') || n.message.toLowerCase().includes('comment'));
+          const hasComment = systemNotis.some(n => n.title.toLowerCase().includes('comment'));
+          const hasAssigned = systemNotis.some(n => n.title.toLowerCase().includes('assigned'));
 
           if (hasQualityGate) {
             this.snack.open('🔔 Quality Gate is failed', '', {
@@ -209,6 +210,13 @@ export class AppComponent implements OnInit, OnDestroy {
             });
           } else if (hasComment) {
             this.snack.open('🔔 You have new comment', '', {
+              duration: 4000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-blue']
+            });
+          } else if (hasAssigned) {
+            this.snack.open('🔔 You have new assigned', '', {
               duration: 4000,
               horizontalPosition: 'right',
               verticalPosition: 'top',
