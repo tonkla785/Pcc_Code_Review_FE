@@ -117,8 +117,17 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.getAllRepo().subscribe({
       next: (repos) => {
+        // Check localStorage for scanning status
+        const updatedRepos = repos.map(repo => {
+          const savedStatus = localStorage.getItem(`repo-status-${repo.projectId}`);
+          if (savedStatus === 'Scanning') {
+            return { ...repo, status: 'Scanning' as 'Scanning' };
+          }
+          return repo;
+        });
+
         // เก็บข้อมูลลง SharedDataService
-        this.sharedData.setRepositories(repos);
+        this.sharedData.setRepositories(updatedRepos);
         this.sharedData.setLoading(false);
         console.log('Repositories loaded:', repos);
 
@@ -298,6 +307,8 @@ export class RepositoriesComponent implements OnInit {
 
     if (repo.projectId) {
       this.sharedData.updateRepoStatus(repo.projectId, 'Scanning', 0);
+      // Save to localStorage immediately
+      localStorage.setItem(`repo-status-${repo.projectId}`, 'Scanning');
     }
 
     this.updateSummaryStats();
