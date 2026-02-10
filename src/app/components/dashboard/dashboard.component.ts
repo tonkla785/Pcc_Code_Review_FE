@@ -1,7 +1,7 @@
 import { QualityGates } from './../../interface/sonarqube_interface';
 import { AuthService } from './../../services/authservice/auth.service';
 import { Dashboard } from './../../services/dashboardservice/dashboard.service';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -99,6 +99,7 @@ export class DashboardComponent {
     private readonly repoService: RepositoryService,
     private readonly snack: MatSnackBar,
     private readonly ws: WebSocketService,
+    private readonly cdr: ChangeDetectorRef,
   ) { }
 
   loading = true;
@@ -182,7 +183,8 @@ export class DashboardComponent {
         const exists = this.notifications.some(n => n.id === noti.id);
         if (exists) return;
 
-        this.notifications.unshift(noti as any);
+        this.notifications = [noti as any, ...this.notifications];
+        this.cdr.detectChanges();
       });
 
       // Subscribe to global notifications (broadcast for all users)
@@ -194,7 +196,8 @@ export class DashboardComponent {
         const exists = this.notifications.some(n => n.id === noti.id);
         if (exists) return;
 
-        this.notifications.unshift(noti as any);
+        this.notifications = [noti as any, ...this.notifications];
+        this.cdr.detectChanges();
       });
     }
 
@@ -803,6 +806,9 @@ export class DashboardComponent {
     // Navigate based on what's related
     if (n.relatedCommentId && n.relatedIssueId) {
       // Comment notification - go to issue detail
+      this.router.navigate(['/issuedetail', n.relatedIssueId]);
+    } else if (n.relatedIssueId) {
+      // Assign issue notification - go to issue detail
       this.router.navigate(['/issuedetail', n.relatedIssueId]);
     } else if (n.relatedScanId) {
       // Quality Gate notification - go to scan result

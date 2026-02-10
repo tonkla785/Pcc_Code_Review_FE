@@ -105,6 +105,10 @@ export class SecurityService {
         ).subscribe(() => {
             this.refreshSecurityIssues();
         });
+
+        this.sharedData.repositories$.subscribe(() => {
+            this.refreshSecurityIssues();
+        });
     }
 
     private refreshSecurityIssues(): void {
