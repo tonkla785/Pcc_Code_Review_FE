@@ -991,3 +991,35 @@ tr:last-child td {
     /* 1 col per row */
   }
 }
+
+/* จัดสีสถานะ Email Verify */
+.status-badge.verified {
+  background: rgba(34, 197, 94, 0.15);
+  color: #166534;
+}
+
+.status-badge.pending_verification {
+  background: rgba(245, 158, 11, 0.15);
+  color: #92400e;
+}
+
+.status-badge.unverified {
+  background: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+}
+
+/* Dark Mode */
+:host-context(.dark-mode) .status-badge.verified {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.25);
+}
+
+:host-context(.dark-mode) .status-badge.pending_verification {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.25);
+}
+
+:host-context(.dark-mode) .status-badge.unverified {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.25);
+}
