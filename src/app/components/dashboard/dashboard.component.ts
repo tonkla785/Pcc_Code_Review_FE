@@ -1,7 +1,7 @@
 import { QualityGates } from './../../interface/sonarqube_interface';
 import { AuthService } from './../../services/authservice/auth.service';
 import { Dashboard } from './../../services/dashboardservice/dashboard.service';
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -86,6 +86,15 @@ export type ChartOptions = {
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.showNotifications) {
+      this.showNotifications = false;
+    }
+    if (this.showProfileDropdown) {
+      this.showProfileDropdown = false;
+    }
+  }
   constructor(
     private readonly router: Router,
     private readonly dash: DashboardService,
@@ -158,7 +167,7 @@ export class DashboardComponent {
   allIssues: IssuesResponseDTO[] = [];
   filteredRepositories: Repository[] = [];
   latestScans = this.getLatestScanByProject();
-// verify
+  // verify
   private verifySub?: Subscription;
 
 
@@ -543,6 +552,9 @@ export class DashboardComponent {
   // ================== PROFILE & USER ==================
   toggleProfileDropdown() {
     this.showProfileDropdown = !this.showProfileDropdown;
+    if (this.showProfileDropdown) {
+      this.showNotifications = false;
+    }
   }
 
   showChangePasswordModal = false;
@@ -568,6 +580,7 @@ export class DashboardComponent {
       newPassword: '',
       confirmPassword: '',
     };
+    this.submitted = false;
   }
 
   // ==== NEW PASSWORD VALIDATION (ใช้ utils) ====
@@ -605,13 +618,12 @@ export class DashboardComponent {
 
     this.userService.changePassword(this.passwordData).subscribe({
       next: () => {
+        this.closeChangePasswordModal();
         Swal.fire({
           icon: 'success',
           title: 'Success',
           text: 'Password changed successfully',
           confirmButtonColor: '#3085d6',
-        }).then(() => {
-          this.closeChangePasswordModal();
         });
       },
       error: (err) => {
@@ -680,6 +692,9 @@ export class DashboardComponent {
 
   toggleNotifications() {
     this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.showProfileDropdown = false;
+    }
   }
 
   closeNotifications() {
@@ -852,6 +867,16 @@ export class DashboardComponent {
 
   loadMore() {
     this.displayCount += 5;
+  }
+
+  onNotificationScroll(event: any) {
+    const element = event.target;
+    // Check if scrolled to near bottom (within 20px)
+    if (element.scrollHeight - element.scrollTop <= element.clientHeight + 20) {
+      if (this.displayCount < this.totalFilteredCount) {
+        this.loadMore();
+      }
+    }
   }
 
   get totalFilteredCount() {
