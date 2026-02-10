@@ -13,7 +13,7 @@ export class TechnicalDebtService {
 
     constructor() {
         this.sharedData.scansHistory$.subscribe(scans => {
-            if (scans && scans.length > 0) {
+            if (scans) {
                 this.calculateAndStore(scans);
             }
         });
@@ -29,6 +29,14 @@ export class TechnicalDebtService {
             }),
             delay(3000)
         ).subscribe(() => {
+            this.refreshScanHistory();
+        });
+
+        this.sharedData.repositories$.subscribe(() => {
+            const currentScans = this.sharedData.scanValue;
+            if (currentScans) {
+                this.calculateAndStore(currentScans);
+            }
             this.refreshScanHistory();
         });
     }
@@ -90,10 +98,17 @@ export class TechnicalDebtService {
 
     private latestScanPerProject(scans: ScanResponseDTO[]): ScanResponseDTO[] {
         const byProject = new Map<string, ScanResponseDTO>();
+        const validProjectIds = new Set(
+            this.sharedData.repositoriesValue
+                .map(r => r.projectId)
+                .filter(id => !!id)
+        );
 
         for (const s of scans) {
             const pid = s.project?.id;
             if (!pid) continue;
+
+            if (!validProjectIds.has(pid)) continue;
 
             const prev = byProject.get(pid);
             if (!prev) {
