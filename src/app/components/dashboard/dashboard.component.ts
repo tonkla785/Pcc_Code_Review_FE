@@ -854,6 +854,16 @@ export class DashboardComponent {
     this.displayCount += 5;
   }
 
+  onNotificationScroll(event: any) {
+    const element = event.target;
+    // Check if scrolled to near bottom (within 20px)
+    if (element.scrollHeight - element.scrollTop <= element.clientHeight + 20) {
+      if (this.displayCount < this.totalFilteredCount) {
+        this.loadMore();
+      }
+    }
+  }
+
   get totalFilteredCount() {
     if (this.activeTab === 'All') return this.notifications.length;
     if (this.activeTab === 'Unread')
