@@ -32,3 +32,10 @@ export interface ProjectChangeEvent {
     projectId: string;
     projectName: string;
 }
+
+// Issue change event for update broadcasts (assign/status)
+// Received from /topic/issues for all users
+export interface IssueChangeEvent {
+    action: 'UPDATED';
+    issueId: string;
+}
