@@ -1123,6 +1123,59 @@ tr:last-child td {
   }
 }
 
+/* --- Password Rules Checklist --- */
+.password-rules {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.password-rules li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.password-rules li i {
+  font-size: 14px;
+}
+
+/* Valid condition */
+.password-rules li.pass {
+  color: #10b981;
+  /* Green */
+  font-weight: 600;
+}
+
+.password-rules li.pass i {
+  color: #10b981;
+}
+
+/* Invalid condition */
+.password-rules li.fail {
+  color: var(--text-sub);
+  opacity: 0.7;
+}
+
+.password-rules li.fail i {
+  color: var(--text-sub);
+}
+
+.form-control.is-invalid {
+  border-color: #ef4444;
+  background-image: none !important;
+  /* Remove bootstrap icon */
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary);
+}
+
 
 /* Small Mobile (max-width: 480px) */
 @media (max-width: 480px) {
