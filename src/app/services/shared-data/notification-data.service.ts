@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { Notification } from '../../interface/notification_interface';
 
 // Re-export interfaces for convenience
@@ -12,6 +12,10 @@ export class NotificationDataService {
     // Notifications list
     private notificationsSubject = new BehaviorSubject<Notification[]>([]);
     notifications$ = this.notificationsSubject.asObservable();
+
+    // Real-time notification stream (for snackbar alerts)
+    private newNotificationSubject = new Subject<Notification>();
+    newNotification$ = this.newNotificationSubject.asObservable();
 
     // Unread count
     private unreadCountSubject = new BehaviorSubject<number>(0);
@@ -38,6 +42,7 @@ export class NotificationDataService {
         if (!notification.isRead) {
             this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
         }
+        this.newNotificationSubject.next(notification);
     }
 
     /**

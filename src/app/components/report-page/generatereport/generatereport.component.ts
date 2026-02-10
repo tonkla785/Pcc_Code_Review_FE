@@ -10,6 +10,7 @@ import { ScanService } from '../../../services/scanservice/scan.service';
 import { SecurityService } from '../../../services/securityservice/security.service';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
+import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
 
 import { ExcelService } from '../../../services/report-generator/excel/excel.service';
 import { WordService } from '../../../services/report-generator/word/word.service';
@@ -112,7 +113,8 @@ export class GeneratereportComponent implements OnInit {
     private readonly pdfService: PdfService,
     private readonly reportHistoryService: ReportHistoryService,
     private readonly notificationService: NotificationService,
-    private readonly snackBar: MatSnackBar
+    private readonly snackBar: MatSnackBar,
+    private readonly userSettingsData: UserSettingsDataService
   ) { }
 
   ngOnInit(): void {
@@ -382,12 +384,18 @@ export class GeneratereportComponent implements OnInit {
       this.exportToFormat(context);
       this.saveReportHistoryToApi(projectId, projectName, scans, issues, securityData, selectedSections, recommendationsData);
       this.createReportNotification(projectName, true);  // success notification
-      this.snackBar.open('Report generated successfully', '', {
-        duration: 2500,
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-        panelClass: ['app-snack', 'app-snack-green']
-      });
+
+      const settings = this.userSettingsData.notificationSettings;
+      const showReportAlert = !settings || settings.reportsEnabled;
+
+      if (showReportAlert) {
+        this.snackBar.open('Report generated successfully', '', {
+          duration: 2500,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-green']
+        });
+      }
     } catch (e) {
       console.error('Error generating report', e);
       this.createReportNotification(projectName, false); // failed notification
