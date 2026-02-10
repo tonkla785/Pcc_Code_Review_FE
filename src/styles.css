@@ -147,6 +147,10 @@
 
   /* Calendar Icon (Light → ฟ้า) */
   --calendar-icon-filter: invert(40%) sepia(90%) saturate(500%) hue-rotate(200deg);
+
+  /* ===== Generic Status ===== */
+  --success: #10b981;
+  --danger: #ef4444;
 }
 
 
@@ -198,6 +202,9 @@
   --card-border: #374151;
   --table-header-bg: #2c2c2c;
   --table-header-bg2: #1f2937;
+
+  --success: #34d399;
+  --danger: #f87171;
   --table-header-text: #e5e7eb;
   --table-border: #4b5563;
 
@@ -643,4 +650,33 @@ body.dark-mode .swal2-deny.swal2-styled {
 body.dark-mode .swal2-cancel.swal2-styled {
   background-color: #475569 !important;
   /* Slate-600 for cancel */
+}
+
+/* ===============================
+   MODERN SCROLLBAR (Premium Polish)
+   =============================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }

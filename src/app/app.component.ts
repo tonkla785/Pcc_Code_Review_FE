@@ -27,6 +27,7 @@ export class AppComponent implements OnInit, OnDestroy {
   darkMode = false;
   private wsSub?: Subscription;
   private notiSub?: Subscription;
+  private verifySub?: Subscription;
 
   constructor(
     private ws: WebSocketService,
@@ -170,6 +171,38 @@ export class AppComponent implements OnInit, OnDestroy {
           error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err)
         });
       }
+    });
+
+    // Listen verify status realtime
+    // Listen verify status realtime
+    this.verifySub = this.ws.subscribeVerifyStatus().subscribe(event => {
+      console.log('[AppComponent] Verify status event:', event);
+
+      // 1. Update LocalStorage
+      const user = this.tokenStorage.getLoginUser();
+      if (user) {
+        user.status = event.status;
+        localStorage.setItem('UserLogin', JSON.stringify(user));
+
+        // 2. Update SharedDataService so other components (Dashboard) update immediately
+        this.sharedData.LoginUserShared = user;
+      }
+
+      // 3. Notify User
+      this.snack.open(
+        event.status === 'VERIFIED'
+          ? '✅ Email Verified'
+          : event.status === 'PENDING_VERIFICATION'
+            ? '⏳ Verification Pending'
+            : '❌ Email Unverified',
+        '',
+        {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-blue']
+        }
+      );
     });
 
     // Global WebSocket Listener for Issue Changes (assign / status update)
@@ -443,6 +476,10 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.wsSub) {
       this.wsSub.unsubscribe();
     }
+    if (this.verifySub) {
+      this.verifySub.unsubscribe();
+    }
+
   }
 
   private mapStatus(wsStatus: string): 'Active' | 'Scanning' | 'Error' {
