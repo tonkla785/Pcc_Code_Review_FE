@@ -58,7 +58,7 @@ export class TechnicaldebtComponent implements OnDestroy {
 
   // Top items
   topDebtItems: DebtItem[] = [];
-  
+
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
@@ -70,22 +70,22 @@ export class TechnicaldebtComponent implements OnDestroy {
 
   // Helper for Top Items
   private parseEffortToMinutes(effort: string): number {
-    if(!effort) return 0;
+    if (!effort) return 0;
     // Format examples: "10min", "1h 30min", "5d", "2h"
     // Simple regex or logic
     let minutes = 0;
-    
+
     // min
     const minMatch = effort.match(/(\d+)min/);
-    if(minMatch) minutes += parseInt(minMatch[1]);
-    
+    if (minMatch) minutes += parseInt(minMatch[1]);
+
     // h
     const hMatch = effort.match(/(\d+)h/);
-    if(hMatch) minutes += parseInt(hMatch[1]) * 60;
-    
+    if (hMatch) minutes += parseInt(hMatch[1]) * 60;
+
     // d (Assume 8h day -> 480m)
     const dMatch = effort.match(/(\d+)d/);
-    if(dMatch) minutes += parseInt(dMatch[1]) * 480;
+    if (dMatch) minutes += parseInt(dMatch[1]) * 480;
 
     return minutes;
   }
@@ -96,12 +96,12 @@ export class TechnicaldebtComponent implements OnDestroy {
   pollSubscription: Subscription = new Subscription();
 
   ngOnInit(): void {
-    this.sharedData.scansHistory$.subscribe(data => { 
+    this.sharedData.scansHistory$.subscribe(data => {
       this.ScanHistoy = this.latestScanPerProject(data ?? []);
       this.calculateTotalDebt();
       this.calculateProjectDebts();
     });
-    
+
     // Initial Load
     this.loadScanHistory();
 
@@ -129,110 +129,112 @@ export class TechnicaldebtComponent implements OnDestroy {
         this.calculateDebtTrend(data); // Pass full history
         this.calculateProjectDebts();
         this.calculateTopDebtProjects();
-        console.log('Scan history loaded:', this.ScanHistoy );
+        console.log('Scan history loaded:', this.ScanHistoy);
       },
       error: () => this.sharedData.setLoading(false)
     });
   }
 
   calculateTopDebtProjects() {
-    // 1. Find Max Cost
-    const maxCost = this.ScanHistoy.reduce((max, scan) => Math.max(max, scan.metrics?.debtRatio || 0), 0);
+    // 1. Map and calculate cost per project
+    const projects = this.ScanHistoy.map(scan => {
+      const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
+      const costPerDay = scan.project?.costPerDay || 1000;
+      const cost = this.toTechDebtDays(debtMinutes) * costPerDay;
+      const name = scan.project?.name || scan.project?.id || 'Unknown';
+      return { name, debtMinutes, cost };
+    });
+
+    // 2. Find Max Cost for classification
+    const maxCost = Math.max(...projects.map(p => p.cost), 1);
     const step = maxCost / 3;
 
-    // 2. Map and Classify
-    const projects = this.ScanHistoy.map(scan => {
-        const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
-        const days = this.toTechDebtDays(debtMinutes);
-        const cost = scan.metrics?.debtRatio || 0;
-        const name = scan.project?.name || scan.project?.id || 'Unknown';
+    // 3. Classify
+    const items = projects.map(p => {
+      let priority: Priority = 'Low';
+      let color = 'low';
 
-        // Classification based on Max Cost
-        // Low: 0 - step
-        // Med: step - 2*step
-        // High: > 2*step
-        
-        let priority: Priority = 'Low';
-        let color = 'low';
+      if (p.cost > (step * 2)) {
+        priority = 'High';
+        color = 'high';
+      } else if (p.cost > step) {
+        priority = 'Med';
+        color = 'med';
+      }
 
-        if (cost > (step * 2)) {
-            priority = 'High';
-            color = 'high';
-        } else if (cost > step) {
-            priority = 'Med';
-            color = 'med';
-        }
-
-        return {
-            priority: priority,
-            colorClass: color,
-            item: name, 
-            time: debtMinutes,
-            cost: cost
-        } as DebtItem;
+      return {
+        priority: priority,
+        colorClass: color,
+        item: p.name,
+        time: p.debtMinutes,
+        cost: p.cost
+      } as DebtItem;
     });
 
     // Sort by Cost Descending
-    this.topDebtItems = projects.sort((a, b) => b.cost - a.cost).slice(0, 5);
+    this.topDebtItems = items.sort((a, b) => b.cost - a.cost).slice(0, 5);
     this.techDebtDataService.setTopDebtItems(this.topDebtItems);
   }
 
   calculateProjectDebts() {
     this.projectDebts = this.ScanHistoy.map(scan => {
-        const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
-        const days = this.toTechDebtDays(debtMinutes);
-        const cost = scan.metrics?.debtRatio || 0;
-        
-        return {
-            name: scan.project?.name || scan.project?.id || 'Unknown',
-            days: days,
-            cost: cost,
-            lastScan: new Date(scan.startedAt)
-        } as ProjectDebt;
+      const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
+      const days = this.toTechDebtDays(debtMinutes);
+      const costPerDay = scan.project?.costPerDay || 1000;
+      const cost = days * costPerDay;
+
+      return {
+        name: scan.project?.name || scan.project?.id || 'Unknown',
+        days: days,
+        cost: cost,
+        lastScan: new Date(scan.startedAt)
+      } as ProjectDebt;
     }).sort((a, b) => b.cost - a.cost);
   }
 
   calculateDebtTrend(allScans: ScanResponseDTO[]) {
     // 1. Group scans by Project to find Start Date and Latest Cost
     const projectMap = new Map<string, { name: string, startDate: Date, cost: number }>();
-    
+
     allScans.forEach(s => {
-        const pid = s.project?.id;
-        if(!pid) return;
+      const pid = s.project?.id;
+      if (!pid) return;
 
-        const date = new Date(s.startedAt);
-        const name = s.project?.name || pid;
+      const date = new Date(s.startedAt);
+      const name = s.project?.name || pid;
 
-        if(!projectMap.has(pid)) {
-            // Initial assumption, cost will be updated later
-            projectMap.set(pid, { name, startDate: date, cost: 0 });
-        } else {
-            const entry = projectMap.get(pid)!;
-            // Update Start Date if this scan is earlier to find the "creation" date
-            if(date < entry.startDate) {
-                entry.startDate = date;
-            }
+      if (!projectMap.has(pid)) {
+        // Initial assumption, cost will be updated later
+        projectMap.set(pid, { name, startDate: date, cost: 0 });
+      } else {
+        const entry = projectMap.get(pid)!;
+        // Update Start Date if this scan is earlier to find the "creation" date
+        if (date < entry.startDate) {
+          entry.startDate = date;
         }
+      }
     });
 
     // Find the LATEST cost for each project (Current Debt)
     const latestCosts = new Map<string, { date: Date, cost: number }>();
     allScans.forEach(s => {
-         const pid = s.project?.id;
-         if(!pid) return;
-         const d = new Date(s.startedAt);
-         const c = s.metrics?.debtRatio || 0;
-         
-         if(!latestCosts.has(pid) || d > latestCosts.get(pid)!.date) {
-             latestCosts.set(pid, { date: d, cost: c });
-         }
+      const pid = s.project?.id;
+      if (!pid) return;
+      const d = new Date(s.startedAt);
+      const debtMinutes = s.metrics?.technicalDebtMinutes || 0;
+      const costPerDay = s.project?.costPerDay || 1000;
+      const c = this.toTechDebtDays(debtMinutes) * costPerDay;
+
+      if (!latestCosts.has(pid) || d > latestCosts.get(pid)!.date) {
+        latestCosts.set(pid, { date: d, cost: c });
+      }
     });
 
     // Merge Cost info into Project Map
     projectMap.forEach((val, key) => {
-        if(latestCosts.has(key)) {
-            val.cost = latestCosts.get(key)!.cost;
-        }
+      if (latestCosts.has(key)) {
+        val.cost = latestCosts.get(key)!.cost;
+      }
     });
 
     // 2. Filter projects started in last 60 days
@@ -241,26 +243,26 @@ export class TechnicaldebtComponent implements OnDestroy {
     sixtyDaysAgo.setDate(now.getDate() - 60);
 
     const projects = Array.from(projectMap.values())
-        .filter(p => p.startDate >= sixtyDaysAgo && p.startDate <= now)
-        .sort((a, b) => a.startDate.getTime() - b.startDate.getTime()); // Chronological 
+      .filter(p => p.startDate >= sixtyDaysAgo && p.startDate <= now)
+      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime()); // Chronological 
 
     // 3. Calculate Cumulative
     let runningTotal = 0;
     const dataPoints: { x: string, y: number, added: number, dateStr: string }[] = [];
 
     // Add a starting point
-    if(projects.length > 0) {
-        dataPoints.push({ x: 'Start', y: 0, added: 0, dateStr: 'Initial' }); 
+    if (projects.length > 0) {
+      dataPoints.push({ x: 'Start', y: 0, added: 0, dateStr: 'Initial' });
     }
 
     projects.forEach(p => {
-        runningTotal += p.cost;
-        dataPoints.push({
-            x: p.name,
-            y: runningTotal,
-            added: p.cost,
-            dateStr: p.startDate.toLocaleDateString('th-TH')
-        });
+      runningTotal += p.cost;
+      dataPoints.push({
+        x: p.name,
+        y: runningTotal,
+        added: p.cost,
+        dateStr: p.startDate.toLocaleDateString('th-TH')
+      });
     });
 
     this.debtSeries = [
@@ -285,24 +287,24 @@ export class TechnicaldebtComponent implements OnDestroy {
         type: 'category', // Project Names as categories
         title: { text: 'Projects (Chronological Order)' },
         labels: {
-            rotate: -45,
-            style: { fontSize: '12px' }
+          rotate: -45,
+          style: { fontSize: '12px' }
         }
       },
       yaxis: {
-        min: 0, 
+        min: 0,
         title: { text: 'Cumulative Cost (THB)' },
         labels: {
-            formatter: (val: number) => this.formatTHB(val)
+          formatter: (val: number) => this.formatTHB(val)
         }
       },
       dataLabels: { enabled: false },
-      tooltip: { 
+      tooltip: {
         custom: ({ series, seriesIndex, dataPointIndex, w }) => {
-            const p = dataPoints[dataPointIndex];
-            // Safe check
-            if(!p) return '';
-            return `
+          const p = dataPoints[dataPointIndex];
+          // Safe check
+          if (!p) return '';
+          return `
             <div style="padding: 10px; background: #fff; border: 1px solid #ccc; color: #000;">
                 <div><b>${p.x}</b></div>
                 <div>Created: ${p.dateStr}</div>
@@ -332,13 +334,13 @@ export class TechnicaldebtComponent implements OnDestroy {
     this.totalMinutes = remainingAfterDays % 60;
 
     this.totalMinutes = remainingAfterDays % 60;
-    
+
     // Shared Data Update
     this.techDebtDataService.setTotalDebt({
-        days: this.totalDays,
-        hours: this.totalHours,
-        minutes: this.totalMinutes,
-        cost: this.totalCosts()
+      days: this.totalDays,
+      hours: this.totalHours,
+      minutes: this.totalMinutes,
+      cost: this.totalCosts()
     });
 
     this.calculateCategoryDebt();
@@ -349,7 +351,7 @@ export class TechnicaldebtComponent implements OnDestroy {
     let sumQuality = 0;
     let sumTest = 0;
     let sumArch = 0;
-    let sumDoc = 0; 
+    let sumDoc = 0;
     let count = 0;
 
     // Aggregate metrics from all latest scans
@@ -357,7 +359,7 @@ export class TechnicaldebtComponent implements OnDestroy {
       const m = scan.metrics;
       // If no metrics, skip this scan from the average
       if (!m) return;
-      
+
       count++;
 
       // 1. Security (Vulnerabilities & Hotspots)
@@ -438,16 +440,20 @@ export class TechnicaldebtComponent implements OnDestroy {
 
     // Normalize to 100%
     this.categories = [
-       { name: ' Documentation', percent: Number(((avgDoc / totalAvg) * 100).toFixed(1)), icon: 'bi bi-journal-text' },
-       { name: ' Architecture', percent: Number(((avgArch / totalAvg) * 100).toFixed(1)), icon: 'bi bi-diagram-3' },
-       { name: ' Code Quality', percent: Number(((avgQual / totalAvg) * 100).toFixed(1)), icon: 'bi bi-wrench-adjustable' },
-       { name: ' Test Coverage', percent: Number(((avgTest / totalAvg) * 100).toFixed(1)), icon: 'bi-clipboard-check' },
-       { name: ' Security', percent: Number(((avgSec / totalAvg) * 100).toFixed(1)), icon: 'bi bi-shield-lock' },
+      { name: ' Documentation', percent: Number(((avgDoc / totalAvg) * 100).toFixed(1)), icon: 'bi bi-journal-text' },
+      { name: ' Architecture', percent: Number(((avgArch / totalAvg) * 100).toFixed(1)), icon: 'bi bi-diagram-3' },
+      { name: ' Code Quality', percent: Number(((avgQual / totalAvg) * 100).toFixed(1)), icon: 'bi bi-wrench-adjustable' },
+      { name: ' Test Coverage', percent: Number(((avgTest / totalAvg) * 100).toFixed(1)), icon: 'bi-clipboard-check' },
+      { name: ' Security', percent: Number(((avgSec / totalAvg) * 100).toFixed(1)), icon: 'bi bi-shield-lock' },
     ];
   }
 
   totalCosts(): number {
-    return this.ScanHistoy.reduce((sum, p) => sum + (p.metrics?.debtRatio || 0), 0);
+    return this.ScanHistoy.reduce((sum, scan) => {
+      const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
+      const costPerDay = scan.project?.costPerDay || 1000;
+      return sum + (this.toTechDebtDays(debtMinutes) * costPerDay);
+    }, 0);
   }
 
   latestScanPerProject(scans: ScanResponseDTO[]): ScanResponseDTO[] {
@@ -474,7 +480,7 @@ export class TechnicaldebtComponent implements OnDestroy {
   }
 
   toTechDebtDays(minutes: number): number {
-    return minutes / 480; 
+    return minutes / 480;
   }
 
 
@@ -524,7 +530,7 @@ export class TechnicaldebtComponent implements OnDestroy {
     });
 
     rows.push('');
-    rows.push(['Summary', 'Total Days', 'Total Hours',  'Total Minutes', 'Estimated Cost (THB)'].join(','));
+    rows.push(['Summary', 'Total Days', 'Total Hours', 'Total Minutes', 'Estimated Cost (THB)'].join(','));
     rows.push(['', String(this.totalDays), String(this.totalHours), String(this.totalMinutes), String(this.totalCosts())].join(','));
 
     const csv = rows.join('\r\n');
@@ -540,10 +546,10 @@ export class TechnicaldebtComponent implements OnDestroy {
 
   // Helper for CSV
   formatMinutesToTime(minutes: number): string {
-     const days = Math.floor(minutes / 480);
-     const hours = Math.floor((minutes % 480) / 60);
-     const minute = Math.floor(minutes % 60);
-     return `${days }d ${hours}h ${minute}m`;
+    const days = Math.floor(minutes / 480);
+    const hours = Math.floor((minutes % 480) / 60);
+    const minute = Math.floor(minutes % 60);
+    return `${days}d ${hours}h ${minute}m`;
   }
 
   actionPlanText = '';

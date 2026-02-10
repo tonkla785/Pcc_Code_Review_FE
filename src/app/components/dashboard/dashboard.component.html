@@ -16,7 +16,8 @@
           <i class="bi bi-download"></i>
         </button>
 
-        <div class="notification-wrapper" (click)="toggleNotifications()" title="Notifications">
+        <div class="notification-wrapper" (click)="toggleNotifications(); $event.stopPropagation()"
+          title="Notifications">
           <i class="bi bi-bell"></i>
           <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
 
@@ -36,7 +37,7 @@
               <button class="mark-all" (click)="markAllRead()">Mark Read</button>
             </div>
 
-            <div class="notification-list">
+            <div class="notification-list" (scroll)="onNotificationScroll($event)">
               <div class="notification-item" *ngFor="let n of filteredNotifications" [class.unread]="!n.isRead"
                 (click)="viewNotification(n)">
                 <div class="item-header">
@@ -44,6 +45,22 @@
                   <span class="n-time">{{ getTimeAgo(n.createdAt) }}</span>
                 </div>
                 <div class="n-message">{{ n.message }}</div>
+
+                <!-- Action button for Issues -->
+                <a *ngIf="n.type === 'Issues'" class="view-issue-link"
+                  (click)="handleViewIssue(n); $event.stopPropagation()">
+                  View Issue →
+                </a>
+                <!-- Action button for Scans -->
+                <a *ngIf="n.type === 'Scans'" class="view-issue-link"
+                  (click)="handleViewScan(n); $event.stopPropagation()">
+                  View Results →
+                </a>
+                <!-- Action button for System -->
+                <a *ngIf="n.type === 'System'" class="view-issue-link"
+                  (click)="handleViewSystem(n); $event.stopPropagation()">
+                  View Details →
+                </a>
               </div>
               <div class="notification-empty" *ngIf="filteredNotifications.length === 0">
                 No notifications
@@ -53,7 +70,7 @@
         </div>
 
         <!-- Profile -->
-        <div class="profile-dropdown" (click)="toggleProfileDropdown()">
+        <div class="profile-dropdown" (click)="toggleProfileDropdown(); $event.stopPropagation()">
           <div class="profile-avatar"><span>{{ userProfile?.username?.charAt(0)?.toUpperCase() || '' }}</span><i
               *ngIf="!userProfile?.username" class="bi bi-person-fill"></i></div>
           <span class="profile-name" *ngIf="userProfile?.username">{{ userProfile?.username }}</span>
@@ -66,8 +83,13 @@
                 <span style="font-size: 12px; color: var(--text-sub);">{{ UserLogin?.email }}</span>
               </div>
               <div style="margin-top: 8px;">
-                <span class="status-badge" [ngClass]="(UserLogin?.status || '').toLowerCase()">
-                  {{ UserLogin?.status }}
+                <span class="status-badge">Email Verify:</span>
+                <span class="status-badge" [ngClass]="{
+                  'verified': (UserLogin?.status || '').toUpperCase() === 'VERIFIED',
+                  'pending_verification': (UserLogin?.status || '').toUpperCase() === 'PENDING_VERIFICATION',
+                  'unverified': (UserLogin?.status || '').toUpperCase() === 'UNVERIFIED'
+                }">
+                  {{ UserLogin?.status | userStatus }}
                 </span>
               </div>
             </div>
@@ -265,7 +287,7 @@
   </div> <!-- End Dashboard Content -->
 </div>
 
-<!-- Re-use existing Modals (Hidden by default) - unchanged -->
+<!-- Change Password Modal -->
 <div class="modal-backdrop-custom" *ngIf="showChangePasswordModal" (mousedown)="closeChangePasswordModal()">
   <div class="modal-dialog-custom" (mousedown)="$event.stopPropagation()">
     <div class="modal-content">
@@ -273,26 +295,113 @@
         <h5 class="modal-title">Change Password</h5>
         <button class="btn-close" (mousedown)="closeChangePasswordModal()"></button>
       </div>
+
       <form #passwordForm="ngForm" (ngSubmit)="submitChangePassword(passwordForm)">
         <div class="modal-body">
+          <!-- Old Password -->
           <div class="form-group mb-3">
             <label>Old Password</label>
             <input type="password" class="form-control" name="oldPassword" [(ngModel)]="passwordData.oldPassword"
-              required>
+              required #oldpassRef="ngModel" [class.is-invalid]="
+                (oldpassRef.touched || submitted) && !passwordData.oldPassword
+              " />
+            <div *ngIf="oldpassRef.dirty || oldpassRef.touched || submitted">
+              <small *ngIf="oldpassRef.errors?.['required']" class="text-danger">Old password is required</small>
+            </div>
           </div>
+
+          <!-- New Password -->
           <div class="form-group mb-3">
             <label>New Password</label>
             <input type="password" class="form-control" name="newPassword" [(ngModel)]="passwordData.newPassword"
-              required minlength="8">
+              required minlength="8" #newpassRef="ngModel" (focus)="isNewPasswordFocused = true" [class.is-invalid]="
+                isNewPasswordFocused &&
+                (newpassRef.invalid || !newPasswordValid)
+              " />
+
+            <!-- Checklist -->
+            <ul class="password-rules" *ngIf="isNewPasswordFocused">
+              <li [class.pass]="newPasswordRules.minLength" [class.fail]="!newPasswordRules.minLength">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.minLength
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                At least 8 characters
+              </li>
+
+              <li [class.pass]="newPasswordRules.upper" [class.fail]="!newPasswordRules.upper">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.upper
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains an uppercase letter
+              </li>
+
+              <li [class.pass]="newPasswordRules.lower" [class.fail]="!newPasswordRules.lower">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.lower
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains a lowercase letter
+              </li>
+
+              <li [class.pass]="newPasswordRules.number" [class.fail]="!newPasswordRules.number">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.number
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains a number
+              </li>
+
+              <li [class.pass]="newPasswordRules.special" [class.fail]="!newPasswordRules.special">
+                <i class="bi" [ngClass]="
+                    newPasswordRules.special
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  ">
+                </i>
+                Contains a special character
+              </li>
+            </ul>
           </div>
+
+          <!-- Confirm Password -->
           <div class="form-group mb-3">
             <label>Confirm Password</label>
             <input type="password" class="form-control" name="confirmPassword"
-              [(ngModel)]="passwordData.confirmPassword" required>
+              [(ngModel)]="passwordData.confirmPassword" required #confRef="ngModel" [class.is-invalid]="
+              (confRef.touched || submitted) &&
+              (!passwordData.confirmPassword ||
+                passwordData.confirmPassword !== passwordData.newPassword)
+            " />
+
+            <div *ngIf="confRef.dirty || confRef.touched || submitted">
+              <small *ngIf="confRef.errors?.['required']" class="text-danger">
+                Confirm password is required
+              </small>
+              <small *ngIf="
+                passwordData.confirmPassword &&
+                passwordData.confirmPassword !== passwordData.newPassword
+              " class="text-danger">
+                Passwords do not match
+              </small>
+            </div>
           </div>
         </div>
+
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Update Password</button>
+          <button type="submit" class="btn btn-primary">Change Password</button>
+          <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">
+            Cancel
+          </button>
         </div>
       </form>
     </div>

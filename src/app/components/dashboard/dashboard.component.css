@@ -702,11 +702,26 @@ tr:last-child td {
   background: var(--bg-main);
   border-bottom: 1px solid var(--border-subtle);
   overflow-x: auto;
-  scrollbar-width: none;
+  /* scrollbar-width: none; REMOVED to allow scrollbar */
 }
 
 .notification-tabs::-webkit-scrollbar {
-  display: none;
+  height: 8px;
+  /* Thicker for easier mouse usage */
+}
+
+.notification-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 4px;
+}
+
+.notification-tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--text-sub);
+}
+
+.notification-tabs::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
 }
 
 .notification-tabs button {
@@ -800,6 +815,22 @@ tr:last-child td {
   display: flex;
   justify-content: space-between;
   margin-bottom: 6px;
+}
+
+.view-issue-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.view-issue-link:hover {
+  text-decoration: underline;
+  color: var(--primary-hover);
 }
 
 .n-title {
@@ -962,17 +993,189 @@ tr:last-child td {
   .notifications-panel,
   .profile-menu {
     width: 300px;
-    max-width: 90vw;
-    /* Prevent overflow */
-    right: -10px;
-    /* Slight offset fix */
-  }
-
-  .notifications-panel {
-    right: -50px;
-    /* Shift notification panel to be visible */
+    right: -60px;
   }
 }
+
+/* --- Custom Modal Styling --- */
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+.modal-dialog-custom {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 16px;
+  z-index: 10000;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.profile-menu {
+  width: 300px;
+  max-width: 90vw;
+  /* Prevent overflow */
+  right: -10px;
+  /* Slight offset fix */
+}
+
+.notifications-panel {
+  right: -50px;
+  /* Shift notification panel to be visible */
+}
+
+/* --- Custom Modal Styling (Global) --- */
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+.modal-dialog-custom {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 16px;
+  z-index: 10000;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ensure modal content has background */
+.modal-content {
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-hover);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: var(--bg-main);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* --- Password Rules Checklist --- */
+.password-rules {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.password-rules li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.password-rules li i {
+  font-size: 14px;
+}
+
+/* Valid condition */
+.password-rules li.pass {
+  color: #10b981;
+  /* Green */
+  font-weight: 600;
+}
+
+.password-rules li.pass i {
+  color: #10b981;
+}
+
+/* Invalid condition */
+.password-rules li.fail {
+  color: var(--text-sub);
+  opacity: 0.7;
+}
+
+.password-rules li.fail i {
+  color: var(--text-sub);
+}
+
+.form-control.is-invalid {
+  border-color: #ef4444;
+  background-image: none !important;
+  /* Remove bootstrap icon */
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary);
+}
+
 
 /* Small Mobile (max-width: 480px) */
 @media (max-width: 480px) {
@@ -990,4 +1193,36 @@ tr:last-child td {
     grid-template-columns: 1fr;
     /* 1 col per row */
   }
+}
+
+/* จัดสีสถานะ Email Verify */
+.status-badge.verified {
+  background: rgba(34, 197, 94, 0.15);
+  color: #166534;
+}
+
+.status-badge.pending_verification {
+  background: rgba(245, 158, 11, 0.15);
+  color: #92400e;
+}
+
+.status-badge.unverified {
+  background: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+}
+
+/* Dark Mode */
+:host-context(.dark-mode) .status-badge.verified {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.25);
+}
+
+:host-context(.dark-mode) .status-badge.pending_verification {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.25);
+}
+
+:host-context(.dark-mode) .status-badge.unverified {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.25);
 }
