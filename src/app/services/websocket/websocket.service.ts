@@ -3,7 +3,7 @@ import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Observable, ReplaySubject, Subject, BehaviorSubject } from 'rxjs';
 
-import { BackendScanStatus, UiScanStatus, ScanEvent, NotificationEvent, GlobalNotificationEvent, ProjectChangeEvent } from '../../interface/websocket_interface';
+import { BackendScanStatus, UiScanStatus, ScanEvent, NotificationEvent, GlobalNotificationEvent, ProjectChangeEvent, UserVerifyStatusEvent } from '../../interface/websocket_interface';
 
 function mapToUiStatus(status: BackendScanStatus): UiScanStatus {
   if (status === 'PENDING') {
@@ -28,6 +28,9 @@ export class WebSocketService {
   private projectTopicSubscribed = false;
 
   private connectionState$ = new BehaviorSubject<boolean>(false);
+  // status
+  private verifyStatusSubject = new ReplaySubject<UserVerifyStatusEvent>(1);
+  private verifyTopicSubscribed = false;
 
   constructor() {
     this.client = new Client({
@@ -61,6 +64,8 @@ export class WebSocketService {
     this.userTopicSubscribed = false;
     this.globalTopicSubscribed = false;
     this.projectTopicSubscribed = false;
+    this.verifyTopicSubscribed = false;
+
   }
 
   /**
@@ -152,6 +157,25 @@ export class WebSocketService {
       });
       this.projectTopicSubscribed = true;
     }
+
+
+    // 5. Subscribe to user verify status (Private-ish but via /topic)
+if (this.userId && !this.verifyTopicSubscribed) {
+  console.log(`Subscribing to verify status for user: ${this.userId}`);
+
+  this.client.subscribe(`/topic/user/${this.userId}/verify-status`, (message: IMessage) => {
+    try {
+      const event = JSON.parse(message.body);
+      console.log('WS verify status event:', event);
+      this.verifyStatusSubject.next(event);
+    } catch (e) {
+      console.error('Failed to parse verify status WS message', e);
+    }
+  });
+
+  this.verifyTopicSubscribed = true;
+}
+
   }
 
   /**
@@ -181,6 +205,10 @@ export class WebSocketService {
   subscribeProjectChanges(): Observable<ProjectChangeEvent> {
     return this.projectSubject.asObservable();
   }
+
+  subscribeVerifyStatus(): Observable<UserVerifyStatusEvent> {
+  return this.verifyStatusSubject.asObservable();
+}
 
   /**
    * Subscribe to comments for a specific issue

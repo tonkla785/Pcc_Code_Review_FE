@@ -32,3 +32,9 @@ export interface ProjectChangeEvent {
     projectId: string;
     projectName: string;
 }
+
+
+export interface UserVerifyStatusEvent {
+  userId: string;
+  status: 'UNVERIFIED' | 'PENDING_VERIFICATION' | 'VERIFIED';
+}

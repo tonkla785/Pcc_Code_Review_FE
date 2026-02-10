@@ -21,7 +21,7 @@ import {
   UserService,
   ChangePasswordData,
 } from '../../services/userservice/user.service';
-import { forkJoin, scan } from 'rxjs';
+import { forkJoin, scan, Subscription } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
@@ -157,6 +157,9 @@ export class DashboardComponent {
   allIssues: IssuesResponseDTO[] = [];
   filteredRepositories: Repository[] = [];
   latestScans = this.getLatestScanByProject();
+// verify
+  private verifySub?: Subscription;
+
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
@@ -256,6 +259,9 @@ export class DashboardComponent {
 
     // Load existing notifications from DB on page load
     this.loadNotifications();
+
+
+    // Verify status is now handled via SharedDataService (updated by AppComponent)
   }
 
   loadRepositories() {
