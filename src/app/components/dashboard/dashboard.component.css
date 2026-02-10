@@ -702,11 +702,26 @@ tr:last-child td {
   background: var(--bg-main);
   border-bottom: 1px solid var(--border-subtle);
   overflow-x: auto;
-  scrollbar-width: none;
+  /* scrollbar-width: none; REMOVED to allow scrollbar */
 }
 
 .notification-tabs::-webkit-scrollbar {
-  display: none;
+  height: 8px;
+  /* Thicker for easier mouse usage */
+}
+
+.notification-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 4px;
+}
+
+.notification-tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--text-sub);
+}
+
+.notification-tabs::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
 }
 
 .notification-tabs button {
@@ -800,6 +815,22 @@ tr:last-child td {
   display: flex;
   justify-content: space-between;
   margin-bottom: 6px;
+}
+
+.view-issue-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.view-issue-link:hover {
+  text-decoration: underline;
+  color: var(--primary-hover);
 }
 
 .n-title {
@@ -962,17 +993,136 @@ tr:last-child td {
   .notifications-panel,
   .profile-menu {
     width: 300px;
-    max-width: 90vw;
-    /* Prevent overflow */
-    right: -10px;
-    /* Slight offset fix */
-  }
-
-  .notifications-panel {
-    right: -50px;
-    /* Shift notification panel to be visible */
+    right: -60px;
   }
 }
+
+/* --- Custom Modal Styling --- */
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+.modal-dialog-custom {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 16px;
+  z-index: 10000;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.profile-menu {
+  width: 300px;
+  max-width: 90vw;
+  /* Prevent overflow */
+  right: -10px;
+  /* Slight offset fix */
+}
+
+.notifications-panel {
+  right: -50px;
+  /* Shift notification panel to be visible */
+}
+
+/* --- Custom Modal Styling (Global) --- */
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+.modal-dialog-custom {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 16px;
+  z-index: 10000;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ensure modal content has background */
+.modal-content {
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-hover);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: var(--bg-main);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 
 /* Small Mobile (max-width: 480px) */
 @media (max-width: 480px) {
