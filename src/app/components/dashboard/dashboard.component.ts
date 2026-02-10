@@ -804,6 +804,9 @@ export class DashboardComponent {
     if (n.relatedCommentId && n.relatedIssueId) {
       // Comment notification - go to issue detail
       this.router.navigate(['/issuedetail', n.relatedIssueId]);
+    } else if (n.relatedIssueId) {
+      // Assign issue notification - go to issue detail
+      this.router.navigate(['/issuedetail', n.relatedIssueId]);
     } else if (n.relatedScanId) {
       // Quality Gate notification - go to scan result
       this.router.navigate(['/scanresult', n.relatedScanId]);
