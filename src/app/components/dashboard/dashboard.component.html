@@ -82,8 +82,13 @@
                 <span style="font-size: 12px; color: var(--text-sub);">{{ UserLogin?.email }}</span>
               </div>
               <div style="margin-top: 8px;">
-                <span class="status-badge" [ngClass]="(UserLogin?.status || '').toLowerCase()">
-                  {{ UserLogin?.status }}
+                <span class="status-badge">Email Verify:</span>
+                <span class="status-badge" [ngClass]="{
+                  'verified': (UserLogin?.status || '').toUpperCase() === 'VERIFIED',
+                  'pending_verification': (UserLogin?.status || '').toUpperCase() === 'PENDING_VERIFICATION',
+                  'unverified': (UserLogin?.status || '').toUpperCase() === 'UNVERIFIED'
+                }">
+                  {{ UserLogin?.status | userStatus }}
                 </span>
               </div>
             </div>

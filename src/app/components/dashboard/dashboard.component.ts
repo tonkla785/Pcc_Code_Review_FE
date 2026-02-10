@@ -21,7 +21,7 @@ import {
   UserService,
   ChangePasswordData,
 } from '../../services/userservice/user.service';
-import { forkJoin, scan } from 'rxjs';
+import { forkJoin, scan, Subscription } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
@@ -67,6 +67,7 @@ import {
   buildCoverageTrendChart,
   generateLast30DaysLabels
 } from '../../utils/chart.utils';
+import { UserStatusPipe } from '../../pipes/user-status.pipe';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -80,7 +81,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule, UserStatusPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
@@ -157,6 +158,9 @@ export class DashboardComponent {
   allIssues: IssuesResponseDTO[] = [];
   filteredRepositories: Repository[] = [];
   latestScans = this.getLatestScanByProject();
+// verify
+  private verifySub?: Subscription;
+
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
@@ -258,6 +262,9 @@ export class DashboardComponent {
 
     // Load existing notifications from DB on page load
     this.loadNotifications();
+
+
+    // Verify status is now handled via SharedDataService (updated by AppComponent)
   }
 
   loadRepositories() {
