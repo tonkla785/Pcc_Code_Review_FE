@@ -159,6 +159,34 @@ export class AppComponent implements OnInit, OnDestroy {
         });
       }
     });
+
+    // Global WebSocket Listener for Issue Changes (assign / status update)
+    this.ws.subscribeIssueChanges().subscribe(event => {
+      console.log('[AppComponent] Issue change event:', event);
+
+      if (event.action === 'UPDATED') {
+        // 1. Refresh all issues list (for issue list page)
+        this.issueService.getAllIssues().subscribe({
+          next: (allIssues) => {
+            this.sharedData.IssuesShared = allIssues;
+            console.log('[AppComponent] Issues refreshed after issue change');
+          },
+          error: (err: any) => console.error('[AppComponent] Failed to refresh issues:', err)
+        });
+
+        // 2. If user is on issue detail page, refresh the selected issue too
+        const currentSelected = this.sharedData.selectIssueValue;
+        if (currentSelected && currentSelected.id === event.issueId) {
+          this.issueService.getAllIssuesById(event.issueId).subscribe({
+            next: (updatedIssue) => {
+              this.sharedData.SelectedIssues = updatedIssue;
+              console.log('[AppComponent] Selected issue refreshed:', event.issueId);
+            },
+            error: (err: any) => console.error('[AppComponent] Failed to refresh selected issue:', err)
+          });
+        }
+      }
+    });
   }
 
   // แยกฟังก์ชันดึงข้อมูลออกมา เพื่อให้เรียกใช้ได้ 2 รอบ (ตอนเริ่ม และ ตอนจบ Scan)
