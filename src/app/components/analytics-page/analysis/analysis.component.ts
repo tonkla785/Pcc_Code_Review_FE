@@ -111,6 +111,15 @@ export class AnalysisComponent implements OnInit, OnDestroy {
       })
     );
 
+    // Subscribe to scan history changes and recalculate debt
+    this.subscriptions.add(
+      this.sharedData.scansHistory$.subscribe(data => {
+        if (data && data.length > 0) {
+          this.techDebtDataService.calculateFromScans(data);
+        }
+      })
+    );
+
     if (!this.sharedData.hasSecurityIssuesCache) {
       this.securityService.getSecurityIssues().subscribe({
         next: (issues) => {
