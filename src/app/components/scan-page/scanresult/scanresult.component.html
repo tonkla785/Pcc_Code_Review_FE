@@ -13,8 +13,8 @@
           <h5 class="card-title">
             Quality Gate: {{ scanResult?.qualityGate === 'OK' ? 'Pass' : 'Fail' }}
             <i class="bi" [ngClass]="{
-                 'bi-check-circle-fill text-success': scanResult?.qualityGate === 'OK',
-                 'bi-x-circle-fill text-danger': scanResult?.qualityGate === null
+                 'bi-check-circle-fill text-success': (scanResult?.qualityGate || '').toUpperCase() === 'OK',
+                 'bi-x-circle-fill text-danger': (scanResult?.qualityGate || '').toUpperCase() !== 'OK'
                }"></i>
           </h5>
           <!-- <p>OwerScan: <strong>{{ scanInfo.owerscan }}</strong></p> -->

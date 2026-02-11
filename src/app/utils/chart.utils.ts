@@ -56,7 +56,7 @@ export function buildCoverageTrendChart(
     return {
         series: [
             {
-                name: 'Quality Grade',
+                name: 'Quality Grade Passed',
                 data: coverageValues,
             },
         ],
@@ -97,7 +97,7 @@ export function buildCoverageTrendChart(
             yaxis: {
                 min: 0,
                 max: maxY,
-                title: { text: 'Quality Grade Passed' },
+                title: { text: 'Quality Grade' },
             },
             stroke: {
                 curve: 'smooth',
