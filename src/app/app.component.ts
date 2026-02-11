@@ -111,7 +111,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const settings = this.userSettingsData.notificationSettings;
         const showScanAlert = !settings || settings.scansEnabled;
 
-        if (showScanAlert) {
+        if (showScanAlert && this.authService.isLoggedIn) {
           this.snack.open(
             event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
             '',
@@ -145,16 +145,18 @@ export class AppComponent implements OnInit, OnDestroy {
         // Clear technical debt data when project is deleted
         this.technicalDebtData.clearAllDebtData();
 
-        this.snack.open(
-          `Project "${event.projectName}" was deleted`,
-          '',
-          {
-            duration: 3000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-red']
-          }
-        );
+        if (this.authService.isLoggedIn) {
+          this.snack.open(
+            `Project "${event.projectName}" was deleted`,
+            '',
+            {
+              duration: 3000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-red']
+            }
+          );
+        }
       } else {
         // For ADDED / UPDATED -> Refresh repository list
         this.repoService.getAllRepo().subscribe({
@@ -162,18 +164,19 @@ export class AppComponent implements OnInit, OnDestroy {
             this.sharedData.setRepositories(repos);
             console.log('[AppComponent] Repositories refreshed after project change:', event.action);
 
-            // Show notification to user
-            const actionText = event.action === 'ADDED' ? 'added' : 'updated';
-            this.snack.open(
-              `Project "${event.projectName}" was ${actionText}`,
-              '',
-              {
-                duration: 3000,
-                horizontalPosition: 'right',
-                verticalPosition: 'top',
-                panelClass: ['app-snack', 'app-snack-blue']
-              }
-            );
+            if (this.authService.isLoggedIn) {
+              const actionText = event.action === 'ADDED' ? 'added' : 'updated';
+              this.snack.open(
+                `Project "${event.projectName}" was ${actionText}`,
+                '',
+                {
+                  duration: 3000,
+                  horizontalPosition: 'right',
+                  verticalPosition: 'top',
+                  panelClass: ['app-snack', 'app-snack-blue']
+                }
+              );
+            }
           },
           error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err)
         });
@@ -198,21 +201,23 @@ export class AppComponent implements OnInit, OnDestroy {
       // 2. Update SharedDataService so other components (Dashboard) update immediately
       this.sharedData.LoginUserShared = user;
 
-      // 3. Notify User
-      this.snack.open(
-        event.status === 'VERIFIED'
-          ? '✅ Email Verified'
-          : event.status === 'PENDING_VERIFICATION'
-            ? '⏳ Verification Pending'
-            : '❌ Email Unverified',
-        '',
-        {
-          duration: 3000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-          panelClass: ['app-snack', 'app-snack-blue']
-        }
-      );
+      // 3. Notify User 
+      if (this.authService.isLoggedIn) {
+        this.snack.open(
+          event.status === 'VERIFIED'
+            ? '✅ Email Verified'
+            : event.status === 'PENDING_VERIFICATION'
+              ? '⏳ Verification Pending'
+              : '❌ Email Unverified',
+          '',
+          {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-blue']
+          }
+        );
+      }
     });
 
     // Global WebSocket Listener for Issue Changes (assign / status update)
@@ -249,7 +254,7 @@ export class AppComponent implements OnInit, OnDestroy {
       bufferTime(2000),
       filter(list => list.length > 0)
     ).subscribe(notifications => {
-
+      if (!this.authService.isLoggedIn) return;
       //ตรวจIssues
       if (notifications.some(n => n.type === 'Issues')) {
         const settings = this.userSettingsData.notificationSettings;
