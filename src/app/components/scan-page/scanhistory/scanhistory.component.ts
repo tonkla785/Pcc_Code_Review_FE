@@ -301,6 +301,9 @@ showDuplications = false;
     } else {
       this.selectedScans.push(scan);
     }
+     this.selectedScans.sort((a, b) =>
+    new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+  );
   }
 
 
