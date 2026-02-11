@@ -1012,7 +1012,7 @@
 
 /* Container */
 :host-context(.dark-mode) .issue-container {
-  background: var(--bg-color, #121212);
+  background: #0f172a;
 }
 
 /* Header */
@@ -1023,8 +1023,8 @@
 
 /* Info Cards */
 :host-context(.dark-mode) .info-card {
-  background: var(--bg-card, #1e1e1e);
-  border-color: var(--card-border, #374151);
+  background: #1e293b;
+  border-color: #334155;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -1033,8 +1033,8 @@
 }
 
 :host-context(.dark-mode) .card-title {
-  color: var(--text-heading, #f9fafb);
-  border-bottom-color: var(--card-border, #374151);
+  color: #f8fafc;
+  border-bottom-color: #334155;
 }
 
 :host-context(.dark-mode) .card-title i {
@@ -1042,7 +1042,7 @@
 }
 
 :host-context(.dark-mode) .info-item {
-  border-bottom-color: var(--card-border, #374151);
+  border-bottom-color: #334155;
 }
 
 :host-context(.dark-mode) .info-label {
@@ -1110,13 +1110,13 @@
 
 /* Description Section */
 :host-context(.dark-mode) .description-section {
-  background: var(--bg-card, #1e1e1e);
-  border-color: var(--card-border, #374151);
+  background: #1e293b;
+  border-color: #334155;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 :host-context(.dark-mode) .section-header {
-  border-bottom-color: var(--card-border, #374151);
+  border-bottom-color: #334155;
 }
 
 :host-context(.dark-mode) .section-header h3 {
@@ -1159,30 +1159,30 @@
 
 /* Comments Section */
 :host-context(.dark-mode) .comments-section {
-  background: var(--bg-card, #1e1e1e);
-  border-color: var(--card-border, #374151);
+  background: #1e293b;
+  border-color: #334155;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 :host-context(.dark-mode) .btn-refresh {
-  background: var(--bg-panel, #2c2c2c);
-  border-color: var(--card-border, #374151);
-  color: var(--text-muted, #a0aec0);
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
 }
 
 :host-context(.dark-mode) .btn-refresh:hover:not(:disabled) {
-  background: var(--card-border, #374151);
-  border-color: #4b5563;
+  background: #334155;
+  border-color: #475569;
 }
 
 /* Comment Items */
 :host-context(.dark-mode) .comment-item {
-  background: var(--bg-panel, #2c2c2c);
-  border-color: var(--card-border, #374151);
+  background: #0f172a;
+  border-color: #334155;
 }
 
 :host-context(.dark-mode) .comment-item:hover {
-  background: #333333;
+  background: #1e3a5c;
 }
 
 :host-context(.dark-mode) .comment-avatar i {
@@ -1190,36 +1190,36 @@
 }
 
 :host-context(.dark-mode) .comment-author {
-  color: var(--text-main, #ffffff);
+  color: #f8fafc;
 }
 
 :host-context(.dark-mode) .comment-time {
-  color: var(--text-muted, #a0aec0);
+  color: #94a3b8;
 }
 
 :host-context(.dark-mode) .comment-text {
-  color: var(--text-muted, #a0aec0);
+  color: #cbd5e1;
 }
 
 /* Empty State */
 :host-context(.dark-mode) .empty-comments {
-  color: #6b7280;
+  color: var(--text-muted, #B3B3B3);
 }
 
 /* Add Comment Box */
 :host-context(.dark-mode) .add-comment-box {
-  border-top-color: var(--card-border, #374151);
+  border-top-color: #334155;
 }
 
 :host-context(.dark-mode) .comment-input-wrapper {
-  background: var(--bg-panel, #2c2c2c);
-  border-color: var(--card-border, #374151);
+  background: #0f172a;
+  border-color: #334155;
 }
 
 :host-context(.dark-mode) .comment-input-wrapper:focus-within {
-  border-color: #2563eb;
-  background: var(--bg-card, #1e1e1e);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  border-color: #3b82f6;
+  background: #1e293b;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
 :host-context(.dark-mode) .input-icon {
@@ -1227,7 +1227,7 @@
 }
 
 :host-context(.dark-mode) .comment-input {
-  color: var(--text-main, #ffffff);
+  color: #f8fafc;
 }
 
 :host-context(.dark-mode) .comment-input::placeholder {
