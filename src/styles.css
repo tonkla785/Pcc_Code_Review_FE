@@ -642,3 +642,23 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* ===== ApexCharts Tooltip Overrides ===== */
+/* Force text to remain dark in Tooltip (even if Dark Mode) */
+.dark-mode .apexcharts-tooltip,
+.dark-mode .apexcharts-tooltip-title,
+.dark-mode .apexcharts-tooltip-text,
+.dark-mode .apexcharts-tooltip-series-group {
+  color: #1e293b !important;
+  /* Slate-800 */
+  background: #ffffff !important;
+  /* White BG */
+  border-color: #e2e8f0 !important;
+  /* Slate-200 */
+}
+
+.dark-mode .apexcharts-tooltip-title {
+  background: #f1f5f9 !important;
+  /* Slate-100 */
+  border-bottom: 1px solid #e2e8f0 !important;
+}

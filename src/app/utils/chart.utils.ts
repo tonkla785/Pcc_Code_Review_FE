@@ -45,6 +45,9 @@ export function buildCoverageTrendChart(
         yaxis: { min: number; max: number; title: { text: string } };
         stroke: { curve: string; width: number };
         markers: { size: number };
+        theme?: { mode: string };
+        tooltip?: any;
+        grid?: any;
         colors: string[];
     };
 } {
@@ -63,6 +66,30 @@ export function buildCoverageTrendChart(
                 height: 300,
                 toolbar: { show: false },
                 zoom: { enabled: false }
+            },
+            theme: {
+                mode: 'light'
+            },
+            // Fix tooltip: Force Light Theme Tooltip (White BG, Dark Text) always
+            tooltip: {
+                theme: 'light',
+                style: {
+                    fontSize: '12px',
+                    fontFamily: undefined
+                },
+                x: {
+                    show: true,
+                    format: 'dd/MM'
+                },
+                marker: {
+                    show: true,
+                },
+            },
+            // Ensure X-axis and Grid lines are visible
+            grid: {
+                show: true,
+                borderColor: '#e2e8f0', // Slate-200
+                strokeDashArray: 4,
             },
             xaxis: {
                 categories: dates,

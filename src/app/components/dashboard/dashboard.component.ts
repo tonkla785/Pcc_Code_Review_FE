@@ -274,6 +274,8 @@ export class DashboardComponent {
 
 
     // Verify status is now handled via SharedDataService (updated by AppComponent)
+
+
   }
 
   loadRepositories() {
