@@ -1419,6 +1419,7 @@
   color: #6b7280;
 }
 
+
 .ai-loading-box {
   display: flex;
   flex-direction: column;
@@ -1490,3 +1491,4 @@
   background: rgba(59, 130, 246, 0.05);
   border-color: rgba(59, 130, 246, 0.2);
 }
+
