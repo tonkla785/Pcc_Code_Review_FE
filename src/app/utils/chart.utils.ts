@@ -70,7 +70,7 @@ export function buildCoverageTrendChart(
             yaxis: {
                 min: 0,
                 max: maxY,
-                title: { text: 'Quality Grade' },
+                title: { text: 'Quality Grade Passed' },
             },
             stroke: {
                 curve: 'smooth',
