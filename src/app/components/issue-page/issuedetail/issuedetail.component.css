@@ -1418,7 +1418,6 @@
 :host-context(.dark-mode) .comment-input::placeholder {
   color: #6b7280;
 }
-<<<<<<< HEAD
 
 .ai-loading-box {
   display: flex;
@@ -1491,5 +1490,3 @@
   background: rgba(59, 130, 246, 0.05);
   border-color: rgba(59, 130, 246, 0.2);
 }
-=======
->>>>>>> 8c44ce59d696cf1387c21c73185b9b3144c14e85
