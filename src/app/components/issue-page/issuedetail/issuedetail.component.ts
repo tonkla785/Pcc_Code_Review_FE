@@ -88,6 +88,18 @@ export class IssuedetailComponent implements OnInit {
   replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
   sortedComments: commentResponseDTO[] = [];
   selectedScans: any[] = [];
+    showMock = false;
+
+mockRecommendedFix = `
+This is a MOCK recommendation provided for demonstration and testing purposes only.
+Recommended Fix (Mock Version):
+1. Analyze the root cause of the issue by reviewing recent code changes, configuration updates, and deployment logs. Pay special attention to any modifications that were introduced shortly before the issue started occurring
+2. Verify that all required dependencies, services, and environment variables are correctly configured and available at runtime. Missing or misconfigured dependencies can often lead to unexpected failures.
+3. If the issue is related to a specific feature or module, consider temporarily disabling that feature to isolate the problem. This can help determine if the issue is caused by recent changes in that area.
+Note:
+This mock content is intentionally verbose and does not represent an actual production fix. It is intended solely for UI testing, layout validation, and feature demonstration.
+`;
+
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
@@ -254,6 +266,12 @@ export class IssuedetailComponent implements OnInit {
         : timeB - timeA;
     });
   }
+
+
+toggleMock() {
+  this.showMock = !this.showMock;
+}
+
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
     console.log('Raw API issue:', r);
