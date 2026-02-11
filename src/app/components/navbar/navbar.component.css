@@ -202,8 +202,9 @@
 
 .vertical-navbar ul li ul li a.active::before {
   content: '•';
+  padding-bottom: 7px;
   position: absolute;
-  left: 6px;
+  left: 3px;
   color: var(--nav-active-bg);
   font-size: 1.4rem;
   top: 50%;
