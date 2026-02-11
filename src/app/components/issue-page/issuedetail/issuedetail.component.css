@@ -1003,3 +1003,232 @@
 .btn-generate:active {
   transform: scale(0.96);
 }
+
+
+/* ========================
+   Dark Mode
+   ======================== */
+
+/* Container */
+:host-context(.dark-mode) .issue-container {
+  background: var(--bg-color, #121212);
+}
+
+/* Header */
+:host-context(.dark-mode) .issue-header {
+  background: linear-gradient(135deg, #1a3a5c 0%, #1e40af 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Info Cards */
+:host-context(.dark-mode) .info-card {
+  background: var(--bg-card, #1e1e1e);
+  border-color: var(--card-border, #374151);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:host-context(.dark-mode) .info-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+:host-context(.dark-mode) .card-title {
+  color: var(--text-heading, #f9fafb);
+  border-bottom-color: var(--card-border, #374151);
+}
+
+:host-context(.dark-mode) .card-title i {
+  color: #60a5fa;
+}
+
+:host-context(.dark-mode) .info-item {
+  border-bottom-color: var(--card-border, #374151);
+}
+
+:host-context(.dark-mode) .info-label {
+  color: var(--text-muted, #B3B3B3);
+}
+
+:host-context(.dark-mode) .info-value {
+  color: #f1f5f9;
+}
+
+:host-context(.dark-mode) .info-value.text-muted {
+  color: #f1f5f9 !important;
+}
+
+/* Severity Badges - Dark */
+:host-context(.dark-mode) .badge-severity.severity-critical {
+  background: rgba(201, 42, 42, 0.2);
+  color: #fca5a5;
+  border-color: rgba(201, 42, 42, 0.4);
+}
+
+:host-context(.dark-mode) .badge-severity.severity-high {
+  background: rgba(217, 72, 15, 0.2);
+  color: #fdba74;
+  border-color: rgba(217, 72, 15, 0.4);
+}
+
+:host-context(.dark-mode) .badge-severity.severity-minor {
+  background: rgba(230, 119, 0, 0.2);
+  color: #fcd34d;
+  border-color: rgba(230, 119, 0, 0.4);
+}
+
+:host-context(.dark-mode) .badge-severity.severity-major {
+  background: rgba(43, 138, 62, 0.2);
+  color: #86efac;
+  border-color: rgba(43, 138, 62, 0.4);
+}
+
+/* Status Badges - Dark */
+:host-context(.dark-mode) .badge-status.status-open {
+  background: rgba(25, 113, 194, 0.2);
+  color: #93c5fd;
+  border-color: rgba(25, 113, 194, 0.4);
+}
+
+:host-context(.dark-mode) .badge-status.status-in-progress,
+:host-context(.dark-mode) .badge-status.status-in_progress {
+  background: rgba(230, 119, 0, 0.2);
+  color: #fcd34d;
+  border-color: rgba(230, 119, 0, 0.4);
+}
+
+:host-context(.dark-mode) .badge-status.status-resolved {
+  background: rgba(43, 138, 62, 0.2);
+  color: #86efac;
+  border-color: rgba(43, 138, 62, 0.4);
+}
+
+:host-context(.dark-mode) .badge-status.status-closed {
+  background: rgba(73, 80, 87, 0.3);
+  color: #d1d5db;
+  border-color: rgba(73, 80, 87, 0.5);
+}
+
+/* Description Section */
+:host-context(.dark-mode) .description-section {
+  background: var(--bg-card, #1e1e1e);
+  border-color: var(--card-border, #374151);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:host-context(.dark-mode) .section-header {
+  border-bottom-color: var(--card-border, #374151);
+}
+
+:host-context(.dark-mode) .section-header h3 {
+  color: var(--text-heading, #f9fafb);
+}
+
+:host-context(.dark-mode) .section-header h3 i {
+  color: #60a5fa;
+}
+
+:host-context(.dark-mode) .code-header span {
+  color: #f1f5f9 !important;
+}
+
+:host-context(.dark-mode) .code-block {
+  color: #f1f5f9 !important;
+}
+
+:host-context(.dark-mode) .description-text p {
+  color: #f1f5f9 !important;
+}
+
+:host-context(.dark-mode) .btn-copy {
+  color: #f1f5f9 !important;
+}
+
+/* Recommendation Box - Dark */
+:host-context(.dark-mode) .recommendation-box {
+  background: linear-gradient(135deg, rgba(255, 212, 59, 0.1) 0%, rgba(255, 212, 59, 0.05) 100%);
+  border-left-color: #fbbf24;
+}
+
+:host-context(.dark-mode) .recommendation-header {
+  color: #fbbf24;
+}
+
+:host-context(.dark-mode) .recommendation-box p {
+  color: #ffffff !important;
+}
+
+/* Comments Section */
+:host-context(.dark-mode) .comments-section {
+  background: var(--bg-card, #1e1e1e);
+  border-color: var(--card-border, #374151);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:host-context(.dark-mode) .btn-refresh {
+  background: var(--bg-panel, #2c2c2c);
+  border-color: var(--card-border, #374151);
+  color: var(--text-muted, #a0aec0);
+}
+
+:host-context(.dark-mode) .btn-refresh:hover:not(:disabled) {
+  background: var(--card-border, #374151);
+  border-color: #4b5563;
+}
+
+/* Comment Items */
+:host-context(.dark-mode) .comment-item {
+  background: var(--bg-panel, #2c2c2c);
+  border-color: var(--card-border, #374151);
+}
+
+:host-context(.dark-mode) .comment-item:hover {
+  background: #333333;
+}
+
+:host-context(.dark-mode) .comment-avatar i {
+  color: #60a5fa;
+}
+
+:host-context(.dark-mode) .comment-author {
+  color: var(--text-main, #ffffff);
+}
+
+:host-context(.dark-mode) .comment-time {
+  color: var(--text-muted, #a0aec0);
+}
+
+:host-context(.dark-mode) .comment-text {
+  color: var(--text-muted, #a0aec0);
+}
+
+/* Empty State */
+:host-context(.dark-mode) .empty-comments {
+  color: #6b7280;
+}
+
+/* Add Comment Box */
+:host-context(.dark-mode) .add-comment-box {
+  border-top-color: var(--card-border, #374151);
+}
+
+:host-context(.dark-mode) .comment-input-wrapper {
+  background: var(--bg-panel, #2c2c2c);
+  border-color: var(--card-border, #374151);
+}
+
+:host-context(.dark-mode) .comment-input-wrapper:focus-within {
+  border-color: #2563eb;
+  background: var(--bg-card, #1e1e1e);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+:host-context(.dark-mode) .input-icon {
+  color: #6b7280;
+}
+
+:host-context(.dark-mode) .comment-input {
+  color: var(--text-main, #ffffff);
+}
+
+:host-context(.dark-mode) .comment-input::placeholder {
+  color: #6b7280;
+}
