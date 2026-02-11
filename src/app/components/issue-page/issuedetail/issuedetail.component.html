@@ -141,13 +141,31 @@
         <pre class="code-block"><code>{{ issuesDetails?.vulnerableCode }}</code></pre>
       </div>
 
-      <div class="recommendation-box" *ngIf="issuesDetails?.recommendedFix">
-        <div class="recommendation-header">
-          <i class="bi bi-lightbulb-fill"></i>
-          <strong>Recommended Fix</strong>
-        </div>
-        <p>{{ issuesDetails?.recommendedFix }}</p>
-      </div>
+<div class="recommendation-box" *ngIf="issuesDetails?.recommendedFix">
+  <div class="recommendation-header d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-lightbulb-fill"></i>
+      <strong>Recommended Fix</strong>
+    </div>
+
+<!-- From Uiverse.io by dexter-st --> 
+<button class="btn-generate" (click)="toggleMock()">
+  <i class="bi"
+     [ngClass]="showMock ? 'bi-arrow-left' : 'bi-stars'">
+  </i>
+  <span>
+    {{ showMock ? 'Back to SonarQube' : 'Generate with AI' }}
+  </span>
+</button>
+
+
+  </div>
+
+  <p>
+    {{ showMock ? mockRecommendedFix : issuesDetails?.recommendedFix }}
+  </p>
+</div>
+
     </div>
   </div>
 

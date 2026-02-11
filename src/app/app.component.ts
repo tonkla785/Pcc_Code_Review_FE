@@ -93,19 +93,19 @@ export class AppComponent implements OnInit, OnDestroy {
 
       // กรณีที่ 1: เริ่มต้น Scan (SCANNING)
       if (event.status === 'SCANNING') {
-        // 1. เก็บลง LocalStorage เพื่อจำสถานะ
-        console.log('[AppComponent] Setting localStorage for:', event.projectId);
-        localStorage.setItem(`repo-status-${event.projectId}`, mappedStatus);
+        // [Refactor] ไม่เก็บ localStorage แล้ว
+        // console.log('[AppComponent] Setting localStorage for:', event.projectId);
+        // localStorage.setItem(`repo-status-${event.projectId}`, mappedStatus);
 
-        // 2. ดึงข้อมูลรอบแรก (เพื่ออัปเดต UI และ History ว่ากำลังหมุน)
+        // 2. ดึงข้อมูลรอบแรก (เพื่ออัปเดต UI และ History ว่ากำลังหมุน - PENDING from DB)
         this.fetchScanData(event.projectId, event.status);
       }
 
       // กรณีที่ 2: Scan เสร็จสิ้น (SUCCESS หรือ FAILED)
       else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-        // 1. ลบ LocalStorage
-        console.log('[AppComponent] Removing localStorage for:', event.projectId);
-        localStorage.removeItem(`repo-status-${event.projectId}`);
+        // [Refactor] ไม่ต้องลบ localStorage (เพราะไม่ได้เก็บ)
+        // console.log('[AppComponent] Removing localStorage for:', event.projectId);
+        // localStorage.removeItem(`repo-status-${event.projectId}`);
 
         // 2. แจ้งเตือน User (Snackbar)
         const settings = this.userSettingsData.notificationSettings;
@@ -152,7 +152,7 @@ export class AppComponent implements OnInit, OnDestroy {
             duration: 3000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-blue']
+            panelClass: ['app-snack', 'app-snack-red']
           }
         );
       } else {
