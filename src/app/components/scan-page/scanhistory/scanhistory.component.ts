@@ -134,7 +134,8 @@ showDuplications = false;
     this.startDate = null;
     this.endDate = null;
     this.minEndDate = null;
-    this.statusFilter = 'ALL';
+    this.filterType = 'ALL';
+    this.filterProject = 'All Projects';
     this.applyFilter();
   }
 
@@ -300,6 +301,9 @@ showDuplications = false;
     } else {
       this.selectedScans.push(scan);
     }
+     this.selectedScans.sort((a, b) =>
+    new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+  );
   }
 
 

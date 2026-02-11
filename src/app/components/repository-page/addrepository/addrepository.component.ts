@@ -201,7 +201,7 @@ export class AddrepositoryComponent implements OnInit {
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
     if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
       Swal.fire({
-        icon: 'error',
+        icon: 'warning',
         title: 'Missing SonarQube Token',
         text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
         showCancelButton: true,
@@ -219,7 +219,7 @@ export class AddrepositoryComponent implements OnInit {
 
     this.updateProjectKey();
 
-    // ✅ payload add/update repo: ไม่ต้องส่ง username/password แล้ว
+    // payload add/update repo: ไม่ต้องส่ง username/password แล้ว
     const payload = {
       name: this.gitRepository.name,
       url: this.gitRepository.repositoryUrl,

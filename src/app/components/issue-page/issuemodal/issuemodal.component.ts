@@ -93,7 +93,6 @@ onSubmitUser() {
     }
   });
 }
-
       closeModal() {
     this.showAssign = false;
     this.showStatus = false;

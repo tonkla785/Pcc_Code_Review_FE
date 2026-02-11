@@ -13,6 +13,7 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 import { WebSocketService } from '../../../services/websocket/websocket.service';
 import { ScanEvent } from '../../../interface/websocket_interface';
 import Swal from 'sweetalert2';
+import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
 
 
 @Component({
@@ -42,7 +43,8 @@ export class RepositoriesComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly issueService: IssueService,
     private readonly snack: MatSnackBar,
-    private readonly ws: WebSocketService
+    private readonly ws: WebSocketService,
+    private readonly userSettingsData: UserSettingsDataService
   ) { }
 
   ngOnInit(): void {
@@ -251,6 +253,26 @@ export class RepositoriesComponent implements OnInit {
 
     if (!repo.projectId) {
       console.warn('No projectId for repo, cannot start scan');
+      return;
+    }
+
+    // Validate SonarQube Token
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing SonarQube Token',
+        text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Settings',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true,
+      }).then((result: any) => {
+        if (result.isConfirmed) {
+          this.router.navigate(['/sonarqubeconfig']);
+        }
+      });
       return;
     }
 
