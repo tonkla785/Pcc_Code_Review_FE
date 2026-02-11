@@ -416,12 +416,13 @@ export class PdfService {
 
         const tableData = context.scans.map(scan => {
             const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
-            const debtRatio = scan.metrics?.debtRatio || 0;
+            const costPerDay = scan.project?.costPerDay || 1000;
+            const cost = (debtMinutes / 480) * costPerDay;
             return [
                 this.formatScanDate(scan.startedAt),
                 context.projectName,
                 this.formatTechnicalDebt(debtMinutes),
-                this.formatCost(debtRatio)
+                this.formatCost(cost)
             ];
         });
 

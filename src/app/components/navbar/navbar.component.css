@@ -1,26 +1,86 @@
+/* ===========================================================
+   🚀 PREMIUM NAVBAR STYLE (Enhanced Rounded Pill)
+   =========================================================== */
+
+/* --- Variables (Local Scoped) --- */
+:host {
+  /* Default Light Mode */
+  --nav-bg: #ffffff;
+  --nav-text: #64748b;
+  /* Slate-500 */
+  --nav-text-active: #ffffff;
+  /* White text for active pill */
+  --nav-hover-bg: #f1f5f9;
+  /* Slate-100 */
+  --nav-active-bg: #2563eb;
+  /* Primary Blue */
+  --nav-border: #e2e8f0;
+  /* Slate-200 */
+  --nav-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+  --logo-gradient: linear-gradient(135deg, #1e293b 0%, #64748b 100%);
+}
+
+:host-context(.dark-mode) {
+  /* Dark Mode */
+  --nav-bg: #1e293b;
+  /* Slate-800 */
+  --nav-text: #94a3b8;
+  /* Slate-400 */
+  --nav-text-active: #ffffff;
+  --nav-hover-bg: #334155;
+  /* Slate-700 */
+  --nav-active-bg: #3b82f6;
+  /* Blue-500 */
+  --nav-border: #334155;
+  /* Slate-700 */
+  --nav-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+
+  --logo-gradient: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+}
+
 .vertical-navbar {
-  width: 220px;
+  /* border: 1px solid red; */
+  width: 240px;
   min-height: 100vh;
-  background-color: var(--navbar-bg);
-  color: var(--navbar-text);
+  background-color: var(--nav-bg);
+  color: var(--nav-text);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px 0;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: all 0.3s ease;
+  padding: 16px 16px;
+  border-right: 1px solid var(--nav-border);
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999;
 }
 
-/* Heading */
+/* --- Heading (Logo) --- */
 .vertical-navbar h4 {
-  color: var(--navbar-text);
+  /* border: 1px solid red; */
   margin-bottom: 20px;
-  font-size: 16px;
-  font-weight: bold;
+  padding: 0 8px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: var(--logo-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.3;
 }
 
-/* Menu list */
+.vertical-navbar h4 i {
+  font-size: 1.2rem;
+  background: var(--nav-active-bg);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* --- Menu List --- */
 .vertical-navbar ul {
   list-style: none;
   padding: 0;
@@ -28,56 +88,187 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  justify-content: space-between;
-  /* กระจายเมนูให้ balance */
 }
 
-.vertical-navbar li {
-  width: 100%;
+.nav-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  /* เว้นช่องว่างระหว่างเมนู */
+  gap: 4px;
+  margin-bottom: 24px;
 }
 
+.nav-item.mt-auto {
+  margin-top: auto;
+  margin-bottom: 0;
+  border-top: 1px solid var(--nav-border);
+  padding-top: 16px;
+  transition: margin-top 0.3s ease;
+}
+
+/* --- Navigation Links (Enhanced Rounded Pill) --- */
 .vertical-navbar a {
-  color: var(--navbar-text);
+  color: var(--nav-text);
   text-decoration: none;
-  padding: 10px 20px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  font-weight: bold;
-  border-left: 4px solid transparent;
-  transition: all 0.3s;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+  /* Retaining this as it's useful and standard, not "hardcore" */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .vertical-navbar a i {
-  margin-right: 10px;
-  /* เว้นช่องว่างไอคอนกับข้อความ */
+  margin-right: 12px;
+  font-size: 1.1rem;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Submenu items */
-.vertical-navbar ul li ul li a {
-  font-weight: normal;
-  /* ทำให้ตัวอักษรไม่หนา */
-  padding-left: 1.2rem;
-  /* กำหนดระยะย่อหน้าซ้ายเล็กน้อย */
-  font-size: 0.95rem;
-  /* ปรับขนาดตัวอักษรถ้าต้องการ */
+/* Hover State - Enhanced (Desktop Only to prevent sticky hover) */
+@media (hover: hover) {
+  .vertical-navbar a:hover {
+    background-color: var(--nav-hover-bg);
+    color: var(--nav-active-bg);
+    transform: translateX(4px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  }
+
+  .vertical-navbar a:hover i {
+    transform: scale(1.15) rotate(5deg);
+    color: var(--nav-active-bg);
+  }
 }
 
-
-.vertical-navbar a:hover {
-  background-color: var(--navbar-hover);
-}
-
+/* Active State - Enhanced */
 .vertical-navbar a.active {
-  background-color: var(--navbar-active-bg);
-  border-left: 4px solid var(--navbar-active-border);
+  background: linear-gradient(135deg, var(--nav-active-bg), #3b82f6);
+  color: var(--nav-text-active);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3), 0 1px 3px rgba(37, 99, 235, 0.1);
+  transform: translateX(4px) scale(1.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Desktop fixed */
+.vertical-navbar a.active i {
+  color: var(--nav-text-active);
+  transform: scale(1);
+}
+
+/* --- Submenu items --- */
+.vertical-navbar ul li ul {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding-left: 12px;
+  padding-right: 12px;
+  position: relative;
+  will-change: max-height, opacity, transform;
+}
+
+.vertical-navbar ul li ul li a {
+  font-weight: 400;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  padding-left: 16px;
+  color: var(--nav-text);
+  border-radius: 8px;
+  margin-bottom: 2px;
+}
+
+@media (hover: hover) {
+  .vertical-navbar ul li ul li a:hover {
+    background-color: var(--nav-hover-bg);
+    transform: translateX(4px);
+    color: var(--nav-active-bg);
+  }
+}
+
+/* Override Active State for Subitems */
+.vertical-navbar ul li ul li a.active {
+  background: transparent !important;
+  background-color: rgba(37, 99, 235, 0.1) !important;
+  color: var(--nav-active-bg) !important;
+  font-weight: 700;
+  box-shadow: none !important;
+  transform: none !important;
+  border: 1px solid transparent;
+}
+
+.vertical-navbar ul li ul li a.active::before {
+  content: '•';
+  position: absolute;
+  left: 6px;
+  color: var(--nav-active-bg);
+  font-size: 1.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+/* --- Animations (Smooth Accordion Feel) --- */
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    max-height: 0;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 300px;
+  }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    max-height: 0;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 300px;
+  }
+}
+
+.submenu-down {
+  overflow: hidden;
+  animation: slideDownFade 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.submenu-up {
+  overflow: hidden;
+  animation: slideUpFade 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+
+/* --- Responsive (Mobile) --- */
+.hamburger {
+  display: none;
+}
+
+/* Backdrop for Mobile */
+.navbar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 998;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
 @media (min-width: 768px) {
   .vertical-navbar {
     position: fixed;
@@ -85,91 +276,70 @@
     left: 0;
   }
 
-  .main-content {
-    margin-left: 220px;
-    /* เว้นพื้นที่ navbar */
+  .navbar-backdrop {
+    display: none !important;
   }
 }
 
-/* Mobile */
 @media (max-width: 767px) {
   .vertical-navbar {
     position: fixed;
     top: 0;
-    left: -220px;
-    /* ซ่อน navbar */
-    z-index: 1000;
-  }
-
-  .vertical-navbar h4 {
-    padding-left: 40px;
+    left: -260px;
+    height: 100vh;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   }
 
   .vertical-navbar.active {
     left: 0;
-    /* slide in */
   }
 
-  .main-content {
-    margin-left: 0;
-    padding-top: 70px;
-    /* เว้น hamburger */
-  }
-
-  .hamburger {
+  .navbar-backdrop.active {
     display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Hamburger Button */
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: fixed;
-    top: 15px;
-    left: 15px;
+    top: 12px;
+    left: 16px;
+    width: 40px;
+    height: 40px;
     font-size: 24px;
-    color: #007BFF;
+    /* Removed heavy enforcing (!important), used standard variables setup */
+    background: var(--nav-bg);
+    border: 1px solid var(--nav-border);
+    border-radius: 10px;
     z-index: 1100;
-    background: none;
-    border: none;
     cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .vertical-navbar.active+.hamburger,
+  /* Hamburger Icon Color */
+  .hamburger i {
+    /* Use nav text color (Slate 500 in light, Slate 400 in dark) -> Good contrast */
+    color: var(--nav-text);
+  }
+
   .hamburger.active {
-    color: white;
-    /* เปลี่ยนเป็นสีขาว */
-  }
-}
-
-@keyframes slideUpFade {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+    left: 200px;
+    /* When active on mobile, it sits ON TOP of the white navbar. */
+    /* If transparent, we see white navbar. */
+    /* Icon needs to be DARK to be seen on white. */
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .hamburger.active i {
+    /* CRITICAL FIX: Use normal text color, NOT active text color (which is white) */
+    color: var(--nav-text);
   }
-}
-
-@keyframes slideDownFade {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.submenu-up {
-  animation: slideUpFade 0.3s ease-out forwards;
-}
-
-.submenu-down {
-  animation: slideDownFade 0.3s ease-out forwards;
-  /* Ensure transform origin is top for natural drop-down feel if needed, though translateY handles it well */
-}
-
-/* Backward compatibility or specific override if kept */
-.setting-submenu {
-  animation: slideUpFade 0.3s ease-out forwards;
 }

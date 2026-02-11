@@ -112,9 +112,12 @@ export class NavbarComponent implements OnInit {
   }
 
   // ฟัง click event นอก dropdown เพื่อปิด submenu
+  // NOTE: On Mobile, we have a Backdrop that handles the close.
+  // This listener ensures desktop submenus close (or if backdrop fails).
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
     // ตรวจสอบว่า click อยู่นอก navbar หรือไม่
+    // หมายเหตุ: elementRef คือตัว Component เอง (<app-navbar>)
     if (!this.elementRef.nativeElement.contains(event.target)) {
       this.closeAllSubmenus();
     }
@@ -154,9 +157,4 @@ export class NavbarComponent implements OnInit {
       }
     });
   }
-
-
-
-
-
 }
