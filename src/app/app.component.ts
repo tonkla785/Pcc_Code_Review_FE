@@ -66,6 +66,13 @@ export class AppComponent implements OnInit, OnDestroy {
     // Reconnect WebSocket if already logged in (e.g., after page refresh)
     if (this.authService.isLoggedIn) {
       this.authService.reconnectWebSocket();
+
+      // Restore user status from localStorage into SharedDataService
+      const savedUser = this.tokenStorage.getLoginUser();
+      if (savedUser) {
+        this.sharedData.LoginUserShared = savedUser;
+        console.log('[AppComponent] Restored user from localStorage:', savedUser.status);
+      }
     }
 
     this.subscribeToNotifications();
@@ -174,19 +181,22 @@ export class AppComponent implements OnInit, OnDestroy {
     });
 
     // Listen verify status realtime
-    // Listen verify status realtime
     this.verifySub = this.ws.subscribeVerifyStatus().subscribe(event => {
       console.log('[AppComponent] Verify status event:', event);
 
-      // 1. Update LocalStorage
+      // 0. ตรวจสอบว่า userId ตรงกับ user ปัจจุบันหรือไม่
       const user = this.tokenStorage.getLoginUser();
-      if (user) {
-        user.status = event.status;
-        localStorage.setItem('UserLogin', JSON.stringify(user));
-
-        // 2. Update SharedDataService so other components (Dashboard) update immediately
-        this.sharedData.LoginUserShared = user;
+      if (!user || user.id !== event.userId) {
+        console.warn('[AppComponent] Verify status ignored - userId mismatch. Event userId:', event.userId, 'Current userId:', user?.id);
+        return;
       }
+
+      // 1. Update LocalStorage (use TokenStorageService to write to correct key 'login_user')
+      user.status = event.status;
+      this.tokenStorage.setLoginUser(user);
+
+      // 2. Update SharedDataService so other components (Dashboard) update immediately
+      this.sharedData.LoginUserShared = user;
 
       // 3. Notify User
       this.snack.open(
