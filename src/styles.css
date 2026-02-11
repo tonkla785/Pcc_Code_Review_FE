@@ -10,8 +10,8 @@
   /* สีข้อความหลัก (ดำ) */
   --dashboard-title-color: #2563eb;
   /* ===== พื้นหลัง / ตัวอักษร ===== */
-  --bg-main: #ffffff;
-  /* พื้นหลังหลัก */
+  --bg-main: #f8fafc;
+  /* พื้นหลังหลัก (Repo Light) */
   --bg-card: #ffffff;
   /* พื้นหลังการ์ด */
   --bg-panel: #f8f9fa;
@@ -24,7 +24,7 @@
   /* ข้อความหัวข้อ */
 
   /* ===== Navbar ===== */
-  --navbar-bg: #ffffff;
+  --navbar-bg: #f8fafc;
   /* สีพื้น navbar */
   --navbar-hover: #add8e6;
   /* สี hover */
@@ -158,12 +158,12 @@
      Dark mode
      =============================== */
 .dark-mode {
-  --bg-color: #121212;
-  /* พื้นหลังหลัก */
+  --bg-color: #0f172a;
+  /* พื้นหลังหลัก (Repo Dark) */
   --text-color: #ffffff;
   /* ข้อความหลัก */
 
-  --navbar-bg: #121212;
+  --navbar-bg: var(--bg-main);
   /* navbar */
   --navbar-hover: #333333;
   /* hover */
@@ -172,11 +172,11 @@
   --navbar-active-border: #ffa500;
   /* ขอบ active */
 
-  --detail-bg: #2c2c2c;
+  --detail-bg: #1e293b;
   /* detail */
   --dashboard-title-color: #ffffff;
-  --bg-main: #121212;
-  /* พื้นหลังหลัก */
+  --bg-main: #0f172a;
+  /* พื้นหลังหลัก (Repo Dark) */
   --bg-card: #1e1e1e;
   /* การ์ด */
   --bg-panel: #2c2c2c;
@@ -641,4 +641,24 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
+}
+
+/* ===== ApexCharts Tooltip Overrides ===== */
+/* Force text to remain dark in Tooltip (even if Dark Mode) */
+.dark-mode .apexcharts-tooltip,
+.dark-mode .apexcharts-tooltip-title,
+.dark-mode .apexcharts-tooltip-text,
+.dark-mode .apexcharts-tooltip-series-group {
+  color: #1e293b !important;
+  /* Slate-800 */
+  background: #ffffff !important;
+  /* White BG */
+  border-color: #e2e8f0 !important;
+  /* Slate-200 */
+}
+
+.dark-mode .apexcharts-tooltip-title {
+  background: #f1f5f9 !important;
+  /* Slate-100 */
+  border-bottom: 1px solid #e2e8f0 !important;
 }
