@@ -74,8 +74,14 @@
 
       <tbody>
         <tr *ngIf="pagedScans?.length === 0">
-          <td colspan="7" class="text-center text-muted py-4">
-            <i class="bi bi-inbox"></i> No Data
+          <td colspan="7" class="text-center py-5">
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="bi bi-folder-x"></i>
+              </div>
+              <h3>No Scans Found</h3>
+              <p>Try adjusting your filters or run a new scan.</p>
+            </div>
           </td>
         </tr>
         <tr *ngFor="let scan of pagedScans" style="cursor: pointer;" (click)="toggleScanSelection(scan)">
@@ -265,22 +271,18 @@
               Grade
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
-          <span class="badge px-3 py-2"
-            [ngClass]="scan.qualityGate === 'OK'
+              <span class="badge px-3 py-2" [ngClass]="scan.qualityGate === 'OK'
               ? 'bg-success-subtle text-success'
               : 'bg-danger-subtle text-danger'">
-            {{ scan.qualityGate === 'OK' ? 'Pass' : 'Failed' }}
-          </span>
+                {{ scan.qualityGate === 'OK' ? 'Pass' : 'Failed' }}
+              </span>
             </td>
             <td class="text-center pe-3">
               <ng-container>
-                <span
-                  class="badge px-3 py-2"
-                  [ngClass]="{
+                <span class="badge px-3 py-2" [ngClass]="{
                     'bg-success-subtle text-success': selectedScans[selectedScans.length - 1].qualityGate === 'OK',
                     'bg-danger-subtle text-danger': selectedScans[selectedScans.length - 1].qualityGate !== 'OK'
-                  }"
-                >
+                  }">
                   {{selectedScans[selectedScans.length - 1].qualityGate === 'OK' ? '▲ Pass' : '▼ Failed' }}
                 </span>
               </ng-container>
