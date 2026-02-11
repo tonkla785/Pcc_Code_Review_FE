@@ -134,7 +134,8 @@ showDuplications = false;
     this.startDate = null;
     this.endDate = null;
     this.minEndDate = null;
-    this.statusFilter = 'ALL';
+    this.filterType = 'ALL';
+    this.filterProject = 'All Projects';
     this.applyFilter();
   }
 

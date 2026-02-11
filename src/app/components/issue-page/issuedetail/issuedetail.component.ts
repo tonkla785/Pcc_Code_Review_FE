@@ -88,9 +88,10 @@ export class IssuedetailComponent implements OnInit {
   replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
   sortedComments: commentResponseDTO[] = [];
   selectedScans: any[] = [];
-    showMock = false;
+  showMock = false;
+  isAiLoading = false;
 
-mockRecommendedFix = `
+  mockRecommendedFix = `
 This is a MOCK recommendation provided for demonstration and testing purposes only.
 Recommended Fix (Mock Version):
 1. Analyze the root cause of the issue by reviewing recent code changes, configuration updates, and deployment logs. Pay special attention to any modifications that were introduced shortly before the issue started occurring
@@ -268,9 +269,13 @@ This mock content is intentionally verbose and does not represent an actual prod
   }
 
 
-toggleMock() {
-  this.showMock = !this.showMock;
-}
+  toggleMock() {
+    this.isAiLoading = true;
+    setTimeout(() => {
+      this.isAiLoading = false;
+      this.showMock = true;
+    }, 3000);
+  }
 
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
