@@ -1,7 +1,7 @@
 import { QualityGates } from './../../interface/sonarqube_interface';
 import { AuthService } from './../../services/authservice/auth.service';
 import { Dashboard } from './../../services/dashboardservice/dashboard.service';
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -21,7 +21,7 @@ import {
   UserService,
   ChangePasswordData,
 } from '../../services/userservice/user.service';
-import { forkJoin, scan } from 'rxjs';
+import { forkJoin, scan, Subscription } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { IssueService } from '../../services/issueservice/issue.service';
@@ -67,6 +67,7 @@ import {
   buildCoverageTrendChart,
   generateLast30DaysLabels
 } from '../../utils/chart.utils';
+import { UserStatusPipe } from '../../pipes/user-status.pipe';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -80,11 +81,20 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule, UserStatusPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.showNotifications) {
+      this.showNotifications = false;
+    }
+    if (this.showProfileDropdown) {
+      this.showProfileDropdown = false;
+    }
+  }
   constructor(
     private readonly router: Router,
     private readonly dash: DashboardService,
@@ -157,6 +167,9 @@ export class DashboardComponent {
   allIssues: IssuesResponseDTO[] = [];
   filteredRepositories: Repository[] = [];
   latestScans = this.getLatestScanByProject();
+  // verify
+  private verifySub?: Subscription;
+
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
   avgGateLetter: 'A' | 'B' | 'C' | 'D' | 'E' = 'A';
@@ -258,6 +271,9 @@ export class DashboardComponent {
 
     // Load existing notifications from DB on page load
     this.loadNotifications();
+
+
+    // Verify status is now handled via SharedDataService (updated by AppComponent)
   }
 
   loadRepositories() {
@@ -316,7 +332,7 @@ export class DashboardComponent {
   countBug() {
     const bugs = this.getLatestScanByProject() ?? [];
     this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
-    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0), 0);
+    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.vulnerabilities ?? 0), 0);
     this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
     this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
     console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
@@ -536,6 +552,9 @@ export class DashboardComponent {
   // ================== PROFILE & USER ==================
   toggleProfileDropdown() {
     this.showProfileDropdown = !this.showProfileDropdown;
+    if (this.showProfileDropdown) {
+      this.showNotifications = false;
+    }
   }
 
   showChangePasswordModal = false;
@@ -561,6 +580,7 @@ export class DashboardComponent {
       newPassword: '',
       confirmPassword: '',
     };
+    this.submitted = false;
   }
 
   // ==== NEW PASSWORD VALIDATION (ใช้ utils) ====
@@ -598,13 +618,12 @@ export class DashboardComponent {
 
     this.userService.changePassword(this.passwordData).subscribe({
       next: () => {
+        this.closeChangePasswordModal();
         Swal.fire({
           icon: 'success',
           title: 'Success',
           text: 'Password changed successfully',
           confirmButtonColor: '#3085d6',
-        }).then(() => {
-          this.closeChangePasswordModal();
         });
       },
       error: (err) => {
@@ -673,6 +692,9 @@ export class DashboardComponent {
 
   toggleNotifications() {
     this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.showProfileDropdown = false;
+    }
   }
 
   closeNotifications() {
@@ -847,6 +869,16 @@ export class DashboardComponent {
     this.displayCount += 5;
   }
 
+  onNotificationScroll(event: any) {
+    const element = event.target;
+    // Check if scrolled to near bottom (within 20px)
+    if (element.scrollHeight - element.scrollTop <= element.clientHeight + 20) {
+      if (this.displayCount < this.totalFilteredCount) {
+        this.loadMore();
+      }
+    }
+  }
+
   get totalFilteredCount() {
     if (this.activeTab === 'All') return this.notifications.length;
     if (this.activeTab === 'Unread')
@@ -931,20 +963,21 @@ export class DashboardComponent {
   loadDashboardData() {
     const latest = this.getLatestScanByProject();
     const norm = (s?: string) => (s || '').trim().toUpperCase();
-    const validLatest = latest.filter((s) => this.notEmpty(s.status));
+    // Filter scans that have a qualityGate result
+    const validLatest = latest.filter((s) => this.notEmpty(s.qualityGate));
 
-    // ✅ pass ได้เฉพาะ 3 ตัวนี้เท่านั้น
+    // ✅ pass = qualityGate is 'OK'
     const passedCount = validLatest.filter((s) => {
-      const st = norm(s.status);
-      return st === 'PASSED' || st === 'OK' || st === 'SUCCESS';
+      const qg = norm(s.qualityGate);
+      return qg === 'OK';
     }).length;
 
-    // ✅ ที่เหลือคือ failed ทั้งหมด
+    // ✅ failed = qualityGate is NOT 'OK' (e.g. ERROR, WARN, NONE etc.)
     const failedCount = validLatest.filter((s) => {
-      const st = norm(s.status);
-      return !(st === 'PASSED' || st === 'OK' || st === 'SUCCESS');
+      const qg = norm(s.qualityGate);
+      return qg !== 'OK' && qg !== 'NONE' && qg !== '';
     }).length;
-    console.log('Passed Count:', passedCount, 'Failed Count:', failedCount);
+    console.log('QG Passed Count:', passedCount, 'QG Failed Count:', failedCount);
     // ใช้เฉพาะที่จบแล้ว (pass+fail) มาหาร
     const finishedTotal = passedCount + failedCount;
 
@@ -968,29 +1001,21 @@ export class DashboardComponent {
 
     this.gradePercent = Math.round(ratio * 100);
 
-    let centerLetter: 'A' | 'B' | 'C' | 'D' | 'E';
-    if (this.isValidGateLetter(this.avgGateLetter)) {
-      centerLetter = this.avgGateLetter;
-    } else {
-      centerLetter = (this.grade === 'F' ? 'E' : this.grade) as
-        | 'A'
-        | 'B'
-        | 'C'
-        | 'D'
-        | 'E';
-    }
+    // Use the computed grade directly for the center letter
+    const centerLetter: 'A' | 'B' | 'C' | 'D' | 'E' =
+      (this.grade === 'F' ? 'E' : this.grade) as 'A' | 'B' | 'C' | 'D' | 'E';
 
     // ถ้าไม่มีข้อมูล ให้แสดง E สีเทา
     const hasData = this.totalProjects > 0;
     const displayGrade = hasData ? this.grade : 'E';
     const displayPercent = hasData ? this.gradePercent : 0;
-    const successColor = hasData ? this.getGradeColor(centerLetter) : this.getGradeColor(centerLetter); // grey-400
+    const successColor = hasData ? '#10B981' : '#E5E7EB'; // grey-400
     const failedColor = hasData ? '#EF4444' : '#E5E7EB'; // grey-200 when no data
 
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
       series: hasData ? [displayPercent, 100 - displayPercent] : [0, 100],
-      labels: ['SUCCESS', 'FAILED'],
+      labels: ['PASSED', 'FAILED'],
       colors: [successColor, failedColor],
       states: {
         hover: {
@@ -1035,7 +1060,7 @@ export class DashboardComponent {
       legend: {
         show: true,
         markers: {
-          fillColors: [this.getGradeColor(centerLetter), '#EF4444']
+          fillColors: ['#10B981', '#EF4444']
         }
       },
       tooltip: {

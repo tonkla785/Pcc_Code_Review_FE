@@ -240,12 +240,13 @@ export class PowerpointService {
 
         const tableData = context.scans.map(scan => {
             const debtMinutes = scan.metrics?.technicalDebtMinutes || 0;
-            const debtRatio = scan.metrics?.debtRatio || 0;
+            const costPerDay = scan.project?.costPerDay || 1000;
+            const cost = (debtMinutes / 480) * costPerDay;
             return [
                 { text: this.formatScanDate(scan.startedAt), options: { align: 'center' } },
                 { text: context.projectName, options: { align: 'left' } },
                 { text: this.formatTechnicalDebt(debtMinutes), options: { align: 'center' } },
-                { text: `THB ${debtRatio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, options: { align: 'center' } }
+                { text: `THB ${cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, options: { align: 'center' } }
             ];
         });
 

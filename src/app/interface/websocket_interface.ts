@@ -39,3 +39,9 @@ export interface IssueChangeEvent {
     action: 'UPDATED';
     issueId: string;
 }
+
+
+export interface UserVerifyStatusEvent {
+    userId: string;
+    status: 'UNVERIFIED' | 'PENDING_VERIFICATION' | 'VERIFIED';
+}

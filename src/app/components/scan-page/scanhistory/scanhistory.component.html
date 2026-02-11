@@ -1,5 +1,10 @@
 <div class="scan-history-container p-4">
-  <h2><i class="bi bi-journal-text"></i> Scan History</h2>
+  <div class="dashboard-header mb-4">
+    <div>
+      <h1>Scan History</h1>
+      <p>View past scan results and analysis reports</p>
+    </div>
+  </div>
 
   <!-- Filter / Search -->
   <div class="filter-row my-3 d-flex flex-wrap align-items-center gap-3">
@@ -8,11 +13,12 @@
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Range:</label>
       <input #startInput type="date" [(ngModel)]="startDate" class="form-control form-control-sm"
-       (ngModelChange)="applyFilterStatus()" placeholder="Start Date" (keydown)="$event.preventDefault()"
+        (ngModelChange)="applyFilterStatus()" placeholder="Start Date" (keydown)="$event.preventDefault()"
         (click)="startInput.showPicker()" />
       <span>-</span>
       <input #endInput type="date" [(ngModel)]="endDate" class="form-control form-control-sm" [min]="minEndDate"
-        placeholder="End Date" (ngModelChange)="applyFilterStatus()" (keydown)="$event.preventDefault()" (click)="endInput.showPicker()" />
+        placeholder="End Date" (ngModelChange)="applyFilterStatus()" (keydown)="$event.preventDefault()"
+        (click)="endInput.showPicker()" />
     </div>
 
     <div class="vr"></div>
@@ -20,26 +26,23 @@
     <!-- 3. Status -->
     <div class="d-flex align-items-center gap-2">
       <label class="fw-bold">Status:</label>
-      <select class="form-control form-control-sm" (ngModelChange)="applyFilterStatus()" [(ngModel)]="filterType" (ngModelChange)="applyFilterStatus()"style="width: 120px;">
+      <select class="form-control form-control-sm" (ngModelChange)="applyFilterStatus()" [(ngModel)]="filterType"
+        (ngModelChange)="applyFilterStatus()" style="width: 120px;">
         <option value="ALL">ALL</option>
         <option value="SUCCESS">Success</option>
         <option value="FAILED">Failed</option>
       </select>
     </div>
-<div class="d-flex align-items-center gap-2">
-  <label class="fw-bold">Project:</label>
-  <select
-    class="form-control form-control-sm"
-    style="width: 160px"
-    [(ngModel)]="filterProject"
-    (ngModelChange)="applyFilterStatus()"
-  >
-    <option value="All Projects">All Projects</option>
-    <option *ngFor="let project of repositories" [value]="project.name">
-      {{ project.name }}
-    </option>
-  </select>
-</div>
+    <div class="d-flex align-items-center gap-2">
+      <label class="fw-bold">Project:</label>
+      <select class="form-control form-control-sm" style="width: 160px" [(ngModel)]="filterProject"
+        (ngModelChange)="applyFilterStatus()">
+        <option value="All Projects">All Projects</option>
+        <option *ngFor="let project of repositories" [value]="project.name">
+          {{ project.name }}
+        </option>
+      </select>
+    </div>
 
 
     <!-- Buttons -->
@@ -62,12 +65,10 @@
           </th>
           <th>Date/Time</th>
           <th>Project</th>
-          <!-- <th>Owner Scan</th> -->
           <th>Grade</th>
           <th>Issues</th>
-          <!-- <th class="log-col sticky-col">Log</th> -->
-          <th class="result-col sticky-col">Result</th>
-          <th></th>
+          <th>Log</th>
+          <th>Result</th>
         </tr>
       </thead>
 
@@ -88,34 +89,64 @@
           </td>
 
           <td>
-            {{scan.project.name}} <br />
-            <span [ngClass]="statusClass(scan.status)">
-              <i [ngClass]="statusIcon(scan.status)"></i> {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
-            </span>
+            <div class="repo-identity">
+              <div class="type-icon"
+                [ngClass]="(scan.project?.projectType || '').includes('Angular') ? 'icon-angular' : 'icon-spring'">
+                <i class="bi"
+                  [ngClass]="(scan.project?.projectType || '').includes('Angular') ? 'bi-code-slash' : 'bi-filetype-java'"></i>
+              </div>
+              <div>
+                <div class="repo-name" [title]="scan.project.name">{{ scan.project.name }}</div>
+                <span class="status-badge" [ngClass]="{
+                    'success': scan.status === 'SUCCESS',
+                    'failed': scan.status === 'FAILED',
+                    'scanning': scan.status === 'PENDING'
+                  }">
+                  <span class="status-dot"></span>
+                  {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
+                </span>
+              </div>
+            </div>
           </td>
           <!-- <td>{{scan.ownerScan}}</td> -->
-          <td>{{ scan.qualityGate === 'OK' ? 'Pass' : 'Fail' }}</td>
+          <td>
+            <span class="gate-badge" [ngClass]="scan.qualityGate === 'OK' ? 'gate-pass' : 'gate-fail'">
+              {{ scan.qualityGate === 'OK' ? 'Passed' : 'Failed' }}
+            </span>
+          </td>
 
           <td>
-            <span *ngIf="scan.metrics?.bugs !== undefined"><i class="bi bi-bug"></i> {{scan.metrics?.bugs}}</span>
-            <span *ngIf="scan.metrics?.vulnerabilities !== undefined"><i class="bi bi-shield"></i>
-              {{scan.metrics?.vulnerabilities}}</span>
-            <span *ngIf="scan.metrics?.codeSmells !== undefined"><i class="bi bi-code"></i>
-              {{scan.metrics?.codeSmells}}</span>
-            <span *ngIf="scan.metrics?.coverage !== undefined"><i class="bi bi-bar-chart"></i>
-              {{scan.metrics?.coverage}}</span>
-            <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined"><i class="bi bi-duplicate"></i>
-              {{scan.metrics?.duplicatedLinesDensity}}</span>
+            <div class="d-flex gap-3 align-items-center">
+              <span *ngIf="scan.metrics?.bugs !== undefined" title="Bugs" class="d-flex align-items-center gap-1">
+                <i class="bi bi-bug-fill text-danger"></i> {{scan.metrics?.bugs}}
+              </span>
+              <span *ngIf="scan.metrics?.vulnerabilities !== undefined" title="Vulnerabilities"
+                class="d-flex align-items-center gap-1">
+                <i class="bi bi-shield-fill-exclamation text-warning"></i> {{scan.metrics?.vulnerabilities}}
+              </span>
+              <span *ngIf="scan.metrics?.codeSmells !== undefined" title="Code Smells"
+                class="d-flex align-items-center gap-1">
+                <i class="bi bi-code-slash text-info"></i> {{scan.metrics?.codeSmells}}
+              </span>
+              <span *ngIf="scan.metrics?.coverage !== undefined" title="Coverage"
+                class="d-flex align-items-center gap-1">
+                <i class="bi bi-graph-up text-success"></i> {{scan.metrics?.coverage}}%
+              </span>
+              <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined" title="Duplications"
+                class="d-flex align-items-center gap-1">
+                <i class="bi bi-files text-secondary"></i> {{scan.metrics?.duplicatedLinesDensity}}%
+              </span>
+            </div>
           </td>
 
           <td class="log-col sticky-col" (click)="$event.stopPropagation()">
-            <button title="View log" class="btn btn-log btn-sm" (click)="viewLog(scan); $event.stopPropagation()">
+            <button title="View log" class="btn btn-icon btn-view" (click)="viewLog(scan); $event.stopPropagation()">
               <i class="bi bi-file-text"></i>
             </button>
           </td>
 
           <td class="result-col sticky-col" (click)="$event.stopPropagation()">
-            <button title="View Result Scan" class="btn btn-primary btn-sm"
+            <button title="View Result Scan" class="btn btn-icon btn-view"
               (click)="viewResult(scan); $event.stopPropagation()">
               <i class="bi bi-eye"></i>
             </button>
@@ -164,11 +195,11 @@
       <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">X</button>
     </div>
     <div class="modal-body-custom">
-      
+
       <!-- Metrics Selection - แนวนอน -->
       <div class="mb-4">
-        <label class="fw-bold d-block mb-3">เลือกข้อมูลที่ต้องการเปรียบเทียบ</label>
-        
+        <label class="fw-bold d-block mb-3">Please select the data you want to compare.</label>
+
         <div class="d-flex flex-wrap gap-3">
           <div class="form-check">
             <input type="checkbox" class="form-check-input" id="checkGrade" [(ngModel)]="showGrade">
@@ -276,13 +307,10 @@
             </td>
             <td class="text-center pe-3">
               <ng-container *ngIf="diffMetric('bugs') as diff; else showZeroBugs">
-                <span
-                  class="badge px-3 py-2"
-                  [ngClass]="{
+                <span class="badge px-3 py-2" [ngClass]="{
                     'bg-success-subtle text-success': diff < 0,
                     'bg-danger-subtle text-danger': diff > 0
-                  }"
-                >
+                  }">
                   {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
                 </span>
               </ng-container>
@@ -309,13 +337,10 @@
             </td>
             <td class="text-center pe-3">
               <ng-container *ngIf="diffMetric('codeSmells') as diff; else showZeroSmells">
-                <span
-                  class="badge px-3 py-2"
-                  [ngClass]="{
+                <span class="badge px-3 py-2" [ngClass]="{
                     'bg-success-subtle text-success': diff < 0,
                     'bg-danger-subtle text-danger': diff > 0
-                  }"
-                >
+                  }">
                   {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
                 </span>
               </ng-container>
@@ -342,13 +367,10 @@
             </td>
             <td class="text-center pe-3">
               <ng-container *ngIf="diffMetric('coverage') as diff; else showZeroCoverage">
-                <span
-                  class="badge px-3 py-2"
-                  [ngClass]="{
+                <span class="badge px-3 py-2" [ngClass]="{
                     'bg-success-subtle text-success': diff > 0,
                     'bg-danger-subtle text-danger': diff < 0
-                  }"
-                >
+                  }">
                   {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}%
                 </span>
               </ng-container>
@@ -375,13 +397,10 @@
             </td>
             <td class="text-center pe-3">
               <ng-container *ngIf="diffMetric('duplicatedLinesDensity') as diff; else showZeroDuplications">
-                <span
-                  class="badge px-3 py-2"
-                  [ngClass]="{
+                <span class="badge px-3 py-2" [ngClass]="{
                     'bg-success-subtle text-success': diff < 0,
                     'bg-danger-subtle text-danger': diff > 0
-                  }"
-                >
+                  }">
                   {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}%
                 </span>
               </ng-container>
