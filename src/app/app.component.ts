@@ -152,7 +152,7 @@ export class AppComponent implements OnInit, OnDestroy {
             duration: 3000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-blue']
+            panelClass: ['app-snack', 'app-snack-red']
           }
         );
       } else {
