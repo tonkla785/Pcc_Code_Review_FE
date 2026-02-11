@@ -1,9 +1,48 @@
 /* ===========================================================
-   📄 REPORT PAGE STYLE (CLEAN & ORGANIZED VERSION)
+   📄 REPORT PAGE STYLE
+   สีเหมือน repositories / technicaldebt / analysis
    =========================================================== */
 
+/* =========================
+   VARIABLES (เหมือน repositories)
+   ========================= */
+:host {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+:host-context(.dark-mode) {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --border-color: #334155;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================
+   HOST
+   ========================= */
+:host {
+  display: block;
+  color: var(--text-main);
+  font-family: "Inter", "Prompt", sans-serif;
+}
+
 /* ===============================
-   🧱 Container
+   Container
    =============================== */
 .report-wrapper {
   max-width: 900px;
@@ -13,18 +52,21 @@
   box-shadow: none;
 }
 
+/* ===============================
+   Title
+   =============================== */
 .report-title,
 .report-container h2 {
-  border: 1px solid var(--card-border, #cbd5e1);
-  border-radius: 12px;
-  background-color: var(--bg-panel, #f9fafb);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background-color: var(--card-bg);
   padding: 14px 18px;
   font-size: 1.5rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--dashboard-title-color);
+  color: var(--text-main);
 }
 
 .report-title {
@@ -35,18 +77,20 @@
   margin-bottom: 24px;
 }
 
-
-/* Form Box */
+/* ===============================
+   Form Box
+   =============================== */
 .report-box {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   padding: 24px 28px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-main);
 }
 
 /* ===============================
-   🧩 Sections
+   Sections
    =============================== */
 .report-section {
   margin-bottom: 20px;
@@ -56,17 +100,17 @@
   font-weight: 600;
   display: block;
   margin-bottom: 6px;
-  color: #374151;
+  color: var(--text-main);
 }
 
 /* Divider Between Sections */
 .report-section:not(:last-child) {
   padding-bottom: 16px;
-  border-bottom: 1px dashed #e5e7eb;
+  border-bottom: 1px dashed var(--border-color);
 }
 
 /* ===============================
-   🧠 Inputs & Select
+   Inputs & Select
    =============================== */
 input[type="date"],
 select,
@@ -74,7 +118,9 @@ input[type="email"],
 .form-control {
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-main);
+  color: var(--text-main);
   width: 100%;
   max-width: 320px;
   margin-right: 10px;
@@ -103,7 +149,7 @@ input:focus,
 select:focus,
 .form-control:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
@@ -111,19 +157,24 @@ input[type="date"]:hover,
 select:hover,
 input[type="email"]:hover,
 .form-control:hover {
-  border-color: #93c5fd;
+  border-color: var(--primary-hover);
 }
 
 /* ===============================
-   ✅ Checkbox / Radio
+   Checkbox / Radio
    =============================== */
 .checkbox-group label,
 .form-check-label {
   display: block;
   font-weight: 400;
   margin-bottom: 4px;
-  color: #4b5563;
+  color: var(--text-sub);
   cursor: pointer;
+}
+
+/* form-label */
+.form-label {
+  color: var(--text-main);
 }
 
 /* Checkbox Animation */
@@ -137,17 +188,17 @@ input[type="email"]:hover,
 
 .form-check-input:hover {
   transform: scale(1.1);
-  border-color: #2563eb;
+  border-color: var(--primary);
 }
 
 .form-check-input:checked {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  background-color: var(--primary);
+  border-color: var(--primary);
   transform: scale(1.1);
 }
 
 /* ===============================
-   🎯 Actions
+   Actions
    =============================== */
 .report-actions,
 .d-flex.justify-content-end {
@@ -175,7 +226,7 @@ input[type="email"]:hover,
 
 .report-actions button:nth-child(2),
 .btn-primary {
-  background: #2563eb;
+  background: var(--primary);
 }
 
 .report-actions button:nth-child(3),
@@ -187,7 +238,7 @@ input[type="email"]:hover,
 .report-actions button:hover,
 .d-flex.justify-content-end button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
   opacity: 0.95;
 }
 
@@ -224,7 +275,7 @@ button.loading::after {
 }
 
 /* ===============================
-   ⚠️ Error Text
+   Error Text
    =============================== */
 .text-danger.small {
   margin-top: 4px;
@@ -233,7 +284,7 @@ button.loading::after {
 }
 
 /* ===============================
-   ✨ Animation
+   Animation
    =============================== */
 @keyframes fadeIn {
   from {
@@ -248,7 +299,7 @@ button.loading::after {
 }
 
 /* ===============================
-   🎛️ Output Format Options
+   Output Format Options
    =============================== */
 .format-option {
   display: flex;
@@ -266,7 +317,7 @@ button.loading::after {
   font-size: 1rem;
 }
 
-/* --- Light Mode Variants --- */
+/* --- Format Button Colors (Light & Dark) --- */
 .format-option .pdf.btn-check:checked+.btn,
 .format-option .pdf.btn-check+.btn:hover {
   background-color: #dc2626;
@@ -285,8 +336,8 @@ button.loading::after {
 
 .format-option .word.btn-check:checked+.btn,
 .format-option .word.btn-check+.btn:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  background-color: var(--primary);
+  border-color: var(--primary);
   color: white;
   box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
 }
@@ -300,43 +351,32 @@ button.loading::after {
 }
 
 /* ===============================
-   🌙 Dark Mode Styles
+   DARK MODE OVERRIDES
+   สีเหมือน repositories / technicaldebt
    =============================== */
-
-/* Basic Elements */
-:host-context(.dark-mode) .report-title {
-  border: 1px solid #374151;
-  background-color: #1e293b;
-  color: var(--dashboard-title-color);
-}
-
-:host-context(.dark-mode) .report-box {
-  background: #1e1e1e;
-  border: 1px solid #374151;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
 
 /* Full Container */
 :host-context(.dark-mode) .report-container {
-  background: #1e1e1e !important;
-  border: 1px solid #374151 !important;
-  color: #f3f4f6 !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
-/* Headings & Labels */
-:host-context(.dark-mode) .report-container h2 {
-  color: var(--dashboard-title-color) !important;
-}
-
+/* Labels */
 :host-context(.dark-mode) .report-section label,
 :host-context(.dark-mode) .form-label {
-  color: #e5e7eb !important;
+  color: var(--text-main) !important;
 }
 
 :host-context(.dark-mode) .checkbox-group label,
 :host-context(.dark-mode) .form-check-label {
-  color: #cbd5e1 !important;
+  color: var(--text-sub) !important;
+}
+
+/* text-muted */
+:host-context(.dark-mode) .text-muted {
+  color: var(--text-sub) !important;
 }
 
 /* Inputs */
@@ -344,14 +384,14 @@ button.loading::after {
 :host-context(.dark-mode) input[type="email"],
 :host-context(.dark-mode) select,
 :host-context(.dark-mode) .form-control {
-  background-color: #1e293b !important;
-  color: #f9fafb !important;
-  border: 1px solid #374151 !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 :host-context(.dark-mode) input::placeholder,
 :host-context(.dark-mode) .form-control::placeholder {
-  color: #ffffff !important;
+  color: var(--text-sub) !important;
   opacity: 1 !important;
 }
 
@@ -362,13 +402,13 @@ button.loading::after {
 :host-context(.dark-mode) input:focus,
 :host-context(.dark-mode) select:focus,
 :host-context(.dark-mode) .form-control:focus {
-  border-color: #2563eb !important;
+  border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4) !important;
 }
 
 /* Section Dividers */
 :host-context(.dark-mode) .report-section:not(:last-child) {
-  border-bottom: 1px dashed #374151 !important;
+  border-bottom: 1px dashed var(--border-color) !important;
 }
 
 /* Buttons */
@@ -383,21 +423,20 @@ button.loading::after {
   color: #fff !important;
 }
 
-
 :host-context(.dark-mode) .report-actions button:hover {
   opacity: 0.9 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 /* Checkbox */
 :host-context(.dark-mode) .form-check-input {
-  background-color: #1f2937;
-  border: 2px solid #4b5563;
+  background-color: var(--bg-main);
+  border: 2px solid var(--border-color);
 }
 
 :host-context(.dark-mode) .form-check-input:checked {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  background-color: var(--primary);
+  border-color: var(--primary);
 }
 
 /* Error */
@@ -408,9 +447,9 @@ button.loading::after {
 /* Select Override */
 :host-context(.dark-mode) select.form-select {
   appearance: none !important;
-  background-color: #1f2937 !important;
-  color: #f9fafb !important;
-  border: 1px solid #374151 !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 8px;
   padding-right: 2rem;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24' width='16' height='16'><path d='M7 10l5 5 5-5z'/></svg>");
@@ -420,7 +459,7 @@ button.loading::after {
 }
 
 :host-context(.dark-mode) select.form-select option[disabled] {
-  color: #9ca3af !important;
+  color: var(--text-sub) !important;
 }
 
 :host-context(.dark-mode) select.form-select::-ms-expand {
