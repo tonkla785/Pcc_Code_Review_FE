@@ -24,7 +24,7 @@
   /* ข้อความหัวข้อ */
 
   /* ===== Navbar ===== */
-  --navbar-bg: #b3e5fc;
+  --navbar-bg: #ffffff;
   /* สีพื้น navbar */
   --navbar-hover: #add8e6;
   /* สี hover */
@@ -163,7 +163,7 @@
   --text-color: #ffffff;
   /* ข้อความหลัก */
 
-  --navbar-bg: #1e1e1e;
+  --navbar-bg: #121212;
   /* navbar */
   --navbar-hover: #333333;
   /* hover */
