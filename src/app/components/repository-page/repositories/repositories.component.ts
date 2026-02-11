@@ -169,26 +169,10 @@ export class RepositoriesComponent implements OnInit {
 
     // 2. Handle Search Logic
     if (this.searchText) {
-      const matched = baseList.filter(repo =>
+      this.filteredRepositories = baseList.filter(repo =>
         repo.name.toLowerCase().includes(this.searchText) ||
         repo.projectType?.toLowerCase().includes(this.searchText)
       );
-
-      const others = baseList.filter(repo =>
-        !repo.name.toLowerCase().includes(this.searchText) &&
-        !repo.projectType?.toLowerCase().includes(this.searchText)
-      );
-
-      if (matched.length > 0) {
-        // ถ้าเจอ: เอาตัวที่เจอขึ้นก่อน + ตามด้วยตัวที่ไม่เจอ (Reorder)
-        this.filteredRepositories = [
-          ...this.sortRepositories(matched),
-          ...this.sortRepositories(others)
-        ];
-      } else {
-        // ถ้าไม่เจอเลย: ให้เป็นว่าง (เพื่อขึ้น No Data)
-        this.filteredRepositories = [];
-      }
     } else {
       // No search: Show all filtered by Tab/Status
       this.filteredRepositories = this.sortRepositories(baseList);
