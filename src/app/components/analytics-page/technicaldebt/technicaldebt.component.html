@@ -33,7 +33,7 @@
             <span>{{ p.project.name }}</span>
             <span>{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} - {{ formatTHB(toTechDebtDays(p.metrics?.technicalDebtMinutes || 0) * (p.project?.costPerDay || 1000)) }} ({{ formatTHB(p.project?.costPerDay || 1000) }}/day)</span>
           </div>
-          <div class="card p-3 mb-3 shadow-sm">
+          <div class="card p-3 mb-3 shadow-sm" style="cursor: pointer;" (click)="goToProject(p.project.id)">
             <h6 class="card-title mb-2">{{ p.project.name }}</h6>
             
             <div class="progress mb-2" style="height: 10px; background-color: #e9ecef;">
