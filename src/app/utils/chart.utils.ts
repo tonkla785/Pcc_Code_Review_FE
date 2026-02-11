@@ -56,7 +56,7 @@ export function buildCoverageTrendChart(
     return {
         series: [
             {
-                name: 'Quality Grade',
+                name: 'Quality Grade Passed',
                 data: coverageValues,
             },
         ],
