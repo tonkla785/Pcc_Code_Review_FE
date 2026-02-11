@@ -234,20 +234,23 @@
               Grade
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
-              <span class="badge bg-primary-subtle text-primary px-3 py-2">
-                {{ scan.qualityGate }}
-              </span>
+          <span class="badge px-3 py-2"
+            [ngClass]="scan.qualityGate === 'OK'
+              ? 'bg-success-subtle text-success'
+              : 'bg-danger-subtle text-danger'">
+            {{ scan.qualityGate === 'OK' ? 'Pass' : 'Failed' }}
+          </span>
             </td>
             <td class="text-center pe-3">
-              <ng-container *ngIf="diffMetric('grade') as diff; else showZero">
+              <ng-container>
                 <span
                   class="badge px-3 py-2"
                   [ngClass]="{
-                    'bg-success-subtle text-success': diff > 0,
-                    'bg-danger-subtle text-danger': diff < 0
+                    'bg-success-subtle text-success': selectedScans[selectedScans.length - 1].qualityGate === 'OK',
+                    'bg-danger-subtle text-danger': selectedScans[selectedScans.length - 1].qualityGate !== 'OK'
                   }"
                 >
-                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
+                  {{selectedScans[selectedScans.length - 1].qualityGate === 'OK' ? '▲ Pass' : '▼ Failed' }}
                 </span>
               </ng-container>
               <ng-template #showZero>
