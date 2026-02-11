@@ -364,13 +364,12 @@
     padding: 6px 10px;
     gap: 4px;
   }
-
 }
 
-.pagination .page-link {
-  padding: 4px 8px;
-  font-size: 13px;
-}
+  .pagination .page-link {
+    padding: 4px 8px;
+    font-size: 13px;
+  }
 
 @media (max-width: 768px) {
   .issues-header h2 {

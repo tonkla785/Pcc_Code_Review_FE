@@ -13,6 +13,7 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 import { WebSocketService } from '../../../services/websocket/websocket.service';
 import { ScanEvent } from '../../../interface/websocket_interface';
 import Swal from 'sweetalert2';
+import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
 
 
 @Component({
@@ -42,7 +43,8 @@ export class RepositoriesComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly issueService: IssueService,
     private readonly snack: MatSnackBar,
-    private readonly ws: WebSocketService
+    private readonly ws: WebSocketService,
+    private readonly userSettingsData: UserSettingsDataService
   ) { }
 
   ngOnInit(): void {
@@ -94,9 +96,11 @@ export class RepositoriesComponent implements OnInit {
         const recalculated = this.repositories.map(repo => {
           if (!repo.metrics) return repo;
 
+          // Note: evaluateQualityGate is deprecated/removed in service
           return {
             ...repo,
-            qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
+            // qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
+            qualityGate: repo.qualityGate // Use existing value for now
           };
         });
 
@@ -115,6 +119,9 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.getAllRepo().subscribe({
       next: (repos) => {
+        // [Refactor] ไม่เช็ค localStorage แล้ว ใช้ข้อมูลจาก DB ล้วนๆ
+        // ถ้า DB บอกว่าเป็น PENDING/SCANNING ก็จะขึ้นหมุนติ้วๆ เอง
+
         // เก็บข้อมูลลง SharedDataService
         this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
@@ -249,34 +256,54 @@ export class RepositoriesComponent implements OnInit {
       return;
     }
 
+    // Validate SonarQube Token
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing SonarQube Token',
+        text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Settings',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true,
+      }).then((result: any) => {
+        if (result.isConfirmed) {
+          this.router.navigate(['/sonarqubeconfig']);
+        }
+      });
+      return;
+    }
+
     Swal.fire({
-      title: 'ยืนยันการสแกน',
-      text: 'Repository นี้เป็นแบบ Public หรือ Private?',
+      title: 'Confirm Scan',
+      text: 'Is this repository Public or Private?',
       icon: 'question',
       showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: 'Public',
       denyButtonText: 'Private',
-      cancelButtonText: 'ยกเลิก',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#28a745',
       denyButtonColor: '#3085d6'
     }).then((result) => {
       if (result.isConfirmed) {
-        // Public เริ่มได้เลย
+        // Public start now
         this.executeScan(repo, null);
       } else if (result.isDenied) {
-        // Private ต้องใส่ Token
+        // Private needs Token
         Swal.fire({
-          title: 'ระบุ Git Token',
+          title: 'Enter Git Token',
           input: 'text',
           inputLabel: 'Git Token',
-          inputPlaceholder: 'กรอก Git Token',
+          inputPlaceholder: 'Enter Git Token',
           showCancelButton: true,
-          confirmButtonText: 'เริ่มสแกน',
-          cancelButtonText: 'ยกเลิก',
+          confirmButtonText: 'Start Scan',
+          cancelButtonText: 'Cancel',
           inputValidator: (value) => {
             if (!value) {
-              return 'กรุณากรอกข้อมูล!';
+              return 'Please enter a token!';
             }
             return null;
           }
@@ -296,6 +323,7 @@ export class RepositoriesComponent implements OnInit {
 
     if (repo.projectId) {
       this.sharedData.updateRepoStatus(repo.projectId, 'Scanning', 0);
+      // [Refactor] ไม่เก็บ localStorage แล้ว เชื่อใจ WebSocket + DB
     }
 
     this.updateSummaryStats();

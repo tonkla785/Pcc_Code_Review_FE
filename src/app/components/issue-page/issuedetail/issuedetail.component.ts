@@ -87,6 +87,19 @@ export class IssuedetailComponent implements OnInit {
   replies = new Map<string, commentResponseDTO[]>();
   replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
   sortedComments: commentResponseDTO[] = [];
+  selectedScans: any[] = [];
+  showMock = false;
+  isAiLoading = false;
+
+  mockRecommendedFix = `
+This is a MOCK recommendation provided for demonstration and testing purposes only.
+Recommended Fix (Mock Version):
+1. Analyze the root cause of the issue by reviewing recent code changes, configuration updates, and deployment logs. Pay special attention to any modifications that were introduced shortly before the issue started occurring
+2. Verify that all required dependencies, services, and environment variables are correctly configured and available at runtime. Missing or misconfigured dependencies can often lead to unexpected failures.
+3. If the issue is related to a specific feature or module, consider temporarily disabling that feature to isolate the problem. This can help determine if the issue is caused by recent changes in that area.
+Note:
+This mock content is intentionally verbose and does not represent an actual production fix. It is intended solely for UI testing, layout validation, and feature demonstration.
+`;
 
   constructor(
     private readonly router: Router,
@@ -127,6 +140,7 @@ export class IssuedetailComponent implements OnInit {
         console.log('Same')
       } else {
         this.issuesResult = cached;
+        this.issuesDetails = this.sharedData.selectIssueDetailValue;
         this.applyUserFilter();
         this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
         console.log("Not Same")
@@ -203,6 +217,8 @@ export class IssuedetailComponent implements OnInit {
   loadIssueDetails(issueId: string) {
     this.issesService.getAllIssuesDetails(issueId).subscribe({
       next: (data) => {
+        this.sharedData.SelectedIssueDetail = data;
+        this.sharedData.setLoading(false);
         this.issuesDetails = data;
         console.log('Issues Detail loaded:', data);
         this.applyUserFilter();
@@ -251,6 +267,16 @@ export class IssuedetailComponent implements OnInit {
         : timeB - timeA;
     });
   }
+
+
+  toggleMock() {
+    this.isAiLoading = true;
+    setTimeout(() => {
+      this.isAiLoading = false;
+      this.showMock = true;
+    }, 3000);
+  }
+
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
     console.log('Raw API issue:', r);

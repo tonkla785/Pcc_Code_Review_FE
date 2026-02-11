@@ -1,4 +1,4 @@
-import { IssuesRequestDTO } from './../../interface/issues_interface';
+import { IssuesDetailResponseDTO, IssuesRequestDTO } from './../../interface/issues_interface';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
@@ -260,6 +260,24 @@ export class SharedDataService {
         this.selectedIssues.next(next);
         this.updateIssues(next);
     }
+    private readonly issueDetail = new BehaviorSubject<IssuesDetailResponseDTO | null>(null);
+    readonly issueDetail$ = this.issueDetail.asObservable();
+
+    get hasSelectedIssueDetailLoaded(): boolean {
+        return this.issueDetail.value !== null;
+    }
+
+    get hasSelectedIssueDetailCache(): boolean {
+        const data = this.issueDetail.value;
+        return data !== null;
+    }
+
+    set SelectedIssueDetail(data: IssuesDetailResponseDTO) {
+        this.issueDetail.next(data);
+    }
+    get selectIssueDetailValue(): IssuesDetailResponseDTO {
+        return this.issueDetail.value ?? null!;
+    }
     private readonly Comments = new BehaviorSubject<commentResponseDTO | null>(null);
     readonly Comments$ = this.Comments.asObservable();
 
@@ -288,13 +306,16 @@ export class SharedDataService {
 
         // กันเผื่อ backend ส่ง issue เป็น id หรือ object
         const issueId =
-            typeof newComment.issue === 'string'
+            (newComment as any)?.issueId ??
+            (typeof newComment.issue === 'string'
                 ? newComment.issue
-                : (newComment.issue as any)?.id;
+                : (newComment.issue as any)?.id);
 
         if (current.id !== issueId) return;
 
         const commentData = current.commentData ?? [];
+        const newKey = this.getCommentKey(newComment);
+        if (commentData.some(c => this.getCommentKey(c) === newKey)) return;
 
         // Prevent duplicates (Realtime + API response race condition)
         if (commentData.some(c => c.id === newComment.id)) {
@@ -308,6 +329,14 @@ export class SharedDataService {
         };
         console.log('Updated Issue with new comment:', next);
         this.selectedIssues.next(next);
+    }
+
+    private getCommentKey(c: commentResponseDTO): string {
+        if (c.id) return `id:${c.id}`;
+        const userId = c.user?.id ?? 'unknown';
+        const createdAt = c.createdAt ?? '';
+        const text = c.comment ?? '';
+        return `fallback:${userId}:${createdAt}:${text}`;
     }
 
     private readonly LoginUser = new BehaviorSubject<LoginUser | null>(null);
@@ -548,5 +577,3 @@ export class SharedDataService {
     }
 
 }
-
-

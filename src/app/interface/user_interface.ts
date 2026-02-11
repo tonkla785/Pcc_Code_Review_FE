@@ -7,8 +7,8 @@ export interface UserInfo {
   password: string;
   email: string;
   phone?: string;
-  status: string;
   role: 'USER' | 'ADMIN';
+  status: string;
 }
 export interface LoginUser {
   id: string;

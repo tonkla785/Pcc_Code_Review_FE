@@ -2,8 +2,12 @@
   <i class="bi bi-list"></i>
 </button>
 
+<!-- Backdrop Overlay for Mobile -->
+<div class="navbar-backdrop" [class.active]="navbarOpen" (click)="closeNavbar()"></div>
+
 <nav class="vertical-navbar" [class.active]="navbarOpen">
-  <h4><i class="bi bi-code-slash"></i> PCCTH Automate Code Review</h4>
+  <h4><i class="bi bi-code-slash"></i> PCCTH <br> Code Review</h4>
+
   <ul>
     <li class="nav-item">
       <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
@@ -20,15 +24,6 @@
         <i class="bi bi-clock-history"></i> Scan History
       </a>
 
-      <!-- <a class="nav-link" (click)="toggleSubmenu('codeReview')">
-          <i class="bi-chat-left-text"></i> Code Review
-        </a>
-        <ul *ngIf="submenuOpen['codeReview']">
-          <li><a routerLink="/activescan" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-play-circle"></i>Active Scan</a></li>
-          <li><a routerLink="/scanhistory" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"><i class="bi bi-clock-history"></i>Scan History</a></li>
-        </ul> -->
-
-
       <a class="nav-link" routerLink="/issue" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
         (click)="closeNavbar()">
         <i class="bi bi-exclamation-circle-fill"></i> Issue
@@ -38,40 +33,38 @@
         <i class="bi bi-graph-up"></i> Analytics
       </a>
 
-      <a class="nav-link" (click)="toggleSubmenu('report')">
+      <!-- Report Group -->
+      <a class="nav-link" (click)="toggleSubmenu('report', $event)" [class.active]="submenuOpen['report']">
         <i class="bi bi-file-earmark-text-fill"></i> Report
+        <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; margin-right: 0; margin-left: auto;"></i>
       </a>
       <ul *ngIf="submenuOpen['report']" class="submenu-down">
         <li><a routerLink="/generatereport" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeNavbar()"><i class="bi bi-file-plus"></i>Generate Report</a></li>
+            (click)="closeNavbar()"> Generate Report</a></li>
         <li><a routerLink="/reporthistory" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-            (click)="closeNavbar()"><i class="bi bi-journal-text"></i>Report History</a></li>
+            (click)="closeNavbar()"> Report History</a></li>
       </ul>
     </li>
 
-    <!-- กลุ่ม Setting , logout-->
+    <!-- Setting Group & Logout -->
     <li class="nav-item mt-auto">
       <ul *ngIf="submenuOpen['Setting']" class="submenu-up">
-        <li><a routerLink="/sonarqubeconfig"
-           routerLinkActive="active" 
-           [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeNavbar()"> <i class="bi bi-gear"></i>Sonarqube Config</a></li>
+        <li><a routerLink="/sonarqubeconfig" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeNavbar()"> Sonarqube Config</a></li>
 
-        <li><a routerLink="/notificationsetting" 
-          routerLinkActive="active" 
-          [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeNavbar()"><i class="bi bi-bell"></i> Notification Setting</a></li>
-          
-        <li *ngIf="isAdmin"><a routerLink="/usermanagement" 
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }" 
-          (click)="closeNavbar()"><i class="bi bi-people"></i>UserManagement</a></li>
+        <li><a routerLink="/notificationsetting" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeNavbar()"> Notification Setting</a></li>
+
+        <li *ngIf="isAdmin"><a routerLink="/usermanagement" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"> User Management</a></li>
       </ul>
-      <a class="nav-link" (click)="toggleSubmenu('Setting')">
+
+      <a class="nav-link" (click)="toggleSubmenu('Setting', $event)" [class.active]="submenuOpen['Setting']">
         <i class="bi bi-gear-fill"></i> Setting
+        <i class="bi bi-chevron-up ms-auto" style="font-size: 0.8rem; margin-right: 0; margin-left: auto;"></i>
       </a>
 
-      <a class="nav-link" (click)="logout(); closeNavbar()">
+      <a class="nav-link" (click)="logout(); closeNavbar()" style="color: var(--danger); margin-top: 8px;">
         <i class="bi bi-box-arrow-right"></i> Logout
       </a>
     </li>

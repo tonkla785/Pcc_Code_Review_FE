@@ -45,9 +45,9 @@
           <i class="bi bi-exclamation-triangle-fill"></i>
           {{ issuesResult?.severity }}
         </span>
-        
+
       </div>
-            <div class="info-item">
+      <div class="info-item">
         <span class="info-label">Line</span>
         <span>
           <i class="bi bi-circle-fill"></i>
@@ -93,17 +93,17 @@
         </button>
       </div>
     </div>
-     <!-- Card 4: Status -->
-       <div class="info-card">
+    <!-- Card 4: Status -->
+    <div class="info-card">
       <h4 class="card-title"><i class="bi bi-person-fill"></i> Status</h4>
       <div class="info-item">
         <span class="info-label">Status</span>
         <span class="info-value" *ngIf="issuesResult?.status">
           <div class="">
-        <span [ngClass]="['badge','badge-status','status-'+(issuesResult?.status || '').toLowerCase()]">
-          <i class="bi bi-circle-fill"></i>
-          {{ issuesResult?.status }}
-        </span>
+            <span [ngClass]="['badge','badge-status','status-'+(issuesResult?.status || '').toLowerCase()]">
+              <i class="bi bi-circle-fill"></i>
+              {{ issuesResult?.status }}
+            </span>
           </div>
         </span>
         <span class="info-value text-muted" *ngIf="!issuesResult?.status">
@@ -125,7 +125,7 @@
     <div class="section-header">
       <h3><i class="bi bi-file-text-fill"></i> Description & Analysis</h3>
     </div>
-    
+
     <div class="description-content">
       <div class="description-text">
         <p>{{ issuesDetails?.description }}</p>
@@ -141,58 +141,94 @@
         <pre class="code-block"><code>{{ issuesDetails?.vulnerableCode }}</code></pre>
       </div>
 
-      <div class="recommendation-box" *ngIf="issuesDetails?.recommendedFix">
-        <div class="recommendation-header">
-          <i class="bi bi-lightbulb-fill"></i>
-          <strong>Recommended Fix</strong>
+      <div class="smart-card" *ngIf="issuesDetails?.recommendedFix">
+
+        <div class="card-header-clean">
+          <div class="icon-wrapper">
+            <i class="bi bi-lightbulb-fill"></i>
+          </div>
+          <div class="header-text">
+            <h5>Recommendation</h5>
+            <span class="subtitle">Suggested solution</span>
+          </div>
         </div>
-        <p>{{ issuesDetails?.recommendedFix }}</p>
+
+        <div class="card-body-clean">
+          <p class="fix-text">
+            {{ issuesDetails?.recommendedFix }}
+          </p>
+
+          <div class="ai-suggestion-box" *ngIf="showMock">
+            <div class="ai-badge">
+              <i class="bi bi-stars"></i> AI Optimized
+            </div>
+            <div class="ai-content">
+              {{ mockRecommendedFix }}
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="ai-loading-box" *ngIf="isAiLoading">
+            <div class="ai-loader">
+              <div class="ai-orb"></div>
+              <div class="ai-orb"></div>
+              <div class="ai-orb"></div>
+            </div>
+            <span class="loading-text">Generating AI Fix...</span>
+          </div>
+        </div>
+
+        <div class="card-footer-clean" *ngIf="!showMock && !isAiLoading">
+          <button class="btn-magic" (click)="toggleMock()">
+            <i class="bi bi-stars"></i>
+            <span>Generate AI Fix</span>
+          </button>
+        </div>
+
       </div>
     </div>
-  </div>
 
-  <!-- Comments Section -->
-  <div class="comments-section">
-    <div class="section-header">
-      <h3>
-        <i class="bi bi-chat-left-dots-fill"></i>
-        Comments
-        <span class="comment-count">{{ issuesResult?.commentData?.length || 0 }}</span>
-      </h3>
+    <!-- Comments Section -->
+    <div class="comments-section">
+      <div class="section-header">
+        <h3>
+          <i class="bi bi-chat-left-dots-fill"></i>
+          Comments
+          <span class="comment-count">{{ issuesResult?.commentData?.length || 0 }}</span>
+        </h3>
 
-    </div>
-
-    <!-- Comment List -->
-<div class="comments-list">
-
-  <!-- Root comments -->
-  <div class="reply-item"
-       *ngFor="let c of sortedComments ; trackBy: trackByComment">
-  <div class="comment-item">
-    <div class="comment-avatar">
-      <i class="bi bi-person-circle"></i>
-    </div>
-
-    <div class="comment-content ">
-      <div class="comment-header">
-        <strong class="comment-author">{{ c.user?.username }}</strong>
-        <span class="comment-time">
-          <i class="bi bi-clock"></i>
-          {{ c.createdAt | date:'dd/MM/yyyy, HH:mm' }}
-        </span>
       </div>
-      <p class="comment-text">{{ c.comment }}</p>
-    </div>
 
-    <div class="comment-actions" *ngIf="c.user?.id !== UserLogin?.id">
-      <button type="button" class="btn btn-link p-0" (click)="startReply(c)">
-        Reply
-      </button>
-    </div>
-    </div>
+      <!-- Comment List -->
+      <div class="comments-list">
 
-    <!-- Replies under this comment -->
-    <!-- <div class="replies" *ngIf="(replies.get(c.id) ?? []).length">
+        <!-- Root comments -->
+        <div class="reply-item" *ngFor="let c of sortedComments ; trackBy: trackByComment">
+          <div class="comment-item">
+            <div class="comment-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+
+            <div class="comment-content ">
+              <div class="comment-header">
+                <strong class="comment-author">{{ c.user?.username }}</strong>
+                <span class="comment-time">
+                  <i class="bi bi-clock"></i>
+                  {{ c.createdAt | date:'dd/MM/yyyy, HH:mm' }}
+                </span>
+              </div>
+              <p class="comment-text">{{ c.comment }}</p>
+            </div>
+
+            <div class="comment-actions" *ngIf="c.user?.id !== UserLogin?.id">
+              <button type="button" class="btn btn-link p-0" (click)="startReply(c)">
+                Reply
+              </button>
+            </div>
+          </div>
+
+          <!-- Replies under this comment -->
+          <!-- <div class="replies" *ngIf="(replies.get(c.id) ?? []).length">
       <div class="comment-item reply-item"
            *ngFor="let r of replies.get(c.id); trackBy: trackByComment">
         <div class="comment-avatar">
@@ -216,62 +252,45 @@
       </div>
     </div> -->
 
-  </div>
+        </div>
 
-  <!-- Empty State -->
-  <div *ngIf="!rootComments.length && !loadingComments" class="empty-comments">
-    <i class="bi bi-chat-square-text"></i>
-    <p>No comments yet. Be the first to share your thoughts!</p>
-  </div>
-</div>
+        <!-- Empty State -->
+        <div *ngIf="!rootComments.length && !loadingComments" class="empty-comments">
+          <i class="bi bi-chat-square-text"></i>
+          <p>No comments yet. Be the first to share your thoughts!</p>
+        </div>
+      </div>
 
 
-    <!-- Add Comment -->
-<div class="add-comment-box">
+      <!-- Add Comment -->
+      <div class="add-comment-box">
 
-  <!-- Replying banner -->
-  <div class="replying-banner" *ngIf="replyTo">
-    <span>Replying to <b>{{ replyTo.username }}</b></span>
-    <button type="button" class="btn btn-sm btn-light" (click)="cancelReply()">
-      Cancel
-    </button>
-  </div>
+        <!-- Replying banner -->
+        <div class="replying-banner" *ngIf="replyTo">
+          <span>Replying to <b>{{ replyTo.username }}</b></span>
+          <button type="button" class="btn btn-sm btn-light" (click)="cancelReply()">
+            Cancel
+          </button>
+        </div>
 
-  <div class="comment-input-wrapper">
-    <i class="bi bi-chat-dots input-icon"></i>
+        <div class="comment-input-wrapper">
+          <i class="bi bi-chat-dots input-icon"></i>
 
-    <input 
-      type="text" 
-      [placeholder]=" 'Write a comment...'" 
-      [(ngModel)]="newComment.comment"
-      name="commentText"
-      class="comment-input" 
-      title="Write your comment"
-      (keyup.enter)="newComment?.comment?.trim() && postComment()"
-    />
+          <input type="text" [placeholder]=" 'Write a comment...'" [(ngModel)]="newComment.comment" name="commentText"
+            class="comment-input" title="Write your comment"
+            (keyup.enter)="newComment?.comment?.trim() && postComment()" />
+          <button class="btn-send" type="button" title="Post comment" (click)="postComment()"
+            [disabled]="!newComment.comment?.trim() || sendingComment">
+            <i class="bi bi-send-fill" *ngIf="!sendingComment"></i>
+            <span class="spinner-border spinner-border-sm" *ngIf="sendingComment"></span>
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <button 
-      class="btn-send" 
-      type="button" 
-      title="Post comment" 
-      (click)="postComment()"
-      [disabled]="!newComment.comment?.trim() || sendingComment"
-    >
-      <i class="bi bi-send-fill" *ngIf="!sendingComment"></i>
-      <span class="spinner-border spinner-border-sm" *ngIf="sendingComment"></span>
-    </button>
-  </div>
-</div>
+    <!-- Modal -->
+    <app-issuemodal #assignModal [issue]="issueForModal" (assignSubmit)="handleAssignSubmit($event)"
+      (statusSubmit)="handleStatusSubmit($event)" (closed)="{}">
+    </app-issuemodal>
 
   </div>
-
-  <!-- Modal -->
-  <app-issuemodal 
-    #assignModal 
-    [issue]="issueForModal" 
-    (assignSubmit)="handleAssignSubmit($event)" 
-    (statusSubmit)="handleStatusSubmit($event)"
-    (closed)="{}">
-  </app-issuemodal>
-
-</div>

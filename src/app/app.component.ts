@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { WebSocketService } from './services/websocket/websocket.service';
 import { SharedDataService } from './services/shared-data/shared-data.service';
+import { TechnicalDebtDataService } from './services/shared-data/technicaldebt-data.service';
+import { NotificationDataService } from './services/shared-data/notification-data.service';
+import { UserSettingsDataService } from './services/shared-data/user-settings-data.service';
 import { RepositoryService } from './services/reposervice/repository.service';
 import { ScanService } from './services/scanservice/scan.service';
 import { IssueService } from './services/issueservice/issue.service';
@@ -10,7 +13,7 @@ import { AuthService } from './services/authservice/auth.service';
 import { NotificationService } from './services/notiservice/notification.service';
 import { TokenStorageService } from './services/tokenstorageService/token-storage.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subscription } from 'rxjs';
+import { Subscription, bufferTime, filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -23,10 +26,15 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'codereviewFE';
   darkMode = false;
   private wsSub?: Subscription;
+  private notiSub?: Subscription;
+  private verifySub?: Subscription;
 
   constructor(
     private ws: WebSocketService,
     private sharedData: SharedDataService,
+    private technicalDebtData: TechnicalDebtDataService,
+    private notificationData: NotificationDataService,
+    private userSettingsData: UserSettingsDataService,
     private repoService: RepositoryService,
     private scanService: ScanService,
     private issueService: IssueService,
@@ -58,7 +66,16 @@ export class AppComponent implements OnInit, OnDestroy {
     // Reconnect WebSocket if already logged in (e.g., after page refresh)
     if (this.authService.isLoggedIn) {
       this.authService.reconnectWebSocket();
+
+      // Restore user status from localStorage into SharedDataService
+      const savedUser = this.tokenStorage.getLoginUser();
+      if (savedUser) {
+        this.sharedData.LoginUserShared = savedUser;
+        console.log('[AppComponent] Restored user from localStorage:', savedUser.status);
+      }
     }
+
+    this.subscribeToNotifications();
 
     // Global WebSocket Listener
     this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
@@ -76,31 +93,36 @@ export class AppComponent implements OnInit, OnDestroy {
 
       // กรณีที่ 1: เริ่มต้น Scan (SCANNING)
       if (event.status === 'SCANNING') {
-        // 1. เก็บลง LocalStorage เพื่อจำสถานะ
-        console.log('[AppComponent] Setting localStorage for:', event.projectId);
-        localStorage.setItem(`repo-status-${event.projectId}`, mappedStatus);
+        // [Refactor] ไม่เก็บ localStorage แล้ว
+        // console.log('[AppComponent] Setting localStorage for:', event.projectId);
+        // localStorage.setItem(`repo-status-${event.projectId}`, mappedStatus);
 
-        // 2. ดึงข้อมูลรอบแรก (เพื่ออัปเดต UI และ History ว่ากำลังหมุน)
+        // 2. ดึงข้อมูลรอบแรก (เพื่ออัปเดต UI และ History ว่ากำลังหมุน - PENDING from DB)
         this.fetchScanData(event.projectId, event.status);
       }
 
       // กรณีที่ 2: Scan เสร็จสิ้น (SUCCESS หรือ FAILED)
       else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-        // 1. ลบ LocalStorage
-        console.log('[AppComponent] Removing localStorage for:', event.projectId);
-        localStorage.removeItem(`repo-status-${event.projectId}`);
+        // [Refactor] ไม่ต้องลบ localStorage (เพราะไม่ได้เก็บ)
+        // console.log('[AppComponent] Removing localStorage for:', event.projectId);
+        // localStorage.removeItem(`repo-status-${event.projectId}`);
 
         // 2. แจ้งเตือน User (Snackbar)
-        this.snack.open(
-          event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
-          '',
-          {
-            duration: 3000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-            panelClass: ['app-snack', event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red']
-          }
-        );
+        const settings = this.userSettingsData.notificationSettings;
+        const showScanAlert = !settings || settings.scansEnabled;
+
+        if (showScanAlert) {
+          this.snack.open(
+            event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
+            '',
+            {
+              duration: 3000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red']
+            }
+          );
+        }
 
         // 3. ดึงข้อมูลรอบสอง (และสร้าง notification หลังจากได้ scanId ที่ถูกต้อง)
         this.fetchScanDataAndNotify(event.projectId, event.status);
@@ -120,6 +142,9 @@ export class AppComponent implements OnInit, OnDestroy {
         // Optimized: Remove directly from SharedData without refetching
         this.sharedData.removeRepository(event.projectId);
 
+        // Clear technical debt data when project is deleted
+        this.technicalDebtData.clearAllDebtData();
+
         this.snack.open(
           `Project "${event.projectName}" was deleted`,
           '',
@@ -127,7 +152,7 @@ export class AppComponent implements OnInit, OnDestroy {
             duration: 3000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-blue']
+            panelClass: ['app-snack', 'app-snack-red']
           }
         );
       } else {
@@ -152,6 +177,131 @@ export class AppComponent implements OnInit, OnDestroy {
           },
           error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err)
         });
+      }
+    });
+
+    // Listen verify status realtime
+    this.verifySub = this.ws.subscribeVerifyStatus().subscribe(event => {
+      console.log('[AppComponent] Verify status event:', event);
+
+      // 0. ตรวจสอบว่า userId ตรงกับ user ปัจจุบันหรือไม่
+      const user = this.tokenStorage.getLoginUser();
+      if (!user || user.id !== event.userId) {
+        console.warn('[AppComponent] Verify status ignored - userId mismatch. Event userId:', event.userId, 'Current userId:', user?.id);
+        return;
+      }
+
+      // 1. Update LocalStorage (use TokenStorageService to write to correct key 'login_user')
+      user.status = event.status;
+      this.tokenStorage.setLoginUser(user);
+
+      // 2. Update SharedDataService so other components (Dashboard) update immediately
+      this.sharedData.LoginUserShared = user;
+
+      // 3. Notify User
+      this.snack.open(
+        event.status === 'VERIFIED'
+          ? '✅ Email Verified'
+          : event.status === 'PENDING_VERIFICATION'
+            ? '⏳ Verification Pending'
+            : '❌ Email Unverified',
+        '',
+        {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-blue']
+        }
+      );
+    });
+
+    // Global WebSocket Listener for Issue Changes (assign / status update)
+    this.ws.subscribeIssueChanges().subscribe(event => {
+      console.log('[AppComponent] Issue change event:', event);
+
+      if (event.action === 'UPDATED') {
+        // 1. Refresh all issues list (for issue list page)
+        this.issueService.getAllIssues().subscribe({
+          next: (allIssues) => {
+            this.sharedData.IssuesShared = allIssues;
+            console.log('[AppComponent] Issues refreshed after issue change');
+          },
+          error: (err: any) => console.error('[AppComponent] Failed to refresh issues:', err)
+        });
+
+        // 2. If user is on issue detail page, refresh the selected issue too
+        const currentSelected = this.sharedData.selectIssueValue;
+        if (currentSelected && currentSelected.id === event.issueId) {
+          this.issueService.getAllIssuesById(event.issueId).subscribe({
+            next: (updatedIssue) => {
+              this.sharedData.SelectedIssues = updatedIssue;
+              console.log('[AppComponent] Selected issue refreshed:', event.issueId);
+            },
+            error: (err: any) => console.error('[AppComponent] Failed to refresh selected issue:', err)
+          });
+        }
+      }
+    });
+  }
+
+  private subscribeToNotifications(): void {
+    this.notiSub = this.notificationData.newNotification$.pipe(
+      bufferTime(2000),
+      filter(list => list.length > 0)
+    ).subscribe(notifications => {
+
+      //ตรวจIssues
+      if (notifications.some(n => n.type === 'Issues')) {
+        const settings = this.userSettingsData.notificationSettings;
+        if (!settings || settings.issuesEnabled) {
+          this.snack.open('🔔 You have new Issues', '', {
+            duration: 4000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-blue']
+          });
+        }
+      }
+
+      //ตรวจSystem
+      const systemNotis = notifications.filter(n => n.type === 'System');
+      if (systemNotis.length > 0) {
+        const settings = this.userSettingsData.notificationSettings;
+        if (!settings || settings.systemEnabled) {
+          const hasQualityGate = systemNotis.some(n => n.title.toLowerCase().includes('quality gate'));
+          const hasComment = systemNotis.some(n => n.title.toLowerCase().includes('comment'));
+          const hasAssigned = systemNotis.some(n => n.title.toLowerCase().includes('assigned'));
+
+          if (hasQualityGate) {
+            this.snack.open('🔔 Quality Gate is failed', '', {
+              duration: 4000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-blue']
+            });
+          } else if (hasComment) {
+            this.snack.open('🔔 You have new comment', '', {
+              duration: 4000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-blue']
+            });
+          } else if (hasAssigned) {
+            this.snack.open('🔔 You have new assigned', '', {
+              duration: 4000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-blue']
+            });
+          } else {
+            this.snack.open('🔔 New System Notification', '', {
+              duration: 4000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-blue']
+            });
+          }
+        }
       }
     });
   }
@@ -336,6 +486,10 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.wsSub) {
       this.wsSub.unsubscribe();
     }
+    if (this.verifySub) {
+      this.verifySub.unsubscribe();
+    }
+
   }
 
   private mapStatus(wsStatus: string): 'Active' | 'Scanning' | 'Error' {

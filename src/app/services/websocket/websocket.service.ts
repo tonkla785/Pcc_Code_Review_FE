@@ -3,7 +3,7 @@ import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Observable, ReplaySubject, Subject, BehaviorSubject } from 'rxjs';
 
-import { BackendScanStatus, UiScanStatus, ScanEvent, NotificationEvent, GlobalNotificationEvent, ProjectChangeEvent } from '../../interface/websocket_interface';
+import { BackendScanStatus, UiScanStatus, ScanEvent, NotificationEvent, GlobalNotificationEvent, ProjectChangeEvent, IssueChangeEvent, UserVerifyStatusEvent } from '../../interface/websocket_interface';
 
 function mapToUiStatus(status: BackendScanStatus): UiScanStatus {
   if (status === 'PENDING') {
@@ -21,13 +21,18 @@ export class WebSocketService {
   private globalNotificationSubject = new Subject<GlobalNotificationEvent>();
   private scanSubject = new ReplaySubject<ScanEvent>(1); // ReplaySubject to ensure late subscribers get the last event
   private projectSubject = new Subject<ProjectChangeEvent>(); // Project add/edit/delete events
+  private issueSubject = new Subject<IssueChangeEvent>(); // Issue update events
   private userId: string | null = null;
   private subscribed = false;
   private userTopicSubscribed = false;
   private globalTopicSubscribed = false;
   private projectTopicSubscribed = false;
+  private issueTopicSubscribed = false;
 
   private connectionState$ = new BehaviorSubject<boolean>(false);
+  // status
+  private verifyStatusSubject = new ReplaySubject<UserVerifyStatusEvent>(1);
+  private verifyTopicSubscribed = false;
 
   constructor() {
     this.client = new Client({
@@ -61,6 +66,8 @@ export class WebSocketService {
     this.userTopicSubscribed = false;
     this.globalTopicSubscribed = false;
     this.projectTopicSubscribed = false;
+    this.issueTopicSubscribed = false;
+    this.verifyTopicSubscribed = false;
   }
 
   /**
@@ -152,6 +159,39 @@ export class WebSocketService {
       });
       this.projectTopicSubscribed = true;
     }
+
+    // 5. Subscribe to user verify status (Private-ish but via /topic)
+    if (this.userId && !this.verifyTopicSubscribed) {
+      console.log(`Subscribing to verify status for user: ${this.userId}`);
+
+      this.client.subscribe(`/topic/user/${this.userId}/verify-status`, (message: IMessage) => {
+        try {
+          const event = JSON.parse(message.body);
+          console.log('WS verify status event:', event);
+          this.verifyStatusSubject.next(event);
+        } catch (e) {
+          console.error('Failed to parse verify status WS message', e);
+        }
+      });
+
+      this.verifyTopicSubscribed = true;
+    }
+
+    // 6. Subscribe to issue changes (Public - for all users)
+    // These include: issue assigned, status changed
+    if (!this.issueTopicSubscribed) {
+      console.log('Subscribing to issue changes');
+      this.client.subscribe('/topic/issues', (message: IMessage) => {
+        try {
+          const event: IssueChangeEvent = JSON.parse(message.body);
+          console.log('WS issue change:', event);
+          this.issueSubject.next(event);
+        } catch (e) {
+          console.error('Failed to parse issue WS message', e);
+        }
+      });
+      this.issueTopicSubscribed = true;
+    }
   }
 
   /**
@@ -180,6 +220,17 @@ export class WebSocketService {
    */
   subscribeProjectChanges(): Observable<ProjectChangeEvent> {
     return this.projectSubject.asObservable();
+  }
+
+  subscribeVerifyStatus(): Observable<UserVerifyStatusEvent> {
+    return this.verifyStatusSubject.asObservable();
+  }
+
+  /**
+   * Get observable for issue changes (assign/status broadcast to all users)
+   */
+  subscribeIssueChanges(): Observable<IssueChangeEvent> {
+    return this.issueSubject.asObservable();
   }
 
   /**

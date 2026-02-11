@@ -171,24 +171,44 @@ export class IssueComponent {
       (this.searchText === '' || i.message.toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
-  applyFilter() {
-    const keyword = this.searchText.trim().toLowerCase();
-    const matchType = (this.filterType || 'All Types').toLowerCase();
-    const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
-    const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
-    const matchProject = (this.filterProject || 'All Projects').toLowerCase();
-    this.filteredIssue = this.issuesAll.filter(i => {
+applyFilter() {
+  const keyword = this.searchText.trim().toLowerCase();
+  const matchType = (this.filterType || 'All Types').toLowerCase();
+  const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
+  const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
+  const matchProject = (this.filterProject || 'All Projects').toLowerCase();
+
+  this.filteredIssue = this.issuesAll
+    .filter(i => {
       const type = matchType === 'all types' || (i.type || '').toLowerCase() === matchType;
       const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
       const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
-      const projectName = (i.projectData?.name || '').toString().toLowerCase();
+
+      const projectName = (i.projectData?.name || '').toLowerCase();
       const project = matchProject === 'all projects' || projectName === matchProject;
-      const messageOk = keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+
+      const messageOk =
+        keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+
       return type && severity && status && project && messageOk;
+    })
+    .sort((a, b) => {
+      const dateDiff =
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime();
+
+      if (dateDiff !== 0){
+        return dateDiff;
+      }else{
+      return a.id.localeCompare(b.id); 
+      }
     });
-    this.currentPage = 1;
-    this.updatePage();
-  }
+
+
+  this.currentPage = 1;
+  this.updatePage();
+}
+
   onSearchChange(value: string) {
     this.searchText = value;
     this.applyFilter();
@@ -322,14 +342,22 @@ export class IssueComponent {
   }
 
   exportData() {
-    const selectedIssues = this.issues.filter(i => i.selected);
-    const exportIssues = selectedIssues.length ? selectedIssues : this.issues;
+    const selectedIssues = this.selectedIssues
+    const exportIssues = selectedIssues.length ? selectedIssues : this.selectedIssues;
 
     const datenow = new Date();
     const dateStr = datenow.toISOString().split('T')[0].replaceAll('-', '');
     const fileType = selectedIssues.length ? 'selected' : 'all';
     const fileName = `issues_${fileType}_${dateStr}.csv`;
-
+    if (this.selectedIssues.length < 2) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Not enough items selected',
+        text: 'Please select at least 1 items to export',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
     const csvContent = [
       ['No.', 'Title', 'Severity', 'Status', 'Assignee'].join(','),
       ...exportIssues.map((i, idx) => [
@@ -337,7 +365,7 @@ export class IssueComponent {
         `"${i.message.replaceAll('"', '""')}"`,
         i.severity,
         i.status,
-        i.assignee || '-'
+        i.assignedTo?.username || '-'
       ].join(','))
     ].join('\n');
 
@@ -356,7 +384,7 @@ export class IssueComponent {
     this.searchText = '';
     this.currentPage = 1;
     this.selectAllCheckbox = false;
-    this.issues.forEach(i => i.selected = false);
+    this.selectedIssues = [];
     this.applyFilter();
   }
 

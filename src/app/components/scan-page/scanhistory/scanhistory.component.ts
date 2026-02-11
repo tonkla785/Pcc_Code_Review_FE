@@ -8,6 +8,8 @@ import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
+import { Repository } from '../../../interface/repository_interface';
+import { RepositoryService } from '../../../services/reposervice/repository.service';
 
 @Component({
   selector: 'app-scanhistory',
@@ -36,9 +38,16 @@ export class ScanhistoryComponent {
   ScanHistory: ScanResponseDTO[] = [];
   originalData: ScanResponseDTO[] = [];
   filteredScan:  ScanResponseDTO[] = [];
+  showGrade = true;
+showBugs = true;
+showCodeSmells = true;
+showCoverage = false;
+showDuplications = false;
+  filterProject = 'All Projects';
   filterType = 'ALL';
+    repositories: Repository[] = [];
   constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
-    private sharedData: SharedDataService,
+    private sharedData: SharedDataService, private repoService: RepositoryService
   ) {
   }
 
@@ -47,11 +56,18 @@ export class ScanhistoryComponent {
     if (!this.sharedData.hasScansHistoryCache) {
       this.loadScanHistory();
     }
+    if (!this.sharedData.hasRepositoriesCache) {
+      this.loadRepositories();
+    }
     this.sharedData.scansHistory$.subscribe(data => {
       this.originalData = data || [];
       this.ScanHistory = [...this.originalData];
       this.applyFilterStatus();
       console.log('Scan history loaded from sharedData:', data);
+    });
+        this.sharedData.repositories$.subscribe((repos) => {
+      this.repositories = repos;
+      console.log('Repositories loaded from sharedData:', this.repositories);
     });
   }
 
@@ -97,13 +113,29 @@ export class ScanhistoryComponent {
     this.currentPage = 1;
     this.updatePage();
   }
+  loadRepositories() {
+    this.sharedData.setLoading(true);
 
+    this.repoService.getAllRepo().subscribe({
+      next: (repos) => {
+        // เก็บข้อมูลลง SharedDataService
+        this.sharedData.setRepositories(repos);
+        this.sharedData.setLoading(false);
+        console.log('Repositories loaded:', repos);
+      },
+      error: (err) => {
+        console.error('Failed to load repositories:', err);
+        this.sharedData.setLoading(false);
+      },
+    });
+  }
   resetFilters() {
     this.searchDate = null;
     this.startDate = null;
     this.endDate = null;
     this.minEndDate = null;
-    this.statusFilter = 'ALL';
+    this.filterType = 'ALL';
+    this.filterProject = 'All Projects';
     this.applyFilter();
   }
 
@@ -269,6 +301,9 @@ export class ScanhistoryComponent {
     } else {
       this.selectedScans.push(scan);
     }
+     this.selectedScans.sort((a, b) =>
+    new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+  );
   }
 
 
@@ -278,15 +313,15 @@ export class ScanhistoryComponent {
 
 
   compareScans() {
-    // if (this.selectedScans.length < 2) {
-    //   Swal.fire({
-    //     icon: 'warning',
-    //     title: 'Not enough items selected',
-    //     text: 'Please select at least 2 items to compare',
-    //     confirmButtonText: 'OK'
-    //   });
-    //   return;
-    // }
+    if (this.selectedScans.length < 2) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Not enough items selected',
+        text: 'Please select at least 2 items to compare',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
     // if (this.selectedScans.length > 3) {
     //   Swal.fire({
     //     icon: 'warning',
@@ -345,12 +380,12 @@ export class ScanhistoryComponent {
   }
 applyFilterStatus() {
   const matchType = (this.filterType || 'ALL').toLowerCase();
-
+  const matchProject = (this.filterProject || 'All Projects').toLowerCase();
   this.filteredScan = this.ScanHistory.filter(item => {
     const d = new Date(item.startedAt);
 
     let matchDate = true;
-
+    console.log('Applying filters:', item?.project?.name)
     if (this.startDate && !this.endDate) {
       const searchDay = new Date(this.startDate);
       matchDate =
@@ -370,13 +405,43 @@ applyFilterStatus() {
       matchType === 'all' ||
       (item.status || '').toLowerCase() === matchType;
 
-    return matchDate && matchStatus;
+      const projectName = (item?.project?.name || '').toLowerCase();
+      const project = matchProject === 'all projects' || projectName === matchProject;
+    return matchDate && matchStatus && project;
   });
 
   this.currentPage = 1;
   this.updatePage();
 }
+metricsConfig = [
+  { key: 'grade', label: 'Grade', selected: true },
+  { key: 'bugs', label: 'Bugs', selected: true },
+  { key: 'codeSmells', label: 'Code Smells', selected: true },
+  { key: 'coverage', label: 'Coverage (%)', selected: false },
+  { key: 'duplicatedLinesDensity', label: 'Duplications', selected: false },
+];
 
+diffMetric(metric: string): number | null {
+  if (this.selectedScans.length < 2) return null;
+
+  const first = this.selectedScans[0];
+  const last = this.selectedScans[this.selectedScans.length - 1];
+  console.log('Diff metric calculation:', { metric, first, last });
+  const getValue = (scan: any) => {
+    if (metric === 'grade') return scan.qualityGate;
+    return scan.metrics?.[metric] ?? 0;
+  };
+
+  const oldVal = getValue(first);
+  const newVal = getValue(last);
+
+  if (typeof oldVal !== 'number' || typeof newVal !== 'number') {
+    return null;
+  }
+  const result = (newVal - oldVal);
+  console.log('Diff metric result:', result);
+  return result ;
+}
 
 }
 

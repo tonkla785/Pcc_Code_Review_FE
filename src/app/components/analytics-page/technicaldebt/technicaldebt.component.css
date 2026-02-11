@@ -1,309 +1,405 @@
 /* =========================
+   VARIABLES (เหมือน repositories)
+   ========================= */
+:host {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+:host-context(.dark-mode) {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --border-color: #334155;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* =========================
    GLOBAL STYLE
    ========================= */
-   body {
-    background: linear-gradient(180deg, #f9fbff 0%, #eef2f7 100%);
-    color: #212529;
-    font-family: "Inter", "Prompt", sans-serif;
-  }
-  
-  /* =========================
+:host {
+  display: block;
+  color: var(--text-main);
+  font-family: "Inter", "Prompt", sans-serif;
+}
+
+/* =========================
      BACK BUTTON (Neumorphism Light Mode)
      ========================= */
-  .back-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 12px;
-    background: #ffffff; 
-    color: #2563eb;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-    transition: background 0.3s ease, transform 0.25s ease; 
-  }
-  
-  
-  
-  .back-btn:hover {
-    background: #e5f0ff;
-    transform: translateX(-3px);
-  }
-  
-  .back-btn:active {
-    background: #dbeafe;
-    transform: scale(0.95);
-  }
-  
-  /* =========================
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition: background 0.3s ease, transform 0.25s ease;
+}
+
+
+
+.back-btn:hover {
+  background: #e5f0ff;
+  transform: translateX(-3px);
+}
+
+.back-btn:active {
+  background: #dbeafe;
+  transform: scale(0.95);
+}
+
+/* =========================
      DARK MODE BACK BUTTON
      ========================= */
-  :host-context(.dark-mode) .back-btn {
-    background: transparent !important;
-    color: #3b82f6 !important;
-    box-shadow: none !important;
-  }
-  
-  :host-context(.dark-mode) .back-btn:hover {
-    background: rgba(59,130,246,0.15) !important;
-    transform: translateX(-3px);
-  }
-  
-  :host-context(.dark-mode) .back-btn:active {
-    background: rgba(59,130,246,0.25) !important;
-    transform: scale(0.95);
-  }
-  
-  /* =========================
+:host-context(.dark-mode) .back-btn {
+  background: transparent !important;
+  color: #3b82f6 !important;
+  box-shadow: none !important;
+}
+
+:host-context(.dark-mode) .back-btn:hover {
+  background: rgba(59, 130, 246, 0.15) !important;
+  transform: translateX(-3px);
+}
+
+:host-context(.dark-mode) .back-btn:active {
+  background: rgba(59, 130, 246, 0.25) !important;
+  transform: scale(0.95);
+}
+
+/* =========================
      CARD
      ========================= */
-  .card {
-    border-radius: 14px;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    transition: transform 0.25s ease;
-  }
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.1);
-  }
-  .card-header {
-    font-weight: 600;
-    font-size: 1rem;
-    background: #f1f5fb;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  /* =========================
+.card {
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  font-weight: 600;
+  font-size: 1rem;
+  background: var(--card-bg);
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* =========================
      PROGRESS BAR
      ========================= */
-  progress {
-    width: 100%;
-    height: 16px;
-    border-radius: 12px;
-    overflow: hidden;
-    appearance: none;
-  }
-  progress::-webkit-progress-bar {
-    background-color: #e9ecef;
-  }
-  progress::-webkit-progress-value {
-    background: linear-gradient(90deg, #4f8ef7, #7c3aed);
-    border-radius: 12px;
-    transition: width 0.6s ease;
-  }
-  progress::-moz-progress-bar {
-    background: linear-gradient(90deg, #4f8ef7, #7c3aed);
-    border-radius: 12px;
-  }
-  
-  /* =========================
+progress {
+  width: 100%;
+  height: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  appearance: none;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #e9ecef;
+}
+
+progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #4f8ef7, #7c3aed);
+  border-radius: 12px;
+  transition: width 0.6s ease;
+}
+
+progress::-moz-progress-bar {
+  background: linear-gradient(90deg, #4f8ef7, #7c3aed);
+  border-radius: 12px;
+}
+
+/* =========================
      TABLE
      ========================= */
-  .table th,
-  .table td {
-    vertical-align: middle;
-  }
-  .table thead {
-    background: #f8faff;
-  }
-  .table tbody tr {
-    transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .table tbody tr:hover {
-    background-color: #f8fbff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-  }
-  
-  /* =========================
+.table th,
+.table td {
+  vertical-align: middle;
+}
+
+.table {
+  color: var(--text-main);
+}
+
+.table thead {
+  background: var(--bg-main);
+}
+
+.table tbody tr {
+  transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: var(--bg-main);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
      LIST GROUP
      ========================= */
-  .list-group-item {
-    border-radius: 10px;
-    margin-bottom: 6px;
-    transition: all 0.25s ease;
-  }
-  .list-group-item:hover {
-    background-color: #f5f9ff;
-    transform: translateX(4px);
-  }
-  
-  /* =========================
+.list-group-item {
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: var(--card-bg);
+  color: var(--text-main);
+  border-color: var(--border-color);
+  transition: all 0.25s ease;
+}
+
+.list-group-item:hover {
+  background-color: var(--bg-main);
+  transform: translateX(4px);
+}
+
+/* =========================
      BADGES
      ========================= */
-  .badge {
-    padding: 0.4em 0.7em;
-    font-weight: 600;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-  .bg-danger  { background: #ff6b6b !important; }
-  .bg-warning { background: #ffd43b !important; color: #212529 !important; }
-  .bg-success { background: #51cf66 !important; }
-  
-  /* =========================
+.badge {
+  padding: 0.4em 0.7em;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.bg-danger {
+  background: #ff6b6b !important;
+}
+
+.bg-warning {
+  background: #ffd43b !important;
+  color: #212529 !important;
+}
+
+.bg-success {
+  background: #51cf66 !important;
+}
+
+/* =========================
      BUTTONS
      ========================= */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border-radius: 10px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-  }
-  .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  .btn:active {
-    transform: scale(0.96);
-  }
-  
-  /* =========================
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+/* =========================
      FADE-IN ANIMATION
      ========================= */
-  .fade-in-up {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  .fade-in-up.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  /* =========================
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in-up.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================
      CUSTOM MODAL
      ========================= */
-  .custom-modal-backdrop {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-  }
-  .custom-modal {
-    background: #fff;
-    border-radius: 8px;
-    width: 600px;
-    max-width: 95%;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    overflow: hidden;
-  }
-  .modal-header,
-  .modal-footer {
-    padding: 12px 16px;
-    border-bottom: 1px solid #ddd;
-  }
-  .modal-footer {
-    border-top: 1px solid #ddd;
-    border-bottom: none;
-  }
-  .modal-body {
-    padding: 16px;
-  }
-  .btn-close {
-    background: none;
-    border: none;
-    font-size: 1.3rem;
-    cursor: pointer;
-  }
-  
-  /* ===============================
-     DARK MODE (Technical Debt Page + ApexCharts)
+.custom-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.custom-modal {
+  background: var(--card-bg);
+  border-radius: 16px;
+  width: 600px;
+  max-width: 95%;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  color: var(--text-main);
+}
+
+.modal-header,
+.modal-footer {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border-color);
+  border-bottom: none;
+}
+
+.modal-body {
+  padding: 16px;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+/* ===============================
+     DARK MODE (Technical Debt Page)
+     สีเหมือน repositories component
      =============================== */
-  
-  /* Card */
-  :host-context(.dark-mode) .card {
-    background-color: var(--bg-card) !important;
-    color: var(--text-main) !important;
-    border: 1px solid var(--card-border) !important;
-  }
-  :host-context(.dark-mode) .card-header {
-    background-color: var(--table-header-bg) !important;
-    color: var(--table-header-text) !important;
-    border-bottom: 1px solid var(--card-border) !important;
-  }
-  
-  /* Summary box */
-  :host-context(.dark-mode) .bg-light {
-    background-color: var(--bg-card) !important;
-    color: var(--text-main) !important;
-    border: 1px solid var(--card-border) !important;
-  }
-  
-  /* Table */
-  :host-context(.dark-mode) .table,
-  :host-context(.dark-mode) .table tbody td {
-    background-color: var(--bg-card) !important;
-    color: var(--text-main) !important;
-    border-color: var(--card-border) !important;
-  }
-  :host-context(.dark-mode) .table thead th {
-    background-color: var(--table-header-bg) !important;
-    color: var(--table-header-text) !important;
-    border-color: var(--card-border) !important;
-  }
-  
-  /* List group */
-  :host-context(.dark-mode) .list-group-item {
-    background-color: var(--bg-card) !important;
-    color: var(--text-main) !important;
-    border: 1px solid var(--card-border) !important;
-  }
-  :host-context(.dark-mode) .list-group-item:hover {
-    background-color: var(--table-header-bg2) !important;
-  }
-  
-  /* ApexCharts */
-  :host-context(.dark-mode) .apexcharts-canvas {
-    background: var(--bg-card) !important;
-    color: var(--text-main) !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-  }
-  :host-context(.dark-mode) .apexcharts-title-text,
-  :host-context(.dark-mode) .apexcharts-subtitle-text,
-  :host-context(.dark-mode) .apexcharts-xaxis text,
-  :host-context(.dark-mode) .apexcharts-yaxis text {
-    fill: var(--apexcharts-text, #ffffff) !important;
-    color: var(--apexcharts-text, #ffffff) !important;
-  }
-  :host-context(.dark-mode) .apexcharts-grid line {
-    stroke: var(--card-border) !important;
-  }
-  :host-context(.dark-mode) ::ng-deep .apexcharts-title-text,
-  :host-context(.dark-mode) ::ng-deep .apexcharts-subtitle-text {
-    fill: #ffffff !important;
-    font-weight: 600 !important;
-  }
-  :host-context(.dark-mode) ::ng-deep .apexcharts-xaxis text,
-  :host-context(.dark-mode) ::ng-deep .apexcharts-yaxis text {
-    fill: #e5e7eb !important;
-    font-weight: 500 !important;
-  }
-  :host-context(.dark-mode) ::ng-deep .apexcharts-grid line,
-  :host-context(.dark-mode) ::ng-deep .apexcharts-xaxis line,
-  :host-context(.dark-mode) ::ng-deep .apexcharts-yaxis line {
-    stroke: #6b7280 !important;
-    stroke-width: 1.2px !important;
-  }
-  
-  /* =========================
+
+/* Container */
+:host-context(.dark-mode) .container {
+  color: var(--text-main);
+}
+
+/* Summary box (bg-light) */
+:host-context(.dark-mode) .bg-light {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Table */
+:host-context(.dark-mode) .table,
+:host-context(.dark-mode) .table tbody td {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+
+:host-context(.dark-mode) .table thead th {
+  background-color: var(--bg-main) !important;
+  color: var(--text-sub) !important;
+  border-color: var(--border-color) !important;
+}
+
+:host-context(.dark-mode) .table-light {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+}
+
+:host-context(.dark-mode) .table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* text-muted → ใช้ text-sub เหมือน repositories */
+:host-context(.dark-mode) .text-muted {
+  color: var(--text-sub) !important;
+}
+
+/* Heading colors */
+:host-context(.dark-mode) h3,
+:host-context(.dark-mode) h6,
+:host-context(.dark-mode) strong {
+  color: var(--text-main) !important;
+}
+
+/* Progress bar track */
+:host-context(.dark-mode) .progress {
+  background-color: var(--border-color) !important;
+}
+
+/* btn-close สำหรับ dark mode */
+:host-context(.dark-mode) .btn-close {
+  filter: invert(1);
+}
+
+/* ApexCharts */
+:host-context(.dark-mode) .apexcharts-canvas {
+  background: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+:host-context(.dark-mode) .apexcharts-title-text,
+:host-context(.dark-mode) .apexcharts-subtitle-text,
+:host-context(.dark-mode) .apexcharts-xaxis text,
+:host-context(.dark-mode) .apexcharts-yaxis text {
+  fill: var(--text-main) !important;
+  color: var(--text-main) !important;
+}
+
+:host-context(.dark-mode) .apexcharts-grid line {
+  stroke: var(--border-color) !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-title-text,
+:host-context(.dark-mode) ::ng-deep .apexcharts-subtitle-text {
+  fill: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-xaxis text,
+:host-context(.dark-mode) ::ng-deep .apexcharts-yaxis text {
+  fill: #e5e7eb !important;
+  font-weight: 500 !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-grid line,
+:host-context(.dark-mode) ::ng-deep .apexcharts-xaxis line,
+:host-context(.dark-mode) ::ng-deep .apexcharts-yaxis line {
+  stroke: #6b7280 !important;
+  stroke-width: 1.2px !important;
+}
+
+/* =========================
    ULTRA COMPACT BUTTONS (MOBILE)
    ========================= */
 @media (max-width: 768px) {
   .btn {
-    font-size: 0.75rem;         /* ตัวอักษรเล็กลง */
-    padding: 6px 10px;          /* ขอบรอบตัวลดลง */
-    border-radius: 6px;         /* มุมโค้งเล็กลง */
-    gap: 3px;                   /* ช่องว่างระหว่าง icon-text ลดลง */
-    width: 100%;                /* ขยายเต็มแนว */
+    font-size: 0.75rem;
+    /* ตัวอักษรเล็กลง */
+    padding: 6px 10px;
+    /* ขอบรอบตัวลดลง */
+    border-radius: 6px;
+    /* มุมโค้งเล็กลง */
+    gap: 3px;
+    /* ช่องว่างระหว่าง icon-text ลดลง */
+    width: 100%;
+    /* ขยายเต็มแนว */
     justify-content: center;
   }
 

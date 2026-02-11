@@ -36,7 +36,7 @@ export class UsermanagementComponent {
   isEmail: boolean = false;
   filteredUsers: UserInfo[] = [];
   emptyUser(): UserInfo {
-    return { id: "0", username: '', password: '', email: '', role: 'USER', status: '' };
+    return { id: "0", username: '', password: '', email: '', role: 'USER',status: '' };
   }
 
   // filteredUsers(): User[] {
@@ -147,12 +147,11 @@ export class UsermanagementComponent {
       email: this.modalData.email,
       phone: this.modalData.phone,
       role: this.modalData.role,
-      status: this.modalData.status,
-      password: this.modalData.password
+      password: this.modalData.password,
+      status: 'UNVERIFIED'
     };
-    console.log('Submitting user payload:', payload);
-
     if (this.editingUser === true) {
+      payload.status = this.modalData.status;
       this.userDateService.EditUser(payload).subscribe({
         next: (updatedUser) => {
           this.sharedData.updateUser(payload);
@@ -166,6 +165,7 @@ export class UsermanagementComponent {
         next: (newUser) => {
           this.closeModal();
           this.sharedData.addUser(payload);
+          console.log('User added:', newUser);
         },
         error: (err) => console.error(err)
       });

@@ -1,33 +1,237 @@
 /* ===============================
    Container
    =============================== */
-.scan-history-container {
-  background-color: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 16px 20px;
-  transition: background-color 0.35s ease,
-    border-color 0.35s ease,
-    box-shadow 0.35s ease,
-    color 0.35s ease;
 
+/* --- Variables --- */
+:host {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  --angular-color: #dd0031;
+  --spring-color: #6db33f;
+
+  /* Table Variables (Light) */
+  --table-header-bg: #f1f5f9;
+  --table-header-text: #475569;
+  --table-border: #e2e8f0;
+  --table-header-bg2: #f8fafc;
+  /* hover */
+  --table-row-bg: #ffffff;
+}
+
+:host-context(.dark-mode) {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --border-color: #334155;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+
+  /* Table Variables (Dark) */
+  --table-header-bg: #1e293b;
+  --table-header-text: #94a3b8;
+  --table-border: #334155;
+  --table-header-bg2: #334155;
+  /* hover */
+  --table-row-bg: #1e293b;
+}
+
+/* ===============================
+   Container
+   =============================== */
+.scan-history-container {
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  padding: 30px;
+  color: var(--text-main);
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 .scan-history-container:hover {
   box-shadow: none;
 }
 
-.scan-history-container h2 {
-  border: 1px solid var(--card-border);
-  padding: 12px 16px;
-  border-radius: 10px;
-  background-color: var(--bg-panel);
-  display: block;
-  width: 100%;
+/* --- Header --- */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+  font-size: 1.8rem;
   font-weight: 800;
-  font-size: 1.5rem;
-  color: var(--dashboard-title-color);
+  margin: 0;
+  background: linear-gradient(135deg, var(--text-main) 0%, var(--text-sub) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dashboard-header p {
+  color: var(--text-sub);
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+}
+
+.gate-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.gate-pass {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.gate-fail {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+:host-context(.dark-mode) .gate-pass {
+  background: rgba(21, 128, 61, 0.2);
+  color: #4ade80;
+}
+
+:host-context(.dark-mode) .gate-fail {
+  background: rgba(185, 28, 28, 0.2);
+  color: #f87171;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: var(--bg-main);
+  color: var(--primary);
+}
+
+.btn-view:hover {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* --- Repository Style Integration --- */
+.repo-identity {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.type-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.icon-angular {
+  background: rgba(221, 0, 49, 0.1);
+  color: #dd0031;
+}
+
+.icon-spring {
+  background: rgba(109, 179, 63, 0.1);
+  color: #6db33f;
+}
+
+.repo-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* Enhanced Status Badges */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-badge.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-badge.failed {
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-badge.scanning,
+.status-badge.pending {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Dark Mode Adjustments */
+:host-context(.dark-mode) .status-badge.success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+:host-context(.dark-mode) .status-badge.failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+:host-context(.dark-mode) .status-badge.scanning,
+:host-context(.dark-mode) .status-badge.pending {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 
@@ -55,7 +259,7 @@
   /* มุมโค้ง */
   padding: 6px 10px;
   /* ระยะห่างด้านใน */
-  background-color: var(--bg-panel);
+  background-color: var(--bg-main);
   /* พื้นหลังช่อง */
   color: var(--text-main);
   /* สีตัวอักษร */
@@ -77,7 +281,7 @@
 
 /* Select option styling for dark mode */
 .filter-row select option {
-  background-color: var(--bg-panel);
+  background-color: var(--bg-main);
   color: var(--text-main);
 }
 
@@ -96,7 +300,7 @@
   /* เว้นด้านขวาให้ไอคอน */
   position: relative;
   z-index: 1;
-  background-color: var(--bg-panel);
+  background-color: var(--bg-main);
   color: var(--text-main);
   border: 1px solid var(--card-border);
   border-radius: 6px;
@@ -137,13 +341,29 @@
 /* ===============================
        Table
        =============================== */
+.scan-history-table {
+  background-color: var(--card-bg);
+  /* Add background to table */
+  border-radius: 12px;
+  overflow: hidden;
+  /* For rounded corners */
+  box-shadow: var(--shadow-sm);
+}
+
 .table th {
   background-color: var(--table-header-bg);
   /* พื้นหลังหัวตาราง */
   font-weight: 600;
   color: var(--table-header-text);
   /* สีข้อความหัว */
+  border-bottom: 1px solid var(--border-color);
   transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+.table td {
+  background-color: var(--table-row-bg);
+  /* Explicit row background */
+  color: var(--text-main);
 }
 
 .table td,
@@ -1006,4 +1226,35 @@
   background-color: inherit !important;
   color: var(--text-main) !important;
   border-color: var(--card-border) !important;
+}
+
+/* ===============================
+     Empty State (Repositories Style)
+     =============================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: var(--text-sub);
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--text-sub);
+  font-size: 1rem;
 }

@@ -1,3 +1,48 @@
+/* ===========================================================
+   📋 REPORT HISTORY STYLE
+   สีเหมือน repositories / technicaldebt
+   =========================================================== */
+
+/* =========================
+   VARIABLES (เหมือน repositories)
+   ========================= */
+:host {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --border-color: #e2e8f0;
+  --table-header-bg: #f1f5f9;
+  --table-header-bg2: #e8efff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+:host-context(.dark-mode) {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --border-color: #334155;
+  --table-header-bg: #1f2937;
+  --table-header-bg2: #1f2937;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* =========================
+   HOST
+   ========================= */
+:host {
+  display: block;
+  color: var(--text-main);
+  font-family: "Inter", sans-serif;
+}
+
 /* ===============================
    Report History Container
    =============================== */
@@ -5,30 +50,30 @@
   padding: 24px;
   max-width: 1000px;
   margin: 0 auto;
-  background: var(--bg-card, #ffffff);
+  background: var(--card-bg);
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
-  font-family: "Inter", sans-serif;
+  color: var(--text-main);
 }
 
 /* ===============================
-     Header Section
-     =============================== */
+   Header Section
+   =============================== */
 .header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
   padding: 12px 16px;
-  border: 1px solid var(--card-border, #cbd5e1);
-  border-radius: 12px;
-  background-color: var(--bg-panel, #f9fafb);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background-color: var(--card-bg);
 }
 
 .header-row h2 {
-  color: var(--dashboard-title-color);
-  /* ✅ ใช้ตัวแปร (ฟ้าใน light, ขาวใน dark) */
+  color: var(--text-main);
   font-size: 1.5rem;
   font-weight: 800;
   display: flex;
@@ -38,58 +83,66 @@
 }
 
 /* ===============================
-     Search Input
-     =============================== */
+   Search Input
+   =============================== */
 .search-input {
   padding: 8px 14px;
   border-radius: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-main);
+  color: var(--text-main);
   transition: all 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: var(--text-sub);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 /* ===============================
-     Report Table
-     =============================== */
+   Report Table
+   =============================== */
 .report-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 6px;
+  color: var(--text-main);
 }
 
 .report-table th {
-  background: var(--table-header-bg, #f8f9fa);
+  background: var(--table-header-bg);
   padding: 10px;
   font-weight: 600;
-  color: var(--table-header-text, #444);
-  border-bottom: 2px solid var(--table-border, #eee);
+  color: var(--text-sub);
+  border-bottom: 2px solid var(--border-color);
 }
 
 .report-table td {
-  background: var(--bg-card, #fff);
+  background: var(--card-bg);
   border: none;
   padding: 12px;
   text-align: center;
   vertical-align: middle;
+  color: var(--text-main);
   transition: all 0.2s ease;
-  border-bottom: 1px solid var(--table-border, #f0f0f0);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Hover */
 .report-table tr:hover td {
-  background: var(--bg-panel, #f9fbff);
+  background: var(--bg-main);
   transform: translateY(-2px);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* ===============================
-     Download Button
-     =============================== */
+   Download Button
+   =============================== */
 .download-btn {
   width: 36px;
   height: 36px;
@@ -111,116 +164,258 @@
 }
 
 /* ===============================
-     Empty State (No Data)
-     =============================== */
+   Empty State (No Data)
+   =============================== */
 .no-data {
   text-align: center;
-  color: var(--text-muted, #666);
+  color: var(--text-sub);
   font-size: 0.95rem;
   padding: 16px;
 }
 
 /* ===============================
-     Pagination Controls
-     =============================== */
+   Page Label
+   =============================== */
+.page-label {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* ===============================
+   Pagination Controls
+   =============================== */
 .pagination {
-  margin-top: 18px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
+  margin: 16px 0;
 }
 
 .pagination button {
-  padding: 6px 14px;
-  border: 1px solid var(--card-border, #ddd);
-  background: #3c72e9;
-  color: #fff;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--primary);
+  background-color: var(--card-bg);
+  color: var(--primary);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
-.pagination button:hover:not(:disabled) {
-  background: #2563eb;
+.pagination button:hover,
+.pagination button.active {
+  background-color: var(--primary);
   color: #fff;
-  border-color: #1e40af;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
 }
 
 .pagination button:disabled {
-  background: var(--bg-panel, #f1f1f1);
-  color: var(--text-muted, #999);
-  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* ===============================
-     Dark Mode Overrides
-     =============================== */
-:host-context(.dark-mode) .report-history-container {
-  background: var(--bg-card) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
-}
-
-:host-context(.dark-mode) .header-row {
-  background-color: var(--bg-panel) !important;
-  border: 1px solid var(--card-border) !important;
-}
-
-:host-context(.dark-mode) .header-row h2 {
-  color: var(--dashboard-title-color) !important;
-}
-
-/* ===============================
-     Search Input → Dark Mode
-     =============================== */
-:host-context(.dark-mode) .search-input {
-  background-color: var(--bg-panel) !important;
-  color: var(--text-main) !important;
-  border: 1px solid var(--card-border) !important;
-}
-
-:host-context(.dark-mode) .search-input::placeholder {
-  color: var(--text-muted) !important;
-}
-
-:host-context(.dark-mode) .search-input:focus {
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
-}
-
-/* ===============================
-   Dark Mode Pagination
+   DARK MODE OVERRIDES
    =============================== */
-:host-context(.dark-mode) .pagination button {
-  background: #2563eb !important;
-  /* กล่องฟ้า */
-  color: #fff !important;
-  /* ตัวหนังสือขาว */
-  border: 1px solid #2563eb !important;
+
+/* Dark mode table row hover */
+:host-context(.dark-mode) .report-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03) !important;
 }
 
-:host-context(.dark-mode) .pagination button:hover:not(:disabled) {
-  background: #1e40af !important;
-  /* ฟ้าเข้มตอน hover */
-  border-color: #1e40af !important;
-  color: #fff !important;
-}
-
+/* Dark mode pagination disabled */
 :host-context(.dark-mode) .pagination button:disabled {
-  background: #374151 !important;
-  /* เทาเข้มตอน disabled */
-  color: #9ca3af !important;
-  /* เทาอ่อน */
-  border-color: #4b5563 !important;
+  background: var(--border-color) !important;
+  color: var(--text-sub) !important;
+  border-color: var(--border-color) !important;
+  opacity: 0.6;
 }
 
-
-
-
-
+/* text-muted */
+:host-context(.dark-mode) .text-muted {
+  color: var(--text-sub) !important;
+}
 
 /* ===============================
-   Mobile Responsive Table (320px - 768px)
+   Sticky Export Column
+   =============================== */
+
+/* Table base */
+.report-table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  position: relative;
+  background: var(--card-bg);
+  overflow: visible;
+}
+
+/* Sticky Export Column (ทั้งหัว + body) */
+.report-table th:last-child,
+.report-table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 5;
+  border-left: 1px solid var(--border-color);
+  background: var(--card-bg);
+  box-shadow: -1px 0 0 rgba(0, 0, 0, 0.05);
+  isolation: isolate;
+}
+
+/* หัวคอลัมน์ Export ให้เหมือนเพื่อนทุกอย่าง */
+.report-table thead th:last-child {
+  z-index: 6;
+  background: linear-gradient(180deg,
+      var(--table-header-bg),
+      var(--table-header-bg2)) !important;
+  color: var(--text-sub) !important;
+  border-left: 1px solid var(--border-color) !important;
+  border-right: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* ลบพื้นหลังซ้อนที่ทำให้ซีด */
+.report-table th:last-child::after,
+.report-table td:last-child::after {
+  content: none !important;
+}
+
+/* ปุ่ม Download */
+.report-table td:last-child .download-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(34, 197, 94, 0.25);
+  transition: all 0.25s ease;
+}
+
+.report-table td:last-child .download-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.35);
+}
+
+/* ===============================
+   Dark Mode — Sticky Column
+   =============================== */
+:host-context(.dark-mode) .report-table th:last-child,
+:host-context(.dark-mode) .report-table td:last-child {
+  background: var(--card-bg);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+:host-context(.dark-mode) .report-table thead th:last-child {
+  background: linear-gradient(180deg,
+      var(--table-header-bg),
+      var(--table-header-bg2)) !important;
+  color: var(--text-sub) !important;
+}
+
+:host-context(.dark-mode) .report-table th:last-child::after,
+:host-context(.dark-mode) .report-table td:last-child::after {
+  content: none !important;
+}
+
+/* ===============================
+   Sticky Columns — user-table (Status + Actions)
+   =============================== */
+
+/* Table base */
+.user-table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  position: relative;
+  background: var(--card-bg);
+  overflow: visible;
+  min-width: 800px;
+}
+
+/* Sticky STATUS column */
+.user-table th:nth-last-child(2),
+.user-table td:nth-last-child(2) {
+  position: sticky;
+  right: 120px;
+  z-index: 5;
+  background: var(--card-bg);
+  border-left: 1px solid var(--border-color);
+}
+
+/* Sticky ACTIONS column */
+.user-table th:last-child,
+.user-table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 6;
+  background: var(--card-bg);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -1px 0 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Header backgrounds match other headers */
+.user-table thead th:nth-last-child(2),
+.user-table thead th:last-child {
+  background: linear-gradient(180deg, var(--table-header-bg), var(--table-header-bg2)) !important;
+  color: var(--text-sub) !important;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Remove overlay artifacts */
+.user-table th:nth-last-child(2)::after,
+.user-table th:last-child::after,
+.user-table td:nth-last-child(2)::after,
+.user-table td:last-child::after {
+  content: none !important;
+}
+
+/* ===============================
+   Dark Mode — user-table sticky
+   =============================== */
+:host-context(.dark-mode) .user-table th:nth-last-child(2),
+:host-context(.dark-mode) .user-table td:nth-last-child(2),
+:host-context(.dark-mode) .user-table th:last-child,
+:host-context(.dark-mode) .user-table td:last-child {
+  background: var(--card-bg);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+:host-context(.dark-mode) .user-table thead th:nth-last-child(2),
+:host-context(.dark-mode) .user-table thead th:last-child {
+  background: linear-gradient(180deg, var(--table-header-bg), var(--table-header-bg2)) !important;
+  color: var(--text-sub) !important;
+}
+
+/* ===============================
+   user-table wrapper
+   =============================== */
+.user-management-container {
+  position: relative;
+}
+
+.user-table-wrapper {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: visible;
+  width: 100%;
+  border-radius: 12px;
+}
+
+/* ===============================
+   📱 Mobile Responsive (≤768px)
    =============================== */
 @media (max-width: 768px) {
   .report-history-container {
@@ -252,7 +447,7 @@
     overflow-x: auto;
     white-space: nowrap;
     position: relative;
-    background: var(--bg-card);
+    background: var(--card-bg);
   }
 
   /* ลดขนาด font & padding */
@@ -279,156 +474,17 @@
   .pagination button {
     font-size: 0.8rem;
     padding: 5px 10px;
-  }
-}
-
-/* ===============================
-   Pagination (ให้เหมือน Issues Page)
-   =============================== */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin: 16px 0;
-}
-
-.pagination button {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  border: 1px solid #2563eb;
-  background-color: #fff;
-  color: #2563eb;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.pagination button:hover,
-.pagination button.active {
-  background-color: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-.pagination button:disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-
-
-
-/* ===============================
-   Sticky Export Column — Perfect Match Header (FINAL FIX)
-   =============================== */
-
-/* Table base */
-.report-table {
-  border-collapse: separate !important;
-  border-spacing: 0;
-  position: relative;
-  background: var(--bg-card);
-  overflow: visible;
-}
-
-/* Sticky Export Column (ทั้งหัว + body) */
-.report-table th:last-child,
-.report-table td:last-child {
-  position: sticky;
-  right: 0;
-  z-index: 5;
-  border-left: 1px solid var(--table-border, #e5e7eb);
-  background: var(--bg-card);
-  box-shadow: -1px 0 0 rgba(0, 0, 0, 0.05);
-  isolation: isolate;
-  /* ป้องกัน layer ซ้อน */
-}
-
-/* ✅ หัวคอลัมน์ Export ให้เหมือนเพื่อนทุกอย่าง */
-.report-table thead th:last-child {
-  z-index: 6;
-  background: linear-gradient(180deg,
-      var(--table-header-bg),
-      var(--table-header-bg2)) !important;
-  color: var(--table-header-text, #333) !important;
-  border-left: 1px solid var(--table-border, #e5e7eb) !important;
-  border-right: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-/* ❌ ลบพื้นหลังซ้อนที่ทำให้ซีด */
-.report-table th:last-child::after,
-.report-table td:last-child::after {
-  content: none !important;
-}
-
-/* ปุ่ม Download */
-.report-table td:last-child .download-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 8px rgba(34, 197, 94, 0.25);
-  transition: all 0.25s ease;
-}
-
-.report-table td:last-child .download-btn:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
-  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.35);
-}
-
-/* ===============================
-   Dark Mode
-   =============================== */
-.dark-mode .report-table th:last-child,
-.dark-mode .report-table td:last-child {
-  background: var(--bg-panel);
-  border-left: 1px solid #333;
-  box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
-}
-
-.dark-mode .report-table thead th:last-child {
-  background: linear-gradient(180deg,
-      var(--table-header-bg),
-      var(--table-header-bg2)) !important;
-  color: var(--table-header-text, #ddd) !important;
-}
-
-.dark-mode .report-table th:last-child::after,
-.dark-mode .report-table td:last-child::after {
-  content: none !important;
-}
-
-/* ===============================
-   Mobile Fix — seamless scroll
-   =============================== */
-@media (max-width: 768px) {
-  .report-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-    position: relative;
+    width: auto;
+    height: auto;
   }
 
+  /* Sticky Export column on mobile */
   .report-table th:last-child,
   .report-table td:last-child {
     position: sticky;
     right: 0;
     z-index: 5;
-    background: var(--bg-card);
+    background: var(--card-bg);
   }
 
   .report-table thead th:last-child {
@@ -436,88 +492,14 @@
         var(--table-header-bg),
         var(--table-header-bg2)) !important;
   }
-}
 
-/* ===============================
-   🧱 Sticky Columns — Status + Actions (Final)
-   =============================== */
-
-/* Base: Table structure */
-.user-table {
-  border-collapse: separate !important;
-  border-spacing: 0;
-  position: relative;
-  background: var(--bg-card, #fff);
-  overflow: visible;
-}
-
-/* Sticky STATUS column */
-.user-table th:nth-last-child(2),
-.user-table td:nth-last-child(2) {
-  position: sticky;
-  right: 120px;
-  /* ความกว้างเท่ากับ actions-col */
-  z-index: 5;
-  background: var(--bg-card, #fff);
-  border-left: 1px solid var(--table-border, #e5e7eb);
-}
-
-/* Sticky ACTIONS column */
-.user-table th:last-child,
-.user-table td:last-child {
-  position: sticky;
-  right: 0;
-  z-index: 6;
-  background: var(--bg-card, #fff);
-  border-left: 1px solid var(--table-border, #e5e7eb);
-  box-shadow: -1px 0 0 rgba(0, 0, 0, 0.05);
-}
-
-/* ✅ Header backgrounds match other headers */
-.user-table thead th:nth-last-child(2),
-.user-table thead th:last-child {
-  background: linear-gradient(180deg, var(--table-header-bg, #f8fafc), var(--table-header-bg2, #f1f5f9)) !important;
-  color: var(--table-header-text, #334155) !important;
-  font-weight: 600;
-  border-bottom: 1px solid var(--table-border, #e5e7eb);
-}
-
-/* ❌ Remove overlay artifacts */
-.user-table th:nth-last-child(2)::after,
-.user-table th:last-child::after,
-.user-table td:nth-last-child(2)::after,
-.user-table td:last-child::after {
-  content: none !important;
-}
-
-/* ===============================
-   🌙 Dark Mode (เนียนทั้งคู่)
-   =============================== */
-:host-context(.dark-mode) .user-table th:nth-last-child(2),
-:host-context(.dark-mode) .user-table td:nth-last-child(2),
-:host-context(.dark-mode) .user-table th:last-child,
-:host-context(.dark-mode) .user-table td:last-child {
-  background: var(--bg-panel, #1f2937);
-  border-left: 1px solid #333;
-  box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
-}
-
-:host-context(.dark-mode) .user-table thead th:nth-last-child(2),
-:host-context(.dark-mode) .user-table thead th:last-child {
-  background: linear-gradient(180deg, var(--table-header-bg, #374151), var(--table-header-bg2, #1f2937)) !important;
-  color: var(--table-header-text, #e5e7eb) !important;
-}
-
-/* ===============================
-   📱 Mobile (scroll ได้ลื่น + ปิดช่องขาว)
-   =============================== */
-@media (max-width: 768px) {
+  /* user-table mobile */
   .user-table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
     position: relative;
-    background: var(--bg-card);
+    background: var(--card-bg);
   }
 
   .user-table th:nth-last-child(2),
@@ -546,65 +528,10 @@
     top: 0;
     bottom: 0;
     width: 0;
-    background: var(--bg-card);
+    background: var(--card-bg);
     z-index: 4;
   }
-}
 
-/* ===============================
-   🧭 FIX: Enable Sticky Scroll for User Table
-   =============================== */
-
-/* ✅ 1. ห่อ table ด้วย container scroll ได้ */
-.user-management-container {
-  position: relative;
-}
-
-.user-table-wrapper {
-  position: relative;
-  overflow-x: auto;
-  overflow-y: visible;
-  width: 100%;
-  border-radius: 12px;
-}
-
-/* ✅ 2. ทำให้ sticky columns มองเห็นได้ */
-.user-table {
-  border-collapse: separate !important;
-  border-spacing: 0;
-  min-width: 800px;
-  /* ป้องกันบีบคอลัมน์จนหาย */
-  position: relative;
-}
-
-/* ✅ 3. Sticky “Status” + “Actions” */
-.user-table th:nth-last-child(2),
-.user-table td:nth-last-child(2) {
-  position: sticky;
-  right: 120px;
-  z-index: 5;
-  background: var(--bg-card, #fff);
-}
-
-.user-table th:last-child,
-.user-table td:last-child {
-  position: sticky;
-  right: 0;
-  z-index: 6;
-  background: var(--bg-card, #fff);
-  border-left: 1px solid var(--table-border, #e5e7eb);
-  box-shadow: -1px 0 0 rgba(0, 0, 0, 0.05);
-}
-
-/* ✅ 4. Header match */
-.user-table thead th:nth-last-child(2),
-.user-table thead th:last-child {
-  background: linear-gradient(180deg, var(--table-header-bg, #f8fafc), var(--table-header-bg2, #f1f5f9)) !important;
-  color: var(--table-header-text, #334155) !important;
-}
-
-/* ✅ 5. Mobile – scroll ลื่น */
-@media (max-width: 768px) {
   .user-table-wrapper {
     overflow-x: auto;
     white-space: nowrap;
@@ -612,11 +539,9 @@
 }
 
 /* ================================================
-   🧭 FINAL FIX — Prevent Table from covering toggle
+   Tablet Fix (769px - 1024px)
    ================================================ */
 @media (min-width: 769px) and (max-width: 1024px) {
-
-  /* ✅ ให้ container อยู่ใน flow ปกติ (ไม่กินพื้นที่ซ้อน) */
   .report-history-container {
     position: static !important;
     z-index: auto !important;
