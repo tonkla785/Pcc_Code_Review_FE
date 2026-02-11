@@ -649,6 +649,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -661,10 +662,12 @@
 .comment-item {
   animation: fadeIn 0.5s ease-out;
 }
+
 .replies {
   margin-left: 48px;
 }
-/* From Uiverse.io by dexter-st */ 
+
+/* From Uiverse.io by dexter-st */
 .btn-container {
   --btn-color: #d8ff7c;
   --corner-color: #0002;
@@ -679,7 +682,7 @@
   justify-content: center;
 }
 
-.btn {
+.btn-uiverse {
   position: relative;
   min-width: 110px;
   min-height: 40px;
@@ -742,6 +745,7 @@
   border-radius: 12px 12px 0 0;
   align-items: start;
 }
+
 .transition-bottom {
   bottom: 0;
   right: 0;
@@ -792,28 +796,26 @@
 .btn-corner:nth-of-type(1) {
   top: 0;
   left: 0;
-  transform: translate(
-      calc(-1 * var(--corner-dist)),
-      calc(-1 * var(--corner-dist))
-    )
-    rotate(90deg);
+  transform: translate(calc(-1 * var(--corner-dist)),
+      calc(-1 * var(--corner-dist))) rotate(90deg);
 }
+
 .btn-corner:nth-of-type(2) {
   top: 0;
   right: 0;
-  transform: translate(var(--corner-dist), calc(-1 * var(--corner-dist)))
-    rotate(180deg);
+  transform: translate(var(--corner-dist), calc(-1 * var(--corner-dist))) rotate(180deg);
 }
+
 .btn-corner:nth-of-type(3) {
   bottom: 0;
   right: 0;
   transform: translate(var(--corner-dist), var(--corner-dist)) rotate(-90deg);
 }
+
 .btn-corner:nth-of-type(4) {
   bottom: 0;
   left: 0;
-  transform: translate(calc(-1 * var(--corner-dist)), var(--corner-dist))
-    rotate(0deg);
+  transform: translate(calc(-1 * var(--corner-dist)), var(--corner-dist)) rotate(0deg);
 }
 
 .btn-container:has(.btn:hover),
@@ -823,6 +825,7 @@
     filter: drop-shadow(0 16px 16px #0002);
     -webkit-filter: drop-shadow(0 16px 16px #0002);
   }
+
   .transition-top {
     transform: translateY(-24px) rotateZ(4deg);
     filter: blur(0px);
@@ -831,6 +834,7 @@
     -webkit-animation: hue-anim 3s infinite linear;
     opacity: 1;
   }
+
   .transition-bottom {
     transform: translateY(24px) rotateZ(4deg);
     filter: blur(0px);
@@ -839,65 +843,48 @@
     -webkit-animation: hue-anim 3s infinite linear;
     opacity: 1;
   }
+
   .btn-text {
-    filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006)
-      drop-shadow(0px 6px 2px #0003);
-    -webkit-filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006)
-      drop-shadow(0px 6px 2px #0003);
+    filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006) drop-shadow(0px 6px 2px #0003);
+    -webkit-filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006) drop-shadow(0px 6px 2px #0003);
     transform: scale(1.05);
     color: #0008;
   }
 
   --corner-color: #0004;
+
   .btn-corner:first-of-type {
-    transform: translate(
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(90deg);
-    filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
+    transform: translate(calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
+        calc(-1 * var(--corner-multiplier) * var(--corner-dist))) rotate(90deg);
+    filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
   }
+
   .btn-corner:nth-of-type(2) {
-    transform: translate(
-        calc(var(--corner-multiplier) * var(--corner-dist)),
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(180deg);
-    filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
+    transform: translate(calc(var(--corner-multiplier) * var(--corner-dist)),
+        calc(-1 * var(--corner-multiplier) * var(--corner-dist))) rotate(180deg);
+    filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
   }
+
   @-moz-document url-prefix() {
     .btn-corner:nth-of-type(2) {
-      filter: drop-shadow(10px -10px 1px var(--corner-color))
-        drop-shadow(20px -20px 2px var(--corner-color));
+      filter: drop-shadow(10px -10px 1px var(--corner-color)) drop-shadow(20px -20px 2px var(--corner-color));
     }
   }
+
   .btn-corner:nth-of-type(3) {
-    transform: translate(
-        calc(var(--corner-multiplier) * var(--corner-dist)),
-        calc(var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(-90deg);
-    filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
+    transform: translate(calc(var(--corner-multiplier) * var(--corner-dist)),
+        calc(var(--corner-multiplier) * var(--corner-dist))) rotate(-90deg);
+    filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
   }
+
   .btn-corner:nth-of-type(4) {
-    transform: translate(
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
-        calc(var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(0deg);
-    filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color))
-      drop-shadow(-20px 20px 2px var(--corner-color));
+    transform: translate(calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
+        calc(var(--corner-multiplier) * var(--corner-dist))) rotate(0deg);
+    filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 1px var(--corner-color)) drop-shadow(-20px 20px 2px var(--corner-color));
   }
 }
 
@@ -907,92 +894,83 @@
     filter: drop-shadow(0 10px 4px #0002);
     -webkit-filter: drop-shadow(0 10px 4px #0002);
   }
+
   .transition-top,
   .transition-bottom {
     transform: translateY(0px) scale(0.5);
   }
+
   .btn-text {
-    filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006)
-      drop-shadow(0px 6px 2px #0003);
-    -webkit-filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006)
-      drop-shadow(0px 6px 2px #0003);
+    filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006) drop-shadow(0px 6px 2px #0003);
+    -webkit-filter: drop-shadow(0 1px 0 #fff6) drop-shadow(0 -1px 0 #0006) drop-shadow(0px 6px 2px #0003);
     transform: scale(1);
     color: #000a;
   }
+
   --corner-color: #0005;
   --corner-multiplier: 0.95;
+
   .btn-corner:first-of-type {
-    transform: translate(
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(90deg);
-    filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
+    transform: translate(calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
+        calc(-1 * var(--corner-multiplier) * var(--corner-dist))) rotate(90deg);
+    filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
   }
+
   .btn-corner:nth-of-type(2) {
-    transform: translate(
-        calc(var(--corner-multiplier) * var(--corner-dist)),
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(180deg);
-    filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
+    transform: translate(calc(var(--corner-multiplier) * var(--corner-dist)),
+        calc(-1 * var(--corner-multiplier) * var(--corner-dist))) rotate(180deg);
+    filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
   }
+
   @-moz-document url-prefix() {
     .btn-corner:nth-of-type(2) {
-      filter: drop-shadow(10px -10px 2px var(--corner-color))
-        drop-shadow(20px -20px 3px var(--corner-color));
+      filter: drop-shadow(10px -10px 2px var(--corner-color)) drop-shadow(20px -20px 3px var(--corner-color));
     }
   }
+
   .btn-corner:nth-of-type(3) {
-    transform: translate(
-        calc(var(--corner-multiplier) * var(--corner-dist)),
-        calc(var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(-90deg);
-    filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
+    transform: translate(calc(var(--corner-multiplier) * var(--corner-dist)),
+        calc(var(--corner-multiplier) * var(--corner-dist))) rotate(-90deg);
+    filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
   }
+
   .btn-corner:nth-of-type(4) {
-    transform: translate(
-        calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
-        calc(var(--corner-multiplier) * var(--corner-dist))
-      )
-      rotate(0deg);
-    filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
-    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color))
-      drop-shadow(-20px 20px 3px var(--corner-color));
+    transform: translate(calc(-1 * var(--corner-multiplier) * var(--corner-dist)),
+        calc(var(--corner-multiplier) * var(--corner-dist))) rotate(0deg);
+    filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
+    -webkit-filter: drop-shadow(-10px 10px 2px var(--corner-color)) drop-shadow(-20px 20px 3px var(--corner-color));
   }
 }
 
 @keyframes hue-anim {
+
   0%,
   100% {
     filter: hue-rotate(0deg);
     -webkit-filter: hue-rotate(0deg);
   }
+
   50% {
     filter: hue-rotate(-70deg);
     -webkit-filter: hue-rotate(-70deg);
   }
 }
+
 @-webkit-keyframes hue-anim {
+
   0%,
   100% {
     -webkit-filter: hue-rotate(0deg);
   }
+
   50% {
     -webkit-filter: hue-rotate(-70deg);
   }
 }
+
 .btn-generate {
   display: flex;
   align-items: center;
