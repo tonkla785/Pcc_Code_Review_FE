@@ -117,17 +117,11 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.getAllRepo().subscribe({
       next: (repos) => {
-        // Check localStorage for scanning status
-        const updatedRepos = repos.map(repo => {
-          const savedStatus = localStorage.getItem(`repo-status-${repo.projectId}`);
-          if (savedStatus === 'Scanning') {
-            return { ...repo, status: 'Scanning' as 'Scanning' };
-          }
-          return repo;
-        });
+        // [Refactor] ไม่เช็ค localStorage แล้ว ใช้ข้อมูลจาก DB ล้วนๆ
+        // ถ้า DB บอกว่าเป็น PENDING/SCANNING ก็จะขึ้นหมุนติ้วๆ เอง
 
         // เก็บข้อมูลลง SharedDataService
-        this.sharedData.setRepositories(updatedRepos);
+        this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
         console.log('Repositories loaded:', repos);
 
@@ -307,8 +301,7 @@ export class RepositoriesComponent implements OnInit {
 
     if (repo.projectId) {
       this.sharedData.updateRepoStatus(repo.projectId, 'Scanning', 0);
-      // Save to localStorage immediately
-      localStorage.setItem(`repo-status-${repo.projectId}`, 'Scanning');
+      // [Refactor] ไม่เก็บ localStorage แล้ว เชื่อใจ WebSocket + DB
     }
 
     this.updateSummaryStats();
