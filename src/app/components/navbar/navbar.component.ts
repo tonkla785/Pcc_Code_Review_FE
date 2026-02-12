@@ -123,6 +123,14 @@ export class NavbarComponent implements OnInit {
     }
   }
 
+  // ตรวจสอบว่า route ปัจจุบันอยู่ใน submenu ของ key นั้นหรือไม่
+  isSubmenuRouteActive(key: string): boolean {
+    const item = this.menu.find(m => m.key === key);
+    if (!item?.submenu) return false;
+    const currentUrl = this.router.url;
+    return item.submenu.some(sub => currentUrl.startsWith(sub.link));
+  }
+
   // ปิด submenu ทั้งหมด
   closeAllSubmenus() {
     Object.keys(this.submenuOpen).forEach(key => {
