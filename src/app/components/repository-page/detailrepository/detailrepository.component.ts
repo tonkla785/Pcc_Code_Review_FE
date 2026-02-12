@@ -137,7 +137,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
             message: i.message,
             status: i.status,
             createdAt: i.createdAt,
-            assignedTo: i.assignedTo
+            assignedTo: typeof i.assignedTo === 'object' ? i.assignedTo?.username : i.assignedTo
           }));
 
         console.log('Loaded scan issues:', this.issues);
