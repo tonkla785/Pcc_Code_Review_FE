@@ -457,9 +457,9 @@
 }
 
 :host-context(.dark-mode) .table th {
-  background-color: #2c2c2c !important;
+  background-color: var(--bg-main) !important;
   /* Dark header bg */
-  color: #e5e7eb !important;
+  color: var(--text-main) !important;
   /* Light text */
   border-bottom: 1px solid #334155 !important;
 }
