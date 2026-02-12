@@ -47,7 +47,7 @@ export class AddrepositoryComponent implements OnInit {
     );
   }
 
-  // ✅ แผน B: token ใช้ตอน startScan (optional)
+  // แผน B: token ใช้ตอน startScan (optional)
   gitToken: string = '';
 
   authMethod: 'usernamePassword' | 'accessToken' | null = null;
@@ -61,12 +61,6 @@ export class AddrepositoryComponent implements OnInit {
     repositoryUrl: '',
     costPerDay: 1000 //default value
   };
-
-  // ❌ ไม่ใช้แล้ว (BE ไม่ได้เอา username/password ไป clone)
-  // credentials = {
-  //   username: '',
-  //   password: '',
-  // };
 
   sonarConfig = {
     projectKey: '',

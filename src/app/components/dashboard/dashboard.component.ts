@@ -397,7 +397,7 @@ export class DashboardComponent {
       history: this.dash.getHistory(userId),
       trends: this.dash.getTrendsWithAvg(userId),
       scans: this.scanService.getAllScan(),
-      issues: this.issueService.getAllIssue(String(userId)), // ✅ เพิ่ม
+      issues: this.issueService.getAllIssues(), // ✅ เพิ่ม
     }).subscribe({
       next: ({ overview, history, trends, scans, issues }) => {
         // 1) metrics จาก overview
@@ -484,7 +484,7 @@ export class DashboardComponent {
         // 8. ตรงนี้คือของใหม่: คำนวณ Top Issues จากรายการ issues ที่ดึงมา
         // Filter out issues from deleted projects (which are not in history)
         const activeProjectIds = new Set(this.dashboardData.history.map(h => h.projectId));
-        const activeIssues = (issues || []).filter(issue => activeProjectIds.has(issue.projectId));
+        const activeIssues = (issues || []).filter(issue => issue.projectId && activeProjectIds.has(issue.projectId));
 
         this.buildTopIssues(activeIssues);
 
@@ -814,8 +814,8 @@ export class DashboardComponent {
 
     // Quality Gate Failed notification - navigate to detail repo
     if (n.title?.includes('Quality Gate')) {
-      if (n.relatedProjectId && n.relatedScanId) {
-        this.router.navigate(['/detailrepo', n.relatedProjectId, n.relatedScanId]);
+      if (n.relatedProjectId) {
+        this.router.navigate(['/detailrepo', n.relatedProjectId]);
       } else {
         this.snack.open('Cannot open project details', '', {
           duration: 2500,
@@ -839,7 +839,7 @@ export class DashboardComponent {
       this.router.navigate(['/scanresult', n.relatedScanId]);
     } else if (n.relatedProjectId) {
       // Project related - go to repository detail
-      this.router.navigate(['/detailrepository', n.relatedProjectId]);
+      this.router.navigate(['/detailrepo', n.relatedProjectId]);
     } else {
       this.snack.open('No details available', '', {
         duration: 2500,
