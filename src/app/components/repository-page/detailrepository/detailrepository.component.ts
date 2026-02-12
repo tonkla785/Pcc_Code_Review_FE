@@ -208,4 +208,13 @@ export class DetailrepositoryComponent implements OnInit {
       default: return '';
     }
   }
+
+  getSecurityTotal(metrics: any): number {
+    console.log('getSecurityTotal called with:', metrics);
+    if (!metrics) return 0;
+    const hotspots = metrics.securityHotspots || 0;
+    const vulns = metrics.vulnerabilities || 0;
+    console.log('Security Total:', hotspots + vulns);
+    return hotspots + vulns;
+  }
 }
