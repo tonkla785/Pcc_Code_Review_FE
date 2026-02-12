@@ -45,14 +45,14 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     }
 
     this.repoId = this.route.snapshot.paramMap.get('projectId') ?? '';
-    this.scanId = this.route.snapshot.paramMap.get('scanId') ?? '';
+    // this.scanId = this.route.snapshot.paramMap.get('scanId') ?? '';
 
-    if (!this.repoId || !this.scanId) {
+    if (!this.repoId) {
       console.warn('Missing projectId or scanId');
       return;
     }
 
-    console.log('Loading repository:', this.repoId, 'scan:', this.scanId);
+    console.log('Loading repository:', this.repoId);
 
     this.loadRepositoryFull(this.repoId);
     // this.loadScanIssues(this.scanId); // Deprecated
@@ -91,7 +91,6 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
       });
 
   }
-
 
   loadRepositoryFull(repoId: string): void {
     this.loading = true;
@@ -172,14 +171,15 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
 
     // 2. Subscribe ข้อมูลจาก SharedData เพื่อกรองเฉพาะของ Scan นี้
     this.sharedData.AllIssues$.subscribe(allIssues => {
+      console.log('SharedData Issues:', allIssues);
       if (allIssues) {
         this.issues = allIssues
           .filter((i: IssuesResponseDTO) => {
-            const matchScan = i.scanId === this.scanId;
+            const matchScan = i.projectId === this.repo.projectId;
             const matchType = ['BUG', 'VULNERABILITY'].includes(i.type);
             return matchScan && matchType;
           });
-        console.log(`number of issues for scan ${this.scanId}:`, this.issues.length);
+        console.log(`number of issues for scan ${this.repo.projectId}:`, this.issues.length);
         this.currentPage = 1; // Reset to first page on new data
       }
     });
