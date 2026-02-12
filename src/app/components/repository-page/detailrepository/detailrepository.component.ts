@@ -172,7 +172,7 @@ export class DetailrepositoryComponent implements OnInit {
           .filter((i: IssuesResponseDTO) => {
             // ใช้ this.repoId แทน this.repo.projectId เพราะ this.repo อาจจะยังโหลดไม่เสร็จ
             const matchProject = i.projectId === this.repoId;
-            const matchType = ['BUG', 'VULNERABILITY'].includes(i.type);
+            const matchType = ['BUG', 'VULNERABILITY','SECURITY_HOTSPOT'].includes(i.type);
             return matchProject && matchType;
           });
         console.log(`filtered issues for project ${this.repoId}:`, this.issues.length);
@@ -207,5 +207,14 @@ export class DetailrepositoryComponent implements OnInit {
       case 'scanning': return 'scanning';
       default: return '';
     }
+  }
+
+  getSecurityTotal(metrics: any): number {
+    console.log('getSecurityTotal called with:', metrics);
+    if (!metrics) return 0;
+    const hotspots = metrics.securityHotspots || 0;
+    const vulns = metrics.vulnerabilities || 0;
+    console.log('Security Total:', hotspots + vulns);
+    return hotspots + vulns;
   }
 }
