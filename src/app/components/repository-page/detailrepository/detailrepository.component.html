@@ -7,9 +7,9 @@
       </button>
 
       <div class="project-info">
-        <div class="project-icon" [ngClass]="repo?.projectTypeLabel === 'ANGULAR' ? 'icon-angular' : 'icon-spring'">
-          <i class="bi" [ngClass]="repo?.projectTypeLabel === 'ANGULAR' ? 'bi-filetype-ts' : 'bi-filetype-java'"></i>
-        </div>
+        <div class="project-icon" [ngClass]="repo.projectTypeLabel === 'ANGULAR' ? 'icon-angular' : 'icon-spring'">
+            <i class="bi" [ngClass]="repo.projectTypeLabel === 'ANGULAR' ? 'bi-code-slash' : 'bi-filetype-java'"></i>
+          </div>
         <div class="project-details">
           <h1 class="project-name">
             {{ repo?.name }}
