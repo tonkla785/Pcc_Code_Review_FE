@@ -18,7 +18,7 @@ export interface Issue {
   component: string;
   message: string;
 
-  status: 'OPEN' |'PENDING'| 'IN PROGRESS' | 'DONE' | 'REJECT';
+  status: 'OPEN' | 'PENDING' | 'IN PROGRESS' | 'IN_PROGRESS' | 'DONE' | 'REJECT';
   annotation?: string; //remark status
 
   createdAt: Date | string;
@@ -28,7 +28,7 @@ export interface Issue {
   assignedTo?: string;     // user_id
   assignedName?: string;   // user_name
   dueDate: string;        // due date
- 
+
 }
 
 
@@ -77,28 +77,28 @@ export class IssueService {
   getComments(issues_id: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.base}/${issues_id}/comments`);
   }
-     getAllIssues(): Observable<IssuesResponseDTO[]> {
-      return this.http.get<IssuesResponseDTO[]>(
-        `${this.baseUrl}/api/issues`,
-        this.authOpts()
-      );
-    }
-         getAllIssuesById(id: string): Observable<IssuesResponseDTO> {
-      return this.http.get<IssuesResponseDTO>(
-        `${this.baseUrl}/api/issues/${id}`,
-        this.authOpts()
-      );
-    }
-      updateIssues(issues: IssuesRequestDTO): Observable<IssuesResponseDTO> {
-      return this.http.post<IssuesResponseDTO>(
-        `${this.baseUrl}/api/issues/update`, issues,
-        this.authOpts()
-      );
-    }
-      getAllIssuesDetails(id: string): Observable<IssuesDetailResponseDTO> {
-      return this.http.get<IssuesDetailResponseDTO>(
-        `${this.baseUrl}/api/issue-details/${id}`,
-        this.authOpts()
-      );
-    }
+  getAllIssues(): Observable<IssuesResponseDTO[]> {
+    return this.http.get<IssuesResponseDTO[]>(
+      `${this.baseUrl}/api/issues`,
+      this.authOpts()
+    );
+  }
+  getAllIssuesById(id: string): Observable<IssuesResponseDTO> {
+    return this.http.get<IssuesResponseDTO>(
+      `${this.baseUrl}/api/issues/${id}`,
+      this.authOpts()
+    );
+  }
+  updateIssues(issues: IssuesRequestDTO): Observable<IssuesResponseDTO> {
+    return this.http.post<IssuesResponseDTO>(
+      `${this.baseUrl}/api/issues/update`, issues,
+      this.authOpts()
+    );
+  }
+  getAllIssuesDetails(id: string): Observable<IssuesDetailResponseDTO> {
+    return this.http.get<IssuesDetailResponseDTO>(
+      `${this.baseUrl}/api/issue-details/${id}`,
+      this.authOpts()
+    );
+  }
 }

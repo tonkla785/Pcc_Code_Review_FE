@@ -35,7 +35,7 @@ export class IssuemodalComponent {
   currentAssigneeId: string | null = null;
   UserData: UserInfo[] = [];
     editingUser: boolean = false;
-  issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: '' }; // ตัวที่ใช้ใน modal
+  issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: null }; // ตัวที่ใช้ใน modal
 
   // @Input() showAssign = false;
   // @Input() showStatus = false;
@@ -78,14 +78,13 @@ onSubmitUser() {
     status: this.issueDraft.status,   
     assignedTo: this.issueDraft.assignedTo 
   };
-
   console.log('Submitting issue assignment payload:', payload);
 
   this.issuesService.updateIssues(payload).subscribe({
     next: (updated) => {
       this.sharedData.updateIssueSelect(updated);
       this.closeModal();
-      console.log('Issue updated:', updated);
+      console.log('Issue updated:', payload);
     },
     error: (err) => {
       console.error('Update issue failed:', err);
