@@ -259,7 +259,7 @@
   /* มุมโค้ง */
   padding: 6px 10px;
   /* ระยะห่างด้านใน */
-  background-color: var(--bg-panel);
+  background-color: var(--bg-main);
   /* พื้นหลังช่อง */
   color: var(--text-main);
   /* สีตัวอักษร */
@@ -281,7 +281,7 @@
 
 /* Select option styling for dark mode */
 .filter-row select option {
-  background-color: var(--bg-panel);
+  background-color: var(--bg-main);
   color: var(--text-main);
 }
 
@@ -300,7 +300,7 @@
   /* เว้นด้านขวาให้ไอคอน */
   position: relative;
   z-index: 1;
-  background-color: var(--bg-panel);
+  background-color: var(--bg-main);
   color: var(--text-main);
   border: 1px solid var(--card-border);
   border-radius: 6px;
@@ -1226,4 +1226,35 @@
   background-color: inherit !important;
   color: var(--text-main) !important;
   border-color: var(--card-border) !important;
+}
+
+/* ===============================
+     Empty State (Repositories Style)
+     =============================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: var(--text-sub);
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--text-sub);
+  font-size: 1rem;
 }

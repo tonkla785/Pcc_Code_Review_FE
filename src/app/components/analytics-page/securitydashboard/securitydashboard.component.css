@@ -352,3 +352,59 @@ body.dark-mode .apexcharts-tooltip {
   background: rgba(59, 130, 246, 0.25) !important;
   /* ฟ้าเข้มขึ้นตอนกด */
 }
+
+
+/* Heading colors */
+:host-context(.dark-mode) h3,
+:host-context(.dark-mode) h6,
+:host-context(.dark-mode) strong {
+  color: var(--text-main) !important;
+}
+
+/* Progress bar track */
+:host-context(.dark-mode) .progress {
+  background-color: var(--border-color) !important;
+}
+
+/* btn-close สำหรับ dark mode */
+:host-context(.dark-mode) .btn-close {
+  filter: invert(1);
+}
+
+/* ApexCharts */
+:host-context(.dark-mode) .apexcharts-canvas {
+  background: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+:host-context(.dark-mode) .apexcharts-title-text,
+:host-context(.dark-mode) .apexcharts-subtitle-text,
+:host-context(.dark-mode) .apexcharts-xaxis text,
+:host-context(.dark-mode) .apexcharts-yaxis text {
+  fill: var(--text-main) !important;
+  color: var(--text-main) !important;
+}
+
+:host-context(.dark-mode) .apexcharts-grid line {
+  stroke: var(--border-color) !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-title-text,
+:host-context(.dark-mode) ::ng-deep .apexcharts-subtitle-text {
+  fill: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-xaxis text,
+:host-context(.dark-mode) ::ng-deep .apexcharts-yaxis text {
+  fill: #e5e7eb !important;
+  font-weight: 500 !important;
+}
+
+:host-context(.dark-mode) ::ng-deep .apexcharts-grid line,
+:host-context(.dark-mode) ::ng-deep .apexcharts-xaxis line,
+:host-context(.dark-mode) ::ng-deep .apexcharts-yaxis line {
+  stroke: #6b7280 !important;
+  stroke-width: 1.2px !important;
+}

@@ -1,9 +1,37 @@
 /* =========================
+   VARIABLES (เหมือน repositories)
+   ========================= */
+:host {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+:host-context(.dark-mode) {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --border-color: #334155;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* =========================
    GLOBAL STYLE
    ========================= */
-body {
-  background: linear-gradient(180deg, #f9fbff 0%, #eef2f7 100%);
-  color: #212529;
+:host {
+  display: block;
+  color: var(--text-main);
   font-family: "Inter", "Prompt", sans-serif;
 }
 
@@ -61,22 +89,25 @@ body {
      CARD
      ========================= */
 .card {
-  border-radius: 14px;
-  border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.25s ease;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .card-header {
   font-weight: 600;
   font-size: 1rem;
-  background: #f1f5fb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--card-bg);
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* =========================
@@ -113,8 +144,12 @@ progress::-moz-progress-bar {
   vertical-align: middle;
 }
 
+.table {
+  color: var(--text-main);
+}
+
 .table thead {
-  background: #f8faff;
+  background: var(--bg-main);
 }
 
 .table tbody tr {
@@ -122,7 +157,7 @@ progress::-moz-progress-bar {
 }
 
 .table tbody tr:hover {
-  background-color: #f8fbff;
+  background-color: var(--bg-main);
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
 }
@@ -133,11 +168,14 @@ progress::-moz-progress-bar {
 .list-group-item {
   border-radius: 10px;
   margin-bottom: 6px;
+  background: var(--card-bg);
+  color: var(--text-main);
+  border-color: var(--border-color);
   transition: all 0.25s ease;
 }
 
 .list-group-item:hover {
-  background-color: #f5f9ff;
+  background-color: var(--bg-main);
   transform: translateX(4px);
 }
 
@@ -152,16 +190,16 @@ progress::-moz-progress-bar {
 }
 
 .bg-danger {
-  background: #ff6b6b !important;
+  background: #842d2d !important;
 }
 
 .bg-warning {
-  background: #ffd43b !important;
+  background: #987e21 !important;
   color: #212529 !important;
 }
 
 .bg-success {
-  background: #51cf66 !important;
+  background: #247031 !important;
 }
 
 /* =========================
@@ -215,22 +253,24 @@ progress::-moz-progress-bar {
 }
 
 .custom-modal {
-  background: #fff;
-  border-radius: 8px;
+  background: var(--card-bg);
+  border-radius: 16px;
   width: 600px;
   max-width: 95%;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
+  color: var(--text-main);
 }
 
 .modal-header,
 .modal-footer {
   padding: 12px 16px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-footer {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border-color);
   border-bottom: none;
 }
 
@@ -246,71 +286,84 @@ progress::-moz-progress-bar {
 }
 
 /* ===============================
-     DARK MODE (Technical Debt Page + ApexCharts)
+     DARK MODE (Technical Debt Page)
+     สีเหมือน repositories component
      =============================== */
 
-/* Card */
-:host-context(.dark-mode) .card {
-  background-color: var(--bg-card) !important;
-  color: var(--text-main) !important;
-  border: 1px solid var(--card-border) !important;
+/* Container */
+:host-context(.dark-mode) .container {
+  color: var(--text-main);
 }
 
-:host-context(.dark-mode) .card-header {
-  background-color: var(--table-header-bg) !important;
-  color: var(--table-header-text) !important;
-  border-bottom: 1px solid var(--card-border) !important;
-}
-
-/* Summary box */
+/* Summary box (bg-light) */
 :host-context(.dark-mode) .bg-light {
-  background-color: var(--bg-card) !important;
+  background-color: var(--card-bg) !important;
   color: var(--text-main) !important;
-  border: 1px solid var(--card-border) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 /* Table */
 :host-context(.dark-mode) .table,
 :host-context(.dark-mode) .table tbody td {
-  background-color: var(--bg-card) !important;
+  background-color: var(--card-bg) !important;
   color: var(--text-main) !important;
-  border-color: var(--card-border) !important;
+  border-color: var(--border-color) !important;
 }
 
 :host-context(.dark-mode) .table thead th {
-  background-color: var(--table-header-bg) !important;
-  color: var(--table-header-text) !important;
-  border-color: var(--card-border) !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-sub) !important;
+  border-color: var(--border-color) !important;
 }
 
-/* List group */
-:host-context(.dark-mode) .list-group-item {
-  background-color: var(--bg-card) !important;
+:host-context(.dark-mode) .table-light {
+  background-color: var(--card-bg) !important;
   color: var(--text-main) !important;
-  border: 1px solid var(--card-border) !important;
 }
 
-:host-context(.dark-mode) .list-group-item:hover {
-  background-color: var(--table-header-bg2) !important;
+:host-context(.dark-mode) .table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* text-muted → ใช้ text-sub เหมือน repositories */
+:host-context(.dark-mode) .text-muted {
+  color: var(--text-sub) !important;
+}
+
+/* Heading colors */
+:host-context(.dark-mode) h3,
+:host-context(.dark-mode) h6,
+:host-context(.dark-mode) strong {
+  color: var(--text-main) !important;
+}
+
+/* Progress bar track */
+:host-context(.dark-mode) .progress {
+  background-color: var(--border-color) !important;
+}
+
+/* btn-close สำหรับ dark mode */
+:host-context(.dark-mode) .btn-close {
+  filter: invert(1);
 }
 
 /* ApexCharts */
 :host-context(.dark-mode) .apexcharts-canvas {
-  background: var(--bg-card) !important;
+  background: var(--card-bg) !important;
   color: var(--text-main) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 :host-context(.dark-mode) .apexcharts-title-text,
 :host-context(.dark-mode) .apexcharts-subtitle-text,
 :host-context(.dark-mode) .apexcharts-xaxis text,
 :host-context(.dark-mode) .apexcharts-yaxis text {
-  fill: var(--apexcharts-text, #ffffff) !important;
-  color: var(--apexcharts-text, #ffffff) !important;
+  fill: var(--text-main) !important;
+  color: var(--text-main) !important;
 }
 
 :host-context(.dark-mode) .apexcharts-grid line {
-  stroke: var(--card-border) !important;
+  stroke: var(--border-color) !important;
 }
 
 :host-context(.dark-mode) ::ng-deep .apexcharts-title-text,
