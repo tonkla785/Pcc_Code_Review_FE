@@ -34,7 +34,7 @@
       </a>
 
       <!-- Report Group -->
-      <a class="nav-link" (click)="toggleSubmenu('report', $event)" [class.active]="submenuOpen['report']">
+      <a class="nav-link" (click)="toggleSubmenu('report', $event)" [class.active]="isSubmenuRouteActive('report')">
         <i class="bi bi-file-earmark-text-fill"></i> Report
         <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem; margin-right: 0; margin-left: auto;"></i>
       </a>
@@ -59,7 +59,7 @@
             [routerLinkActiveOptions]="{ exact: true }" (click)="closeNavbar()"> User Management</a></li>
       </ul>
 
-      <a class="nav-link" (click)="toggleSubmenu('Setting', $event)" [class.active]="submenuOpen['Setting']">
+      <a class="nav-link" (click)="toggleSubmenu('Setting', $event)" [class.active]="isSubmenuRouteActive('Setting')">
         <i class="bi bi-gear-fill"></i> Setting
         <i class="bi bi-chevron-up ms-auto" style="font-size: 0.8rem; margin-right: 0; margin-left: auto;"></i>
       </a>
