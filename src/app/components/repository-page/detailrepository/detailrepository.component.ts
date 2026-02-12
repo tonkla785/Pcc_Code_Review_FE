@@ -172,7 +172,7 @@ export class DetailrepositoryComponent implements OnInit {
           .filter((i: IssuesResponseDTO) => {
             // ใช้ this.repoId แทน this.repo.projectId เพราะ this.repo อาจจะยังโหลดไม่เสร็จ
             const matchProject = i.projectId === this.repoId;
-            const matchType = ['BUG', 'VULNERABILITY', 'SECURITY_HOTSPOT'].includes(i.type);
+            const matchType = ['BUG', 'VULNERABILITY','SECURITY_HOTSPOT'].includes(i.type);
             return matchProject && matchType;
           });
         console.log(`filtered issues for project ${this.repoId}:`, this.issues.length);
