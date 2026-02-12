@@ -42,7 +42,6 @@ export interface AddCommentPayload {
 export class IssueService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
-  private readonly base = environment.apiUrl + '/issues';
   private baseUrl = environment.apiUrl;
   private authOpts() {
     const token = this.auth.token;
@@ -51,32 +50,6 @@ export class IssueService {
       : {};
   }
 
-  /** GET /api/issues/user/{userId} — ดึง issues ทั้งหมดของผู้ใช้ */
-  getAllIssue(userId: string): Observable<Issue[]> {
-    return this.http.get<Issue[]>(`${this.base}/user/${userId}`);
-  }
-
-  /** GET /api/issues/:issues_id — ดึง issue รายตัว */
-  getById(issues_id: string): Observable<Issue> {
-    return this.http.get<Issue>(`${this.base}/${issues_id}`);
-    console.log('getById', issues_id);
-  }
-
-  getIssueByProjectId(projectId: string): Observable<Issue[]> {
-    return this.http.get<Issue[]>(`${this.base}/project/${projectId}`);
-  }
-
-
-  /** POST /api/issues/:issues_id/comments — เพิ่มคอมเมนต์ */
-  addComment(issues_id: string, payload: AddCommentPayload): Observable<any> {
-    const body = { comment: payload.text, userId: payload.author };
-    return this.http.post(`${this.base}/${issues_id}/comments`, body);
-  }
-
-  /** GET /api/issues/{issues_id}/comments — ดึงคอมเมนต์ */
-  getComments(issues_id: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.base}/${issues_id}/comments`);
-  }
   getAllIssues(): Observable<IssuesResponseDTO[]> {
     return this.http.get<IssuesResponseDTO[]>(
       `${this.baseUrl}/api/issues`,

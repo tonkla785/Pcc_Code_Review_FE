@@ -397,7 +397,7 @@ export class DashboardComponent {
       history: this.dash.getHistory(userId),
       trends: this.dash.getTrendsWithAvg(userId),
       scans: this.scanService.getAllScan(),
-      issues: this.issueService.getAllIssue(String(userId)), // ✅ เพิ่ม
+      issues: this.issueService.getAllIssues(), // ✅ เพิ่ม
     }).subscribe({
       next: ({ overview, history, trends, scans, issues }) => {
         // 1) metrics จาก overview
@@ -484,7 +484,7 @@ export class DashboardComponent {
         // 8. ตรงนี้คือของใหม่: คำนวณ Top Issues จากรายการ issues ที่ดึงมา
         // Filter out issues from deleted projects (which are not in history)
         const activeProjectIds = new Set(this.dashboardData.history.map(h => h.projectId));
-        const activeIssues = (issues || []).filter(issue => activeProjectIds.has(issue.projectId));
+        const activeIssues = (issues || []).filter(issue => issue.projectId && activeProjectIds.has(issue.projectId));
 
         this.buildTopIssues(activeIssues);
 
