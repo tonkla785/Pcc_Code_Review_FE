@@ -774,6 +774,8 @@ tr:last-child td {
 .notification-list {
   max-height: 380px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Prevent scroll chaining */
   scrollbar-width: thin;
   scrollbar-color: var(--border-subtle) transparent;
 }
