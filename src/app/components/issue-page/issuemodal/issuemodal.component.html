@@ -23,7 +23,7 @@
           <div class="form-group mb-3">
             <label for="assignTo">Assign To:</label>
             <select id="assignTo" class="form-control" [(ngModel)]="issueDraft.assignedTo" name="assignedTo" required>
-              <option value="">Select User</option>
+              <option [ngValue]="null">Select User</option>
               <option *ngFor="let u of UserData" [value]="u.id" [disabled]="isEdit && u.id === issueDraft.assignedTo">{{
                 u.username }}</option>
             </select>

@@ -737,3 +737,26 @@
     overflow-x: auto;
   }
 }
+
+/* --- Pagination Controls --- */
+.pagination-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--light-gray);
+  background: var(--white);
+}
+
+.page-info {
+  font-size: 0.9rem;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.pagination-controls .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

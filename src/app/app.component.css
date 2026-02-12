@@ -16,12 +16,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s, background 0.3s, opacity 0.3s;
+    transition: transform 0.2s, background 0.3s;
   }
 
   .theme-toggle-btn:hover {
     transform: scale(1.1);
-    opacity: 1 !important;
   }
 
   /* =======================================
@@ -47,15 +46,10 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     z-index: 99999 !important;
     /* 🚀 ดันขึ้นมาสุด */
-    opacity: 0.15;
-    /* โปร่งใสเมื่อไม่ hover */
-    transition: opacity 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
   }
 
   /* Hover effect */
   .theme-toggle-btn:hover {
-    opacity: 1 !important;
-    /* แสดงเต็มเมื่อ hover */
     transform: translateY(-2px);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
   }
@@ -65,3 +59,4 @@
     background: linear-gradient(180deg, #facc15 0%, #eab308 100%);
     color: #222;
   }
+  
