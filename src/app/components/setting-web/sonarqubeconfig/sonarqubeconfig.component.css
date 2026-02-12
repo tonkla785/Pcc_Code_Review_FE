@@ -4,12 +4,12 @@
 .config-container {
   max-width: 900px;
   margin: auto;
-  background: transparent !important;
+  background: #FFFFFF !important;
   /* โปร่งใส */
   padding: 20px;
   border-radius: 12px !important;
   /* เอามุมโค้งออก */
-  box-shadow: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
   /* เอาเงาออก */
   animation: fadeIn 0.5s ease;
 }
@@ -149,7 +149,7 @@ textarea:focus {
      Dark Mode Overrides
      =============================== */
 :host-context(.dark-mode) .config-container {
-  background: #1e1e1e !important;
+  background: #1F2937 !important;
   color: #f3f4f6 !important;
 }
 
