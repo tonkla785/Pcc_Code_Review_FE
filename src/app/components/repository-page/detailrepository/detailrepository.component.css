@@ -266,17 +266,18 @@
   background: var(--white);
   border-radius: var(--radius);
   padding: 1.5rem;
-  box-shadow: var(--shadow);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  /* Dashboard shadow */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.2s;
-  border: 1px solid rgba(0, 0, 0, 0.02);
+  border: none;
 }
 
 .metric-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
 
 .metric-header {
@@ -362,8 +363,9 @@
 .content-section {
   background: var(--white);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  border: none;
 }
 
 .tabs-header {
