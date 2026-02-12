@@ -23,13 +23,13 @@
           <div class="form-group mb-3">
             <label for="assignTo">Assign To:</label>
             <select id="assignTo" class="form-control" [(ngModel)]="issueDraft.assignedTo" name="assignedTo" required>
-              <option [ngValue]="null">Select User</option>
+              <option value="">Select User</option>
               <option *ngFor="let u of UserData" [value]="u.id" [disabled]="isEdit && u.id === issueDraft.assignedTo">{{
                 u.username }}</option>
             </select>
-            <div class="text-danger" *ngIf="assignForm.submitted && !issueDraft.assignedTo">
+            <!-- <div class="text-danger" *ngIf="assignForm.submitted && !issueDraft.assignedTo">
               Please select a user
-            </div>
+            </div> -->
           </div>
 
           <!-- Due Date -->
@@ -73,14 +73,14 @@
               Issue ID is required
             </div>
           </div>
-
+          
           <!-- Assign To -->
           <div class="form-group mb-3">
             <label for="status">Status:</label>
             <select id="status" class="form-control" [(ngModel)]="issueDraft.status" name="status" required>
               <option value="OPEN">OPEN</option>
               <option value="IN_PROGRESS">IN_PROGRESS</option>
-              <option value="RESOLVED">RESOLVED</option>
+              <!-- <option value="RESOLVED">RESOLVED</option> -->
               <option value="CLOSED">CLOSED</option>
             </select>
             <div class="text-danger" *ngIf="statusForm.submitted && !issueDraft.status">
