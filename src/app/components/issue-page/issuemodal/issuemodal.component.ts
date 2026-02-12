@@ -36,6 +36,9 @@ export class IssuemodalComponent {
   UserData: UserInfo[] = [];
   editingUser: boolean = false;
   issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: undefined }; // ตัวที่ใช้ใน modal
+  editingUser: boolean = false;
+  issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: undefined }; // ตัวที่ใช้ใน modal
+
 
   // @Input() showAssign = false;
   // @Input() showStatus = false;

@@ -21,7 +21,10 @@
 
   .theme-toggle-btn:hover {
     transform: scale(1.1);
+<<<<<<< HEAD
+=======
     opacity: 1 !important;
+>>>>>>> dev
   }
 
   /* =======================================
