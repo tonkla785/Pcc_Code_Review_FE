@@ -814,8 +814,8 @@ export class DashboardComponent {
 
     // Quality Gate Failed notification - navigate to detail repo
     if (n.title?.includes('Quality Gate')) {
-      if (n.relatedProjectId && n.relatedScanId) {
-        this.router.navigate(['/detailrepo', n.relatedProjectId, n.relatedScanId]);
+      if (n.relatedProjectId) {
+        this.router.navigate(['/detailrepo', n.relatedProjectId]);
       } else {
         this.snack.open('Cannot open project details', '', {
           duration: 2500,
@@ -839,7 +839,7 @@ export class DashboardComponent {
       this.router.navigate(['/scanresult', n.relatedScanId]);
     } else if (n.relatedProjectId) {
       // Project related - go to repository detail
-      this.router.navigate(['/detailrepository', n.relatedProjectId]);
+      this.router.navigate(['/detailrepo', n.relatedProjectId]);
     } else {
       this.snack.open('No details available', '', {
         duration: 2500,

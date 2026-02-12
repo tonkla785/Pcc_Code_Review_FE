@@ -17,16 +17,14 @@ import { IssuesResponseDTO } from '../../../interface/issues_interface';
   templateUrl: './detailrepository.component.html',
   styleUrls: ['./detailrepository.component.css']
 })
-export class DetailrepositoryComponent implements OnInit, OnDestroy {
+export class DetailrepositoryComponent implements OnInit {
 
   issues: IssuesResponseDTO[] = [];
-  scanId!: string;
   repoId!: string;
   repo!: Repository;
   scans: ScanResponseDTO[] = [];
   activeTab: 'overview' | 'bugs' | 'history' = 'overview';
   loading: boolean = true;
-  private scanInterval?: any;
 
   constructor(
     private sharedData: SharedDataService,
@@ -59,9 +57,8 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
     this.loadAllIssues(); // New method
 
     // Subscribe ข้อมูลจาก SharedData เพื่ออัปเดตแบบเรียลไทม์
-    this.sharedData.repositories$.subscribe(repos => {
-      const currentRepo = repos.find(r => r.projectId === this.repoId);
-      if (currentRepo) {
+    this.sharedData.selectedRepository$.subscribe(currentRepo => {
+      if (currentRepo && currentRepo.projectId === this.repoId) {
         // พบ Repository ที่อัปเดต (เช่น จาก global WS update)
         // อัปเดตเฉพาะเมื่อมีข้อมูลอยู่แล้วหรือเป็นการโหลดครั้งแรก
         if (this.repo) {
@@ -109,8 +106,6 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
           const exists = currentRepos.find(r => r.projectId === repo.projectId);
           if (exists) {
             this.sharedData.updateRepository(repo.projectId!, repo);
-          } else {
-            this.sharedData.addRepository(repo);
           }
         }
         this.loading = false;
@@ -175,18 +170,16 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
       if (allIssues) {
         this.issues = allIssues
           .filter((i: IssuesResponseDTO) => {
-            const matchScan = i.projectId === this.repo.projectId;
+            // ใช้ this.repoId แทน this.repo.projectId เพราะ this.repo อาจจะยังโหลดไม่เสร็จ
+            const matchProject = i.projectId === this.repoId;
             const matchType = ['BUG', 'VULNERABILITY'].includes(i.type);
-            return matchScan && matchType;
+            return matchProject && matchType;
           });
-        console.log(`number of issues for scan ${this.repo.projectId}:`, this.issues.length);
-        this.currentPage = 1; // Reset to first page on new data
+        console.log(`filtered issues for project ${this.repoId}:`, this.issues.length);
+        this.currentPage = 1;
       }
     });
   }
-
-  // เลิกใช้งานแล้ว - เก็บไว้ดูเป็นอ้างอิงหรือลบทิ้งได้
-  // loadScanIssues(scanId: string): void { ... }
 
   switchTab(tab: 'overview' | 'bugs' | 'history') {
     this.activeTab = tab;
@@ -213,13 +206,6 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
       case 'warning': return 'paused';
       case 'scanning': return 'scanning';
       default: return '';
-    }
-  }
-
-  ngOnDestroy(): void {
-    // ล้าง interval เพื่อป้องกัน memory leak
-    if (this.scanInterval) {
-      clearInterval(this.scanInterval);
     }
   }
 }
