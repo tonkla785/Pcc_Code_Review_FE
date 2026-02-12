@@ -34,8 +34,13 @@ export class IssuemodalComponent {
   today: string = '';
   currentAssigneeId: string | null = null;
   UserData: UserInfo[] = [];
+<<<<<<< HEAD
   editingUser: boolean = false;
   issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: undefined }; // ตัวที่ใช้ใน modal
+=======
+    editingUser: boolean = false;
+  issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: null }; // ตัวที่ใช้ใน modal
+>>>>>>> dev
 
   // @Input() showAssign = false;
   // @Input() showStatus = false;
