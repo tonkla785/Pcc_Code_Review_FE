@@ -66,10 +66,10 @@
     <div class="metric-card">
       <div class="metric-header">
         <div class="icon-box vuln-icon"><i class="bi bi-shield-exclamation"></i></div>
-        <span class="metric-label">Vulnerabilities</span>
+        <span class="metric-label">Security</span>
       </div>
       <div class="metric-value">
-        {{ repo?.metrics?.vulnerabilities || 0 }}
+        {{ getSecurityTotal(repo?.metrics) }}
       </div>
     </div>
 
