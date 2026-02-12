@@ -8,8 +8,8 @@
 
       <div class="project-info">
         <div class="project-icon" [ngClass]="repo.projectTypeLabel === 'ANGULAR' ? 'icon-angular' : 'icon-spring'">
-            <i class="bi" [ngClass]="repo.projectTypeLabel === 'ANGULAR' ? 'bi-code-slash' : 'bi-filetype-java'"></i>
-          </div>
+          <i class="bi" [ngClass]="repo.projectTypeLabel === 'ANGULAR' ? 'bi-code-slash' : 'bi-filetype-java'"></i>
+        </div>
         <div class="project-details">
           <h1 class="project-name">
             {{ repo?.name }}
@@ -157,7 +157,7 @@
                 <td>
                   <span class="type-pill" [class.pill-bug]="issue.type === 'Bug'"
                     [class.pill-vuln]="issue.type === 'Vulnerability'">
-                    {{ issue.type }}
+                    {{ formatStatus(issue.type) }}
                   </span>
                 </td>
                 <td class="msg-col" [title]="issue.message">{{ issue.message }}</td>
@@ -223,8 +223,8 @@
                   <div class="mini-stats">
                     <span title="Bugs" class="stat-bug"><i class="bi bi-bug-fill"></i> {{ scan.metrics?.bugs || 0
                       }}</span>
-                    <span title="Vulnerabilities" class="stat-vuln"><i class="bi bi-shield-fill-exclamation"></i> {{
-                      scan.metrics?.vulnerabilities || 0 }}</span>
+                    <span title="Security" class="stat-vuln"><i class="bi bi-shield-fill-exclamation"></i> {{
+                      getSecurityTotal(scan.metrics) }}</span>
                     <span title="Coverage" class="stat-cov"><i class="bi bi-bar-chart-fill"></i> {{
                       scan.metrics?.coverage || 0 }}%</span>
                   </div>

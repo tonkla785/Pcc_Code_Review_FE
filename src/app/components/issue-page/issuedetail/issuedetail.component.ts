@@ -396,7 +396,7 @@ This mock content is intentionally verbose and does not represent an actual prod
       this.assignModal.openEditAssign({
         id: this.issuesResult.id,
         status: this.issuesResult.status,
-        assignedTo: this.issuesResult.assignedTo.id,
+        assignedTo: this.issuesResult.assignedTo?.id || '',
       });
     } else {
       const issueId = this.issuesResult?.id || this.issue?.id;
@@ -409,6 +409,7 @@ This mock content is intentionally verbose and does not represent an actual prod
     this.assignModal.openEditStatus({
       id: this.issuesResult.id,
       status: this.issuesResult.status,
+      assignedTo: this.issuesResult.assignedTo?.id || '',
     });
   }
 
