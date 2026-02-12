@@ -157,7 +157,7 @@
                 <td>
                   <span class="type-pill" [class.pill-bug]="issue.type === 'Bug'"
                     [class.pill-vuln]="issue.type === 'Vulnerability'">
-                    {{ issue.type }}
+                    {{ formatStatus(issue.type) }}
                   </span>
                 </td>
                 <td class="msg-col" [title]="issue.message">{{ issue.message }}</td>
