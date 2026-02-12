@@ -319,7 +319,7 @@ applyFilter() {
       const payload: IssuesRequestDTO = {
         id,
         assignedTo: this.issueDraft.assignedTo,
-        status: 'IN PROGRESS'
+        status: 'IN_PROGRESS'
       };
       return this.issuesService.updateIssues(payload);
     });

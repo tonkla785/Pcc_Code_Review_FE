@@ -34,7 +34,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let a of issuesAll" (click)="goToDetail(a.id) " style="cursor:pointer;">
-        <td>{{ a.assignedTo.username }}</td>
+        <td>{{ a.assignedTo?.username }}</td>
         <td>{{ a.message }}</td>
         <td class="text-center">
           <span class="badge severity-badge" [ngStyle]="{
