@@ -10,6 +10,8 @@
   /* สีข้อความหลัก (ดำ) */
   --dashboard-title-color: #2563eb;
   /* ===== พื้นหลัง / ตัวอักษร ===== */
+  --title-color: #2563eb;
+  /* สี title */
   --bg-main: #f8fafc;
   /* พื้นหลังหลัก (Repo Light) */
   --bg-card: #ffffff;
