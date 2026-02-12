@@ -437,13 +437,19 @@ export class SharedDataService {
                 this.scansHistory.next(updatedScans);
             }
         }
+
+        // Fix: Also update selectedRepository if it matches (for Detail Page real-time updates)
+        const currentSelected = this.selectedRepositoryValue;
+        if (currentSelected && currentSelected.projectId === projectId) {
+            this._selectedRepository$.next({ ...currentSelected, ...updates });
+        }
     }
 
     /** ลบ repository (หลัง delete สำเร็จ) */
     removeRepository(projectId: string): void {
         const current = this._repositories$.getValue();
         this._repositories$.next(current.filter(r => r.projectId !== projectId));
-        this.removeIssuesByProject(projectId); // ✅ Remove issues first
+        this.removeIssuesByProject(projectId); // Remove issues first
         this.removeScansByProject(projectId);
     }
 
