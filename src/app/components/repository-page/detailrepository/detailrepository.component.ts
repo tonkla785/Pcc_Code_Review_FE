@@ -7,6 +7,7 @@ import { ScanResponseDTO } from '../../../interface/scan_interface';
 import { Issue } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
+import { IssuesResponseDTO } from '../../../interface/issues_interface';
 
 
 @Component({
@@ -18,7 +19,7 @@ import { SharedDataService } from '../../../services/shared-data/shared-data.ser
 })
 export class DetailrepositoryComponent implements OnInit, OnDestroy {
 
-  issues: ScanIssue[] = [];
+  issues: IssuesResponseDTO[] = [];
   scanId!: string;
   repoId!: string;
   repo!: Repository;
@@ -100,7 +101,7 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
           this.scans = (repo.scans ?? [])
             .filter(scan => scan.completedAt)
             .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
-          this.issues = repo.issues ?? [];
+          // this.issues = repo.issues ?? []; // Type incompatibility: Issue[] vs IssuesResponseDTO[]
 
           // Sync with SharedData to ensure AppComponent can update it later
           const currentRepos = this.sharedData.repositoriesValue;
@@ -127,17 +128,22 @@ export class DetailrepositoryComponent implements OnInit, OnDestroy {
           .filter((i: any) =>
             i.type === 'BUG' || i.type === 'VULNERABILITY'
           )
-          .map((i: any): ScanIssue => ({
+          .map((i: any): IssuesResponseDTO => ({
             id: i.id,
             scanId: scan.id,
+            projectId: i.projectId,
+            projectData: i.projectData,
             issueKey: i.issueKey,
             type: i.type,
             severity: i.severity,
+            ruleKey: i.ruleKey,
             component: i.component,
+            line: i.line,
             message: i.message,
+            assignedTo: i.assignedTo,
             status: i.status,
             createdAt: i.createdAt,
-            assignedTo: i.assignedTo
+            commentData: i.commentData || []
           }));
 
         console.log('Loaded scan issues:', this.issues);

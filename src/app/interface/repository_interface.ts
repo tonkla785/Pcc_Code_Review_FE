@@ -47,7 +47,7 @@ export interface ScanIssue {
     severity: 'Blocker' | 'Critical' | 'Major' | 'Minor';
     component: string;
     message: string;
-    status: 'OPEN' | 'PENDING' | 'IN PROGRESS' | 'DONE' | 'REJECT';
+    status: 'OPEN' | 'PENDING' | 'IN_PROGRESS' | 'IN PROGRESS' | 'DONE' | 'REJECT';
     createdAt: Date | string;
     assignedTo?: string;
 }

@@ -169,8 +169,8 @@
                 <td><span class="status-text">{{ issue.status }}</span></td>
                 <td>
                   <div class="user-cell">
-                    <div class="user-avatar">{{ (issue.assignedTo || '?').charAt(0) }}</div>
-                    <span>{{ issue.assignedTo || 'Unassigned' }}</span>
+                    <div class="user-avatar">{{ (issue.assignedTo?.username || '?').charAt(0) }}</div>
+                    <span>{{ issue.assignedTo?.username || 'Unassigned' }}</span>
                   </div>
                 </td>
               </tr>
