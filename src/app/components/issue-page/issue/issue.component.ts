@@ -180,7 +180,16 @@ applyFilter() {
 
   this.filteredIssue = this.issuesAll
     .filter(i => {
-      const type = matchType === 'all types' || (i.type || '').toLowerCase() === matchType;
+      const typeValue = (i.type || '').toLowerCase();
+
+      const type =
+        matchType === 'all types' ||
+        (
+          matchType === 'security' &&
+          ['vulnerability', 'security_hotspot'].includes(typeValue)
+        ) ||
+        typeValue === matchType;
+
       const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
       const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
 

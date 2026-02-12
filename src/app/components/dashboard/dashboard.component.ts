@@ -334,7 +334,11 @@ export class DashboardComponent {
   countBug() {
     const bugs = this.getLatestScanByProject() ?? [];
     this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
-    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.vulnerabilities ?? 0), 0);
+        this.securityCount = bugs.reduce((sum, s) => {
+          const vulnerabilities = s?.metrics?.vulnerabilities ?? 0;
+          const securityHotspot = s?.metrics?.securityHotspots ?? 0;
+          return sum + vulnerabilities + securityHotspot;
+        }, 0);
     this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
     this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
     console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);

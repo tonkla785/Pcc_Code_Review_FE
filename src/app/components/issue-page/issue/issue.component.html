@@ -15,7 +15,7 @@
     <select class="form-select w-auto" [(ngModel)]="filterType" (ngModelChange)="applyFilter()">
       <option>All Types</option>
       <option value="bug">Bug</option>
-      <option value="security">Security</option>
+    <option value="SECURITY">Security</option>
       <option value="Code_smell">Code Smell</option>
     </select>
 
@@ -29,7 +29,6 @@
     <select class="form-select w-auto" [(ngModel)]="filterStatus" (ngModelChange)="applyFilter()">
       <option>All Status</option>
       <option value="open">Open</option>
-      <option value="pending">Pending</option>
       <option value="in_progress">In Progress</option>
       <option value="resolved">Resolved</option>
       <option value="closed">Closed</option>
