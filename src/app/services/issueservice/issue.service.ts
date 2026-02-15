@@ -18,7 +18,7 @@ export interface Issue {
   component: string;
   message: string;
 
-  status: 'OPEN' |'PENDING'| 'IN PROGRESS' | 'DONE' | 'REJECT';
+  status: 'OPEN' | 'PENDING' | 'IN PROGRESS' | 'IN_PROGRESS' | 'DONE' | 'REJECT';
   annotation?: string; //remark status
 
   createdAt: Date | string;
@@ -28,7 +28,7 @@ export interface Issue {
   assignedTo?: string;     // user_id
   assignedName?: string;   // user_name
   dueDate: string;        // due date
- 
+
 }
 
 
@@ -42,7 +42,6 @@ export interface AddCommentPayload {
 export class IssueService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
-  private readonly base = environment.apiUrl + '/issues';
   private baseUrl = environment.apiUrl;
   private authOpts() {
     const token = this.auth.token;
@@ -51,54 +50,28 @@ export class IssueService {
       : {};
   }
 
-  /** GET /api/issues/user/{userId} — ดึง issues ทั้งหมดของผู้ใช้ */
-  getAllIssue(userId: string): Observable<Issue[]> {
-    return this.http.get<Issue[]>(`${this.base}/user/${userId}`);
+  getAllIssues(): Observable<IssuesResponseDTO[]> {
+    return this.http.get<IssuesResponseDTO[]>(
+      `${this.baseUrl}/api/issues`,
+      this.authOpts()
+    );
   }
-
-  /** GET /api/issues/:issues_id — ดึง issue รายตัว */
-  getById(issues_id: string): Observable<Issue> {
-    return this.http.get<Issue>(`${this.base}/${issues_id}`);
-    console.log('getById', issues_id);
+  getAllIssuesById(id: string): Observable<IssuesResponseDTO> {
+    return this.http.get<IssuesResponseDTO>(
+      `${this.baseUrl}/api/issues/${id}`,
+      this.authOpts()
+    );
   }
-
-  getIssueByProjectId(projectId: string): Observable<Issue[]> {
-    return this.http.get<Issue[]>(`${this.base}/project/${projectId}`);
+  updateIssues(issues: IssuesRequestDTO): Observable<IssuesResponseDTO> {
+    return this.http.post<IssuesResponseDTO>(
+      `${this.baseUrl}/api/issues/update`, issues,
+      this.authOpts()
+    );
   }
-
-
-  /** POST /api/issues/:issues_id/comments — เพิ่มคอมเมนต์ */
-  addComment(issues_id: string, payload: AddCommentPayload): Observable<any> {
-    const body = { comment: payload.text, userId: payload.author };
-    return this.http.post(`${this.base}/${issues_id}/comments`, body);
+  getAllIssuesDetails(id: string): Observable<IssuesDetailResponseDTO> {
+    return this.http.get<IssuesDetailResponseDTO>(
+      `${this.baseUrl}/api/issue-details/${id}`,
+      this.authOpts()
+    );
   }
-
-  /** GET /api/issues/{issues_id}/comments — ดึงคอมเมนต์ */
-  getComments(issues_id: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.base}/${issues_id}/comments`);
-  }
-     getAllIssues(): Observable<IssuesResponseDTO[]> {
-      return this.http.get<IssuesResponseDTO[]>(
-        `${this.baseUrl}/api/issues`,
-        this.authOpts()
-      );
-    }
-         getAllIssuesById(id: string): Observable<IssuesResponseDTO> {
-      return this.http.get<IssuesResponseDTO>(
-        `${this.baseUrl}/api/issues/${id}`,
-        this.authOpts()
-      );
-    }
-      updateIssues(issues: IssuesRequestDTO): Observable<IssuesResponseDTO> {
-      return this.http.post<IssuesResponseDTO>(
-        `${this.baseUrl}/api/issues/update`, issues,
-        this.authOpts()
-      );
-    }
-      getAllIssuesDetails(id: string): Observable<IssuesDetailResponseDTO> {
-      return this.http.get<IssuesDetailResponseDTO>(
-        `${this.baseUrl}/api/issue-details/${id}`,
-        this.authOpts()
-      );
-    }
 }

@@ -176,7 +176,8 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
           });
           const latestScan = validScans[0];
           const vulns = latestScan.metrics?.vulnerabilities || 0;
-          dailyTotal += vulns;
+          const hotspots = latestScan.metrics?.securityHotspots || 0;
+          dailyTotal += (vulns + hotspots);
         }
       });
 

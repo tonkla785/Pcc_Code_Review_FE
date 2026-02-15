@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -34,6 +34,7 @@ export class AddrepositoryComponent implements OnInit {
     private readonly sse: SseService,
     private readonly userSettingService: UserSettingService,
     private readonly userSettingsData: UserSettingsDataService,
+    private readonly location: Location,
   ) { }
 
   private extractApiError(err: any): string {
@@ -46,7 +47,7 @@ export class AddrepositoryComponent implements OnInit {
     );
   }
 
-  // ✅ แผน B: token ใช้ตอน startScan (optional)
+  // แผน B: token ใช้ตอน startScan (optional)
   gitToken: string = '';
 
   authMethod: 'usernamePassword' | 'accessToken' | null = null;
@@ -60,12 +61,6 @@ export class AddrepositoryComponent implements OnInit {
     repositoryUrl: '',
     costPerDay: 1000 //default value
   };
-
-  // ❌ ไม่ใช้แล้ว (BE ไม่ได้เอา username/password ไป clone)
-  // credentials = {
-  //   username: '',
-  //   password: '',
-  // };
 
   sonarConfig = {
     projectKey: '',
@@ -296,9 +291,7 @@ export class AddrepositoryComponent implements OnInit {
                         0
                       );
 
-                      this.router.navigate(['/repositories'], {
-                        state: { message: 'Scan started successfully!' },
-                      });
+                      this.location.back();
                     },
                     error: (err) => {
                       this.gitToken = '';
@@ -315,17 +308,17 @@ export class AddrepositoryComponent implements OnInit {
                         'Error',
                         0
                       );
-                      this.router.navigate(['/repositories']);
+                      this.location.back();
                     },
                   });
               } else {
-                this.router.navigate(['/repositories']);
+                this.location.back();
               }
             },
             error: (err) => {
               console.error('Failed to fetch full repo after save', err);
               // Even if fetch fails, try to redirect
-              this.router.navigate(['/repositories']);
+              this.location.back();
             },
           });
         }
@@ -343,7 +336,7 @@ export class AddrepositoryComponent implements OnInit {
   }
 
   onCancel() {
-    this.router.navigate(['/repositories']);
+    this.location.back();
   }
 
   onDelete() {

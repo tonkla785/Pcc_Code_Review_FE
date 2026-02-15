@@ -123,7 +123,7 @@ export class AppComponent implements OnInit, OnDestroy {
         const settings = this.userSettingsData.notificationSettings;
         const showScanAlert = !settings || settings.scansEnabled;
 
-        if (showScanAlert) {
+        if (showScanAlert && this.authService.isLoggedIn) {
           this.snack.open(
             event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
             '',

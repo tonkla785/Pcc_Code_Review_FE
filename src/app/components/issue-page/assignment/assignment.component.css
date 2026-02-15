@@ -219,17 +219,21 @@
    🌙 Dark Mode
    =============================== */
 :host-context(.dark-mode) .assignment-wrapper .assignment-table {
-  background-color: var(--bg-card) !important;
+  background-color: #1e293b !important;
   color: var(--text-main) !important;
   border-color: var(--card-border) !important;
 }
 :host-context(.dark-mode) .assignment-wrapper .assignment-table thead th {
-  background-color: var(--table-header-bg) !important;
+  background-color: #1e293b !important;
   color: var(--table-header-text) !important;
   border-color: var(--card-border) !important;
 }
 :host-context(.dark-mode) .assignment-wrapper .assignment-table tbody tr {
-  background-color: var(--bg-card) !important;
+  background-color: #1e293b !important;
+  color: var(--text-main) !important;
+}
+:host-context(.dark-mode) .assignment-wrapper .assignment-table td {
+  background-color: #1e293b !important;
   color: var(--text-main) !important;
 }
 /* โค้ดที่ซ้ำซ้อนถูกลบออกแล้ว */

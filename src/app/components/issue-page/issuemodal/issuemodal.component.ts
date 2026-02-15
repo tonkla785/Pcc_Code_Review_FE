@@ -34,8 +34,10 @@ export class IssuemodalComponent {
   today: string = '';
   currentAssigneeId: string | null = null;
   UserData: UserInfo[] = [];
-    editingUser: boolean = false;
-  issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: '' }; // ตัวที่ใช้ใน modal
+  editingUser: boolean = false;
+  issueDraft: IssuesRequestDTO = { id: '', status: '', assignedTo: undefined }; // ตัวที่ใช้ใน modal
+
+
 
   // @Input() showAssign = false;
   // @Input() showStatus = false;
@@ -48,13 +50,13 @@ export class IssuemodalComponent {
 
 
 
- ngOnInit(){
-       this.sharedData.AllUser$.subscribe(data => { 
-        this.UserData = data ?? [];
-        // this.applyFilter();
-        console.log('User loaded Modal from sharedData:', data);
-      });
-       if(!this.sharedData.hasUserCache){
+  ngOnInit() {
+    this.sharedData.AllUser$.subscribe(data => {
+      this.UserData = data ?? [];
+      // this.applyFilter();
+      console.log('User loaded Modal from sharedData:', data);
+    });
+    if (!this.sharedData.hasUserCache) {
       this.loadUser();
       console.log("No cache - load from server");
     }
@@ -71,29 +73,35 @@ export class IssuemodalComponent {
       error: () => this.sharedData.setLoading(false)
     });
   }
-  
-onSubmitUser() {
-  const payload: IssuesRequestDTO = {
-    id: this.issueDraft.id,
-    status: this.issueDraft.status,   
-    assignedTo: this.issueDraft.assignedTo 
-  };
 
-  console.log('Submitting issue assignment payload:', payload);
+  onSubmitUser() {
+    const payload: IssuesRequestDTO = {
+      id: this.issueDraft.id,
+      status: this.issueDraft.status,
+      assignedTo: this.issueDraft?.assignedTo
+    };
 
-  this.issuesService.updateIssues(payload).subscribe({
-    next: (updated) => {
-      this.sharedData.updateIssueSelect(updated);
-      this.closeModal();
-      console.log('Issue updated:', updated);
-    },
-    error: (err) => {
-      console.error('Update issue failed:', err);
-      console.error('Payload was:', payload);
-    }
-  });
-}
-      closeModal() {
+    console.log('Submitting issue assignment payload:', payload);
+
+    this.issuesService.updateIssues(payload).subscribe({
+      next: (updated) => {
+        console.log('Issue updated successfully:', updated);
+        this.issuesService.getAllIssuesById(this.issueDraft.id).subscribe({
+          next: (fullIssue) => {
+            this.sharedData.updateIssueSelect(fullIssue);
+            this.closeModal();
+            console.log('Issue updated and refreshed:', fullIssue);
+          },
+          error: (err) => console.error('Failed to refresh issue:', err)
+        });
+      },
+      error: (err) => {
+        console.error('Update issue failed:', err);
+        console.error('Payload was:', payload);
+      }
+    });
+  }
+  closeModal() {
     this.showAssign = false;
     this.showStatus = false;
     this.closed.emit();
@@ -105,9 +113,10 @@ onSubmitUser() {
     this.issueDraft = {
       id: issueId,
       status: 'IN_PROGRESS',
-      assignedTo: ''
+      assignedTo: undefined
     };
     this.showAssign = true;
+    console.log('Open add assign modal for issue ID:', issueId);
   }
 
 
@@ -117,10 +126,11 @@ onSubmitUser() {
     this.issueDraft = { ...existingIssue };
     //this.currentAssigneeId = existingIssue.assignedTo ?? null;
     this.showAssign = true;
+    console.log('Open edit assign modal for issue:', this.issueDraft);
   }
 
-  openEditStatus(issues : any) {
-    this.issueDraft = { ...issues}; // ตั้งค่าจาก parent
+  openEditStatus(issues: any) {
+    this.issueDraft = { ...issues }; // ตั้งค่าจาก parent
     this.showStatus = true;
     console.log('Open status modal for issue:', this.issueDraft);
   }
