@@ -10,7 +10,8 @@
   padding: 16px 20px;
   border-radius: 12px;
   transition: background-color 0.35s ease;
-  margin-top: -12px;
+  position: relative;
+  top: -80px;
 }
 
 .issues-header {
@@ -957,7 +958,7 @@
   align-items: center;
   position: relative;
   width: 100%;
-  top: -12px;
+  top: -50px;
   right: 10px;
 }
 

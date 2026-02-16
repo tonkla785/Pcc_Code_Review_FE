@@ -182,15 +182,13 @@ export class IssueComponent {
     );
   }
   applyFilter() {
-    this.updatePage();
     const keyword = this.searchText.trim().toLowerCase();
     const matchType = (this.filterType || 'All Types').toLowerCase();
     const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
     const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
     const matchProject = (this.filterProject || 'All Projects').toLowerCase();
 
-    this.filteredIssue = this.issuesAll
-      .filter(i => {
+    this.filteredIssue = this.issuesAll.filter(i => {
         const typeValue = (i.type || '').toLowerCase();
 
         const type =
@@ -224,7 +222,11 @@ export class IssueComponent {
         }
       });
 
-    this.updatePage();
+  if (this.currentPage > this.totalPages) {
+    this.currentPage = 1;
+  }
+  this.updatePage();
+  this.updateUrl();
   }
 
   onSearchChange(value: string) {
@@ -467,7 +469,7 @@ export class IssueComponent {
     }
   }
 
-  statusClass(status: string) {
+  statusClass(status?: string | null): string {
     if (!status) return '';
     const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
     const clean = normalized.replace(/\s/g, '-'); // normalize to hyphenated for some cases if needed, but here we just check strings
@@ -481,7 +483,7 @@ export class IssueComponent {
     return '';
   }
 
-  formatStatus(status: string): string {
+  formatStatus(status?: string | null): string {
     if (!status) return '';
     const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
