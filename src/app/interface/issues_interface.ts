@@ -24,14 +24,14 @@ export interface IssuesResponseDTO {
     phone: string,
     createAt: string
   },
-  status?: string | null,
+  status: string,
   createdAt: string,
   commentData: commentResponseDTO[]
 }
 
   export interface IssuesRequestDTO {
     id: string,
-    status?: string | null,
+    status: string,
     assignedTo?: string | null;
   }
     export interface IssuesDetailResponseDTO {

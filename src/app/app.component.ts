@@ -24,7 +24,7 @@ import { UserService } from './services/userservice/user.service';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
   title = 'codereviewFE';
   darkMode = false;
 
@@ -485,17 +485,6 @@ export class AppComponent implements OnInit, OnDestroy {
       });
   }
 
-  ngOnDestroy() {
-    this.wsSub?.unsubscribe();
-    this.notiSub?.unsubscribe();
-    this.verifySub?.unsubscribe();
-
-    // ✅ new
-    this.loginUserSub?.unsubscribe();
-    this.bootstrapSub?.unsubscribe();
-    this.projectSub?.unsubscribe();
-    this.issueSub?.unsubscribe();
-  }
 
   private mapStatus(wsStatus: string): 'Active' | 'Scanning' | 'Error' {
     switch (wsStatus) {

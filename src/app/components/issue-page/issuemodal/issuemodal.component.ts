@@ -85,9 +85,7 @@ export class IssuemodalComponent {
       status: this.issueDraft.status,
       assignedTo: this.issueDraft?.assignedTo
     };
-
     console.log('Submitting issue assignment payload:', payload);
-
     this.issuesService.updateIssues(payload).subscribe({
       next: (updated) => {
         console.log('Issue updated successfully:', updated);
