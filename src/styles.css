@@ -10,6 +10,8 @@
   /* สีข้อความหลัก (ดำ) */
   --dashboard-title-color: #2563eb;
   /* ===== พื้นหลัง / ตัวอักษร ===== */
+  --title-color: #2563eb;
+  /* สี title */
   --bg-main: #f8fafc;
   /* พื้นหลังหลัก (Repo Light) */
   --bg-card: #ffffff;
@@ -348,7 +350,7 @@ body.dark-mode .assignment-wrapper .badge.bg-critical {
 
 /* ตัวกล่อง modal */
 body.dark-mode .modal-content {
-  background-color: var(--bg-card) !important;
+  background-color: #1f2937 !important;
   color: var(--text-main) !important;
   border: 1px solid var(--card-border) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
@@ -357,7 +359,7 @@ body.dark-mode .modal-content {
 /* Header */
 body.dark-mode .modal-header {
   border-bottom: 1px solid var(--card-border) !important;
-  background-color: var(--bg-panel) !important;
+  background-color: #374151 !important;
   color: var(--text-heading) !important;
 }
 
@@ -376,9 +378,9 @@ body.dark-mode .modal-footer {
 body.dark-mode .modal-body .form-control,
 body.dark-mode .modal-body .form-select,
 body.dark-mode .modal-body textarea {
-  background-color: var(--bg-panel) !important;
+  background-color: #374151 !important;
   color: var(--text-main) !important;
-  border: 1px solid var(--card-border) !important;
+  border: 1px solid #4b5563 !important;
 }
 
 body.dark-mode .modal-body .form-control:focus,

@@ -1,3 +1,430 @@
+/* ===========================================================
+   🚀 LOG VIEWER STYLE (Premium Layout)
+   =========================================================== */
+
+/* --- Variables --- */
+:host {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  --angular-color: #dd0031;
+  --spring-color: #6db33f;
+}
+
+:host-context(.dark-mode) {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --border-color: #334155;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Global Utilities --- */
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+}
+
+.log-viewer-dashboard {
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  padding: 30px;
+  color: var(--text-main);
+}
+
+.fade-in {
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Header --- */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.2rem;
+}
+
+.back-btn:hover {
+  background: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.header-content h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, var(--title-color) 0%, var(--text-sub) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-content p {
+  color: var(--text-sub);
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-action {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: #fff;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-download {
+  background-color: #10b981;
+}
+
+/* Green */
+.btn-email {
+  background-color: #3b82f6;
+}
+
+/* Blue */
+.btn-print {
+  background-color: #f59e0b;
+}
+
+/* Orange */
+
+
+/* --- Stats Grid (Execution Summary) --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-panel {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.stat-info h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.stat-info span {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  font-weight: 500;
+}
+
+/* --- Metrics Grid --- */
+.metrics-section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.metric-card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.metric-icon-box {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* Specific Metric Colors */
+.metric-bugs .metric-icon-box {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.metric-vuln .metric-icon-box {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.metric-smells .metric-icon-box {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.metric-coverage .metric-icon-box {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.metric-info h4 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.metric-info span {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+}
+
+/* --- Gate Table --- */
+.gate-panel {
+  background: var(--card-bg);
+  padding: 0;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.gate-grade {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: var(--bg-main);
+  font-weight: 700;
+  border: 1px solid var(--border-color);
+}
+
+:host-context(.dark-mode) .gate-grade {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+/* Warnings & Errors Tables */
+.table-panel {
+  background: var(--card-bg);
+  padding: 0;
+  margin-bottom: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.table-header {
+  padding: 16px 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-header.warning {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.table-header.danger {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+:host-context(.dark-mode) .table-header.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+:host-context(.dark-mode) .table-header.danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: var(--bg-main);
+  color: var(--text-sub);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 12px 24px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table td {
+  padding: 12px 24px;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn-action {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Dark Mode Specifics --- */
+:host-context(.dark-mode) .list-group-item {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-main);
+  /* Ensure text is main color */
+}
+
+/* Fix for Analysis Logs timestamp/details being too grey */
+:host-context(.dark-mode) .list-group-item span:first-child {
+  color: var(--text-main);
+}
+
+:host-context(.dark-mode) .list-group-item span:last-child {
+  color: var(--text-sub);
+  /* Or clearer color */
+}
+
+:host-context(.dark-mode) .table th {
+  background: var(--bg-main);
+  /* Match main background instead of grey #2c2c2c */
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+:host-context(.dark-mode) .table td {
+  background: var(--card-bg);
+  /* Clean card background */
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+/* Ensure Detailed Analysis Logs don't have grey background on hover if any */
+:host-context(.dark-mode) .list-group-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
 /* ===============================
    Card container (โครงหลักของ log-card)
    =============================== */
@@ -66,24 +493,24 @@
      List group items (รายการใน list)
      =============================== */
 .list-group-item {
-  padding: 0.65rem 1rem;
-  /* ระยะห่างภายใน */
-  font-family: monospace;
-  /* ฟอนต์แบบโค้ด */
-  background-color: #fafafa;
-  /* พื้นหลังเทาอ่อน */
-  border-radius: 6px;
-  /* มุมโค้ง */
-  margin-bottom: 4px;
-  /* ระยะห่างระหว่างรายการ */
-  transition: background-color 0.25s ease, transform 0.2s ease;
+  padding: 0.75rem 1rem;
+  font-family: 'Consolas', 'Monaco', monospace;
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
 }
 
 .list-group-item:hover {
-  background-color: #f3f4f6;
-  /* hover → เทาเข้มขึ้น */
-  transform: translateX(3px);
-  /* ขยับไปทางขวา */
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 
@@ -247,15 +674,16 @@ section h4 .text-danger {
   color: var(--btn-primary-bg) !important;
 }
 
-/* รายการทั่วไป */
+/* รายการทั่วไป (Analysis Logs) */
 :host-context(.dark-mode) .list-group-item {
-  background-color: var(--bg-panel) !important;
+  background-color: transparent !important;
   color: var(--text-main) !important;
-  border: 1px solid var(--card-border) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 :host-context(.dark-mode) .list-group-item:hover {
-  background-color: var(--table-header-bg2) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 /* รายการ Error */
@@ -383,7 +811,7 @@ section h4 .text-danger {
 :host-context(.dark-mode) .major-table thead.table-warning,
 :host-context(.dark-mode) .major-table thead.table-warning>tr,
 :host-context(.dark-mode) .major-table thead.table-warning>tr>th {
-  background-color: var(--table-header-bg) !important;
+  background-color: var(--bg-main) !important;
   color: #fbbf24 !important;
   border-color: var(--card-border) !important;
 }
@@ -392,7 +820,7 @@ section h4 .text-danger {
 :host-context(.dark-mode) .major-table thead.table-danger,
 :host-context(.dark-mode) .major-table thead.table-danger>tr,
 :host-context(.dark-mode) .major-table thead.table-danger>tr>th {
-  background-color: var(--table-header-bg) !important;
+  background-color: var(--bg-main) !important;
   color: #f87171 !important;
   border-color: var(--card-border) !important;
 }
@@ -408,5 +836,5 @@ section h4 .text-danger {
 
 :host-context(.dark-mode) .major-table tbody>tr:hover,
 :host-context(.dark-mode) .major-table tbody>tr:hover>td {
-  background-color: var(--table-header-bg2) !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
 }

@@ -501,6 +501,10 @@ export class TechnicaldebtComponent implements OnDestroy {
     this.location.back();
   }
 
+  goToProject(projectId: string): void {
+    this.router.navigate(['/settingrepo', projectId]);
+  }
+
   generateDebtReport(): void {
     this.router.navigate(['/generatereport'], {
       queryParams: { reportType: 'technical-debt-analysis' }

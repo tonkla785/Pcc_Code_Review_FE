@@ -173,16 +173,16 @@
 
 /* Match Technical Debt Colors */
 .bg-danger {
-  background: #ff6b6b !important;
+  background: #842d2d !important;
 }
 
 .bg-warning {
-  background: #ffd43b !important;
+  background: #987e21 !important;
   color: #212529 !important;
 }
 
 .bg-success {
-  background: #51cf66 !important;
+  background: #247031 !important;
 }
 
 .bg-info {

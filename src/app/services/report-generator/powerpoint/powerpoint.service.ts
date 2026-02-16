@@ -159,7 +159,9 @@ export class PowerpointService {
             pageIssues.forEach((issue: any) => {
                 let type = (issue.type || '').toLowerCase();
                 if (type === 'bug') type = 'Bug';
-                if (type === 'vulnerability') type = 'Vuln';
+                if (type === 'vulnerability') type = 'Vulnerability';
+                if (type === 'code_smell') type = 'Code Smell';
+                if (type === 'security_hotspot') type = 'Security Hotspot';
 
                 rows.push([
                     type,

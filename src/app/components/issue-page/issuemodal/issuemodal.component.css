@@ -234,3 +234,83 @@
     justify-content: center;
   }
 }
+
+:host-context(.dark-mode) .modal-backdrop-custom {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+:host-context(.dark-mode) .modal-card {
+  background: #1e293b;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  border: 1px solid #334155;
+}
+
+:host-context(.dark-mode) .modal-header {
+  background-color: #1e293b !important;
+  border-bottom-color: #1e293b !important;
+}
+
+:host-context(.dark-mode) .modal-title {
+  color: #f8fafc;
+}
+
+:host-context(.dark-mode) .btn-close {
+  color: #94a3b8;
+  filter: invert(1);
+}
+
+:host-context(.dark-mode) .btn-close:hover {
+  color: #f8fafc;
+}
+
+:host-context(.dark-mode) .modal-body label {
+  color: #cbd5e1;
+}
+
+:host-context(.dark-mode) .form-control,
+:host-context(.dark-mode) .form-select {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+:host-context(.dark-mode) .form-control:focus,
+:host-context(.dark-mode) .form-select:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+:host-context(.dark-mode) .form-control::placeholder {
+  color: #64748b;
+}
+
+:host-context(.dark-mode) .form-control option,
+:host-context(.dark-mode) .form-select option {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+:host-context(.dark-mode) .modal-footer {
+  border-top-color: #1e293b !important;
+  background-color: #1e293b !important;
+}
+
+:host-context(.dark-mode) .btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+:host-context(.dark-mode) .btn-primary:hover {
+  background: #1d4ed8;
+}
+
+:host-context(.dark-mode) .btn-secondary {
+  background: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+:host-context(.dark-mode) .btn-secondary:hover {
+  background: #475569;
+  color: #f8fafc;
+}

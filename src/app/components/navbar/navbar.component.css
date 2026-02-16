@@ -18,7 +18,7 @@
   /* Slate-200 */
   --nav-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 
-  --logo-gradient: linear-gradient(135deg, #1e293b 0%, #64748b 100%);
+  --logo-gradient: linear-gradient(135deg, #2563eb 0%, #26ffcc 100%);
 }
 
 :host-context(.dark-mode) {
@@ -42,7 +42,7 @@
 .vertical-navbar {
   /* border: 1px solid red; */
   width: 240px;
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--nav-bg);
   color: var(--nav-text);
   display: flex;
@@ -53,6 +53,26 @@
   box-shadow: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 999;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Custom thin scrollbar for navbar */
+.vertical-navbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.vertical-navbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vertical-navbar::-webkit-scrollbar-thumb {
+  background-color: var(--nav-border);
+  border-radius: 4px;
+}
+
+.vertical-navbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--nav-text);
 }
 
 /* --- Heading (Logo) --- */

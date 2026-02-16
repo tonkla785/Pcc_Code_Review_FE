@@ -4,7 +4,7 @@ import { SharedDataService } from './../../../services/shared-data/shared-data.s
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router,ActivatedRoute } from '@angular/router';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
@@ -65,6 +65,7 @@ export class IssueComponent {
     private readonly issuesService: IssueService,
     private readonly userDataService: UserService,
     private readonly repoService: RepositoryService,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
@@ -86,10 +87,6 @@ export class IssueComponent {
       this.issuesAll = [...this.originalData];
       this.applyFilter();
     });
-    if (!this.sharedData.hasIssuesCache) {
-      console.log("No cache - load from server");
-      this.loadIssues();
-    }
     if (!this.sharedData.hasRepositoriesCache) {
       this.loadRepositories();
       console.log("No cache - load from server");
@@ -98,7 +95,10 @@ export class IssueComponent {
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
     });
-
+    this.route.queryParams.subscribe(params => {
+        this.currentPage = +params['page'] || 1;
+        this.updatePage();
+      })
   }
 
   loadIssues() {
@@ -161,6 +161,17 @@ export class IssueComponent {
   loading = false;
   errorMsg = '';
 
+pageAll(page: number) {
+  this.pageSize = page;
+  const totalPages = Math.ceil(this.filteredIssue.length / this.pageSize);
+
+  if (this.currentPage > totalPages) {
+    this.currentPage = totalPages || 1;
+  }
+
+  this.updatePage();
+  this.updateUrl();
+}
 
   // ---------- Filter / Page ----------
   filterIssues() {
@@ -172,6 +183,7 @@ export class IssueComponent {
     );
   }
 applyFilter() {
+
   const keyword = this.searchText.trim().toLowerCase();
   const matchType = (this.filterType || 'All Types').toLowerCase();
   const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
@@ -180,7 +192,16 @@ applyFilter() {
 
   this.filteredIssue = this.issuesAll
     .filter(i => {
-      const type = matchType === 'all types' || (i.type || '').toLowerCase() === matchType;
+      const typeValue = (i.type || '').toLowerCase();
+
+      const type =
+        matchType === 'all types' ||
+        (
+          matchType === 'security' &&
+          ['vulnerability', 'security_hotspot'].includes(typeValue)
+        ) ||
+        typeValue === matchType;
+
       const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
       const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
 
@@ -203,9 +224,9 @@ applyFilter() {
       return a.id.localeCompare(b.id); 
       }
     });
-
-
-  this.currentPage = 1;
+ if (this.currentPage > this.totalPages) {
+    this.currentPage = this.totalPages || 1;
+  }
   this.updatePage();
 }
 
@@ -213,8 +234,6 @@ applyFilter() {
     this.searchText = value;
     this.applyFilter();
   }
-
-
 
   updatePage() {
     const start = (this.currentPage - 1) * this.pageSize;
@@ -240,20 +259,30 @@ applyFilter() {
       this.selectedIssues = this.selectedIssues.filter(s => !this.paginatedIssues.some(p => p.id === s.id));
     }
   }
+updateUrl() {
+  this.router.navigate([], {
+    relativeTo: this.route,
+    queryParams: { page: this.currentPage },
+  });
+}
 
-  nextPage() {
-    if (this.currentPage * this.pageSize < this.filteredIssue.length) {
-      this.currentPage++;
-      this.updatePage();
-    }
-  }
 
-  prevPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.updatePage();
-    }
+nextPage() {
+  if (this.currentPage * this.pageSize < this.filteredIssue.length) {
+    this.currentPage++;
+    this.updatePage();
+    this.updateUrl();
   }
+}
+
+prevPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.updatePage();
+    this.updateUrl();
+  }
+}
+
 
   // isPageAllSelected(): boolean {
   //   return this.paginatedIssues.length > 0 && this.paginatedIssues.every(i => !!i.selected);
@@ -319,7 +348,7 @@ applyFilter() {
       const payload: IssuesRequestDTO = {
         id,
         assignedTo: this.issueDraft.assignedTo,
-        status: 'IN PROGRESS'
+        status: 'IN_PROGRESS'
       };
       return this.issuesService.updateIssues(payload);
     });
@@ -392,18 +421,18 @@ applyFilter() {
   typeIcon(type: string) {
     switch (type.toLowerCase()) {
       case 'bug': return 'bi-bug';
-      case 'security': return 'bi-shield-lock';
-      case 'code-smell': return 'bi-code-slash';
+      case 'security_hotspot': return 'bi-shield-lock';
+      case 'vulnerability': return 'bi-shield-lock';
+      case 'code_smell': return 'bi-code-slash';
       default: return '';
     }
   }
 
   severityClass(severity: string) {
     switch (severity.toLowerCase()) {
-      case 'critical':
-      case 'high': return 'text-danger';
-      case 'medium': return 'text-warning';
-      case 'low': return 'text-success';
+      case 'critical': return 'text-danger';
+      case 'major': return 'text-warning';
+      case 'minor': return 'text-success';
       default: return '';
     }
   }
@@ -434,9 +463,11 @@ applyFilter() {
 
     return status;
   }
-  viewResult(issue: IssuesResponseDTO) {
-    this.router.navigate(['/issuedetail', issue.id]);
-  }
+  viewResult(issueId: IssuesResponseDTO) {
+  this.router.navigate(['/issuedetail', issueId.id], {
+    queryParams: { page: this.currentPage }
+  });
+}
   isSelected(issue: IssuesResponseDTO): boolean {
     return this.selectedIssues.some(s => s.id === issue.id);
   }
@@ -451,6 +482,36 @@ applyFilter() {
       this.selectedIssues.splice(index, 1);
     } else {
       this.selectedIssues.push(issue);
+    }
+  }
+    get pageNumbers(): (number | string)[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+
+    if (total <= 5) {
+      const pages: (number | string)[] = [];
+      for (let i = 1; i <= total; i++) pages.push(i);
+      return pages;
+    }
+
+    // Near start: [1] [2] [3] [...] [last]
+    if (current <= 3) {
+      return [1, 2, 3, '...', total];
+    }
+
+    // Near end: [1] [...] [n-2] [n-1] [n]
+    if (current >= total - 2) {
+      return [1, '...', total - 2, total - 1, total];
+    }
+
+    // Middle: [1] [...] [current] [...] [last]
+    return [1, '...', current, '...', total];
+  }
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePage();
+      this.updateUrl();
     }
   }
 }

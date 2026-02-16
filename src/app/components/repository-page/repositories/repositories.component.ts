@@ -77,41 +77,6 @@ export class RepositoriesComponent implements OnInit {
     if (!this.sharedData.hasRepositoriesCache) {
       this.loadRepositories();
     }
-
-    // ฟังการเปลี่ยนแปลง Quality Gates
-    this.sharedData.qualityGates$
-      .subscribe(gates => {
-        if (!gates) return;
-
-        console.log('QualityGates updated:', gates);
-
-        if (!gates.failOnError) {
-          this.repoService.getAllRepo().subscribe(repos => {
-            this.sharedData.setRepositories(repos);
-          });
-          return;
-        }
-
-        //recalculated quality gate ใหม่
-        const recalculated = this.repositories.map(repo => {
-          if (!repo.metrics) return repo;
-
-          // Note: evaluateQualityGate is deprecated/removed in service
-          return {
-            ...repo,
-            // qualityGate: this.repoService.evaluateQualityGate(repo.metrics, gates)
-            qualityGate: repo.qualityGate // Use existing value for now
-          };
-        });
-
-        this.repositories = recalculated;
-        this.filteredRepositories = this.sortRepositories([...recalculated]);
-        this.updateSummaryStats();
-      });
-
-
-    // WebSocket logic moved to AppComponent for global updates
-
   }
 
   loadRepositories() {
@@ -169,26 +134,10 @@ export class RepositoriesComponent implements OnInit {
 
     // 2. Handle Search Logic
     if (this.searchText) {
-      const matched = baseList.filter(repo =>
+      this.filteredRepositories = baseList.filter(repo =>
         repo.name.toLowerCase().includes(this.searchText) ||
         repo.projectType?.toLowerCase().includes(this.searchText)
       );
-
-      const others = baseList.filter(repo =>
-        !repo.name.toLowerCase().includes(this.searchText) &&
-        !repo.projectType?.toLowerCase().includes(this.searchText)
-      );
-
-      if (matched.length > 0) {
-        // ถ้าเจอ: เอาตัวที่เจอขึ้นก่อน + ตามด้วยตัวที่ไม่เจอ (Reorder)
-        this.filteredRepositories = [
-          ...this.sortRepositories(matched),
-          ...this.sortRepositories(others)
-        ];
-      } else {
-        // ถ้าไม่เจอเลย: ให้เป็นว่าง (เพื่อขึ้น No Data)
-        this.filteredRepositories = [];
-      }
     } else {
       // No search: Show all filtered by Tab/Status
       this.filteredRepositories = this.sortRepositories(baseList);
@@ -411,7 +360,7 @@ export class RepositoriesComponent implements OnInit {
   }
 
   viewRepo(repo: Repository): void {
-    this.router.navigate(['/detailrepo', repo.projectId, repo.scanId]);
+    this.router.navigate(['/detailrepo', repo.projectId]);
   }
 
   sortRepositories(list: Repository[]): Repository[] {

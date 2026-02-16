@@ -6,6 +6,7 @@ import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { UserService } from '../../../services/userservice/user.service';
 import { UserInfo } from '../../../interface/user_interface';
+import Swal from 'sweetalert2';
 
 
 interface User {
@@ -172,14 +173,30 @@ export class UsermanagementComponent {
     }
   };
 
-  onDelete(projectId: string) {
-    if (!confirm('ยืนยันการลบ?')) return;
-
-    this.userDateService.DeleteUser(projectId).subscribe({
-      next: () => {
-        this.sharedData.removeUser(projectId);
-      },
-      error: (err) => console.error(err)
+  onDelete(id: string) {
+    Swal.fire({
+      title: 'Delete?',
+      text: 'Are you sure you want to delete?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userDateService.DeleteUser(id).subscribe({
+          next: () => {
+            this.sharedData.removeUser(id);
+          },
+          error: (err) => Swal.fire({
+            icon: 'error',
+            title: 'Delete Failed',
+            text: 'Please try again.'
+          })
+        });
+      }
     });
+
   }
 }
