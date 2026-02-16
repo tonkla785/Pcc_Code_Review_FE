@@ -169,6 +169,7 @@ export class DashboardComponent {
   latestScans = this.getLatestScanByProject();
   // verify
   private verifySub?: Subscription;
+  private sub?: Subscription;
 
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
@@ -176,6 +177,12 @@ export class DashboardComponent {
   AllScan: ScanResponseDTO[] = [];
   // ================== LIFE CYCLE ==================
   ngOnInit() {
+
+        this.sub = this.tokenStorage.loginUser$.subscribe(u => {
+      this.UserLogin = u;
+      // ถ้ามึงอยากให้ UI เด้งทันทีชัวร์ๆ
+      this.cdr.detectChanges();
+    });
     if (!this.auth.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
@@ -1309,7 +1316,7 @@ export class DashboardComponent {
     this.coverageChartOptions = chartConfig.options as any;
   }
 
-  // ngOnDestroy() {
-  //   this.ws.disconnect();
-  // }
+ ngOnDestroy() {
+        this.sub?.unsubscribe();
+}
 }

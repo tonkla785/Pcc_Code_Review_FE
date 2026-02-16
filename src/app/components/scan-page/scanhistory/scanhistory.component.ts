@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router,ActivatedRoute } from '@angular/router';
 import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
 import { Repository } from '../../../interface/repository_interface';
 import { RepositoryService } from '../../../services/reposervice/repository.service';
+import { IssuesResponseDTO } from '../../../interface/issues_interface';
 
 @Component({
   selector: 'app-scanhistory',
@@ -47,7 +48,7 @@ showDuplications = false;
   filterType = 'ALL';
     repositories: Repository[] = [];
   constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
-    private sharedData: SharedDataService, private repoService: RepositoryService
+    private sharedData: SharedDataService, private repoService: RepositoryService, private route: ActivatedRoute
   ) {
   }
 
@@ -69,6 +70,9 @@ showDuplications = false;
       this.repositories = repos;
       console.log('Repositories loaded from sharedData:', this.repositories);
     });
+        this.route.queryParams.subscribe(params => {
+        this.currentPage = +params['page'] || 1;
+      });
   }
 
   loadScanHistory() {
@@ -163,11 +167,18 @@ showDuplications = false;
     this.pagedScans = this.filteredScan.slice(start, end);
     
   }
+updateUrl() {
+  this.router.navigate([], {
+    relativeTo: this.route,
+    queryParams: { page: this.currentPage },
+  });
+}
 
   goPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.updatePagedScans();
+    this.updateUrl();
   }
   statusClass(status: string) {
     switch (status) {
@@ -188,14 +199,17 @@ showDuplications = false;
   }
 
   viewLog(scan: ScanResponseDTO) {
-    this.router.navigate(['/logviewer', scan.id]);
+    this.router.navigate(['/logviewer', scan.id],{
+      queryParams: { page: this.currentPage }
+    });
   }
 
   viewResult(scan: ScanResponseDTO) {
     this.sharedData.ScansDetail = scan;
-    this.router.navigate(['/scanresult', scan.id]);
+    this.router.navigate(['/scanresult', scan.id], {
+    queryParams: { page: this.currentPage }
+    });
   }
-
 
   // Export 
   exportHistory(): void {
@@ -409,8 +423,6 @@ applyFilterStatus() {
       const project = matchProject === 'all projects' || projectName === matchProject;
     return matchDate && matchStatus && project;
   });
-
-  this.currentPage = 1;
   this.updatePage();
 }
 metricsConfig = [
