@@ -428,10 +428,9 @@ prevPage() {
 
   severityClass(severity: string) {
     switch (severity.toLowerCase()) {
-      case 'critical':
-      case 'high': return 'text-danger';
-      case 'medium': return 'text-warning';
-      case 'low': return 'text-success';
+      case 'critical': return 'text-danger';
+      case 'major': return 'text-warning';
+      case 'minor': return 'text-success';
       default: return '';
     }
   }
