@@ -10,6 +10,7 @@
   padding: 16px 20px;
   border-radius: 12px;
   transition: background-color 0.35s ease;
+  position: relative;
 }
 
 .issues-header {
@@ -375,6 +376,7 @@
   padding: 16px 20px;
   border-radius: 12px;
   transition: background-color 0.35s ease;
+  margin-top: -12px;
 }
 
 .issues-header {
@@ -479,9 +481,15 @@
    4. TABLE
    ============================================================ */
 .issues-container .table-responsive {
-  height: 480px;
+  height: 400px;
   overflow-y: auto;
   overflow-x: auto;
+}
+
+.sticky-top{
+  position: sticky;
+  top: -2px;
+  z-index: 1;
 }
 
 .issues-container .table {
@@ -955,7 +963,8 @@
   align-items: center;
   position: relative;
   width: 100%;
-  padding-block: .25rem;
+  margin-top: 5px;
+  right: 10px;
 }
 
 .footer-bar .bottom-action-buttons {

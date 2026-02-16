@@ -31,7 +31,7 @@ export interface IssuesResponseDTO {
 
   export interface IssuesRequestDTO {
     id: string,
-    status: string,
+    status?: string | null,
     assignedTo?: string | null;
   }
     export interface IssuesDetailResponseDTO {
