@@ -15,7 +15,7 @@
     <select class="form-select w-auto" [(ngModel)]="filterType" (ngModelChange)="applyFilter()">
       <option>All Types</option>
       <option value="bug">Bug</option>
-    <option value="SECURITY">Security</option>
+      <option value="SECURITY">Security</option>
       <option value="Code_smell">Code Smell</option>
     </select>
 
@@ -80,8 +80,8 @@
           <td>{{issue.projectData?.name}}</td>
           <td>{{issue.assignedTo?.username ?? 'Unassigned'}}</td>
           <td>
-            <span class="status-badge" [ngClass]="statusClass(issue.status)">
-              {{ formatStatus(issue.status) }}
+            <span class="status-badge" [ngClass]="statusClass(issue?.status)">
+              {{ formatStatus(issue?.status) }}
             </span>
           </td>
 
@@ -154,20 +154,25 @@
 
 <!-- Footer -->
 <div class="footer-bar px-3 px-md-4">
-  <div class="footer-left">
-        <select class="form-select w-auto" (ngModelChange)="pageAll($event)" [(ngModel)]="pageSize">
-<option [ngValue]="5">5</option>
-<option [ngValue]="10">10</option>
-<option [ngValue]="15">15</option>
-<option [ngValue]="20">20</option>
-<option [ngValue]="50">50</option>
+  <div class="pagination d-flex align-items-center gap-2">
+    <select class="form-select w-auto page-size-select" (ngModelChange)="pageAll($event)" [(ngModel)]="pageSize">
+      <option [ngValue]="5">5</option>
+      <option [ngValue]="10">10</option>
+      <option [ngValue]="15">15</option>
+      <option [ngValue]="20">20</option>
+      <option [ngValue]="50">50</option>
     </select>
-  </div>
-  <div class="pagination d-flex align-items-center gap-3">
     <button class="page-btn" [class.disabled]="currentPage === 1" [disabled]="currentPage === 1" (click)="prevPage()">
       <i class="bi bi-chevron-left"></i>
     </button>
-    <span class="page-label mb-0">Page {{ currentPage }} / {{totalPages}}</span>
+
+    <ng-container *ngFor="let p of pageNumbers">
+      <span *ngIf="p === '...'" class="page-ellipsis">...</span>
+      <button *ngIf="p !== '...'" class="page-btn page-num" [class.active]="p === currentPage" (click)="goToPage(+p)">
+        {{ p }}
+      </button>
+    </ng-container>
+
     <button class="page-btn" [class.disabled]="currentPage === totalPages" [disabled]="currentPage === totalPages"
       (click)="nextPage()">
       <i class="bi bi-chevron-right"></i>

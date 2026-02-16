@@ -10,6 +10,8 @@
   padding: 16px 20px;
   border-radius: 12px;
   transition: background-color 0.35s ease;
+  position: relative;
+  top: -80px;
 }
 
 .issues-header {
@@ -955,7 +957,8 @@
   align-items: center;
   position: relative;
   width: 100%;
-  padding-block: .25rem;
+  top: -50px;
+  right: 10px;
 }
 
 .footer-bar .bottom-action-buttons {

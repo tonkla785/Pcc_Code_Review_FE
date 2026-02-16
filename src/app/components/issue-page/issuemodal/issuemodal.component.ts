@@ -75,6 +75,11 @@ export class IssuemodalComponent {
   }
 
   onSubmitUser() {
+    if (this.issueDraft.assignedTo == null) {
+      this.issueDraft.status = 'OPEN';
+    }else{
+      this.issueDraft.status = 'IN_PROGRESS';
+    }
     const payload: IssuesRequestDTO = {
       id: this.issueDraft.id,
       status: this.issueDraft.status,
@@ -108,11 +113,11 @@ export class IssuemodalComponent {
   }
 
   /** เปิด modal สำหรับเพิ่ม assign */
-  openAddAssign(issueId: string) {
+  openAddAssign(issueId: IssuesResponseDTO) {
     this.isEdit = false;
     this.issueDraft = {
-      id: issueId,
-      status: 'IN_PROGRESS',
+      id: issueId.id,
+      status: issueId.status ?? null,
       assignedTo: undefined
     };
     this.showAssign = true;
