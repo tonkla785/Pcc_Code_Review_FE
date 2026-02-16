@@ -227,7 +227,6 @@ applyFilter() {
     this.currentPage = 1
   }
   this.updatePage();
-  this.updateUrl();
 }
 
   onSearchChange(value: string) {
