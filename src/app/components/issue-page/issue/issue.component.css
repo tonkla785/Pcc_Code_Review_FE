@@ -486,6 +486,12 @@
   overflow-x: auto;
 }
 
+.sticky-top{
+  position: sticky;
+  top: -2px;
+  z-index: 1;
+}
+
 .issues-container .table {
   border-radius: 10px;
   overflow: hidden;
