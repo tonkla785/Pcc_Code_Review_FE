@@ -155,6 +155,13 @@
 <!-- Footer -->
 <div class="footer-bar px-3 px-md-4">
   <div class="footer-left">
+        <select class="form-select w-auto" (ngModelChange)="pageAll($event)" [(ngModel)]="pageSize">
+<option [ngValue]="5">5</option>
+<option [ngValue]="10">10</option>
+<option [ngValue]="15">15</option>
+<option [ngValue]="20">20</option>
+<option [ngValue]="50">50</option>
+    </select>
   </div>
   <div class="pagination d-flex align-items-center gap-3">
     <button class="page-btn" [class.disabled]="currentPage === 1" [disabled]="currentPage === 1" (click)="prevPage()">
