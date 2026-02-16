@@ -4,7 +4,7 @@ import { SharedDataService } from './../../../services/shared-data/shared-data.s
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { RouterLink, Router,ActivatedRoute } from '@angular/router';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
@@ -96,8 +96,8 @@ export class IssueComponent {
       console.log('Repositories loaded from sharedData:', this.repositories);
     });
     this.route.queryParams.subscribe(params => {
-      this.currentPage = +params['page'] || 1;
-    })
+        this.currentPage = +params['page'] || 1;
+      })
   }
 
   loadIssues() {
@@ -160,17 +160,17 @@ export class IssueComponent {
   loading = false;
   errorMsg = '';
 
-  pageAll(page: number) {
-    this.pageSize = page;
-    const totalPages = Math.ceil(this.filteredIssue.length / this.pageSize);
+pageAll(page: number) {
+  this.pageSize = page;
+  const totalPages = Math.ceil(this.filteredIssue.length / this.pageSize);
 
-    if (this.currentPage > totalPages) {
-      this.currentPage = totalPages || 1;
-    }
-
-    this.updatePage();
-    this.updateUrl();
+  if (this.currentPage > totalPages) {
+    this.currentPage = totalPages || 1;
   }
+
+  this.updatePage();
+  this.updateUrl();
+}
 
   // ---------- Filter / Page ----------
   filterIssues() {
@@ -181,53 +181,51 @@ export class IssueComponent {
       (this.searchText === '' || i.message.toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
-  applyFilter() {
-    const keyword = this.searchText.trim().toLowerCase();
-    const matchType = (this.filterType || 'All Types').toLowerCase();
-    const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
-    const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
-    const matchProject = (this.filterProject || 'All Projects').toLowerCase();
+applyFilter() {
+    this.updatePage(); 
+  const keyword = this.searchText.trim().toLowerCase();
+  const matchType = (this.filterType || 'All Types').toLowerCase();
+  const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
+  const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
+  const matchProject = (this.filterProject || 'All Projects').toLowerCase();
 
-    this.filteredIssue = this.issuesAll.filter(i => {
-        const typeValue = (i.type || '').toLowerCase();
+  this.filteredIssue = this.issuesAll
+    .filter(i => {
+      const typeValue = (i.type || '').toLowerCase();
 
-        const type =
-          matchType === 'all types' ||
-          (
-            matchType === 'security' &&
-            ['vulnerability', 'security_hotspot'].includes(typeValue)
-          ) ||
-          typeValue === matchType;
+      const type =
+        matchType === 'all types' ||
+        (
+          matchType === 'security' &&
+          ['vulnerability', 'security_hotspot'].includes(typeValue)
+        ) ||
+        typeValue === matchType;
 
-        const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
-        const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
+      const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
+      const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
 
-        const projectName = (i.projectData?.name || '').toLowerCase();
-        const project = matchProject === 'all projects' || projectName === matchProject;
+      const projectName = (i.projectData?.name || '').toLowerCase();
+      const project = matchProject === 'all projects' || projectName === matchProject;
 
-        const messageOk =
-          keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+      const messageOk =
+        keyword === '' || (i.message || '').toLowerCase().includes(keyword);
 
-        return type && severity && status && project && messageOk;
-      })
-      .sort((a, b) => {
-        const dateDiff =
-          new Date(b.createdAt).getTime() -
-          new Date(a.createdAt).getTime();
+      return type && severity && status && project && messageOk;
+    })
+    .sort((a, b) => {
+      const dateDiff =
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime();
 
-        if (dateDiff !== 0) {
-          return dateDiff;
-        } else {
-          return a.id.localeCompare(b.id);
-        }
-      });
+      if (dateDiff !== 0){
+        return dateDiff;
+      }else{
+      return a.id.localeCompare(b.id); 
+      }
+    });
 
-  if (this.currentPage > this.totalPages) {
-    this.currentPage = 1;
-  }
   this.updatePage();
-  this.updateUrl();
-  }
+}
 
   onSearchChange(value: string) {
     this.searchText = value;
@@ -260,61 +258,29 @@ export class IssueComponent {
       this.selectedIssues = this.selectedIssues.filter(s => !this.paginatedIssues.some(p => p.id === s.id));
     }
   }
-  updateUrl() {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { page: this.currentPage },
-    });
+updateUrl() {
+  this.router.navigate([], {
+    relativeTo: this.route,
+    queryParams: { page: this.currentPage },
+  });
+}
+
+
+nextPage() {
+  if (this.currentPage * this.pageSize < this.filteredIssue.length) {
+    this.currentPage++;
+    this.updatePage();
+    this.updateUrl();
   }
+}
 
-
-  nextPage() {
-    if (this.currentPage * this.pageSize < this.filteredIssue.length) {
-      this.currentPage++;
-      this.updatePage();
-      this.updateUrl();
-    }
+prevPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.updatePage();
+    this.updateUrl();
   }
-
-  prevPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.updatePage();
-      this.updateUrl();
-    }
-  }
-
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.updatePage();
-      this.updateUrl();
-    }
-  }
-
-  get pageNumbers(): (number | string)[] {
-    const total = this.totalPages;
-    const current = this.currentPage;
-
-    if (total <= 5) {
-      const pages: (number | string)[] = [];
-      for (let i = 1; i <= total; i++) pages.push(i);
-      return pages;
-    }
-
-    // Near start: [1] [2] [3] [...] [last]
-    if (current <= 3) {
-      return [1, 2, 3, '...', total];
-    }
-
-    // Near end: [1] [...] [n-2] [n-1] [n]
-    if (current >= total - 2) {
-      return [1, '...', total - 2, total - 1, total];
-    }
-
-    // Middle: [1] [...] [current] [...] [last]
-    return [1, '...', current, '...', total];
-  }
+}
 
 
   // isPageAllSelected(): boolean {
@@ -470,7 +436,7 @@ export class IssueComponent {
     }
   }
 
-  statusClass(status?: string | null): string {
+  statusClass(status: string) {
     if (!status) return '';
     const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
     const clean = normalized.replace(/\s/g, '-'); // normalize to hyphenated for some cases if needed, but here we just check strings
@@ -484,7 +450,7 @@ export class IssueComponent {
     return '';
   }
 
-  formatStatus(status?: string | null): string {
+  formatStatus(status: string): string {
     if (!status) return '';
     const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -497,10 +463,10 @@ export class IssueComponent {
     return status;
   }
   viewResult(issueId: IssuesResponseDTO) {
-    this.router.navigate(['/issuedetail', issueId.id], {
-      queryParams: { page: this.currentPage }
-    });
-  }
+  this.router.navigate(['/issuedetail', issueId.id], {
+    queryParams: { page: this.currentPage }
+  });
+}
   isSelected(issue: IssuesResponseDTO): boolean {
     return this.selectedIssues.some(s => s.id === issue.id);
   }
@@ -515,6 +481,36 @@ export class IssueComponent {
       this.selectedIssues.splice(index, 1);
     } else {
       this.selectedIssues.push(issue);
+    }
+  }
+    get pageNumbers(): (number | string)[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+
+    if (total <= 5) {
+      const pages: (number | string)[] = [];
+      for (let i = 1; i <= total; i++) pages.push(i);
+      return pages;
+    }
+
+    // Near start: [1] [2] [3] [...] [last]
+    if (current <= 3) {
+      return [1, 2, 3, '...', total];
+    }
+
+    // Near end: [1] [...] [n-2] [n-1] [n]
+    if (current >= total - 2) {
+      return [1, '...', total - 2, total - 1, total];
+    }
+
+    // Middle: [1] [...] [current] [...] [last]
+    return [1, '...', current, '...', total];
+  }
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePage();
+      this.updateUrl();
     }
   }
 }

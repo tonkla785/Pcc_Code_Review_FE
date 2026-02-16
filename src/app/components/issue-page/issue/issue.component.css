@@ -377,6 +377,7 @@
   padding: 16px 20px;
   border-radius: 12px;
   transition: background-color 0.35s ease;
+  margin-top: -12px;
 }
 
 .issues-header {
