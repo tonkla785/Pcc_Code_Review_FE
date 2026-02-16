@@ -27,7 +27,7 @@ export class UserService {
 
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
-  private readonly base = environment.apiUrl + '/users';
+  private readonly base = environment.apiUrl + '/user';
   private readonly baseverify = environment.apiUrl + '/auth';
   private baseUrl = environment.apiUrl;
 
@@ -38,14 +38,6 @@ export class UserService {
       : {};
   }
 
-  getAllUser(): Observable< User[]> {
-      return this.http.get< User[]>(`${this.base}/get-users`, this.authOpts());
-    }
-
-  getUserProfile(id: string): Observable<User> {
-    console.log(id);
-      return this.http.get<User>(`${this.base}/users/${id}`, this.authOpts());
-    }
 
 //  updateUserProfile(user: Partial<{ username: string; email: string; phoneNumber: string }>): Observable<User> {
 //   return this.http.put<User>(`${this.base}/update-user-profile`, user, this.authOpts());
@@ -79,6 +71,10 @@ confirmVerifyEmail(token: string) {
     { token },
     this.authOpts()
   );
+}
+
+getUserById(id: string): Observable<User> {
+  return this.http.get<User>(`${this.base}/search-user/${id}`, this.authOpts());
 }
 
 
