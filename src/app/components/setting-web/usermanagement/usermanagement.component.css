@@ -1,350 +1,446 @@
 /* ===============================
    👤 User Management Container
    =============================== */
-   .user-management-container {
-    padding: 20px;
-    font-family: 'Inter', system-ui, sans-serif;
-    animation: fadeInUp 0.5s ease;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #2563eb;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-bottom: 1rem;
-  }
-  
-  /* ===============================
+.user-management-container {
+  padding: 20px;
+  font-family: 'Inter', system-ui, sans-serif;
+  animation: fadeInUp 0.5s ease;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+/* ===============================
      🔎 Toolbar
      =============================== */
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-  }
-  
-  .search-input {
-    flex: 1;
-    max-width: 250px;
-    padding: 8px 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    transition: all .25s ease;
-  }
-  .search-input:focus {
-    outline: none;
-    border-color: #2b8aef;
-    box-shadow: 0 0 0 3px rgba(43,138,239,0.2);
-  }
-  
-  /* ===============================
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.search-input {
+  flex: 1;
+  max-width: 250px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all .25s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2b8aef;
+  box-shadow: 0 0 0 3px rgba(43, 138, 239, 0.2);
+}
+
+/* ===============================
      📊 User Table
      =============================== */
-  .user-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  }
-  .user-table th {
-    background: #f8fafc;
-    padding: 12px;
-    font-weight: 600;
-    font-size: .9rem;
-    color: #475569;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .user-table td {
-    padding: 12px;
-    font-size: .9rem;
-    color: #334155;
-    border-bottom: 1px solid #f1f5f9;
-  }
-  .user-table tr:hover td {
-    background: #f9fbff;
-  }
-  
-  /* ===============================
+.user-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.user-table th {
+  background: #f8fafc;
+  padding: 12px;
+  font-weight: 600;
+  font-size: .9rem;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.user-table td {
+  padding: 12px;
+  font-size: .9rem;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.user-table tr:hover td {
+  background: #f9fbff;
+}
+
+/* ===============================
      🎛 Actions Column + Buttons
      =============================== */
-  .actions-col {
-    text-align: center;
-    width: 120px;
-  }
-  .btn {
-    border: none;
-    border-radius: 8px;
-    padding: .4rem .8rem;
-    font-size: .85rem;
-    cursor: pointer;
-    transition: all .2s ease;
-  }
-  .actions-col .btn {
-    margin: 0 2px;
-  }
-  .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-  }
-  .btn:active {
-    transform: scale(0.96);
-  }
-  .btn-primary {
-    background: linear-gradient(135deg,#2b8aef,#4f9dfc);
-    color: #fff;
-  }
-  .btn-warning {
-    background: #facc15;
-    color: #1f2937;
-  }
-  .btn-danger {
-    background: #ef4444;
-    color: #fff;
-  }
-  .btn-secondary {
-    background: #f1f5f9;
-    color: #334155;
-  }
-  
-  /* ===============================
+.actions-col {
+  text-align: center;
+  width: 120px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: .4rem .8rem;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.actions-col .btn {
+  margin: 0 2px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2b8aef, #4f9dfc);
+  color: #fff;
+}
+
+.btn-warning {
+  background: #facc15;
+  color: #1f2937;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+/* ===============================
      🏷 Status Badges
      =============================== */
-  span.active {
-    display: inline-block;
-    padding: .2rem .6rem;
-    background: #dcfce7;
-    color: #16a34a;
-    font-weight: 600;
-    border-radius: 20px;
-    font-size: .8rem;
-  }
-  span.inactive {
-    display: inline-block;
-    padding: .2rem .6rem;
-    background: #fee2e2;
-    color: #dc2626;
-    font-weight: 600;
-    border-radius: 20px;
-    font-size: .8rem;
-  }
-  
-  /* ===============================
+span.active {
+  display: inline-block;
+  padding: .2rem .6rem;
+  background: #dcfce7;
+  color: #16a34a;
+  font-weight: 600;
+  border-radius: 20px;
+  font-size: .8rem;
+}
+
+span.inactive {
+  display: inline-block;
+  padding: .2rem .6rem;
+  background: #fee2e2;
+  color: #dc2626;
+  font-weight: 600;
+  border-radius: 20px;
+  font-size: .8rem;
+}
+
+/* ===============================
      🪟 Modal
      =============================== */
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-    animation: fadeIn .3s ease;
-  }
-  .modal.show { display: flex; }
-  .modal-content {
-    background: #fff;
-    padding: 20px;
-    width: 420px;
-    border-radius: 14px;
-    position: relative;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    animation: scaleIn .3s ease;
-  }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  .close-btn {
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: #64748b;
-    transition: color .2s ease;
-  }
-  .close-btn:hover { color: #ef4444; }
-  
-  /* Form inside modal */
-  .modal-body .form-group { margin-bottom: 12px; }
-  .form-control {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    transition: all .25s ease;
-  }
-  .form-control:focus {
-    border-color: #2b8aef;
-    box-shadow: 0 0 0 3px rgba(43,138,239,0.2);
-    outline: none;
-  }
-  .text-danger { font-size: .8rem; }
-  
-  /* Footer */
-  .modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 10px;
-  }
-  
-  /* ===============================
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn .3s ease;
+  padding: 16px;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  width: 420px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 14px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  animation: scaleIn .3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #64748b;
+  transition: color .2s ease;
+}
+
+.close-btn:hover {
+  color: #ef4444;
+}
+
+/* Form inside modal */
+.modal-body .form-group {
+  margin-bottom: 12px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all .25s ease;
+}
+
+.form-control:focus {
+  border-color: #2b8aef;
+  box-shadow: 0 0 0 3px rgba(43, 138, 239, 0.2);
+  outline: none;
+}
+
+.text-danger {
+  font-size: .8rem;
+}
+
+/* Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ===============================
      🎞 Animations
      =============================== */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+
+  to {
+    opacity: 1;
   }
-  @keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  /* ===============================
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===============================
      🌙 Dark Mode Overrides
      =============================== */
-  :host-context(.dark-mode) .user-management-container {
-    background: #111827;
-    color: #f3f4f6;
-  }
-  :host-context(.dark-mode) h2 { color: #e5e7eb; }
-  :host-context(.dark-mode) .search-input {
-    background: #1f2937;
-    color: #f9fafb;
-    border: 1px solid #374151;
-  }
-  :host-context(.dark-mode) .search-input::placeholder { color: #9ca3af; }
-  :host-context(.dark-mode) .search-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
-  }
-  :host-context(.dark-mode) .user-table {
-    background: #1f2937;
-    color: #f9fafb;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  }
-  :host-context(.dark-mode) .user-table th {
-    background: #374151;
-    color: #e5e7eb;
-    border-bottom: 1px solid #4b5563;
-  }
-  :host-context(.dark-mode) .user-table td {
-    color: #f3f4f6;
-    border-bottom: 1px solid #374151;
-  }
-  :host-context(.dark-mode) .user-table tr:hover td {
-    background: #2d3748;
-  }
-  /* Buttons */
-  :host-context(.dark-mode) .btn-primary {
-    background: linear-gradient(135deg,#2563eb,#3b82f6);
-    color: #fff;
-  }
-  :host-context(.dark-mode) .btn-warning {
-    background: #facc15;
-    color: #1f2937;
-  }
-  :host-context(.dark-mode) .btn-danger {
-    background: #ef4444;
-    color: #fff;
-  }
-  :host-context(.dark-mode) .btn-secondary {
-    background: #374151;
-    color: #f9fafb;
-  }
-  /* Status */
-  :host-context(.dark-mode) span.active {
-    background: #064e3b;
-    color: #34d399;
-  }
-  :host-context(.dark-mode) span.inactive {
-    background: #7f1d1d;
-    color: #f87171;
-  }
-  /* Modal */
-  :host-context(.dark-mode) .modal-content {
-    background: #1f2937;
-    color: #f3f4f6;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-  }
-  :host-context(.dark-mode) .close-btn { color: #9ca3af; }
-  :host-context(.dark-mode) .close-btn:hover { color: #ef4444; }
-  /* Form */
-  :host-context(.dark-mode) .form-control {
-    background: #111827;
-    border: 1px solid #374151;
-    color: #f9fafb;
-  }
-  :host-context(.dark-mode) .form-control::placeholder { color: #9ca3af; }
-  :host-context(.dark-mode) .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
-  }
-  /* Modal Footer */
-  :host-context(.dark-mode) .modal-footer .btn-primary {
-    background: linear-gradient(135deg,#2563eb,#3b82f6);
-  }
-  :host-context(.dark-mode) .modal-footer .btn-secondary {
-    background: #374151;
-    color: #f9fafb;
-  }
-  
-  /* ===============================
+:host-context(.dark-mode) .user-management-container {
+  background: #111827;
+  color: #f3f4f6;
+}
+
+:host-context(.dark-mode) h2 {
+  color: #e5e7eb;
+}
+
+:host-context(.dark-mode) .search-input {
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+}
+
+:host-context(.dark-mode) .search-input::placeholder {
+  color: #9ca3af;
+}
+
+:host-context(.dark-mode) .search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+:host-context(.dark-mode) .user-table {
+  background: #1f2937;
+  color: #f9fafb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+:host-context(.dark-mode) .user-table th {
+  background: #374151;
+  color: #e5e7eb;
+  border-bottom: 1px solid #4b5563;
+}
+
+:host-context(.dark-mode) .user-table td {
+  color: #f3f4f6;
+  border-bottom: 1px solid #374151;
+}
+
+:host-context(.dark-mode) .user-table tr:hover td {
+  background: #2d3748;
+}
+
+/* Buttons */
+:host-context(.dark-mode) .btn-primary {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+}
+
+:host-context(.dark-mode) .btn-warning {
+  background: #facc15;
+  color: #1f2937;
+}
+
+:host-context(.dark-mode) .btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+:host-context(.dark-mode) .btn-secondary {
+  background: #374151;
+  color: #f9fafb;
+}
+
+/* Status */
+:host-context(.dark-mode) span.active {
+  background: #064e3b;
+  color: #34d399;
+}
+
+:host-context(.dark-mode) span.inactive {
+  background: #7f1d1d;
+  color: #f87171;
+}
+
+/* Modal */
+:host-context(.dark-mode) .modal-content {
+  background: #1f2937;
+  color: #f3f4f6;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+:host-context(.dark-mode) .close-btn {
+  color: #9ca3af;
+}
+
+:host-context(.dark-mode) .close-btn:hover {
+  color: #ef4444;
+}
+
+/* Form */
+:host-context(.dark-mode) .form-control {
+  background: #374151;
+  border: 1px solid #4b5563;
+  color: #f9fafb;
+}
+
+:host-context(.dark-mode) .form-control::placeholder {
+  color: #9ca3af;
+}
+
+:host-context(.dark-mode) .form-control:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Modal Footer */
+:host-context(.dark-mode) .modal-footer .btn-primary {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+:host-context(.dark-mode) .modal-footer .btn-secondary {
+  background: #374151;
+  color: #f9fafb;
+}
+
+/* ===============================
      📱 Responsive (Tablet & Mobile)
      =============================== */
-  /* Tablet (768px–1024px) */
-  @media (max-width: 1024px) and (min-width: 768px) {
-    .user-management-container {
-      padding: 16px;
-    }
-    .user-management-container h2 { 
-      font-size: 1.25rem;
-    }
-    .toolbar { 
-      flex-direction: column; 
-      align-items: stretch; 
-      gap: 10px;
-    }
-    .search-input { 
-      width: 100%; 
-      max-width: 100%; 
-      font-size: 14px; 
-      padding: 6px 10px; 
-    }
-    .user-table th, .user-table td { 
-      padding: 8px; 
-      font-size: 14px; 
-    }
-    .actions-col { 
-      width: auto; 
-      white-space: nowrap; 
-    }
-    .actions-col .btn { 
-      font-size: 13px; 
-      padding: 5px 8px; 
-      margin: 2px; 
-    }
-    .modal-content { 
-      width: 90%; 
-      max-width: 500px; 
-    }
+/* Tablet (768px–1024px) */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .user-management-container {
+    padding: 16px;
   }
-  
-  /* 📱 Mobile (น้อยกว่า 768px) */
+
+  .user-management-container h2 {
+    font-size: 1.25rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-input {
+    width: 100%;
+    max-width: 100%;
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  .user-table th,
+  .user-table td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .actions-col {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .actions-col .btn {
+    font-size: 13px;
+    padding: 5px 8px;
+    margin: 2px;
+  }
+
+  .modal-content {
+    width: 90%;
+    max-width: 500px;
+  }
+}
+
+/* 📱 Mobile (น้อยกว่า 768px) */
 @media (max-width: 767px) {
   .user-management-container {
     padding: 12px;
@@ -352,10 +448,10 @@
 
   h2 {
     font-size: 1.1rem;
-    text-align: left;         
-    flex-direction: row;      
+    text-align: left;
+    flex-direction: row;
     justify-content: flex-start;
-    gap: 6px;                 
+    gap: 6px;
   }
 
   /* Toolbar บนมือถือเรียงลงมาแทน */
@@ -378,6 +474,7 @@
     overflow-x: auto;
     white-space: nowrap;
   }
+
   .user-table th,
   .user-table td {
     padding: 6px;
@@ -392,8 +489,10 @@
 
   /* Modal ให้กว้างเต็มหน้าจอมือถือ */
   .modal-content {
-    width: 95%;
+    width: 100%;
     max-width: none;
+    max-height: 85vh;
+    padding: 16px;
   }
 }
 
@@ -406,22 +505,26 @@
   display: block;
   overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch; /* สำหรับ iPad/iPhone */
+  -webkit-overflow-scrolling: touch;
+  /* สำหรับ iPad/iPhone */
   position: relative;
   width: 100%;
-  border-radius: 0; /* ❗️ห้ามมี radius ไม่งั้น sticky หาย */
+  border-radius: 0;
+  /* ❗️ห้ามมี radius ไม่งั้น sticky หาย */
 }
 
 /* Base Table */
 .user-table {
   display: table;
   width: 100%;
-  min-width: 900px; /* ให้มีพื้นที่ scroll */
+  min-width: 900px;
+  /* ให้มีพื้นที่ scroll */
   border-collapse: separate !important;
   border-spacing: 0;
   position: relative;
   table-layout: fixed;
-  overflow: visible !important; /* ป้องกัน sticky โดนตัด */
+  overflow: visible !important;
+  /* ป้องกัน sticky โดนตัด */
 }
 
 /* Sticky Action Column */
@@ -461,10 +564,7 @@
 }
 
 /* 🍎 iPad / iPad mini (แนวตั้ง + แนวนอน) */
-@media only screen
-  and (min-device-width: 768px)
-  and (max-device-width: 1024px)
-  and (-webkit-min-device-pixel-ratio: 1) {
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 1) {
 
   .user-table-wrapper {
     display: block !important;
@@ -496,15 +596,17 @@
 :host-context(.dark-mode) .user-table td:last-child {
   background: #1f2937 !important;
   border-left: 1px solid #333 !important;
-  box-shadow: -1px 0 0 rgba(255,255,255,0.05);
+  box-shadow: -1px 0 0 rgba(255, 255, 255, 0.05);
 }
+
 /* ===============================
    🎨 Fix Header Color for iPad Sticky Column
    =============================== */
 
 /* ให้หัวคอลัมน์ Actions ใช้พื้นหลังเดียวกับคอลัมน์อื่น */
 .user-table thead th {
-  background-color: #f8fafc; /* สีเดียวกับคอลัมน์ Status */
+  background-color: #f8fafc;
+  /* สีเดียวกับคอลัมน์ Status */
   background-image: none;
 }
 
