@@ -128,6 +128,7 @@ export class ExcelService {
                 if (type === 'bug') type = 'Bug';
                 if (type === 'vulnerability') type = 'Vulnerability';
                 if (type === 'code_smell') type = 'Code Smell';
+                if (type === 'security_hotspot') type = 'Security Hotspot';
 
                 issueData.push([
                     type,
