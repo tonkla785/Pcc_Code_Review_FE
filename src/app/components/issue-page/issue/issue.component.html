@@ -80,8 +80,8 @@
           <td>{{issue.projectData?.name}}</td>
           <td>{{issue.assignedTo?.username ?? 'Unassigned'}}</td>
           <td>
-            <span class="status-badge" [ngClass]="statusClass(issue.status)">
-              {{ formatStatus(issue.status) }}
+            <span class="status-badge" [ngClass]="statusClass(issue?.status)">
+              {{ formatStatus(issue?.status) }}
             </span>
           </td>
 
