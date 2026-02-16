@@ -13,21 +13,30 @@ import { AuthService } from './services/authservice/auth.service';
 import { NotificationService } from './services/notiservice/notification.service';
 import { TokenStorageService } from './services/tokenstorageService/token-storage.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subscription, bufferTime, filter } from 'rxjs';
+import { Subscription, bufferTime, filter, of } from 'rxjs';
+import { switchMap, catchError, distinctUntilChanged, map } from 'rxjs/operators';
+import { UserService } from './services/userservice/user.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, CommonModule, MatSnackBarModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'codereviewFE';
   darkMode = false;
+
   private wsSub?: Subscription;
   private notiSub?: Subscription;
   private verifySub?: Subscription;
+
+  // ✅ new
+  private loginUserSub?: Subscription;
+  private bootstrapSub?: Subscription;
+  private projectSub?: Subscription;
+  private issueSub?: Subscription;
 
   constructor(
     private ws: WebSocketService,
@@ -41,33 +50,71 @@ export class AppComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private notificationService: NotificationService,
     private tokenStorage: TokenStorageService,
-    private snack: MatSnackBar
-  ) { }
-
-  // toggleTheme() {
-  //   this.darkMode = !this.darkMode;
-
-  //   if (this.darkMode) {
-  //     document.body.classList.add('dark-mode');
-  //   } else {
-  //     document.body.classList.remove('dark-mode');
-  //   }
-  // }
+    private snack: MatSnackBar,
+    private userService: UserService,
+  ) {}
 
   ngOnInit() {
-
-    // Check localStorage on load / ตรวจสอบค่าจาก localStorage เมื่อโหลดหน้าเว็บ
+    // Theme restore
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkMode = true;
       document.body.classList.add('dark-mode');
     }
 
-    // Reconnect WebSocket if already logged in (e.g., after page refresh)
+    /**
+     * ✅ สำคัญสุด: ผูก WS + state กับ loginUser$ (แก้เคส login ใหม่ๆ แล้วไม่ connect / connect user เก่าค้าง)
+     * - ได้ user -> connect ws
+     * - sync เข้ากับ SharedData
+     * - bootstrap ดึง user ล่าสุดจาก API 1 ครั้ง (กัน status ไม่ขยับเพราะยังไม่มี WS event)
+     */
+    this.loginUserSub = this.tokenStorage.loginUser$
+      .pipe(
+        map(u => u?.id || null),
+        distinctUntilChanged(),
+      )
+      .subscribe((userId) => {
+        if (!userId) return;
+
+        // 1) connect websocket ให้แน่
+        this.ws.connect(userId);
+        this.notificationService.connectWebSocket(userId);
+
+        // 2) restore shared data จาก localStorage (ทันที)
+        const savedUser = this.tokenStorage.getLoginUser();
+        if (savedUser) {
+          this.sharedData.LoginUserShared = savedUser;
+          console.log('[AppComponent] loginUser$ -> connect WS, restore user:', savedUser.status);
+        }
+
+        // 3) bootstrap: ดึง user ล่าสุดจาก backend 1 ครั้ง (กัน status stale)
+        this.bootstrapSub?.unsubscribe();
+        this.bootstrapSub = this.userService.getUserById(userId).pipe(
+          catchError(err => {
+            console.error('[AppComponent] bootstrap getUserById failed:', err);
+            return of(null);
+          }),
+          filter(u => !!u),
+        ).subscribe((freshUser: any) => {
+          const current = this.tokenStorage.getLoginUser();
+          if (!current) return;
+
+          const merged = { ...current, ...freshUser, status: freshUser.status };
+          this.tokenStorage.setLoginUser(merged);
+          this.sharedData.LoginUserShared = merged;
+
+          console.log('[AppComponent] bootstrap fresh user:', merged.status);
+        });
+      });
+
+    /**
+     * ✅ เคส refresh page แล้วมี token อยู่แต่ login_user ยังไม่ set:
+     * AuthService.reconnectWebSocket() ของมึงทำแค่ connect แต่ไม่ได้ set login_user เสมอ
+     * ดังนั้น call เดิมไว้ได้ แต่หลักๆให้ loginUser$ เป็นตัวคุม
+     */
     if (this.authService.isLoggedIn) {
       this.authService.reconnectWebSocket();
 
-      // Restore user status from localStorage into SharedDataService
       const savedUser = this.tokenStorage.getLoginUser();
       if (savedUser) {
         this.sharedData.LoginUserShared = savedUser;
@@ -77,37 +124,21 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.subscribeToNotifications();
 
-    // Global WebSocket Listener
-    this.wsSub = this.ws.subscribeScanStatus().subscribe(event => {
+    // Global WebSocket Listener - Scan
+    this.wsSub = this.ws.subscribeScanStatus().subscribe((event) => {
       console.log('[AppComponent] WS Event:', event);
-      console.log('[AppComponent] WS Event projectId:', event.projectId, 'status:', event.status);
 
       const mappedStatus = this.mapStatus(event.status);
 
-      // อัปเดตสถานะ Repo ใน SharedData ทันที (UI List)
       this.sharedData.updateRepoStatus(
         event.projectId,
         mappedStatus,
-        event.status === 'SCANNING' ? 0 : event.status === 'SUCCESS' ? 100 : 0
+        event.status === 'SCANNING' ? 0 : event.status === 'SUCCESS' ? 100 : 0,
       );
 
-      // กรณีที่ 1: เริ่มต้น Scan (SCANNING)
       if (event.status === 'SCANNING') {
-        // [Refactor] ไม่เก็บ localStorage แล้ว
-        // console.log('[AppComponent] Setting localStorage for:', event.projectId);
-        // localStorage.setItem(`repo-status-${event.projectId}`, mappedStatus);
-
-        // 2. ดึงข้อมูลรอบแรก (เพื่ออัปเดต UI และ History ว่ากำลังหมุน - PENDING from DB)
         this.fetchScanData(event.projectId, event.status);
-      }
-
-      // กรณีที่ 2: Scan เสร็จสิ้น (SUCCESS หรือ FAILED)
-      else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-        // [Refactor] ไม่ต้องลบ localStorage (เพราะไม่ได้เก็บ)
-        // console.log('[AppComponent] Removing localStorage for:', event.projectId);
-        // localStorage.removeItem(`repo-status-${event.projectId}`);
-
-        // 2. แจ้งเตือน User (Snackbar)
+      } else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
         const settings = this.userSettingsData.notificationSettings;
         const showScanAlert = !settings || settings.scansEnabled;
 
@@ -119,46 +150,36 @@ export class AppComponent implements OnInit, OnDestroy {
               duration: 3000,
               horizontalPosition: 'right',
               verticalPosition: 'top',
-              panelClass: ['app-snack', event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red']
-            }
+              panelClass: [
+                'app-snack',
+                event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red',
+              ],
+            },
           );
         }
 
-        // 3. ดึงข้อมูลรอบสอง (และสร้าง notification หลังจากได้ scanId ที่ถูกต้อง)
         this.fetchScanDataAndNotify(event.projectId, event.status);
-
-        // 4. ดึง Issues ใหม่มาทับ (ถ้า Success หรือ Failed)
-        if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-          this.fetchAndOverwriteIssues();
-        }
+        this.fetchAndOverwriteIssues();
       }
     });
 
-    // Global WebSocket Listener for Project Changes
-    this.ws.subscribeProjectChanges().subscribe(event => {
+    // Global WebSocket Listener - Project Changes
+    this.projectSub = this.ws.subscribeProjectChanges().subscribe((event) => {
       console.log('[AppComponent] Project change event:', event);
 
       if (event.action === 'DELETED') {
-        // Optimized: Remove directly from SharedData without refetching
         this.sharedData.removeRepository(event.projectId);
-
-        // Clear technical debt data when project is deleted
         this.technicalDebtData.clearAllDebtData();
 
         if (this.authService.isLoggedIn) {
-          this.snack.open(
-            `Project "${event.projectName}" was deleted`,
-            '',
-            {
-              duration: 3000,
-              horizontalPosition: 'right',
-              verticalPosition: 'top',
-              panelClass: ['app-snack', 'app-snack-red']
-            }
-          );
+          this.snack.open(`Project "${event.projectName}" was deleted`, '', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red'],
+          });
         }
       } else {
-        // For ADDED / UPDATED -> Refresh repository list
         this.repoService.getAllRepo().subscribe({
           next: (repos: any[]) => {
             this.sharedData.setRepositories(repos);
@@ -166,75 +187,84 @@ export class AppComponent implements OnInit, OnDestroy {
 
             if (this.authService.isLoggedIn) {
               const actionText = event.action === 'ADDED' ? 'added' : 'updated';
-              this.snack.open(
-                `Project "${event.projectName}" was ${actionText}`,
-                '',
-                {
-                  duration: 3000,
-                  horizontalPosition: 'right',
-                  verticalPosition: 'top',
-                  panelClass: ['app-snack', 'app-snack-blue']
-                }
-              );
+              this.snack.open(`Project "${event.projectName}" was ${actionText}`, '', {
+                duration: 3000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-blue'],
+              });
             }
           },
-          error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err)
+          error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err),
         });
       }
     });
 
-    // Listen verify status realtime
-    this.verifySub = this.ws.subscribeVerifyStatus().subscribe(event => {
-      console.log('[AppComponent] Verify status event:', event);
+    // ✅ Verify status realtime
+    // NOTE: ใช้ currentUserId จาก loginUser$ เพื่อลด race (อย่าไปอ่าน getLoginUser() ตอน filter แล้วคาดหวังว่าจะทัน)
+    this.verifySub = this.ws
+      .subscribeVerifyStatus()
+      .pipe(
+        switchMap((event: any) => {
+          const currentUserId = this.tokenStorage.getLoginUser()?.id;
+          const ok = !!currentUserId && currentUserId === event.userId;
 
-      // 0. ตรวจสอบว่า userId ตรงกับ user ปัจจุบันหรือไม่
-      const user = this.tokenStorage.getLoginUser();
-      if (!user || user.id !== event.userId) {
-        console.warn('[AppComponent] Verify status ignored - userId mismatch. Event userId:', event.userId, 'Current userId:', user?.id);
-        return;
-      }
-
-      // 1. Update LocalStorage (use TokenStorageService to write to correct key 'login_user')
-      user.status = event.status;
-      this.tokenStorage.setLoginUser(user);
-
-      // 2. Update SharedDataService so other components (Dashboard) update immediately
-      this.sharedData.LoginUserShared = user;
-
-      // 3. Notify User 
-      if (this.authService.isLoggedIn) {
-        this.snack.open(
-          event.status === 'VERIFIED'
-            ? '✅ Email Verified'
-            : event.status === 'PENDING_VERIFICATION'
-              ? '⏳ Verification Pending'
-              : '❌ Email Unverified',
-          '',
-          {
-            duration: 3000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-blue']
+          if (!ok) {
+            console.warn('[AppComponent] Verify status ignored - userId mismatch.',
+              'Event userId:', event.userId, 'Current userId:', currentUserId);
+            return of(null);
           }
-        );
-      }
-    });
 
-    // Global WebSocket Listener for Issue Changes (assign / status update)
-    this.ws.subscribeIssueChanges().subscribe(event => {
+          return this.userService.getUserById(event.userId).pipe(
+            catchError((err) => {
+              console.error('[AppComponent] getUserById failed:', err);
+              return of(null);
+            }),
+          );
+        }),
+        filter((freshUser: any) => !!freshUser),
+      )
+      .subscribe((freshUser: any) => {
+        console.log('[AppComponent] Fresh user from API:', freshUser);
+
+        const current = this.tokenStorage.getLoginUser();
+        if (!current) return;
+
+        const merged = { ...current, ...freshUser, status: freshUser.status };
+        this.tokenStorage.setLoginUser(merged);
+        this.sharedData.LoginUserShared = merged;
+
+        if (this.authService.isLoggedIn) {
+          this.snack.open(
+            freshUser.status === 'VERIFIED'
+              ? '✅ Email Verified'
+              : freshUser.status === 'PENDING_VERIFICATION'
+                ? '⏳ Verification Pending'
+                : '❌ Email Unverified',
+            '',
+            {
+              duration: 3000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-blue'],
+            },
+          );
+        }
+      });
+
+    // Global WebSocket Listener - Issue Changes
+    this.issueSub = this.ws.subscribeIssueChanges().subscribe((event) => {
       console.log('[AppComponent] Issue change event:', event);
 
       if (event.action === 'UPDATED') {
-        // 1. Refresh all issues list (for issue list page)
         this.issueService.getAllIssues().subscribe({
           next: (allIssues) => {
             this.sharedData.IssuesShared = allIssues;
             console.log('[AppComponent] Issues refreshed after issue change');
           },
-          error: (err: any) => console.error('[AppComponent] Failed to refresh issues:', err)
+          error: (err: any) => console.error('[AppComponent] Failed to refresh issues:', err),
         });
 
-        // 2. If user is on issue detail page, refresh the selected issue too
         const currentSelected = this.sharedData.selectIssueValue;
         if (currentSelected && currentSelected.id === event.issueId) {
           this.issueService.getAllIssuesById(event.issueId).subscribe({
@@ -242,7 +272,8 @@ export class AppComponent implements OnInit, OnDestroy {
               this.sharedData.SelectedIssues = updatedIssue;
               console.log('[AppComponent] Selected issue refreshed:', event.issueId);
             },
-            error: (err: any) => console.error('[AppComponent] Failed to refresh selected issue:', err)
+            error: (err: any) =>
+              console.error('[AppComponent] Failed to refresh selected issue:', err),
           });
         }
       }
@@ -250,259 +281,232 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToNotifications(): void {
-    this.notiSub = this.notificationData.newNotification$.pipe(
-      bufferTime(2000),
-      filter(list => list.length > 0)
-    ).subscribe(notifications => {
-      if (!this.authService.isLoggedIn) return;
-      //ตรวจIssues
-      if (notifications.some(n => n.type === 'Issues')) {
-        const settings = this.userSettingsData.notificationSettings;
-        if (!settings || settings.issuesEnabled) {
-          this.snack.open('🔔 You have new Issues', '', {
-            duration: 4000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top',
-            panelClass: ['app-snack', 'app-snack-blue']
-          });
-        }
-      }
+    this.notiSub = this.notificationData.newNotification$
+      .pipe(bufferTime(2000), filter((list) => list.length > 0))
+      .subscribe((notifications) => {
+        if (!this.authService.isLoggedIn) return;
 
-      //ตรวจSystem
-      const systemNotis = notifications.filter(n => n.type === 'System');
-      if (systemNotis.length > 0) {
-        const settings = this.userSettingsData.notificationSettings;
-        if (!settings || settings.systemEnabled) {
-          const hasQualityGate = systemNotis.some(n => n.title.toLowerCase().includes('quality gate'));
-          const hasComment = systemNotis.some(n => n.title.toLowerCase().includes('comment'));
-          const hasAssigned = systemNotis.some(n => n.title.toLowerCase().includes('assigned'));
-
-          if (hasQualityGate) {
-            this.snack.open('🔔 Quality Gate is failed', '', {
+        if (notifications.some((n) => n.type === 'Issues')) {
+          const settings = this.userSettingsData.notificationSettings;
+          if (!settings || settings.issuesEnabled) {
+            this.snack.open('🔔 You have new Issues', '', {
               duration: 4000,
               horizontalPosition: 'right',
               verticalPosition: 'top',
-              panelClass: ['app-snack', 'app-snack-blue']
-            });
-          } else if (hasComment) {
-            this.snack.open('🔔 You have new comment', '', {
-              duration: 4000,
-              horizontalPosition: 'right',
-              verticalPosition: 'top',
-              panelClass: ['app-snack', 'app-snack-blue']
-            });
-          } else if (hasAssigned) {
-            this.snack.open('🔔 You have new assigned', '', {
-              duration: 4000,
-              horizontalPosition: 'right',
-              verticalPosition: 'top',
-              panelClass: ['app-snack', 'app-snack-blue']
-            });
-          } else {
-            this.snack.open('🔔 New System Notification', '', {
-              duration: 4000,
-              horizontalPosition: 'right',
-              verticalPosition: 'top',
-              panelClass: ['app-snack', 'app-snack-blue']
+              panelClass: ['app-snack', 'app-snack-blue'],
             });
           }
         }
-      }
-    });
-  }
 
-  // แยกฟังก์ชันดึงข้อมูลออกมา เพื่อให้เรียกใช้ได้ 2 รอบ (ตอนเริ่ม และ ตอนจบ Scan)
-  private fetchScanData(projectId: string, wsStatus: string) {
-    // ไม่ต้องหน่วงเวลาแล้ว (Backend ส่ง Event หลังจาก Commit แล้ว)
-    this.repoService.getFullRepository(projectId).subscribe({
-      next: (fullRepo) => {
-        if (!fullRepo) {
-          console.warn('[AppComponent] Full Repo is null for project:', projectId);
-          return;
-        }
-        console.log('[AppComponent] Full Repo fetched:', fullRepo);
+        const systemNotis = notifications.filter((n) => n.type === 'System');
+        if (systemNotis.length > 0) {
+          const settings = this.userSettingsData.notificationSettings;
+          if (!settings || settings.systemEnabled) {
+            const hasQualityGate = systemNotis.some((n) =>
+              n.title.toLowerCase().includes('quality gate'),
+            );
+            const hasComment = systemNotis.some((n) =>
+              n.title.toLowerCase().includes('comment'),
+            );
+            const hasAssigned = systemNotis.some((n) =>
+              n.title.toLowerCase().includes('assigned'),
+            );
 
-        // 1. อัปเดตข้อมูล Repository ในหน้า List
-        const merged = this.sharedData.repositoriesValue.map(repo => {
-          if (repo.projectId === projectId) {
-            return {
-              ...repo,
-              ...fullRepo,
-              status: this.mapStatus(wsStatus) // ใช้ Status ล่าสุดจาก WebSocket
-            };
-          }
-          return repo;
-        });
-        this.sharedData.setRepositories(merged);
-
-        // 2. อัปเดตประวัติการสแกน (Scan History) โดยดึงจาก list ล่าสุด
-        if (fullRepo.scans && fullRepo.scans.length > 0) {
-          const latestScan = fullRepo.scans.reduce((prev, current) =>
-            (new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()) ? current : prev
-          );
-
-          // แก้ไข Race condition เผื่อไว้ (ถ้า DB status ยังไม่อัปเดต ให้เชื่อ WebSocket)
-          // Map WebSocket status to DB status if there's a mismatch
-          if (latestScan.status === 'PENDING') {
-            if (wsStatus === 'SCANNING' || wsStatus === 'SUCCESS' || wsStatus === 'FAILED') {
-              // DB ยังเป็น PENDING แต่ WebSocket บอกสถานะใหม่
-              // สำหรับ SCANNING ให้คง PENDING เพราะ PENDING คือสถานะที่ถูกต้องใน DB
-              // สำหรับ SUCCESS/FAILED ให้ override เพราะ WebSocket เร็วกว่า DB update  
-              if (wsStatus === 'SUCCESS' || wsStatus === 'FAILED') {
-                latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
-              }
-              // Note: PENDING stays as PENDING, scanhistory UI should show this as "In Progress"
+            if (hasQualityGate) {
+              this.snack.open('🔔 Quality Gate is failed', '', {
+                duration: 4000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-blue'],
+              });
+            } else if (hasComment) {
+              this.snack.open('🔔 You have new comment', '', {
+                duration: 4000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-blue'],
+              });
+            } else if (hasAssigned) {
+              this.snack.open('🔔 You have new assigned', '', {
+                duration: 4000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-blue'],
+              });
+            } else {
+              this.snack.open('🔔 New System Notification', '', {
+                duration: 4000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: ['app-snack', 'app-snack-blue'],
+              });
             }
           }
-
-          // [สำคัญ] อัปเดต scanId ของ Repo ให้ชี้ไปที่ Scan ล่าสุดเสมอ
-          const repoIndex = this.sharedData.repositoriesValue.findIndex(r => r.projectId === projectId);
-          if (repoIndex >= 0) {
-            const currentRepos = this.sharedData.repositoriesValue;
-            currentRepos[repoIndex] = {
-              ...currentRepos[repoIndex],
-              scanId: latestScan.id // อัปเดต scanId ให้ลิงก์ไปหน้า Detail ถูกต้อง
-            };
-            this.sharedData.setRepositories(currentRepos);
-          }
-
-          // ส่งข้อมูล Scan ล่าสุดเข้า SharedData
-          this.sharedData.upsertScan(latestScan);
-          console.log('[AppComponent] Upserted latest scan from list:', latestScan);
-        } else {
-          console.warn('[AppComponent] No scans found in fullRepo list for project:', projectId);
         }
-      },
-      error: err => console.error('Failed to refresh full repo', err)
-    });
+      });
   }
 
-  /**
-   * Fetch scan data AND create notification with correct scanId from API
-   * (ใช้เฉพาะตอน scan เสร็จ SUCCESS/FAILED)
-   */
-  private fetchScanDataAndNotify(projectId: string, wsStatus: string) {
+  private fetchScanData(projectId: string, wsStatus: string) {
     this.repoService.getFullRepository(projectId).subscribe({
       next: (fullRepo) => {
         if (!fullRepo) {
           console.warn('[AppComponent] Full Repo is null for project:', projectId);
           return;
         }
-        console.log('[AppComponent] Full Repo fetched for notification:', fullRepo);
 
-        const projectName = fullRepo.name || 'Unknown Project';
-
-        // 1. อัปเดตข้อมูล Repository ในหน้า List
-        const merged = this.sharedData.repositoriesValue.map(repo => {
+        const mergedRepos = this.sharedData.repositoriesValue.map((repo) => {
           if (repo.projectId === projectId) {
-            return {
-              ...repo,
-              ...fullRepo,
-              status: this.mapStatus(wsStatus)
-            };
+            return { ...repo, ...fullRepo, status: this.mapStatus(wsStatus) };
           }
           return repo;
         });
-        this.sharedData.setRepositories(merged);
+        this.sharedData.setRepositories(mergedRepos);
 
-        // 2. อัปเดตประวัติการสแกน และสร้าง Notification
         if (fullRepo.scans && fullRepo.scans.length > 0) {
           const latestScan = fullRepo.scans.reduce((prev, current) =>
-            (new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()) ? current : prev
+            new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()
+              ? current
+              : prev,
           );
 
-          // แก้ไข Race condition เผื่อไว้ (ถ้า DB status ยังไม่อัปเดต ให้เชื่อ WebSocket)
           if (latestScan.status === 'PENDING') {
             if (wsStatus === 'SUCCESS' || wsStatus === 'FAILED') {
               latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
             }
           }
 
-          // อัปเดต scanId
-          const repoIndex = this.sharedData.repositoriesValue.findIndex(r => r.projectId === projectId);
+          const repoIndex = this.sharedData.repositoriesValue.findIndex(
+            (r) => r.projectId === projectId,
+          );
           if (repoIndex >= 0) {
             const currentRepos = this.sharedData.repositoriesValue;
             currentRepos[repoIndex] = {
               ...currentRepos[repoIndex],
-              scanId: latestScan.id
+              scanId: latestScan.id,
             };
             this.sharedData.setRepositories(currentRepos);
           }
 
           this.sharedData.upsertScan(latestScan);
-          console.log('[AppComponent] Upserted latest scan:', latestScan);
-
-          // 3. สร้าง Notification ด้วย scanId ที่ถูกต้องจาก API
-          this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
-        } else {
-          console.warn('[AppComponent] No scans found for notification:', projectId);
         }
       },
-      error: err => console.error('Failed to refresh full repo for notification', err)
+      error: (err) => console.error('Failed to refresh full repo', err),
     });
   }
 
-  // ดึง Issue ทั้งหมด แล้วเอาไปทับใน SharedData เลย (สำหรับอัปเดตหน้า Issue แบบ Real-time)
+  private fetchScanDataAndNotify(projectId: string, wsStatus: string) {
+    this.repoService.getFullRepository(projectId).subscribe({
+      next: (fullRepo) => {
+        if (!fullRepo) return;
+
+        const projectName = fullRepo.name || 'Unknown Project';
+
+        const mergedRepos = this.sharedData.repositoriesValue.map((repo) => {
+          if (repo.projectId === projectId) {
+            return { ...repo, ...fullRepo, status: this.mapStatus(wsStatus) };
+          }
+          return repo;
+        });
+        this.sharedData.setRepositories(mergedRepos);
+
+        if (fullRepo.scans && fullRepo.scans.length > 0) {
+          const latestScan = fullRepo.scans.reduce((prev, current) =>
+            new Date(current.startedAt).getTime() > new Date(prev.startedAt).getTime()
+              ? current
+              : prev,
+          );
+
+          if (latestScan.status === 'PENDING') {
+            if (wsStatus === 'SUCCESS' || wsStatus === 'FAILED') {
+              latestScan.status = wsStatus as 'PENDING' | 'SUCCESS' | 'FAILED';
+            }
+          }
+
+          const repoIndex = this.sharedData.repositoriesValue.findIndex(
+            (r) => r.projectId === projectId,
+          );
+          if (repoIndex >= 0) {
+            const currentRepos = this.sharedData.repositoriesValue;
+            currentRepos[repoIndex] = {
+              ...currentRepos[repoIndex],
+              scanId: latestScan.id,
+            };
+            this.sharedData.setRepositories(currentRepos);
+          }
+
+          this.sharedData.upsertScan(latestScan);
+          this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
+        }
+      },
+      error: (err) => console.error('Failed to refresh full repo for notification', err),
+    });
+  }
+
   private fetchAndOverwriteIssues() {
-    // ไม่ต้องหน่วงเวลาแล้ว
     this.issueService.getAllIssues().subscribe({
       next: (allIssues) => {
-        console.log('[AppComponent] Fetched all issues, overwriting SharedData...');
-        this.sharedData.IssuesShared = allIssues; // ทับข้อมูลเดิมทั้งหมด
+        this.sharedData.IssuesShared = allIssues;
       },
-      error: (err) => console.error('[AppComponent] Failed to fetch issues', err)
+      error: (err) => console.error('[AppComponent] Failed to fetch issues', err),
     });
   }
 
-  /**
-   * Create scan notification and save to DB
-   */
-  private createScanNotification(projectId: string, scanId: string, status: string, projectName?: string): void {
+  private createScanNotification(
+    projectId: string,
+    scanId: string,
+    status: string,
+    projectName?: string,
+  ): void {
     const userId = this.tokenStorage.getLoginUser()?.id;
-    if (!userId) {
-      console.warn('[AppComponent] Cannot create notification - no user ID');
-      return;
-    }
+    if (!userId) return;
 
-    // Use provided projectName or find from repositories
-    const name = projectName || this.sharedData.repositoriesValue.find(r => r.projectId === projectId)?.name || 'Unknown Project';
+    const name =
+      projectName ||
+      this.sharedData.repositoriesValue.find((r) => r.projectId === projectId)?.name ||
+      'Unknown Project';
 
     const isSuccess = status === 'SUCCESS';
     const title = isSuccess ? '✅ Scan Completed' : '❌ Scan Failed';
-    const message = isSuccess
-      ? `${name} scan completed successfully`
-      : `${name} scan failed`;
+    const message = isSuccess ? `${name} scan completed successfully` : `${name} scan failed`;
 
-    this.notificationService.createNotification({
-      userId,
-      type: 'Scans',
-      title,
-      message,
-      relatedProjectId: projectId,
-      relatedScanId: scanId,
-      isBroadcast: true // Broadcast scan notifications to all users
-    }).subscribe({
-      next: (noti) => console.log('[AppComponent] Scan notification created:', noti),
-      error: (err) => console.error('[AppComponent] Failed to create scan notification:', err)
-    });
+    this.notificationService
+      .createNotification({
+        userId,
+        type: 'Scans',
+        title,
+        message,
+        relatedProjectId: projectId,
+        relatedScanId: scanId,
+        isBroadcast: true,
+      })
+      .subscribe({
+        next: (noti) => console.log('[AppComponent] Scan notification created:', noti),
+        error: (err) => console.error('[AppComponent] Failed to create scan notification:', err),
+      });
   }
 
   ngOnDestroy() {
-    if (this.wsSub) {
-      this.wsSub.unsubscribe();
-    }
-    if (this.verifySub) {
-      this.verifySub.unsubscribe();
-    }
+    this.wsSub?.unsubscribe();
+    this.notiSub?.unsubscribe();
+    this.verifySub?.unsubscribe();
 
+    // ✅ new
+    this.loginUserSub?.unsubscribe();
+    this.bootstrapSub?.unsubscribe();
+    this.projectSub?.unsubscribe();
+    this.issueSub?.unsubscribe();
   }
 
   private mapStatus(wsStatus: string): 'Active' | 'Scanning' | 'Error' {
     switch (wsStatus) {
-      case 'SCANNING': return 'Scanning';
-      case 'SUCCESS': return 'Active';
-      case 'FAILED': return 'Error';
-      default: return 'Active';
+      case 'SCANNING':
+        return 'Scanning';
+      case 'SUCCESS':
+        return 'Active';
+      case 'FAILED':
+        return 'Error';
+      default:
+        return 'Active';
     }
   }
 
@@ -511,11 +515,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
     if (this.darkMode) {
       document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark'); // บันทึกลง localStorage
+      localStorage.setItem('theme', 'dark');
     } else {
       document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light'); // บันทึกลง localStorage
+      localStorage.setItem('theme', 'light');
     }
   }
-
 }
