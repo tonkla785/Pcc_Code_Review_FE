@@ -182,7 +182,7 @@ pageAll(page: number) {
     );
   }
 applyFilter() {
-    this.updatePage(); 
+
   const keyword = this.searchText.trim().toLowerCase();
   const matchType = (this.filterType || 'All Types').toLowerCase();
   const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
@@ -223,8 +223,11 @@ applyFilter() {
       return a.id.localeCompare(b.id); 
       }
     });
-
+ if (this.currentPage > this.totalPages) {
+    this.currentPage = 1
+  }
   this.updatePage();
+  this.updateUrl();
 }
 
   onSearchChange(value: string) {
