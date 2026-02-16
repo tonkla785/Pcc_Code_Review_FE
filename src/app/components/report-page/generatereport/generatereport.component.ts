@@ -290,23 +290,23 @@ export class GeneratereportComponent implements OnInit {
 
     this.issueService.getAllIssues().subscribe({
       next: (allIssues) => {
-        const filteredIssues = this.filterIssuesByScans(allIssues, filteredScans);
-        this.processReportData(project.id, project.name, filteredScans, filteredIssues);
+        const filteredIssues = this.filterIssuesByProject(allIssues, project.id);
+        this.processReportData(project.id, project.name, filteredScans, filteredIssues, projectScans);
       },
       error: () => {
-        this.processReportData(project.id, project.name, filteredScans, []);
+        this.processReportData(project.id, project.name, filteredScans, [], projectScans);
       }
     });
   }
 
-  private filterIssuesByScans(allIssues: IssuesResponseDTO[], scans: ScanResponseDTO[]): IssuesResponseDTO[] {
-    const validScanIds = new Set(scans.map(s => s.id));
-
+  private filterIssuesByProject(allIssues: IssuesResponseDTO[], projectId: string): IssuesResponseDTO[] {
     return allIssues.filter(issue => {
-      const isCorrectScan = validScanIds.has(issue.scanId);
+      const isCorrectProject = issue.projectId === projectId || issue.projectData?.id === projectId;
       const type = (issue.type || '').toUpperCase();
-      const isCorrectType = type === 'BUG' || type === 'VULNERABILITY';
-      return isCorrectScan && isCorrectType;
+      const isCorrectType = type === 'BUG' || type === 'VULNERABILITY' || type === 'SECURITY_HOTSPOT';
+      const status = (issue.status || '').toUpperCase();
+      const isOpen = status !== 'RESOLVED' && status !== 'CLOSED';
+      return isCorrectProject && isCorrectType && isOpen;
     });
   }
 
@@ -315,9 +315,10 @@ export class GeneratereportComponent implements OnInit {
     projectId: string,
     projectName: string,
     scans: ScanResponseDTO[],
-    issues: IssuesResponseDTO[]
+    issues: IssuesResponseDTO[],
+    allProjectScans: ScanResponseDTO[] = []
   ): void {
-    const securityData = this.buildSecurityData(scans);
+    const securityData = this.buildSecurityData(allProjectScans);
     const selectedSections = this.buildSelectedSections();
 
     if (selectedSections.recommendations) {
@@ -348,7 +349,12 @@ export class GeneratereportComponent implements OnInit {
     }
 
     const validScanIds = new Set(scans.map(s => s.id));
-    const filteredSecurityIssues = securityIssues.filter(issue => validScanIds.has(issue.scanId));
+    const filteredSecurityIssues = securityIssues.filter(issue => {
+      const isCorrectProject = validScanIds.has(issue.scanId);
+      const status = (issue.status || '').toUpperCase();
+      const isOpen = status !== 'RESOLVED' && status !== 'CLOSED';
+      return isCorrectProject && isOpen;
+    });
     const metrics = this.securityService.calculate(filteredSecurityIssues);
 
     return {

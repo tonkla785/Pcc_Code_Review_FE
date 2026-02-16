@@ -222,6 +222,7 @@ export class PdfService {
             if (type === 'bug') type = 'Bug';
             if (type === 'vulnerability') type = 'Vulnerability';
             if (type === 'code_smell') type = 'Code Smell';
+            if (type === 'security_hotspot') type = 'Security Hotspot';
 
             return [
                 type,
@@ -242,7 +243,7 @@ export class PdfService {
             },
             bodyStyles: { textColor: 50 },
             columnStyles: {
-                0: { cellWidth: 25 },
+                0: { cellWidth: 30 },
                 1: { cellWidth: 20 },
                 2: { cellWidth: 'auto' }
             },
