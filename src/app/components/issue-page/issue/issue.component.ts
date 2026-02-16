@@ -97,6 +97,7 @@ export class IssueComponent {
     });
     this.route.queryParams.subscribe(params => {
         this.currentPage = +params['page'] || 1;
+        this.updatePage();
       })
   }
 
@@ -224,7 +225,7 @@ applyFilter() {
       }
     });
  if (this.currentPage > this.totalPages) {
-    this.currentPage = 1
+    this.currentPage = this.totalPages || 1;
   }
   this.updatePage();
 }
@@ -233,8 +234,6 @@ applyFilter() {
     this.searchText = value;
     this.applyFilter();
   }
-
-
 
   updatePage() {
     const start = (this.currentPage - 1) * this.pageSize;
@@ -422,8 +421,9 @@ prevPage() {
   typeIcon(type: string) {
     switch (type.toLowerCase()) {
       case 'bug': return 'bi-bug';
-      case 'security': return 'bi-shield-lock';
-      case 'code-smell': return 'bi-code-slash';
+      case 'security_hotspot': return 'bi-shield-lock';
+      case 'vulnerability': return 'bi-shield-lock';
+      case 'code_smell': return 'bi-code-slash';
       default: return '';
     }
   }
