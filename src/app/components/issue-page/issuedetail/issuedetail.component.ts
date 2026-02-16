@@ -399,7 +399,7 @@ This mock content is intentionally verbose and does not represent an actual prod
         assignedTo: this.issuesResult.assignedTo?.id || '',
       });
     } else {
-      const issueId = this.issuesResult?.id || this.issue?.id;
+      const issueId = this.issuesResult
       if (!issueId) return;
       this.assignModal.openAddAssign(issueId);
     }
