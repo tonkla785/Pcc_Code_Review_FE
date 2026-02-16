@@ -25,15 +25,12 @@ export class LoginComponent implements OnInit {
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly snack: MatSnackBar,
-    private readonly sharedDataService: SharedDataService,
-    private readonly tokenStorage: TokenStorageService,
   ) { }
 
   ngOnInit(): void {
-    // ✅ เช็คว่า user มี session อยู่แล้วหรือไม่ (ยังไม่ได้ logout)
+    // เช็คว่า user มี session อยู่แล้วหรือไม่ (ยังไม่ได้ logout)
     // ถ้ามี token อยู่แล้ว redirect ไป dashboard เลย
     if (this.auth.isLoggedIn) {
-      console.log('User is already logged in, redirecting to dashboard...');
       this.snack.open('Already! Login', '', {
         duration: 2500,
         horizontalPosition: 'center',

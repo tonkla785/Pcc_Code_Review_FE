@@ -11,8 +11,8 @@ import { Router } from '@angular/router';
 export class VerifySuccessComponent {
    constructor(private router: Router) {}
 
-  goToDashboard() {
-    this.router.navigate(['/dashboard']);
+  goToWebsite() {
+    this.router.navigate(['/']);
   }
 
 }

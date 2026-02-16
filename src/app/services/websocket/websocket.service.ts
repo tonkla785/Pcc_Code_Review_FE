@@ -1,28 +1,37 @@
 import { Injectable } from '@angular/core';
-import { Client, IMessage } from '@stomp/stompjs';
+import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Observable, ReplaySubject, Subject, BehaviorSubject } from 'rxjs';
 
-import { BackendScanStatus, UiScanStatus, ScanEvent, NotificationEvent, GlobalNotificationEvent, ProjectChangeEvent, IssueChangeEvent, UserVerifyStatusEvent } from '../../interface/websocket_interface';
+import {
+  BackendScanStatus,
+  UiScanStatus,
+  ScanEvent,
+  NotificationEvent,
+  GlobalNotificationEvent,
+  ProjectChangeEvent,
+  IssueChangeEvent,
+  UserVerifyStatusEvent,
+} from '../../interface/websocket_interface';
 
 function mapToUiStatus(status: BackendScanStatus): UiScanStatus {
-  if (status === 'PENDING') {
-    return 'SCANNING';
-  }
+  if (status === 'PENDING') return 'SCANNING';
   return status;
 }
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
-
   private client: Client;
   private connected = false;
+
   private notificationSubject = new Subject<NotificationEvent>();
   private globalNotificationSubject = new Subject<GlobalNotificationEvent>();
-  private scanSubject = new ReplaySubject<ScanEvent>(1); // ReplaySubject to ensure late subscribers get the last event
-  private projectSubject = new Subject<ProjectChangeEvent>(); // Project add/edit/delete events
-  private issueSubject = new Subject<IssueChangeEvent>(); // Issue update events
+  private scanSubject = new ReplaySubject<ScanEvent>(1);
+  private projectSubject = new Subject<ProjectChangeEvent>();
+  private issueSubject = new Subject<IssueChangeEvent>();
+
   private userId: string | null = null;
+
   private subscribed = false;
   private userTopicSubscribed = false;
   private globalTopicSubscribed = false;
@@ -30,20 +39,25 @@ export class WebSocketService {
   private issueTopicSubscribed = false;
 
   private connectionState$ = new BehaviorSubject<boolean>(false);
+
   // status
   private verifyStatusSubject = new ReplaySubject<UserVerifyStatusEvent>(1);
   private verifyTopicSubscribed = false;
+
+  // ✅ keep private subscriptions so we can unsubscribe when user changes
+  private userNotiSub?: StompSubscription;
+  private verifySub?: StompSubscription;
 
   constructor() {
     this.client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
       reconnectDelay: 5000,
-      debug: (str) => console.log('[WS]', str)
+      debug: (str) => console.log('[WS]', str),
     });
 
     this.client.onConnect = () => {
       this.connected = true;
-      this.connectionState$.next(true); // Notify connected
+      this.connectionState$.next(true);
       console.log('WebSocket connected');
       this.subscribeToTopics();
     };
@@ -56,12 +70,19 @@ export class WebSocketService {
     this.client.onWebSocketClose = () => {
       console.warn('WS connection closed');
       this.connected = false;
-      this.connectionState$.next(false); // Notify disconnected
+      this.connectionState$.next(false);
       this.resetSubscriptions();
     };
   }
 
   private resetSubscriptions() {
+    // ✅ unsubscribe private topics
+    this.userNotiSub?.unsubscribe();
+    this.verifySub?.unsubscribe();
+    this.userNotiSub = undefined;
+    this.verifySub = undefined;
+
+    // reset flags
     this.subscribed = false;
     this.userTopicSubscribed = false;
     this.globalTopicSubscribed = false;
@@ -74,7 +95,20 @@ export class WebSocketService {
    * Connect and set user ID for personal notifications
    */
   connect(userId: string): void {
+    const changedUser = !!this.userId && this.userId !== userId;
     this.userId = userId;
+
+    // ✅ if user changed, resubscribe private topics
+    if (changedUser) {
+      this.userNotiSub?.unsubscribe();
+      this.verifySub?.unsubscribe();
+      this.userNotiSub = undefined;
+      this.verifySub = undefined;
+
+      this.userTopicSubscribed = false;
+      this.verifyTopicSubscribed = false;
+    }
+
     if (!this.client.active) {
       this.client.activate();
     } else if (this.connected) {
@@ -86,8 +120,7 @@ export class WebSocketService {
    * Subscribe to all relevant topics
    */
   private subscribeToTopics(): void {
-
-    // 1. Subscribe to scan status updates (Public)
+    // 1) scan status (Public)
     if (!this.subscribed) {
       this.client.subscribe('/topic/scan-status', (message: IMessage) => {
         try {
@@ -101,7 +134,7 @@ export class WebSocketService {
           const event: ScanEvent = {
             projectId: raw.projectId,
             scanId: raw.scanId || raw.id || '',
-            status: mapToUiStatus(raw.status)
+            status: mapToUiStatus(raw.status),
           };
 
           console.log('WS scan event:', event);
@@ -110,28 +143,34 @@ export class WebSocketService {
           console.error('Failed to parse scan WS message', e);
         }
       });
+
       this.subscribed = true;
     }
 
-    // 2. Subscribe to personal notifications (Private)
+    // 2) personal notifications (Private)
     if (this.userId && !this.userTopicSubscribed) {
       console.log(`Subscribing to private notifications for user: ${this.userId}`);
-      this.client.subscribe(`/topic/notifications/${this.userId}`, (message: IMessage) => {
-        try {
-          const notification: NotificationEvent = JSON.parse(message.body);
-          console.log('WS notification:', notification);
-          this.notificationSubject.next(notification);
-        } catch (e) {
-          console.error('Failed to parse notification WS message', e);
-        }
-      });
+
+      this.userNotiSub = this.client.subscribe(
+        `/topic/notifications/${this.userId}`,
+        (message: IMessage) => {
+          try {
+            const notification: NotificationEvent = JSON.parse(message.body);
+            console.log('WS notification:', notification);
+            this.notificationSubject.next(notification);
+          } catch (e) {
+            console.error('Failed to parse notification WS message', e);
+          }
+        },
+      );
+
       this.userTopicSubscribed = true;
     }
 
-    // 3. Subscribe to global notifications (Public - for all users)
-    // These include: scan complete, quality gate failed, new critical issues
+    // 3) global notifications (Public)
     if (!this.globalTopicSubscribed) {
       console.log('Subscribing to global notifications');
+
       this.client.subscribe('/topic/notifications/global', (message: IMessage) => {
         try {
           const notification: GlobalNotificationEvent = JSON.parse(message.body);
@@ -141,13 +180,14 @@ export class WebSocketService {
           console.error('Failed to parse global notification WS message', e);
         }
       });
+
       this.globalTopicSubscribed = true;
     }
 
-    // 4. Subscribe to project changes (Public - for all users)
-    // These include: project added, updated, deleted
+    // 4) project changes (Public)
     if (!this.projectTopicSubscribed) {
       console.log('Subscribing to project changes');
+
       this.client.subscribe('/topic/projects', (message: IMessage) => {
         try {
           const event: ProjectChangeEvent = JSON.parse(message.body);
@@ -157,30 +197,34 @@ export class WebSocketService {
           console.error('Failed to parse project WS message', e);
         }
       });
+
       this.projectTopicSubscribed = true;
     }
 
-    // 5. Subscribe to user verify status (Private-ish but via /topic)
+    // 5) verify status (Private-ish)
     if (this.userId && !this.verifyTopicSubscribed) {
       console.log(`Subscribing to verify status for user: ${this.userId}`);
 
-      this.client.subscribe(`/topic/user/${this.userId}/verify-status`, (message: IMessage) => {
-        try {
-          const event = JSON.parse(message.body);
-          console.log('WS verify status event:', event);
-          this.verifyStatusSubject.next(event);
-        } catch (e) {
-          console.error('Failed to parse verify status WS message', e);
-        }
-      });
+      this.verifySub = this.client.subscribe(
+        `/topic/user/${this.userId}/verify-status`,
+        (message: IMessage) => {
+          try {
+            const event = JSON.parse(message.body);
+            console.log('WS verify status event:', event);
+            this.verifyStatusSubject.next(event);
+          } catch (e) {
+            console.error('Failed to parse verify status WS message', e);
+          }
+        },
+      );
 
       this.verifyTopicSubscribed = true;
     }
 
-    // 6. Subscribe to issue changes (Public - for all users)
-    // These include: issue assigned, status changed
+    // 6) issue changes (Public)
     if (!this.issueTopicSubscribed) {
       console.log('Subscribing to issue changes');
+
       this.client.subscribe('/topic/issues', (message: IMessage) => {
         try {
           const event: IssueChangeEvent = JSON.parse(message.body);
@@ -190,34 +234,25 @@ export class WebSocketService {
           console.error('Failed to parse issue WS message', e);
         }
       });
+
       this.issueTopicSubscribed = true;
     }
   }
 
-  /**
-   * Get observable for scan status updates
-   */
+  // ====== Observables ======
+
   subscribeScanStatus(): Observable<ScanEvent> {
     return this.scanSubject.asObservable();
   }
 
-  /**
-   * Get observable for personal notifications
-   */
   subscribeNotifications(): Observable<NotificationEvent> {
     return this.notificationSubject.asObservable();
   }
 
-  /**
-   * Get observable for global notifications (broadcast to all users)
-   */
   subscribeGlobalNotifications(): Observable<GlobalNotificationEvent> {
     return this.globalNotificationSubject.asObservable();
   }
 
-  /**
-   * Get observable for project changes (add/edit/delete broadcast to all users)
-   */
   subscribeProjectChanges(): Observable<ProjectChangeEvent> {
     return this.projectSubject.asObservable();
   }
@@ -226,9 +261,6 @@ export class WebSocketService {
     return this.verifyStatusSubject.asObservable();
   }
 
-  /**
-   * Get observable for issue changes (assign/status broadcast to all users)
-   */
   subscribeIssueChanges(): Observable<IssueChangeEvent> {
     return this.issueSubject.asObservable();
   }
@@ -241,26 +273,26 @@ export class WebSocketService {
     const subject = new Subject<any>();
     let stompSubscription: any = null;
 
-    // Observe connection state
-    const connectionSub = this.connectionState$.subscribe(isConnected => {
+    const connectionSub = this.connectionState$.subscribe((isConnected) => {
       if (isConnected) {
-        // Correctly subscribe once connected
         console.log(`[WS] Connected. Subscribing to comments for issue: ${issueId}`);
         if (stompSubscription) {
           stompSubscription.unsubscribe();
         }
 
         try {
-          stompSubscription = this.client.subscribe(`/topic/issue/${issueId}/comments`, (message: IMessage) => {
-            try {
-              const comment = JSON.parse(message.body);
-              console.log('WS comment received:', comment);
-              subject.next(comment);
-            } catch (e) {
-              console.error('Failed to parse comment WS message', e);
-              // Don't error the subject, just log
-            }
-          });
+          stompSubscription = this.client.subscribe(
+            `/topic/issue/${issueId}/comments`,
+            (message: IMessage) => {
+              try {
+                const comment = JSON.parse(message.body);
+                console.log('WS comment received:', comment);
+                subject.next(comment);
+              } catch (e) {
+                console.error('Failed to parse comment WS message', e);
+              }
+            },
+          );
         } catch (err) {
           console.error('[WS] Subscribe failed', err);
         }
@@ -269,12 +301,10 @@ export class WebSocketService {
       }
     });
 
-    // Return an observable that handles unsubscription logic when the caller unsubscribes
-    return new Observable(observer => {
+    return new Observable((observer) => {
       const sub = subject.subscribe(observer);
 
       return () => {
-        // Cleanup
         sub.unsubscribe();
         connectionSub.unsubscribe();
         if (stompSubscription) {
@@ -285,4 +315,3 @@ export class WebSocketService {
     });
   }
 }
-
