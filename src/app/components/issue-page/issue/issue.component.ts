@@ -182,13 +182,15 @@ export class IssueComponent {
     );
   }
   applyFilter() {
+    this.updatePage();
     const keyword = this.searchText.trim().toLowerCase();
     const matchType = (this.filterType || 'All Types').toLowerCase();
     const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
     const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
     const matchProject = (this.filterProject || 'All Projects').toLowerCase();
 
-    this.filteredIssue = this.issuesAll.filter(i => {
+    this.filteredIssue = this.issuesAll
+      .filter(i => {
         const typeValue = (i.type || '').toLowerCase();
 
         const type =
@@ -222,11 +224,7 @@ export class IssueComponent {
         }
       });
 
-  if (this.currentPage > this.totalPages) {
-    this.currentPage = 1;
-  }
-  this.updatePage();
-  this.updateUrl();
+    this.updatePage();
   }
 
   onSearchChange(value: string) {
@@ -462,15 +460,14 @@ export class IssueComponent {
 
   severityClass(severity: string) {
     switch (severity.toLowerCase()) {
-      case 'critical':
-      case 'high': return 'text-danger';
-      case 'medium': return 'text-warning';
-      case 'low': return 'text-success';
+      case 'critical': return 'text-danger';
+      case 'major': return 'text-warning';
+      case 'minor': return 'text-success';
       default: return '';
     }
   }
 
-  statusClass(status?: string | null): string {
+  statusClass(status: string) {
     if (!status) return '';
     const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
     const clean = normalized.replace(/\s/g, '-'); // normalize to hyphenated for some cases if needed, but here we just check strings
@@ -484,7 +481,7 @@ export class IssueComponent {
     return '';
   }
 
-  formatStatus(status?: string | null): string {
+  formatStatus(status: string): string {
     if (!status) return '';
     const normalized = status.toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
