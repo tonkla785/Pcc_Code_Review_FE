@@ -110,8 +110,8 @@
           </div>
           <div class="metric-item" title="Vulnerabilities">
             <i class="bi bi-shield-exclamation text-warning"></i>
-            <span class="metric-value">{{ repo.metrics?.vulnerabilities || 0 }}</span>
-            <span class="metric-label">Vulns</span>
+            <span class="metric-value">{{ getSecurityTotal(repo.metrics) }}</span>
+            <span class="metric-label">Security</span>
           </div>
           <div class="metric-item" title="Coverage">
             <i class="bi bi-graph-up text-success"></i>
