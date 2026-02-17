@@ -158,16 +158,18 @@
             {{ issuesDetails?.recommendedFix }}
           </p>
 
-          <div class="ai-suggestion-box" *ngIf="showMock">
+          <!-- AI Recommendation: show real data if status is SUCCESS -->
+          <div class="ai-suggestion-box"
+            *ngIf="issuesDetails?.status === 'SUCCESS' && issuesDetails?.recommendedFixByAi">
             <div class="ai-badge">
               <i class="bi bi-stars"></i> AI Optimized
             </div>
             <div class="ai-content">
-              {{ mockRecommendedFix }}
+              {{ issuesDetails?.recommendedFixByAi }}
             </div>
           </div>
 
-          <!-- Loading State -->
+          <!-- Loading State: when status is PENDING -->
           <div class="ai-loading-box" *ngIf="isAiLoading">
             <div class="ai-loader">
               <div class="ai-orb"></div>
@@ -178,8 +180,9 @@
           </div>
         </div>
 
-        <div class="card-footer-clean" *ngIf="!showMock && !isAiLoading">
-          <button class="btn-magic" (click)="toggleMock()">
+        <!-- Button: show only when recommendedFixByAi is null/empty and not loading -->
+        <div class="card-footer-clean" *ngIf="!issuesDetails?.recommendedFixByAi && !isAiLoading">
+          <button class="btn-magic" (click)="triggerAiFix()">
             <i class="bi bi-stars"></i>
             <span>Generate AI Fix</span>
           </button>

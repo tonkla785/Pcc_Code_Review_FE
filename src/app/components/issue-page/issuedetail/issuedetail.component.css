@@ -1492,9 +1492,9 @@
   }
 }
 
-.dark-mode .ai-loading-box {
-  background: rgba(59, 130, 246, 0.05);
-  border-color: rgba(59, 130, 246, 0.2);
+:host-context(.dark-mode) .ai-loading-box {
+  background: #2b4061;
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 /* From Uiverse.io by SelfMadeSystem */

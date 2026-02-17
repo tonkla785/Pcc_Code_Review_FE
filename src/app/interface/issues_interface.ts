@@ -29,14 +29,15 @@ export interface IssuesResponseDTO {
   commentData: commentResponseDTO[]
 }
 
-  export interface IssuesRequestDTO {
-    id: string,
-    status?: string | null,
-    assignedTo?: string | null;
-  }
-    export interface IssuesDetailResponseDTO {
-    description: string,
-    vulnerableCode: string,
-    recommendedFix: string  
-  }
-  
+export interface IssuesRequestDTO {
+  id: string,
+  status?: string | null,
+  assignedTo?: string | null;
+}
+export interface IssuesDetailResponseDTO {
+  description: string,
+  vulnerableCode: string,
+  recommendedFix: string,
+  recommendedFixByAi?: string | null,
+  status?: string | null,
+}
