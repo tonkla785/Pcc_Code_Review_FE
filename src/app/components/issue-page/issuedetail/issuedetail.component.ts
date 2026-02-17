@@ -88,18 +88,7 @@ export class IssuedetailComponent implements OnInit {
   replyTo: { commentId: string; username: string, parentCommentId: string } | null = null;
   sortedComments: commentResponseDTO[] = [];
   selectedScans: any[] = [];
-  showMock = false;
   isAiLoading = false;
-
-  mockRecommendedFix = `
-This is a MOCK recommendation provided for demonstration and testing purposes only.
-Recommended Fix (Mock Version):
-1. Analyze the root cause of the issue by reviewing recent code changes, configuration updates, and deployment logs. Pay special attention to any modifications that were introduced shortly before the issue started occurring
-2. Verify that all required dependencies, services, and environment variables are correctly configured and available at runtime. Missing or misconfigured dependencies can often lead to unexpected failures.
-3. If the issue is related to a specific feature or module, consider temporarily disabling that feature to isolate the problem. This can help determine if the issue is caused by recent changes in that area.
-Note:
-This mock content is intentionally verbose and does not represent an actual production fix. It is intended solely for UI testing, layout validation, and feature demonstration.
-`;
 
   constructor(
     private readonly router: Router,
@@ -134,13 +123,19 @@ This mock content is intentionally verbose and does not represent an actual prod
       const cached = this.sharedData.selectIssueValue;
       const isSame = cached?.id === id;
 
+      // Reset loading state when switching to a different issue
       if (!isSame) {
+        this.isAiLoading = false;
         this.loadIssueDetails(id);
         this.loadIssueById(id);
         console.log('Same')
       } else {
         this.issuesResult = cached;
         this.issuesDetails = this.sharedData.selectIssueDetailValue;
+        // Check if AI fix is currently pending
+        if (this.issuesDetails?.status === 'PENDING') {
+          this.isAiLoading = true;
+        }
         this.applyUserFilter();
         this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
         console.log("Not Same")
@@ -153,6 +148,13 @@ This mock content is intentionally verbose and does not represent an actual prod
       this.replycomment(this.issuesResult?.commentData ?? []); // Update rootComments for empty state check
       this.applyUserFilter();
       this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
+    });
+
+    // Subscribe to issueDetail$ from SharedData for reactive updates
+    this.sharedData.issueDetail$.subscribe(data => {
+      if (data) {
+        this.issuesDetails = data;
+      }
     });
 
     const user = this.tokenStorage.getLoginUser();
@@ -172,9 +174,18 @@ This mock content is intentionally verbose and does not represent an actual prod
         this.subscribeToRealtimeComments(id);
       }
     });
+
+    // Subscribe to issue changes (WebSocket) for AI recommend fix updates
+    this.issueSub = this.ws.subscribeIssueChanges().subscribe(event => {
+      if (event.action === 'UPDATED' && event.issueId === this.issuesResult?.id) {
+        console.log('[Issuedetail] Issue updated via WS, re-fetching details...');
+        this.loadIssueDetails(this.issuesResult.id);
+      }
+    });
   }
 
   private commentSub?: Subscription;
+  private issueSub?: Subscription;
 
   subscribeToRealtimeComments(issueId: string) {
     // Unsubscribe previous if exists
@@ -199,6 +210,9 @@ This mock content is intentionally verbose and does not represent an actual prod
     if (this.commentSub) {
       this.commentSub.unsubscribe();
     }
+    if (this.issueSub) {
+      this.issueSub.unsubscribe();
+    }
   }
 
   loadIssueById(issueId: string) {
@@ -221,6 +235,14 @@ This mock content is intentionally verbose and does not represent an actual prod
         this.sharedData.setLoading(false);
         this.issuesDetails = data;
         console.log('Issues Detail loaded:', data);
+
+        // Set loading based on actual status from DB
+        if (data.status === 'PENDING') {
+          this.isAiLoading = true;
+        } else {
+          this.isAiLoading = false;
+        }
+
         this.applyUserFilter();
       },
       error: () => this.sharedData.setLoading(false)
@@ -269,12 +291,34 @@ This mock content is intentionally verbose and does not represent an actual prod
   }
 
 
-  toggleMock() {
+  triggerAiFix() {
+    const projectId = this.issuesResult?.projectId;
+    const issueId = this.issuesResult?.id;
+    if (!projectId || !issueId) return;
+
     this.isAiLoading = true;
-    setTimeout(() => {
-      this.isAiLoading = false;
-      this.showMock = true;
-    }, 3000);
+
+    // Update SharedData with PENDING status immediately
+    if (this.issuesDetails) {
+      const pendingDetail = { ...this.issuesDetails, status: 'PENDING' };
+      this.sharedData.SelectedIssueDetail = pendingDetail;
+    }
+
+    this.issesService.triggerRecommendFixAi(projectId, issueId).subscribe({
+      next: (res) => {
+        console.log('AI fix triggered, status:', res.message);
+        // Keep loading state - will be cleared when WebSocket event arrives and status is SUCCESS
+      },
+      error: (err) => {
+        console.error('Failed to trigger AI fix:', err);
+        this.isAiLoading = false;
+        // Revert status in SharedData
+        if (this.issuesDetails) {
+          const revertDetail = { ...this.issuesDetails, status: null };
+          this.sharedData.SelectedIssueDetail = revertDetail;
+        }
+      }
+    });
   }
 
   /* ===================== Mapper (BE -> FE) ===================== */
