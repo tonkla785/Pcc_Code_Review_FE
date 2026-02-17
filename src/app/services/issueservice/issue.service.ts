@@ -74,4 +74,12 @@ export class IssueService {
       this.authOpts()
     );
   }
+
+  triggerRecommendFixAi(projectId: string, issueId: string): Observable<{ issueId: string; message: string }> {
+    return this.http.post<{ issueId: string; message: string }>(
+      `${this.baseUrl}/api/recommend-fix-ai`,
+      { projectId, issueId },
+      this.authOpts()
+    );
+  }
 }
