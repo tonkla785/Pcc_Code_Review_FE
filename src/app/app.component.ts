@@ -201,7 +201,6 @@ export class AppComponent implements OnInit {
     });
 
     // ✅ Verify status realtime
-    // NOTE: ใช้ currentUserId จาก loginUser$ เพื่อลด race (อย่าไปอ่าน getLoginUser() ตอน filter แล้วคาดหวังว่าจะทัน)
     this.verifySub = this.ws
       .subscribeVerifyStatus()
       .pipe(
