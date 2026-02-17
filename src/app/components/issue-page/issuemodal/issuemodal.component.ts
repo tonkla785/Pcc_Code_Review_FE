@@ -104,6 +104,31 @@ export class IssuemodalComponent {
       }
     });
   }
+    onSubmitStatus() {
+    const payload: IssuesRequestDTO = {
+      id: this.issueDraft.id,
+      status: this.issueDraft.status,
+      assignedTo: this.issueDraft?.assignedTo
+    };
+    console.log('Submitting issue status payload:', payload);
+    this.issuesService.updateIssues(payload).subscribe({
+      next: (updated) => {
+        console.log('Issue updated successfully:', updated);
+        this.issuesService.getAllIssuesById(this.issueDraft.id).subscribe({
+          next: (fullIssue) => {
+            this.sharedData.updateIssueSelect(fullIssue);
+            this.closeModal();
+            console.log('Issue updated and refreshed:', fullIssue);
+          },
+          error: (err) => console.error('Failed to refresh issue:', err)
+        });
+      },
+      error: (err) => {
+        console.error('Update issue failed:', err);
+        console.error('Payload was:', payload);
+      }
+    });
+  }
   closeModal() {
     this.showAssign = false;
     this.showStatus = false;
