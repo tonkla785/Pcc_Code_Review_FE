@@ -37,7 +37,7 @@ export class UsermanagementComponent {
   isEmail: boolean = false;
   filteredUsers: UserInfo[] = [];
   emptyUser(): UserInfo {
-    return { id: "0", username: '', password: '', email: '', role: 'USER', status: '' };
+    return { id: "0", username: '', password: '', email: '', role: 'USER',status: '' };
   }
 
   // filteredUsers(): User[] {
