@@ -85,9 +85,7 @@ export class IssuemodalComponent {
       status: this.issueDraft.status,
       assignedTo: this.issueDraft?.assignedTo
     };
-
     console.log('Submitting issue assignment payload:', payload);
-
     this.issuesService.updateIssues(payload).subscribe({
       next: (updated) => {
         console.log('Issue updated successfully:', updated);
@@ -118,7 +116,7 @@ export class IssuemodalComponent {
     this.issueDraft = {
       id: issueId.id,
       status: issueId.status ?? null,
-      assignedTo: undefined
+      assignedTo: null
     };
     this.showAssign = true;
     console.log('Open add assign modal for issue ID:', issueId);

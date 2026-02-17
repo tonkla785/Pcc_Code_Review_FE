@@ -24,7 +24,7 @@ export interface IssuesResponseDTO {
     phone: string,
     createAt: string
   },
-  status?: string | null,
+  status: string,
   createdAt: string,
   commentData: commentResponseDTO[]
 }

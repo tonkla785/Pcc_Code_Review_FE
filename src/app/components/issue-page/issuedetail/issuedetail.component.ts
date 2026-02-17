@@ -431,7 +431,7 @@ This mock content is intentionally verbose and does not represent an actual prod
       this.issue.dueDate
     ).subscribe({
       next: (res: any) => {
-        this.sharedData.updateIssueSelect(res);
+        this.sharedData.updateIssueSelect({ ...res, id: this.issue.id });
         console.log('Assigned successfully:', res);
       },
       error: (err: any) => console.error('Error:', err),
