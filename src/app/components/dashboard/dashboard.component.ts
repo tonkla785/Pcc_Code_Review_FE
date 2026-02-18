@@ -169,6 +169,7 @@ export class DashboardComponent {
   latestScans = this.getLatestScanByProject();
   // verify
   private verifySub?: Subscription;
+  private sub?: Subscription;
 
 
   /** ตัวอักษรเกรดเฉลี่ยจาก backend (A–E) */
@@ -176,6 +177,12 @@ export class DashboardComponent {
   AllScan: ScanResponseDTO[] = [];
   // ================== LIFE CYCLE ==================
   ngOnInit() {
+
+        this.sub = this.tokenStorage.loginUser$.subscribe(u => {
+      this.UserLogin = u;
+      // ถ้ามึงอยากให้ UI เด้งทันทีชัวร์ๆ
+      this.cdr.detectChanges();
+    });
     if (!this.auth.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
@@ -334,7 +341,7 @@ export class DashboardComponent {
   countBug() {
     const bugs = this.getLatestScanByProject() ?? [];
     this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
-    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.vulnerabilities ?? 0), 0);
+    this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0) + (s?.metrics?.vulnerabilities ?? 0), 0);
     this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
     this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
     console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
@@ -1171,7 +1178,7 @@ export class DashboardComponent {
     y += 5;
     pdf.text(`Code Smells: ${this.codeSmellCount}`, margin, y);
     y += 5;
-    pdf.text(`Coverage: ${this.codeSmellCount}`, margin, y);
+    pdf.text(`Coverage: ${this.coverRateCount}%`, margin, y);
     y += 10;
 
     // Top issues
@@ -1309,7 +1316,7 @@ export class DashboardComponent {
     this.coverageChartOptions = chartConfig.options as any;
   }
 
-  // ngOnDestroy() {
-  //   this.ws.disconnect();
-  // }
+ ngOnDestroy() {
+        this.sub?.unsubscribe();
+}
 }

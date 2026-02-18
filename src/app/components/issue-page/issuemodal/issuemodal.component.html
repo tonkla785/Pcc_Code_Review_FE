@@ -84,7 +84,7 @@
               <option value="CLOSED">CLOSED</option>
             </select>
             <div class="text-danger" *ngIf="statusForm.submitted && !issueDraft.status">
-              Please select a user
+              Please select a status
             </div>
           </div>
 
@@ -99,11 +99,10 @@
             </div>
           </div> -->
 
-
         </div>
 
       <div class="modal-footer">
-        <button type="submit" class="btn btn-primary" (click)="onSubmitUser()">Update</button>
+        <button type="submit" class="btn btn-primary" (click)="onSubmitStatus()">Update</button>
         <button type="button" class="btn btn-secondary" (click)="close()">Cancel</button>
       </div>
     </form>

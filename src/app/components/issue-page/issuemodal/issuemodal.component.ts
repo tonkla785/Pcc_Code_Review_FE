@@ -75,14 +75,42 @@ export class IssuemodalComponent {
   }
 
   onSubmitUser() {
+    if (this.issueDraft.assignedTo == null) {
+      this.issueDraft.status = 'OPEN';
+    }else{
+      this.issueDraft.status = 'IN_PROGRESS';
+    }
     const payload: IssuesRequestDTO = {
       id: this.issueDraft.id,
       status: this.issueDraft.status,
       assignedTo: this.issueDraft?.assignedTo
     };
-
     console.log('Submitting issue assignment payload:', payload);
-
+    this.issuesService.updateIssues(payload).subscribe({
+      next: (updated) => {
+        console.log('Issue updated successfully:', updated);
+        this.issuesService.getAllIssuesById(this.issueDraft.id).subscribe({
+          next: (fullIssue) => {
+            this.sharedData.updateIssueSelect(fullIssue);
+            this.closeModal();
+            console.log('Issue updated and refreshed:', fullIssue);
+          },
+          error: (err) => console.error('Failed to refresh issue:', err)
+        });
+      },
+      error: (err) => {
+        console.error('Update issue failed:', err);
+        console.error('Payload was:', payload);
+      }
+    });
+  }
+    onSubmitStatus() {
+    const payload: IssuesRequestDTO = {
+      id: this.issueDraft.id,
+      status: this.issueDraft.status,
+      assignedTo: this.issueDraft?.assignedTo
+    };
+    console.log('Submitting issue status payload:', payload);
     this.issuesService.updateIssues(payload).subscribe({
       next: (updated) => {
         console.log('Issue updated successfully:', updated);
@@ -108,12 +136,12 @@ export class IssuemodalComponent {
   }
 
   /** เปิด modal สำหรับเพิ่ม assign */
-  openAddAssign(issueId: string) {
+  openAddAssign(issueId: IssuesResponseDTO) {
     this.isEdit = false;
     this.issueDraft = {
-      id: issueId,
-      status: 'IN_PROGRESS',
-      assignedTo: undefined
+      id: issueId.id,
+      status: issueId.status ?? null,
+      assignedTo: null
     };
     this.showAssign = true;
     console.log('Open add assign modal for issue ID:', issueId);
