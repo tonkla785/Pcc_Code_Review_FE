@@ -90,13 +90,11 @@ export class RepositoriesComponent implements OnInit {
         // เก็บข้อมูลลง SharedDataService
         this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
-        console.log('Repositories loaded:', repos);
 
         this.filteredRepositories = this.sortRepositories([...repos]);
         this.updateSummaryStats();
       },
       error: (err) => {
-        console.error('Failed to load repositories:', err);
         this.sharedData.setLoading(false);
       }
     });
@@ -201,7 +199,6 @@ export class RepositoriesComponent implements OnInit {
     if (repo.status === 'Scanning') return;
 
     if (!repo.projectId) {
-      console.warn('No projectId for repo, cannot start scan');
       return;
     }
 
@@ -279,7 +276,6 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.startScan(repo.projectId!, 'main', token).subscribe({
       next: (response: any) => {
-        console.log('[Repositories] Scan started successfully:', response);
 
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,
@@ -295,7 +291,6 @@ export class RepositoriesComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Scan failed:', err);
         repo.status = 'Error';
         repo.scanningProgress = 0;
 
@@ -439,11 +434,9 @@ export class RepositoriesComponent implements OnInit {
   }
 
   getSecurityTotal(metrics: any): number {
-    console.log('getSecurityTotal called with:', metrics);
     if (!metrics) return 0;
     const hotspots = metrics.securityHotspots || 0;
     const vulns = metrics.vulnerabilities || 0;
-    console.log('Security Total:', hotspots + vulns);
     return hotspots + vulns;
   }
 

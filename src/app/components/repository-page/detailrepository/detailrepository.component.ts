@@ -46,11 +46,8 @@ export class DetailrepositoryComponent implements OnInit {
     // this.scanId = this.route.snapshot.paramMap.get('scanId') ?? '';
 
     if (!this.repoId) {
-      console.warn('Missing projectId or scanId');
       return;
     }
-
-    console.log('Loading repository:', this.repoId);
 
     this.loadRepositoryFull(this.repoId);
     // this.loadScanIssues(this.scanId); // Deprecated
@@ -94,7 +91,6 @@ export class DetailrepositoryComponent implements OnInit {
     this.repoService.getFullRepository(repoId).subscribe({
       next: (repo) => {
         if (repo) {
-          console.log('Detail Repo loaded:', repo); // Debug costPerDay (เก็บไว้ debug)
           this.repo = repo;
           this.scans = (repo.scans ?? [])
             .filter(scan => scan.completedAt)
@@ -111,7 +107,6 @@ export class DetailrepositoryComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load repository details', err);
         this.loading = false;
       }
     });
@@ -154,7 +149,6 @@ export class DetailrepositoryComponent implements OnInit {
   loadAllIssues() {
     // 1. ตรวจสอบว่ามีข้อมูลใน SharedData แล้วหรือยัง
     if (!this.sharedData.hasIssuesCache) {
-      console.log('ยังไม่มี Issues ใน SharedData, กำลังโหลดทั้งหมด...');
       this.issueService.getAllIssues().subscribe({
         next: (data: IssuesResponseDTO[]) => {
           this.sharedData.IssuesShared = data; // อัปเดตข้อมูลลง SharedData
@@ -166,7 +160,6 @@ export class DetailrepositoryComponent implements OnInit {
 
     // 2. Subscribe ข้อมูลจาก SharedData เพื่อกรองเฉพาะของ Scan นี้
     this.sharedData.AllIssues$.subscribe(allIssues => {
-      console.log('SharedData Issues:', allIssues);
       if (allIssues) {
         this.issues = allIssues
           .filter((i: IssuesResponseDTO) => {
@@ -175,7 +168,6 @@ export class DetailrepositoryComponent implements OnInit {
             const matchType = ['BUG', 'VULNERABILITY','SECURITY_HOTSPOT'].includes(i.type);
             return matchProject && matchType;
           });
-        console.log(`filtered issues for project ${this.repoId}:`, this.issues.length);
         this.currentPage = 1;
       }
     });
@@ -210,11 +202,9 @@ export class DetailrepositoryComponent implements OnInit {
   }
 
   getSecurityTotal(metrics: any): number {
-    console.log('getSecurityTotal called with:', metrics);
     if (!metrics) return 0;
     const hotspots = metrics.securityHotspots || 0;
     const vulns = metrics.vulnerabilities || 0;
-    console.log('Security Total:', hotspots + vulns);
     return hotspots + vulns;
   }
 }

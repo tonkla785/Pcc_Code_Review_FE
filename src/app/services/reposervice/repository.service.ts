@@ -66,9 +66,6 @@ export class RepositoryService {
       maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
     };
 
-    // ถ้าจะ log ให้ mask
-    // console.log('[ScanService] Request body:', { ...requestBody, gitToken: requestBody.gitToken ? '***' : null });
-
     return this.http.post(
       `${environment.apiUrl}/${projectId}/scan`,
       requestBody,
@@ -118,37 +115,6 @@ export class RepositoryService {
         return 'Active';
     }
   }
-
-  //เทียบ config กับ metric qualityGate
-  // evaluateQualityGate(
-  //   metrics: {
-  //     bugs?: number;
-  //     vulnerabilities?: number;
-  //     codeSmells?: number;
-  //     coverage?: number;
-  //   },
-  //   gates: QualityGates
-  // ): 'Passed' | 'Failed' {
-  //   console.log('Evaluating quality gate with metrics:', metrics, 'and gates:', gates);
-
-  //   if ((metrics.coverage ?? 0) > gates.coverageThreshold) {
-  //     return 'Failed';
-  //   }
-
-  //   if ((metrics.bugs ?? 0) > gates.maxBugs) {
-  //     return 'Failed';
-  //   }
-
-  //   if ((metrics.vulnerabilities ?? 0) > gates.maxVulnerabilities) {
-  //     return 'Failed';
-  //   }
-
-  //   if ((metrics.codeSmells ?? 0) > gates.maxCodeSmells) {
-  //     return 'Failed';
-  //   }
-
-  //   return 'Passed';
-  // }
 
   private mapProjectTypeLabel(
     type?: 'ANGULAR' | 'SPRING_BOOT'

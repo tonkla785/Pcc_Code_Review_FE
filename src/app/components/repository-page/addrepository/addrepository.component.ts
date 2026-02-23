@@ -84,7 +84,6 @@ export class AddrepositoryComponent implements OnInit {
     if (projectId) {
       this.isEditMode = true;
       this.loadRepository(projectId);
-      // console.log('Edit mode for projectId:', projectId);
     }
 
     this.gitRepository.user = '';
@@ -97,7 +96,6 @@ export class AddrepositoryComponent implements OnInit {
     if (!this.sharedData.hasRepositoriesCache) {
       this.repositoryService.getAllRepo().subscribe({
         next: (repos) => {
-          console.log('Repositories loaded for validation:', repos.length);
           this.sharedData.setRepositories(repos);
         },
         error: (err) => console.error('Failed to load repositories for validation', err)
@@ -109,7 +107,6 @@ export class AddrepositoryComponent implements OnInit {
     this.repositoryService.getByIdRepo(projectId).subscribe({
       next: (repo) => {
         if (!repo) {
-          console.error('Repository not found');
           return;
         }
 
@@ -316,7 +313,6 @@ export class AddrepositoryComponent implements OnInit {
               }
             },
             error: (err) => {
-              console.error('Failed to fetch full repo after save', err);
               // Even if fetch fails, try to redirect
               this.location.back();
             },
