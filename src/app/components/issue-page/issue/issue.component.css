@@ -336,10 +336,10 @@
   }
 }
 
-  .pagination .page-link {
-    padding: 4px 8px;
-    font-size: 13px;
-  }
+.pagination .page-link {
+  padding: 4px 8px;
+  font-size: 13px;
+}
 
 @media (max-width: 768px) {
   .issues-header h2 {
@@ -486,7 +486,7 @@
   overflow-x: auto;
 }
 
-.sticky-top{
+.sticky-top {
   position: sticky;
   top: -2px;
   z-index: 1;
@@ -981,12 +981,78 @@
   border-radius: 10px;
   font-size: 14px;
   padding: 4px 8px;
-  margin-right: 4px;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   background-image: none !important;
   text-align: center;
+}
+
+.page-size-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 8px;
+  border-radius: 10px;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  transition: all 0.25s ease;
+}
+
+.page-size-icon {
+  font-size: 16px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.page-size-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.page-size-info {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  padding-left: 4px;
+  border-left: 1px solid #cbd5e1;
+  margin-left: 4px;
+  padding-left: 8px;
+}
+
+.pagination-divider {
+  width: 1px;
+  height: 28px;
+  background-color: #cbd5e1;
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+/* Dark Mode – page-size-group */
+:host-context(body.dark-mode) .page-size-group {
+  background-color: #1e293b;
+  border-color: #374151;
+}
+
+:host-context(body.dark-mode) .page-size-icon {
+  color: #94a3b8;
+}
+
+:host-context(body.dark-mode) .page-size-label {
+  color: #cbd5e1;
+}
+
+:host-context(body.dark-mode) .page-size-info {
+  color: #e2e8f0;
+  border-left-color: #475569;
+}
+
+:host-context(body.dark-mode) .pagination-divider {
+  background-color: #475569;
 }
 
 /* Mobile Layout */

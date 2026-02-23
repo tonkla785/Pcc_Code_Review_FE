@@ -155,13 +155,22 @@
 <!-- Footer -->
 <div class="footer-bar px-3 px-md-4">
   <div class="pagination d-flex align-items-center gap-2">
-    <select class="form-select w-auto page-size-select" (ngModelChange)="pageAll($event)" [(ngModel)]="pageSize">
-      <option [ngValue]="5">5</option>
-      <option [ngValue]="10">10</option>
-      <option [ngValue]="15">15</option>
-      <option [ngValue]="20">20</option>
-      <option [ngValue]="50">50</option>
-    </select>
+    <div class="page-size-group d-flex align-items-center gap-2">
+      <i class="bi bi-table page-size-icon"></i>
+      <span class="page-size-label">Rows per page</span>
+      <select class="form-select w-auto page-size-select" (ngModelChange)="pageAll($event)" [(ngModel)]="pageSize">
+        <option [ngValue]="5">5</option>
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="15">15</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+      <span class="page-size-info">
+        {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > filteredIssue.length ? filteredIssue.length : currentPage * pageSize }}
+        of {{ filteredIssue.length }}
+      </span>
+    </div>
+    <span class="pagination-divider"></span>
     <button class="page-btn" [class.disabled]="currentPage === 1" [disabled]="currentPage === 1" (click)="prevPage()">
       <i class="bi bi-chevron-left"></i>
     </button>
