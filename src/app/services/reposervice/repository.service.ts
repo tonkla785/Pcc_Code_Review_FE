@@ -19,7 +19,6 @@ export class RepositoryService {
 
   private authOpts() {
     const token = this.auth.token;
-    console.log(token);
     return token
       ? { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) }
       : {};
@@ -34,7 +33,6 @@ export class RepositoryService {
 
   // เริ่มสแกน - ดึง settings จาก SharedData (SonarQube Config)
   startScan(projectId: string, branch: string = 'main', gitToken?: string | null): Observable<any> {
-    console.log('[ScanService] Starting scan for projectId:', projectId, 'branch:', branch);
 
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
 

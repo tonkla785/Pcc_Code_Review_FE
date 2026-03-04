@@ -52,7 +52,7 @@ export class AppComponent implements OnInit {
     private tokenStorage: TokenStorageService,
     private snack: MatSnackBar,
     private userService: UserService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     // Theme restore
@@ -84,14 +84,12 @@ export class AppComponent implements OnInit {
         const savedUser = this.tokenStorage.getLoginUser();
         if (savedUser) {
           this.sharedData.LoginUserShared = savedUser;
-          console.log('[AppComponent] loginUser$ -> connect WS, restore user:', savedUser.status);
         }
 
         // 3) bootstrap: ดึง user ล่าสุดจาก backend 1 ครั้ง (กัน status stale)
         this.bootstrapSub?.unsubscribe();
         this.bootstrapSub = this.userService.getUserById(userId).pipe(
           catchError(err => {
-            console.error('[AppComponent] bootstrap getUserById failed:', err);
             return of(null);
           }),
           filter(u => !!u),
@@ -103,7 +101,6 @@ export class AppComponent implements OnInit {
           this.tokenStorage.setLoginUser(merged);
           this.sharedData.LoginUserShared = merged;
 
-          console.log('[AppComponent] bootstrap fresh user:', merged.status);
         });
       });
 
@@ -118,7 +115,6 @@ export class AppComponent implements OnInit {
       const savedUser = this.tokenStorage.getLoginUser();
       if (savedUser) {
         this.sharedData.LoginUserShared = savedUser;
-        console.log('[AppComponent] Restored user from localStorage:', savedUser.status);
       }
     }
 
@@ -126,7 +122,6 @@ export class AppComponent implements OnInit {
 
     // Global WebSocket Listener - Scan
     this.wsSub = this.ws.subscribeScanStatus().subscribe((event) => {
-      console.log('[AppComponent] WS Event:', event);
 
       const mappedStatus = this.mapStatus(event.status);
 
@@ -165,7 +160,6 @@ export class AppComponent implements OnInit {
 
     // Global WebSocket Listener - Project Changes
     this.projectSub = this.ws.subscribeProjectChanges().subscribe((event) => {
-      console.log('[AppComponent] Project change event:', event);
 
       if (event.action === 'DELETED') {
         this.sharedData.removeRepository(event.projectId);
@@ -183,7 +177,6 @@ export class AppComponent implements OnInit {
         this.repoService.getAllRepo().subscribe({
           next: (repos: any[]) => {
             this.sharedData.setRepositories(repos);
-            console.log('[AppComponent] Repositories refreshed after project change:', event.action);
 
             if (this.authService.isLoggedIn) {
               const actionText = event.action === 'ADDED' ? 'added' : 'updated';
@@ -195,7 +188,7 @@ export class AppComponent implements OnInit {
               });
             }
           },
-          error: (err: any) => console.error('[AppComponent] Failed to refresh repos:', err),
+          error: (err: any) => { },
         });
       }
     });
@@ -217,7 +210,6 @@ export class AppComponent implements OnInit {
 
           return this.userService.getUserById(event.userId).pipe(
             catchError((err) => {
-              console.error('[AppComponent] getUserById failed:', err);
               return of(null);
             }),
           );
@@ -225,7 +217,6 @@ export class AppComponent implements OnInit {
         filter((freshUser: any) => !!freshUser),
       )
       .subscribe((freshUser: any) => {
-        console.log('[AppComponent] Fresh user from API:', freshUser);
 
         const current = this.tokenStorage.getLoginUser();
         if (!current) return;
@@ -254,15 +245,13 @@ export class AppComponent implements OnInit {
 
     // Global WebSocket Listener - Issue Changes
     this.issueSub = this.ws.subscribeIssueChanges().subscribe((event) => {
-      console.log('[AppComponent] Issue change event:', event);
 
       if (event.action === 'UPDATED') {
         this.issueService.getAllIssues().subscribe({
           next: (allIssues) => {
             this.sharedData.IssuesShared = allIssues;
-            console.log('[AppComponent] Issues refreshed after issue change');
           },
-          error: (err: any) => console.error('[AppComponent] Failed to refresh issues:', err),
+          error: (err: any) => { },
         });
 
         const currentSelected = this.sharedData.selectIssueValue;
@@ -270,10 +259,8 @@ export class AppComponent implements OnInit {
           this.issueService.getAllIssuesById(event.issueId).subscribe({
             next: (updatedIssue) => {
               this.sharedData.SelectedIssues = updatedIssue;
-              console.log('[AppComponent] Selected issue refreshed:', event.issueId);
             },
-            error: (err: any) =>
-              console.error('[AppComponent] Failed to refresh selected issue:', err),
+            error: (err: any) => { },
           });
         }
       }
@@ -390,7 +377,7 @@ export class AppComponent implements OnInit {
           this.sharedData.upsertScan(latestScan);
         }
       },
-      error: (err) => console.error('Failed to refresh full repo', err),
+      error: (err) => { },
     });
   }
 
@@ -438,7 +425,7 @@ export class AppComponent implements OnInit {
           this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
         }
       },
-      error: (err) => console.error('Failed to refresh full repo for notification', err),
+      error: (err) => { },
     });
   }
 
@@ -447,7 +434,7 @@ export class AppComponent implements OnInit {
       next: (allIssues) => {
         this.sharedData.IssuesShared = allIssues;
       },
-      error: (err) => console.error('[AppComponent] Failed to fetch issues', err),
+      error: (err) => { },
     });
   }
 
@@ -480,8 +467,7 @@ export class AppComponent implements OnInit {
         isBroadcast: true,
       })
       .subscribe({
-        next: (noti) => console.log('[AppComponent] Scan notification created:', noti),
-        error: (err) => console.error('[AppComponent] Failed to create scan notification:', err),
+        error: (err) => { },
       });
   }
 

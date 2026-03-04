@@ -55,16 +55,13 @@ export class ScanresultComponent {
       const id = pm.get('scanId');
       if (!id) return;
 
-      console.log('scanId from route:', id);
 
       // Check if current cache matches the requested scanId
       const cachedScan = this.sharedData.selectedScanValue;
       if (cachedScan && cachedScan.id === id) {
-        console.log('Using cached scan data');
         this.scanResult = cachedScan;
       } else {
         // Fetch fresh data from API
-        console.log('No matching cache - loading from server');
         this.loadScanDetails(id);
       }
     });
@@ -76,7 +73,6 @@ export class ScanresultComponent {
       next: (data) => {
         this.sharedData.ScansDetail = data;
         this.sharedData.setLoading(false);
-        console.log('Scan history loaded:', data);
       },
       error: () => this.sharedData.setLoading(false),
     });
@@ -208,7 +204,6 @@ export class ScanresultComponent {
         });
       },
       error: (err) => {
-        console.error('Send email failed', err);
 
         Swal.fire({
           icon: 'error',
