@@ -180,21 +180,6 @@ export class RepositoriesComponent implements OnInit {
     ];
   }
 
-  private mapStatus(
-    wsStatus: string
-  ): 'Active' | 'Scanning' | 'Error' {
-    switch (wsStatus) {
-      case 'SCANNING':
-        return 'Scanning';
-      case 'SUCCESS':
-        return 'Active';
-      case 'FAILED':
-        return 'Error';
-      default:
-        return 'Active'; // fallback ที่ปลอดภัย
-    }
-  }
-
   runScan(repo: Repository) {
     if (repo.status === 'Scanning') return;
 
@@ -276,19 +261,13 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.startScan(repo.projectId!, 'main', token).subscribe({
       next: (response: any) => {
-
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-green']
         });
-
-        // Use backend status if available
-        if (response && response.status && repo.projectId) {
-          const mappedStatus = this.mapStatus(response.status);
-          this.sharedData.updateRepoStatus(repo.projectId, mappedStatus, 0);
-        }
+        // Status จะถูก update ผ่าน WebSocket ใน AppComponent แทน
       },
       error: (err) => {
         repo.status = 'Error';
