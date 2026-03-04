@@ -79,7 +79,6 @@ getUserById(id: string): Observable<User> {
 
 
 verifyEmail(email: string): Observable<User> {
-  console.log(email);
   return this.http.post<User>(`${this.baseverify}/verify/resend`, { email }, this.authOpts());
 }
 

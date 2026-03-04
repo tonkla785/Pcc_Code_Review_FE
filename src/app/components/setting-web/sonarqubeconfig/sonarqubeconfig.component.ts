@@ -161,7 +161,6 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isTestingConnection = false;
-        console.error('Test connection error:', error);
         const errorMessage = error.error?.message || error.message || 'Network error';
         Swal.fire({
           icon: 'error',
@@ -232,7 +231,6 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
-        console.error('Failed to save settings:', err);
         Swal.fire({
           icon: 'error',
           title: 'Save Failed',
@@ -246,8 +244,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
   private loadFromConfig(config: SonarQubeConfig) {
     if (!config) return;
 
-    console.log('SonarQube Config Loaded:', config);
-    console.log('AuthToken field check:', config.authToken);
+
 
     this.serverUrl = config.serverUrl || 'https://code.pccth.com';
     this.authToken = config.authToken || '';

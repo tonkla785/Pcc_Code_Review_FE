@@ -33,7 +33,6 @@ export class TechnicalDebtDataService {
   }
 
   setTotalDebt(data: TotalDebt): void {
-    console.log('SharedData: setTotalDebt', data);
     this._totalDebt$.next(data);
   }
 
@@ -46,7 +45,6 @@ export class TechnicalDebtDataService {
   }
 
   setTopDebtItems(items: DebtItem[]): void {
-    console.log('SharedData: setTopDebtItems', items.length);
     this._topDebtItems$.next(items);
   }
 
@@ -131,7 +129,6 @@ export class TechnicalDebtDataService {
    * Clear all technical debt data (used when a project is deleted)
    */
   clearAllDebtData(): void {
-    console.log('SharedData: clearAllDebtData - resetting all debt data');
     this._totalDebt$.next({ days: 0, hours: 0, minutes: 0, cost: 0 });
     this._topDebtItems$.next([]);
   }

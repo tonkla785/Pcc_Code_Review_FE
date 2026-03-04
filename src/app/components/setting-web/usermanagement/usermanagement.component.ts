@@ -61,7 +61,6 @@ export class UsermanagementComponent {
     });
     if (!this.sharedData.hasUserCache) {
       this.loadUser();
-      console.log("No cache - load from server");
     }
 
   }
@@ -71,7 +70,6 @@ export class UsermanagementComponent {
       next: (data) => {
         this.sharedData.UserShared = data;
         this.sharedData.setLoading(false);
-        console.log('User loaded:', data);
       },
       error: () => this.sharedData.setLoading(false)
     });
@@ -104,7 +102,6 @@ export class UsermanagementComponent {
   openEditUser(user: UserInfo) {
     this.modalData = { ...user };
     this.originalEmail = user.email;
-    console.log("Modal", this.modalData);
     this.originalData = { ...user };
     this.editingUser = true;
     this.modalOpen = true;
@@ -157,18 +154,14 @@ export class UsermanagementComponent {
         next: (updatedUser) => {
           this.sharedData.updateUser(payload);
           this.closeModal();
-          console.log('User updated:', updatedUser);
         },
-        error: (err) => console.error(err, payload)
       });
     } else {
       this.userDateService.AddNewUser(payload).subscribe({
         next: (newUser) => {
           this.closeModal();
           this.sharedData.addUser(payload);
-          console.log('User added:', newUser);
         },
-        error: (err) => console.error(err)
       });
     }
   };

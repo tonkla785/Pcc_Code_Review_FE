@@ -178,7 +178,7 @@ export class DashboardComponent {
   // ================== LIFE CYCLE ==================
   ngOnInit() {
 
-        this.sub = this.tokenStorage.loginUser$.subscribe(u => {
+    this.sub = this.tokenStorage.loginUser$.subscribe(u => {
       this.UserLogin = u;
       // ถ้ามึงอยากให้ UI เด้งทันทีชัวร์ๆ
       this.cdr.detectChanges();
@@ -198,7 +198,6 @@ export class DashboardComponent {
 
       // Subscribe to personal notifications
       this.ws.subscribeNotifications().subscribe((noti) => {
-        console.log('Realtime notification:', noti);
 
         const exists = this.notifications.some(n => n.id === noti.id);
         if (exists) return;
@@ -210,7 +209,6 @@ export class DashboardComponent {
       // Subscribe to global notifications (broadcast for all users)
       // These include: scan complete, quality gate failed, new critical issues
       this.ws.subscribeGlobalNotifications().subscribe((noti) => {
-        console.log('Global broadcast notification:', noti);
 
         // Avoid duplicates (in case user also gets personal notification)
         const exists = this.notifications.some(n => n.id === noti.id);
@@ -240,12 +238,10 @@ export class DashboardComponent {
 
     this.sharedData.LoginUser$.subscribe((data) => {
       this.UserLogin = data;
-      console.log('User Login in Dashboard:', this.UserLogin);
     });
 
     this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
-      console.log('Repositories loaded from sharedData:', this.repositories);
       this.calculateProjectDistribution();
     });
 
@@ -272,7 +268,6 @@ export class DashboardComponent {
     }
 
     if (!this.sharedData.hasIssuesCache) {
-      console.log('No cache - load from server');
       this.loadIssues();
     }
 
@@ -293,10 +288,8 @@ export class DashboardComponent {
         // เก็บข้อมูลลง SharedDataService
         this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
-        console.log('Repositories loaded:', repos);
       },
       error: (err) => {
-        console.error('Failed to load repositories:', err);
         this.sharedData.setLoading(false);
       },
     });
@@ -311,10 +304,8 @@ export class DashboardComponent {
         this.countBug();
         this.mockCoverageTrend();
         this.loadDashboardData();
-        console.log('Dashboard Data (All Scans)', this.DashboardData);
       },
       error: (err) => {
-        console.error('โหลด ประวัติการสแกน ล้มเหลว', err);
       },
     });
   }
@@ -325,18 +316,15 @@ export class DashboardComponent {
       next: (data) => {
         this.sharedData.IssuesShared = data;
         this.sharedData.setLoading(false);
-        console.log('Issues loaded:', data);
       },
       error: () => this.sharedData.setLoading(false),
     });
   }
   countQualityGate() {
     const scans = this.getLatestScanByProject() ?? [];
-    console.log('Latest Scans for Quality Gate Count:', scans);
     this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
     // ถ้าไม่ใช่ OK ให้เป็น failed ทั้งหมด
     this.failedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() !== 'OK').length;
-    console.log('Passed:', this.passedCount, 'Failed:', this.failedCount);
   }
   countBug() {
     const bugs = this.getLatestScanByProject() ?? [];
@@ -344,7 +332,6 @@ export class DashboardComponent {
     this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0) + (s?.metrics?.vulnerabilities ?? 0), 0);
     this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
     this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
-    console.log('Bug:', this.passedCountBug, 'Security:', this.securityCount, 'CodeSmells:', this.codeSmellCount, 'Coverage:', this.coverRateCount);
   }
 
   // ใช้ formatISODate จาก utils แทน
@@ -354,8 +341,6 @@ export class DashboardComponent {
     return (this.DashboardData ?? []).filter(s => {
       if (!s?.completedAt) return false;
       const scanDate = formatISODate(s.completedAt);
-      console.log('Date:', scanDate, 'QualityGate:', s.qualityGate);
-      console.log('latestScans', this.getLatestScanByProject());
       return scanDate === date && s.qualityGate === 'OK';
 
     }).length;
@@ -384,7 +369,6 @@ export class DashboardComponent {
         latestByProject.set(projectId, s);
       }
     }
-    console.log('Latest by Project:', Array.from(latestByProject.values()));
     return Array.from(latestByProject.values());
   }
 
@@ -413,7 +397,6 @@ export class DashboardComponent {
           ...metrics,
           technicalDebt: this.dashboardData.metrics.technicalDebt ?? '0',
         };
-        console.log('[overview] metrics summary:', metrics);
 
         // 2. history -> map
         this.dashboardData.history = this.dash.mapHistory(history);
@@ -421,7 +404,6 @@ export class DashboardComponent {
         // 3. avg grade จาก trends
         if (trends?.length && this.isValidGateLetter(trends[0].avgGrade)) {
           this.avgGateLetter = trends[0].avgGrade.toUpperCase() as any;
-          console.log('[trends] avgGrade from API =', trends[0].avgGrade);
         } else {
           // ... fallback เดิมของคุณ ...
           const latestMap = this.dashboardData.history.reduce((m, h) => {
@@ -467,7 +449,6 @@ export class DashboardComponent {
             | 4
             | 5;
           this.avgGateLetter = revMap[rounded];
-          console.log('[fallback] avgGateLetter =', this.avgGateLetter);
         }
 
         // 4. recent scans (เอา 5 อันล่าสุด)
@@ -495,18 +476,9 @@ export class DashboardComponent {
 
         this.buildTopIssues(activeIssues);
 
-        console.log(
-          '[donut] pass/fail ->',
-          this.Data,
-          'totalProjects =',
-          this.totalProjects,
-        );
-        console.log('[donut] center =', this.avgGateLetter);
-
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error fetching dashboard data:', err);
         this.loading = false;
       },
     });
@@ -674,7 +646,7 @@ export class DashboardComponent {
   //   this.userService.verifyEmail(this.userProfile.email).subscribe({
   //     next: () => alert('Verification email sent successfully!'),
   //     error: (err) => {
-  //       console.error('Error sending verification email:', err);
+
   //       alert('Failed to send verification email.');
   //     }
   //   });
@@ -691,7 +663,6 @@ export class DashboardComponent {
         this.notifications = data;
       },
       error: (err) => {
-        console.error('Error loading notifications:', err);
       },
     });
   }
@@ -715,7 +686,7 @@ export class DashboardComponent {
       next: () => {
         this.notifications.forEach((n) => ((n as any).isRead = true));
       },
-      error: (err) => console.error('Failed to mark all as read:', err)
+      error: (err) => { }
     });
   }
 
@@ -731,10 +702,8 @@ export class DashboardComponent {
     // เรียก API แบบ fire-and-forget
     this.notificationService.markAsRead(n.id).subscribe({
       next: () => {
-        console.log('Notification marked as read');
       },
       error: (err) => {
-        console.error('Failed to mark as read:', err);
         // ไม่ต้อง revert เพราะ navigation ทำไปแล้ว
       },
     });
@@ -775,7 +744,6 @@ export class DashboardComponent {
         }
       },
       error: (err) => {
-        console.error('Failed to fetch issue:', err);
         // Issue not found or error occurred
         this.snack.open('Can not open issue', '', {
           duration: 2500,
@@ -986,7 +954,6 @@ export class DashboardComponent {
       const qg = norm(s.qualityGate);
       return qg !== 'OK' && qg !== 'NONE' && qg !== '';
     }).length;
-    console.log('QG Passed Count:', passedCount, 'QG Failed Count:', failedCount);
     // ใช้เฉพาะที่จบแล้ว (pass+fail) มาหาร
     const finishedTotal = passedCount + failedCount;
 
@@ -1316,7 +1283,7 @@ export class DashboardComponent {
     this.coverageChartOptions = chartConfig.options as any;
   }
 
- ngOnDestroy() {
-        this.sub?.unsubscribe();
-}
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
+  }
 }

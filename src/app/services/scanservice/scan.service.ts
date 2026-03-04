@@ -72,14 +72,12 @@ export class ScanService {
 
   /** POST /api/scans — เริ่มสแกน */
   startScan(projectId: string, req: ScanRequest): Observable<Scan> {
-    console.log('[ScanService] Starting scan for repository:', req, 'projectId:', projectId);
     return this.http.post<Scan>(`${this.base}/${projectId}`, req, this.authOpts());
   }
 
 
   /** GET /api/scans — ดึงสแกนทั้งหมด */
   getAllScan(): Observable<Scan[]> {
-    console.log('[ScanService] Fetching all scans...');
     // TODO: Get userId from token when available
     const userId = '';
     const opts = {
@@ -88,13 +86,11 @@ export class ScanService {
     };
     return this.http.get<Scan[]>(`${this.base}/getProject/${userId}`, opts).pipe(
       map(scans => {
-        console.log('[ScanService] Raw scans from backend:', scans);
         const mapped = scans.map(s => ({
           ...s,
           status: this.mapStatus(s.status),
           qualityGate: this.mapQualityStatus(s.qualityGate ?? '')
         }));
-        console.log('[ScanService] Mapped scans:', mapped);
         return mapped;
       })
     );

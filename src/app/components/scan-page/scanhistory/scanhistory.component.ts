@@ -64,11 +64,9 @@ showDuplications = false;
       this.originalData = data || [];
       this.ScanHistory = [...this.originalData];
       this.applyFilterStatus();
-      console.log('Scan history loaded from sharedData:', data);
     });
         this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
-      console.log('Repositories loaded from sharedData:', this.repositories);
     });
         this.route.queryParams.subscribe(params => {
         this.currentPage = +params['page'] || 1;
@@ -125,10 +123,8 @@ showDuplications = false;
         // เก็บข้อมูลลง SharedDataService
         this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
-        console.log('Repositories loaded:', repos);
       },
       error: (err) => {
-        console.error('Failed to load repositories:', err);
         this.sharedData.setLoading(false);
       },
     });
@@ -399,7 +395,6 @@ applyFilterStatus() {
     const d = new Date(item.startedAt);
 
     let matchDate = true;
-    console.log('Applying filters:', item?.project?.name)
     if (this.startDate && !this.endDate) {
       const searchDay = new Date(this.startDate);
       matchDate =
@@ -438,7 +433,6 @@ diffMetric(metric: string): number | null {
 
   const first = this.selectedScans[0];
   const last = this.selectedScans[this.selectedScans.length - 1];
-  console.log('Diff metric calculation:', { metric, first, last });
   const getValue = (scan: any) => {
     if (metric === 'grade') return scan.qualityGate;
     return scan.metrics?.[metric] ?? 0;
@@ -451,7 +445,6 @@ diffMetric(metric: string): number | null {
     return null;
   }
   const result = (newVal - oldVal);
-  console.log('Diff metric result:', result);
   return result ;
 }
 

@@ -139,7 +139,7 @@ export class GeneratereportComponent implements OnInit {
     if (!this.sharedDataService.hasRepositoriesCache) {
       this.repositoryService.getAllRepo().subscribe({
         next: (repos) => this.sharedDataService.setRepositories(repos),
-        error: (err) => console.error('Failed to load repositories', err)
+        error: (err) => { }
       });
     }
 
@@ -327,7 +327,6 @@ export class GeneratereportComponent implements OnInit {
           this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, recommendationsData);
         },
         error: (err) => {
-          console.error('Failed to fetch recommendations', err);
           this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, []);
         }
       });
@@ -403,7 +402,6 @@ export class GeneratereportComponent implements OnInit {
         });
       }
     } catch (e) {
-      console.error('Error generating report', e);
       this.createReportNotification(projectName, false); // failed notification
     } finally {
       this.loading = false;
@@ -479,8 +477,7 @@ export class GeneratereportComponent implements OnInit {
     };
 
     this.reportHistoryService.createReportHistory(request).subscribe({
-      next: (result) => console.log('Report history saved:', result.id),
-      error: (err) => console.error('Failed to save report history:', err)
+      error: (err) => { }
     });
   }
 
@@ -499,8 +496,7 @@ export class GeneratereportComponent implements OnInit {
       title,
       message
     }).subscribe({
-      next: () => console.log('Report notification created'),
-      error: (err) => console.error('Failed to create notification:', err)
+      error: (err) => { }
     });
   }
 

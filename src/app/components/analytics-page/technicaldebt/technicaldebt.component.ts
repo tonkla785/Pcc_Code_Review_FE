@@ -129,7 +129,6 @@ export class TechnicaldebtComponent implements OnDestroy {
         this.calculateDebtTrend(data); // Pass full history
         this.calculateProjectDebts();
         this.calculateTopDebtProjects();
-        console.log('Scan history loaded:', this.ScanHistoy);
       },
       error: () => this.sharedData.setLoading(false)
     });

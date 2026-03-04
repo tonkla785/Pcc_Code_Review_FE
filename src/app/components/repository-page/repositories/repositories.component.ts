@@ -351,7 +351,6 @@ export class RepositoriesComponent implements OnInit {
 
   editRepo(repo: Repository) {
     this.router.navigate(['/settingrepo', repo.projectId]);
-    console.log('Editing repo:', repo.projectId);
   }
 
   viewRepo(repo: Repository): void {

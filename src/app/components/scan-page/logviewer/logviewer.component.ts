@@ -76,7 +76,6 @@ export class LogviewerComponent {
       const id = pm.get('scanId');
       if (!id) return;
 
-      console.log('log from route:', id);
 
       // ถ้ามี cache และเป็น id เดียวกัน  ไม่ต้อง fetch
       const cached = this.sharedData.ScansDetail;
@@ -299,7 +298,6 @@ export class LogviewerComponent {
         });
       },
       error: (err) => {
-        console.error('Send email failed', err);
         Swal.fire({
           icon: 'error',
           title: 'Email failed',

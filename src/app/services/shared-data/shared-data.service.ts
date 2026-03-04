@@ -230,7 +230,6 @@ export class SharedDataService {
             return true;
         });
 
-        console.log(`[SharedData] Removing issues for project ${projectId}. Removed: ${currentIssues.length - nextIssues.length}`);
         this.AllIssues.next(nextIssues);
     }
     private readonly selectedIssues = new BehaviorSubject<IssuesResponseDTO | null>(null);
@@ -327,7 +326,6 @@ export class SharedDataService {
             ...current,
             commentData: [...commentData, newComment],
         };
-        console.log('Updated Issue with new comment:', next);
         this.selectedIssues.next(next);
     }
 
