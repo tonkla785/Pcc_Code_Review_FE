@@ -65,7 +65,6 @@ export class WebSocketService {
     };
 
     this.client.onWebSocketClose = () => {
-      console.warn('WS connection closed');
       this.connected = false;
       this.connectionState$.next(false);
       this.resetSubscriptions();

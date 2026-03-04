@@ -66,7 +66,6 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
 
       // ถ้าเป็น logout request ที่ล้มเหลว → ไม่ต้องทำอะไร (clear เลย)
       if (req.url.includes('/user/logout')) {
-        console.warn('Logout request failed, clearing local data anyway');
         isLoggingOut = false;
         tokenStorage.clear();
         router.navigate(['/']);
@@ -75,7 +74,6 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
 
       // ถ้าเป็น refresh request ที่ล้มเหลว → เรียก logout แล้ว redirect
       if (req.url.includes('/user/refresh')) {
-        console.warn('Refresh token expired or invalid, calling logout and redirecting to home');
         isRefreshing = false;
         refreshTokenSubject.next(null);
 
@@ -121,7 +119,6 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
             // Refresh ล้มเหลว → เรียก logout แล้ว redirect
             isRefreshing = false;
             refreshTokenSubject.next(null);
-            console.warn('Token refresh failed, calling logout and redirecting to home');
 
             logoutAndRedirect(auth, tokenStorage, router);
             return EMPTY;

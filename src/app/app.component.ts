@@ -203,8 +203,6 @@ export class AppComponent implements OnInit {
           const ok = !!currentUserId && currentUserId === event.userId;
 
           if (!ok) {
-            console.warn('[AppComponent] Verify status ignored - userId mismatch.',
-              'Event userId:', event.userId, 'Current userId:', currentUserId);
             return of(null);
           }
 
@@ -337,7 +335,6 @@ export class AppComponent implements OnInit {
     this.repoService.getFullRepository(projectId).subscribe({
       next: (fullRepo) => {
         if (!fullRepo) {
-          console.warn('[AppComponent] Full Repo is null for project:', projectId);
           return;
         }
 
