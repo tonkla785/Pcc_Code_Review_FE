@@ -4,7 +4,7 @@ import { SharedDataService } from './../../../services/shared-data/shared-data.s
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router,ActivatedRoute } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { IssueService } from '../../../services/issueservice/issue.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { Repository, RepositoryService } from '../../../services/reposervice/repository.service';
@@ -71,16 +71,13 @@ export class IssueComponent {
   ngOnInit(): void {
     if (!this.sharedData.hasUserCache) {
       this.loadUser();
-      console.log("No cache - load from server");
     }
     this.sharedData.AllUser$.subscribe(data => {
       this.UserData = data ?? [];
       // this.applyFilter();
-      console.log('User loaded Modal from sharedData:', data);
     });
     if (!this.sharedData.hasIssuesCache) {
       this.loadIssues();
-      console.log("No cache - load from server");
     }
     this.sharedData.AllIssues$.subscribe(data => {
       this.originalData = data || [];
@@ -89,16 +86,14 @@ export class IssueComponent {
     });
     if (!this.sharedData.hasRepositoriesCache) {
       this.loadRepositories();
-      console.log("No cache - load from server");
     }
     this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
-      console.log('Repositories loaded from sharedData:', this.repositories);
     });
     this.route.queryParams.subscribe(params => {
-        this.currentPage = +params['page'] || 1;
-        this.updatePage();
-      })
+      this.currentPage = +params['page'] || 1;
+      this.updatePage();
+    })
   }
 
   loadIssues() {
@@ -107,7 +102,6 @@ export class IssueComponent {
       next: (data) => {
         this.sharedData.IssuesShared = data;
         this.sharedData.setLoading(false);
-        console.log('Issues loaded:',);
       },
       error: () => this.sharedData.setLoading(false)
     });
@@ -118,7 +112,6 @@ export class IssueComponent {
       next: (data) => {
         this.sharedData.UserShared = data;
         this.sharedData.setLoading(false);
-        console.log('User loaded Modal:', data);
       },
       error: () => this.sharedData.setLoading(false)
     });
@@ -132,10 +125,8 @@ export class IssueComponent {
         // เก็บข้อมูลลง SharedDataService
         this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
-        console.log('Repositories loaded:', repos);
       },
       error: (err) => {
-        console.error('Failed to load repositories:', err);
         this.sharedData.setLoading(false);
       },
     });
@@ -161,17 +152,17 @@ export class IssueComponent {
   loading = false;
   errorMsg = '';
 
-pageAll(page: number) {
-  this.pageSize = page;
-  const totalPages = Math.ceil(this.filteredIssue.length / this.pageSize);
+  pageAll(page: number) {
+    this.pageSize = page;
+    const totalPages = Math.ceil(this.filteredIssue.length / this.pageSize);
 
-  if (this.currentPage > totalPages) {
-    this.currentPage = totalPages || 1;
+    if (this.currentPage > totalPages) {
+      this.currentPage = totalPages || 1;
+    }
+
+    this.updatePage();
+    this.updateUrl();
   }
-
-  this.updatePage();
-  this.updateUrl();
-}
 
   // ---------- Filter / Page ----------
   filterIssues() {
@@ -182,53 +173,53 @@ pageAll(page: number) {
       (this.searchText === '' || i.message.toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
-applyFilter() {
+  applyFilter() {
 
-  const keyword = this.searchText.trim().toLowerCase();
-  const matchType = (this.filterType || 'All Types').toLowerCase();
-  const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
-  const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
-  const matchProject = (this.filterProject || 'All Projects').toLowerCase();
+    const keyword = this.searchText.trim().toLowerCase();
+    const matchType = (this.filterType || 'All Types').toLowerCase();
+    const matchSeverity = (this.filterSeverity || 'All Severity').toLowerCase();
+    const matchStatus = (this.filterStatus || 'All Status').toLowerCase();
+    const matchProject = (this.filterProject || 'All Projects').toLowerCase();
 
-  this.filteredIssue = this.issuesAll
-    .filter(i => {
-      const typeValue = (i.type || '').toLowerCase();
+    this.filteredIssue = this.issuesAll
+      .filter(i => {
+        const typeValue = (i.type || '').toLowerCase();
 
-      const type =
-        matchType === 'all types' ||
-        (
-          matchType === 'security' &&
-          ['vulnerability', 'security_hotspot'].includes(typeValue)
-        ) ||
-        typeValue === matchType;
+        const type =
+          matchType === 'all types' ||
+          (
+            matchType === 'security' &&
+            ['vulnerability', 'security_hotspot'].includes(typeValue)
+          ) ||
+          typeValue === matchType;
 
-      const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
-      const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
+        const severity = matchSeverity === 'all severity' || (i.severity || '').toLowerCase() === matchSeverity;
+        const status = matchStatus === 'all status' || (i.status || '').toLowerCase() === matchStatus;
 
-      const projectName = (i.projectData?.name || '').toLowerCase();
-      const project = matchProject === 'all projects' || projectName === matchProject;
+        const projectName = (i.projectData?.name || '').toLowerCase();
+        const project = matchProject === 'all projects' || projectName === matchProject;
 
-      const messageOk =
-        keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+        const messageOk =
+          keyword === '' || (i.message || '').toLowerCase().includes(keyword);
 
-      return type && severity && status && project && messageOk;
-    })
-    .sort((a, b) => {
-      const dateDiff =
-        new Date(b.createdAt).getTime() -
-        new Date(a.createdAt).getTime();
+        return type && severity && status && project && messageOk;
+      })
+      .sort((a, b) => {
+        const dateDiff =
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime();
 
-      if (dateDiff !== 0){
-        return dateDiff;
-      }else{
-      return a.id.localeCompare(b.id); 
-      }
-    });
- if (this.currentPage > this.totalPages) {
-    this.currentPage = this.totalPages || 1;
+        if (dateDiff !== 0) {
+          return dateDiff;
+        } else {
+          return a.id.localeCompare(b.id);
+        }
+      });
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages || 1;
+    }
+    this.updatePage();
   }
-  this.updatePage();
-}
 
   onSearchChange(value: string) {
     this.searchText = value;
@@ -259,29 +250,29 @@ applyFilter() {
       this.selectedIssues = this.selectedIssues.filter(s => !this.paginatedIssues.some(p => p.id === s.id));
     }
   }
-updateUrl() {
-  this.router.navigate([], {
-    relativeTo: this.route,
-    queryParams: { page: this.currentPage },
-  });
-}
-
-
-nextPage() {
-  if (this.currentPage * this.pageSize < this.filteredIssue.length) {
-    this.currentPage++;
-    this.updatePage();
-    this.updateUrl();
+  updateUrl() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: this.currentPage },
+    });
   }
-}
 
-prevPage() {
-  if (this.currentPage > 1) {
-    this.currentPage--;
-    this.updatePage();
-    this.updateUrl();
+
+  nextPage() {
+    if (this.currentPage * this.pageSize < this.filteredIssue.length) {
+      this.currentPage++;
+      this.updatePage();
+      this.updateUrl();
+    }
   }
-}
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePage();
+      this.updateUrl();
+    }
+  }
 
 
   // isPageAllSelected(): boolean {
@@ -312,7 +303,7 @@ prevPage() {
   //         row.assignee = `@${dev}`;
   //         ok++;
   //       },
-  //       error: (e) => console.error('assign failed', e)
+  //       error: (e) => {}
   //     });
   //   });
 
@@ -358,13 +349,11 @@ prevPage() {
     forkJoin(reqs).subscribe({
       next: (results) => {
         this.sharedData.updateIssues(results)
-        console.log('Assign successful for all selected issues:', results);
         this.selectedIdsForAssign = [];
         this.savingAssign = false;
         this.closeAssignModal();
       },
       error: (err) => {
-        console.error('Assign failed:', err);
         this.savingAssign = false;
       }
     });
@@ -464,10 +453,10 @@ prevPage() {
     return status;
   }
   viewResult(issueId: IssuesResponseDTO) {
-  this.router.navigate(['/issuedetail', issueId.id], {
-    queryParams: { page: this.currentPage }
-  });
-}
+    this.router.navigate(['/issuedetail', issueId.id], {
+      queryParams: { page: this.currentPage }
+    });
+  }
   isSelected(issue: IssuesResponseDTO): boolean {
     return this.selectedIssues.some(s => s.id === issue.id);
   }
@@ -484,7 +473,7 @@ prevPage() {
       this.selectedIssues.push(issue);
     }
   }
-    get pageNumbers(): (number | string)[] {
+  get pageNumbers(): (number | string)[] {
     const total = this.totalPages;
     const current = this.currentPage;
 

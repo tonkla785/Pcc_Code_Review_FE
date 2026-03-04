@@ -66,8 +66,7 @@ export class LoginComponent implements OnInit {
           verticalPosition: 'top',
           panelClass: ['app-snack', 'app-snack-blue'],
         });
-        console.log('Token:', this.auth.token);
-        console.log('Logged in user:', user);
+
         // Note: user data is already saved in auth.service.ts tap() before this callback
         this.router.navigate(['/dashboard']);
       },

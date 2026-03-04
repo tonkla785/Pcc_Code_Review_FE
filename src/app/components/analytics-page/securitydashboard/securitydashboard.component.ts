@@ -114,7 +114,7 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
       next: (issues) => {
         this.sharedData.setSecurityIssues(issues);
       },
-      error: (err) => console.error('Failed to load security issues:', err)
+      error: (err) => { }
     });
   }
 
@@ -123,7 +123,7 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
       next: (scans) => {
         this.sharedData.Scans = scans;
       },
-      error: (err) => console.error('Failed to load scan history for trend:', err)
+      error: (err) => { }
     });
   }
 

@@ -52,23 +52,19 @@ export class WebSocketService {
     this.client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
       reconnectDelay: 5000,
-      debug: (str) => console.log('[WS]', str),
     });
 
     this.client.onConnect = () => {
       this.connected = true;
       this.connectionState$.next(true);
-      console.log('WebSocket connected');
       this.subscribeToTopics();
     };
 
     this.client.onStompError = (frame) => {
-      console.error('WS error:', frame);
       this.resetSubscriptions();
     };
 
     this.client.onWebSocketClose = () => {
-      console.warn('WS connection closed');
       this.connected = false;
       this.connectionState$.next(false);
       this.resetSubscriptions();
@@ -137,10 +133,8 @@ export class WebSocketService {
             status: mapToUiStatus(raw.status),
           };
 
-          console.log('WS scan event:', event);
           this.scanSubject.next(event);
         } catch (e) {
-          console.error('Failed to parse scan WS message', e);
         }
       });
 
@@ -149,17 +143,14 @@ export class WebSocketService {
 
     // 2) personal notifications (Private)
     if (this.userId && !this.userTopicSubscribed) {
-      console.log(`Subscribing to private notifications for user: ${this.userId}`);
 
       this.userNotiSub = this.client.subscribe(
         `/topic/notifications/${this.userId}`,
         (message: IMessage) => {
           try {
             const notification: NotificationEvent = JSON.parse(message.body);
-            console.log('WS notification:', notification);
             this.notificationSubject.next(notification);
           } catch (e) {
-            console.error('Failed to parse notification WS message', e);
           }
         },
       );
@@ -169,15 +160,12 @@ export class WebSocketService {
 
     // 3) global notifications (Public)
     if (!this.globalTopicSubscribed) {
-      console.log('Subscribing to global notifications');
 
       this.client.subscribe('/topic/notifications/global', (message: IMessage) => {
         try {
           const notification: GlobalNotificationEvent = JSON.parse(message.body);
-          console.log('WS global notification:', notification);
           this.globalNotificationSubject.next(notification);
         } catch (e) {
-          console.error('Failed to parse global notification WS message', e);
         }
       });
 
@@ -186,15 +174,12 @@ export class WebSocketService {
 
     // 4) project changes (Public)
     if (!this.projectTopicSubscribed) {
-      console.log('Subscribing to project changes');
 
       this.client.subscribe('/topic/projects', (message: IMessage) => {
         try {
           const event: ProjectChangeEvent = JSON.parse(message.body);
-          console.log('WS project change:', event);
           this.projectSubject.next(event);
         } catch (e) {
-          console.error('Failed to parse project WS message', e);
         }
       });
 
@@ -203,17 +188,14 @@ export class WebSocketService {
 
     // 5) verify status (Private-ish)
     if (this.userId && !this.verifyTopicSubscribed) {
-      console.log(`Subscribing to verify status for user: ${this.userId}`);
 
       this.verifySub = this.client.subscribe(
         `/topic/user/${this.userId}/verify-status`,
         (message: IMessage) => {
           try {
             const event = JSON.parse(message.body);
-            console.log('WS verify status event:', event);
             this.verifyStatusSubject.next(event);
           } catch (e) {
-            console.error('Failed to parse verify status WS message', e);
           }
         },
       );
@@ -223,15 +205,12 @@ export class WebSocketService {
 
     // 6) issue changes (Public)
     if (!this.issueTopicSubscribed) {
-      console.log('Subscribing to issue changes');
 
       this.client.subscribe('/topic/issues', (message: IMessage) => {
         try {
           const event: IssueChangeEvent = JSON.parse(message.body);
-          console.log('WS issue change:', event);
           this.issueSubject.next(event);
         } catch (e) {
-          console.error('Failed to parse issue WS message', e);
         }
       });
 
@@ -275,7 +254,6 @@ export class WebSocketService {
 
     const connectionSub = this.connectionState$.subscribe((isConnected) => {
       if (isConnected) {
-        console.log(`[WS] Connected. Subscribing to comments for issue: ${issueId}`);
         if (stompSubscription) {
           stompSubscription.unsubscribe();
         }
@@ -286,18 +264,14 @@ export class WebSocketService {
             (message: IMessage) => {
               try {
                 const comment = JSON.parse(message.body);
-                console.log('WS comment received:', comment);
                 subject.next(comment);
               } catch (e) {
-                console.error('Failed to parse comment WS message', e);
               }
             },
           );
         } catch (err) {
-          console.error('[WS] Subscribe failed', err);
         }
       } else {
-        console.log(`[WS] Waiting for connection to subscribe to issue: ${issueId}`);
       }
     });
 
@@ -310,7 +284,6 @@ export class WebSocketService {
         if (stompSubscription) {
           stompSubscription.unsubscribe();
         }
-        console.log(`Unsubscribed from comments for issue: ${issueId}`);
       };
     });
   }

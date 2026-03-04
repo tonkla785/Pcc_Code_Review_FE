@@ -230,7 +230,6 @@ export class SharedDataService {
             return true;
         });
 
-        console.log(`[SharedData] Removing issues for project ${projectId}. Removed: ${currentIssues.length - nextIssues.length}`);
         this.AllIssues.next(nextIssues);
     }
     private readonly selectedIssues = new BehaviorSubject<IssuesResponseDTO | null>(null);
@@ -300,7 +299,6 @@ export class SharedDataService {
     addComments(newComment: commentResponseDTO) {
         const current = this.selectIssueValue;
         if (!current) {
-            console.warn('[addComments] No selected issue in SharedData. Cannot update.');
             return;
         }
 
@@ -319,7 +317,6 @@ export class SharedDataService {
 
         // Prevent duplicates (Realtime + API response race condition)
         if (commentData.some(c => c.id === newComment.id)) {
-            console.warn('[addComments] Duplicate comment detected. Ignoring ID:', newComment.id);
             return;
         }
 
@@ -327,7 +324,6 @@ export class SharedDataService {
             ...current,
             commentData: [...commentData, newComment],
         };
-        console.log('Updated Issue with new comment:', next);
         this.selectedIssues.next(next);
     }
 
