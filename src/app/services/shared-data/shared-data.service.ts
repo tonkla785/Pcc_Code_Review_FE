@@ -299,7 +299,6 @@ export class SharedDataService {
     addComments(newComment: commentResponseDTO) {
         const current = this.selectIssueValue;
         if (!current) {
-            console.warn('[addComments] No selected issue in SharedData. Cannot update.');
             return;
         }
 
@@ -318,7 +317,6 @@ export class SharedDataService {
 
         // Prevent duplicates (Realtime + API response race condition)
         if (commentData.some(c => c.id === newComment.id)) {
-            console.warn('[addComments] Duplicate comment detected. Ignoring ID:', newComment.id);
             return;
         }
 
