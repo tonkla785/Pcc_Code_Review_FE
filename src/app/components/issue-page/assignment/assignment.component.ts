@@ -31,7 +31,7 @@ export class AssignmentComponent implements OnInit {
     if (!this.auth.isLoggedIn || !issueId) return;
     this.router.navigate(
       ['/issuedetail', issueId],
-      { queryParams: {} }     
+      { queryParams: {} }
     );
   }
   // ปุ่มย้อนกลับ
@@ -61,16 +61,13 @@ export class AssignmentComponent implements OnInit {
     const user = this.tokenStorage.getLoginUser();
     if (user) {
       this.sharedData.LoginUserShared = user;
-      console.log('Assignment Component - Loaded user from token:', user);
     }
     this.sharedData.AllIssues$.subscribe(data => {
       const all = data ?? [];
       this.originalData = all.filter(issue => issue.assignedTo?.id === user?.id);
       this.issuesAll = [...this.originalData];
-      console.log('Issues loaded Assignment from sharedData:', this.issuesAll);
     });
     if (!this.sharedData.hasIssuesCache) {
-      console.log("No cache - load from server");
       this.loadIssues();
     }
 
@@ -82,7 +79,6 @@ export class AssignmentComponent implements OnInit {
       next: (data) => {
         this.sharedData.IssuesShared = data;
         this.sharedData.setLoading(false);
-        console.log('Issues loaded:', this.sharedData.IssuesShared);
       },
       error: () => this.sharedData.setLoading(false)
     });
@@ -110,7 +106,7 @@ export class AssignmentComponent implements OnInit {
           own: item.own
         }));
       },
-      error: (err) => console.error('Error fetching assignments:', err)
+      error: (err) => { }
     });
   }
 
@@ -133,10 +129,9 @@ export class AssignmentComponent implements OnInit {
 
     this.assignService.addassign(issueId, assignedTo, dueDate).subscribe({
       next: (res) => {
-        console.log('Assigned successfully:', res);
         this.loadAssignments();
       },
-      error: (err) => console.error('Error:', err),
+      error: (err) => { },
     });
   }
 
@@ -148,7 +143,6 @@ export class AssignmentComponent implements OnInit {
     const { issueId, status, annotation } = update;
 
     if (!this.auth.isLoggedIn || !issueId) {
-      console.error('User not logged in or missing issueId');
       return;
     }
 
@@ -159,7 +153,6 @@ export class AssignmentComponent implements OnInit {
 
     this.assignService.updateStatus(userId, issueId, body).subscribe({
       next: () => {
-        console.log('Status updated successfully');
 
         this.assignModal.close();
 
@@ -171,7 +164,7 @@ export class AssignmentComponent implements OnInit {
 
 
       },
-      error: (err) => console.error('Error updating status:', err),
+      error: (err) => { },
     });
   }
 

@@ -133,7 +133,6 @@ export class RegisterComponent {
             })
             .pipe(
               catchError((e) => {
-                console.warn('Email webhook failed:', e);
                 return of(null);
               }),
             ),

@@ -46,7 +46,6 @@ export class TechnicalDebtService {
             next: (data: ScanResponseDTO[]) => {
                 this.sharedData.Scans = data;
             },
-            error: (err: any) => console.error('[TechnicalDebtService] Failed to refetch history', err)
         });
     }
 

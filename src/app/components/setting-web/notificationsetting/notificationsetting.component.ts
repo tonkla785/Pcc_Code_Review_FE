@@ -59,7 +59,6 @@ export class NotificationsettingComponent implements OnInit, OnDestroy {
           system: data.systemEnabled,
           reports: data.reportsEnabled,
         };
-        console.log('[NotificationSettings] Loaded from SharedData:', this.settings);
       }
       // If data is null, keep current settings (don't override with defaults)
     });
@@ -95,7 +94,6 @@ export class NotificationsettingComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.saving = false;
-        console.error('Failed to save notification settings:', err);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -114,7 +112,6 @@ export class NotificationsettingComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.loading = false;
-        console.error('Failed to load notification settings:', err);
         // Use default values on error
         this.settings = {
           scans: true,
