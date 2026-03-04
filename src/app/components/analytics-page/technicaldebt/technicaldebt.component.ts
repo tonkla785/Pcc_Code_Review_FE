@@ -1,5 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
-import { interval, Subscription } from 'rxjs';
+import { Component } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,7 +7,7 @@ import { DebtTimePipe } from '../../../pipes/debt-time.pipe';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
-import { ScanService } from '../../../services/scanservice/scan.service';
+
 
 import { TechnicalDebtDataService, Priority, DebtItem } from '../../../services/shared-data/technicaldebt-data.service';
 
@@ -32,7 +31,7 @@ interface CategoryShare {
   templateUrl: './technicaldebt.component.html',
   styleUrl: './technicaldebt.component.css'
 })
-export class TechnicaldebtComponent implements OnDestroy {
+export class TechnicaldebtComponent {
 
 
   // Meta (matches your text)
@@ -63,7 +62,6 @@ export class TechnicaldebtComponent implements OnDestroy {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
-    private readonly scanService: ScanService,
     private readonly techDebtDataService: TechnicalDebtDataService,
     private readonly location: Location,
   ) { }
@@ -93,44 +91,21 @@ export class TechnicaldebtComponent implements OnDestroy {
   debtChartOptions: ApexOptions = {};
 
   ScanHistoy: ScanResponseDTO[] = [];
-  pollSubscription: Subscription = new Subscription();
 
   ngOnInit(): void {
-    this.sharedData.scansHistory$.subscribe(data => {
-      this.ScanHistoy = this.latestScanPerProject(data ?? []);
-      this.calculateTotalDebt();
-      this.calculateProjectDebts();
-    });
-
-    // Initial Load
-    this.loadScanHistory();
-
-    // Poll every 30 seconds
-    this.pollSubscription = interval(30000).subscribe(() => {
-      this.loadScanHistory();
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.pollSubscription) {
-      this.pollSubscription.unsubscribe();
+    if (!this.authService.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
     }
-  }
 
-  loadScanHistory() {
-    this.sharedData.setLoading(true);
-    this.scanService.getScansHistory().subscribe({
-      next: (data) => {
-        this.sharedData.Scans = data;
-        this.sharedData.setLoading(false);
-        this.ScanHistoy = this.latestScanPerProject(data);
-        this.calculateTotalDebt();
-        this.calculateCategoryDebt();
-        this.calculateDebtTrend(data); // Pass full history
-        this.calculateProjectDebts();
-        this.calculateTopDebtProjects();
-      },
-      error: () => this.sharedData.setLoading(false)
+    this.sharedData.scansHistory$.subscribe(data => {
+      const allScans = data ?? [];
+      this.ScanHistoy = this.latestScanPerProject(allScans);
+      this.calculateTotalDebt();
+      this.calculateCategoryDebt();
+      this.calculateDebtTrend(allScans);
+      this.calculateProjectDebts();
+      this.calculateTopDebtProjects();
     });
   }
 
