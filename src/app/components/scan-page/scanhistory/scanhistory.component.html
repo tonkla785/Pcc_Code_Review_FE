@@ -136,11 +136,11 @@
               </span>
               <span *ngIf="scan.metrics?.coverage !== undefined" title="Coverage"
                 class="d-flex align-items-center gap-1">
-                <i class="bi bi-graph-up text-success"></i> {{scan.metrics?.coverage}}%
+                <i class="bi bi-graph-up text-success"></i> {{scan.metrics?.coverage | number: '1.0-2'}}%
               </span>
               <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined" title="Duplications"
                 class="d-flex align-items-center gap-1">
-                <i class="bi bi-files text-secondary"></i> {{scan.metrics?.duplicatedLinesDensity}}%
+                <i class="bi bi-files text-secondary"></i> {{scan.metrics?.duplicatedLinesDensity | number: '1.0-2'}}%
               </span>
             </div>
           </td>
@@ -313,7 +313,7 @@
                     'bg-success-subtle text-success': diff < 0,
                     'bg-danger-subtle text-danger': diff > 0
                   }">
-                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff | number: '1.0-2' }}
                 </span>
               </ng-container>
               <ng-template #showZeroBugs>
@@ -343,7 +343,7 @@
                     'bg-success-subtle text-success': diff < 0,
                     'bg-danger-subtle text-danger': diff > 0
                   }">
-                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff | number: '1.0-2' }}
                 </span>
               </ng-container>
               <ng-template #showZeroSmells>
@@ -364,7 +364,7 @@
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
               <span class="badge bg-success-subtle text-success px-3 py-2">
-                {{ scan.metrics?.coverage ?? 0 }}%
+                {{ (scan.metrics?.coverage ?? 0) | number: '1.0-2' }}%
               </span>
             </td>
             <td class="text-center pe-3">
@@ -373,7 +373,7 @@
                     'bg-success-subtle text-success': diff > 0,
                     'bg-danger-subtle text-danger': diff < 0
                   }">
-                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}%
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff | number: '1.0-2' }}%
                 </span>
               </ng-container>
               <ng-template #showZeroCoverage>
@@ -394,7 +394,7 @@
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
               <span class="badge bg-info-subtle text-info px-3 py-2">
-                {{ scan.metrics?.duplicatedLinesDensity ?? 0 }}%
+                {{ (scan.metrics?.duplicatedLinesDensity ?? 0) | number: '1.0-2' }}%
               </span>
             </td>
             <td class="text-center pe-3">
@@ -403,7 +403,7 @@
                     'bg-success-subtle text-success': diff < 0,
                     'bg-danger-subtle text-danger': diff > 0
                   }">
-                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff }}%
+                  {{ diff > 0 ? '▲ +' : '▼ ' }}{{ diff | number: '1.0-2' }}%
                 </span>
               </ng-container>
               <ng-template #showZeroDuplications>
