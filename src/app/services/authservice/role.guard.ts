@@ -1,9 +1,10 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
+import { jwtDecode } from 'jwt-decode';
 
 /**
- * Role Guard - ตรวจสอบ role ของผู้ใช้ก่อนเข้าถึง route
+ * Role Guard - ตรวจสอบ role ของผู้ใช้จาก JWT token ก่อนเข้าถึง route
  * @param allowedRoles - array ของ roles ที่อนุญาต เช่น ['ADMIN']
  */
 export function roleGuard(allowedRoles: string[]): CanActivateFn {
@@ -11,20 +12,32 @@ export function roleGuard(allowedRoles: string[]): CanActivateFn {
         const tokenStorage = inject(TokenStorageService);
         const router = inject(Router);
 
-        // ตรวจสอบว่า login อยู่หรือไม่
-        if (!tokenStorage.hasToken()) {
+        const token = tokenStorage.getAccessToken();
+
+        // ตรวจสอบว่ามี Token หรือไม่
+        if (!token) {
             router.navigate(['/login']);
             return false;
         }
 
-        // ดึง role จาก localStorage ที่เก็บตอน login
-        const loginUser = tokenStorage.getLoginUser();
+        try {
+            // ถอดรหัส Token ด้วย jwtDecode เพื่อเอา Role จาก Payload ยืนยัน
+            const decodedToken: any = jwtDecode(token);
 
-        if (loginUser && allowedRoles.includes(loginUser.role)) {
-            return true;
-        } else {
-            // ถ้า role ไม่ตรง redirect ไป dashboard
-            router.navigate(['/dashboard']);
+            // เช็ค key ให้ตรงกับที่ backend ส่ง role ออกมา
+            const userRole = decodedToken.role || decodedToken.roles || decodedToken.authority;
+
+            if (userRole && allowedRoles.includes(userRole)) {
+                return true;
+            } else {
+                // ถ้า Role ไม่ตรงตามที่ผ่าน redirect ไป dashboard
+                router.navigate(['/dashboard']);
+                return false;
+            }
+        } catch (error) {
+            // กรณี Token ผิดรูปแบบ หรือ ถูกผู้ใช้ไปแก้จนพัง
+            tokenStorage.clear();
+            router.navigate(['/login']);
             return false;
         }
     };
