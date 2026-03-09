@@ -164,8 +164,12 @@
             <div class="ai-badge">
               <i class="bi bi-stars"></i> AI Optimized
             </div>
-            <div class="ai-content">
-              {{ issuesDetails?.recommendedFixByAi }}
+            <div class="ai-content markdown-body" [innerHTML]="issuesDetails?.recommendedFixByAi | markdown">
+            </div>
+            <div class="ai-download-bar">
+              <button class="btn-download-md" (click)="downloadMarkdown()">
+                <i class="bi bi-download"></i> Download .md
+              </button>
             </div>
           </div>
 

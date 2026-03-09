@@ -18,6 +18,7 @@ import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../..
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { IssuesDetailResponseDTO, IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
 import { commentRequestDTO, commentResponseDTO } from '../../../interface/comment_interface';
+import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 type SortOrder = 'ASC' | 'DESC';
 interface Attachment { filename: string; url: string; }
 interface IssueComment {
@@ -49,7 +50,7 @@ const isUUID = (s: string) =>
 @Component({
   selector: 'app-issuedetail',
   standalone: true,
-  imports: [CommonModule, FormsModule, IssuemodalComponent],
+  imports: [CommonModule, FormsModule, IssuemodalComponent, MarkdownPipe],
   templateUrl: './issuedetail.component.html',
   styleUrl: './issuedetail.component.css',
 })
@@ -109,17 +110,14 @@ export class IssuedetailComponent implements OnInit {
     this.sharedData.AllUser$.subscribe(data => {
       this.UserData = data ?? [];
       // this.applyFilter();
-      console.log('User loaded Modal from sharedData in issuedetail:', data);
     });
     if (!this.sharedData.hasUserCache) {
       this.loadUser();
-      console.log("No cache - load from server");
     }
     this.route.paramMap.subscribe(pm => {
       const id = pm.get('issuesId');
       if (!id) return;
 
-      console.log('issuesId from route:', id);
       const cached = this.sharedData.selectIssueValue;
       const isSame = cached?.id === id;
 
@@ -128,7 +126,6 @@ export class IssuedetailComponent implements OnInit {
         this.isAiLoading = false;
         this.loadIssueDetails(id);
         this.loadIssueById(id);
-        console.log('Same')
       } else {
         this.issuesResult = cached;
         this.issuesDetails = this.sharedData.selectIssueDetailValue;
@@ -138,13 +135,11 @@ export class IssuedetailComponent implements OnInit {
         }
         this.applyUserFilter();
         this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
-        console.log("Not Same")
       }
     });
 
     this.sharedData.selectedIssues$.subscribe(data => {
       this.issuesResult = data;
-      console.log('Issues Detail from sharedData:', this.issuesResult);
       this.replycomment(this.issuesResult?.commentData ?? []); // Update rootComments for empty state check
       this.applyUserFilter();
       this.sortedComments = this.sortComments(this.issuesResult?.commentData ?? [], 'ASC');
@@ -163,7 +158,6 @@ export class IssuedetailComponent implements OnInit {
     }
     this.sharedData.LoginUser$.subscribe(data => {
       this.UserLogin = data;
-      console.log('User Login in Issues:', this.UserLogin);
 
     });
 
@@ -178,7 +172,6 @@ export class IssuedetailComponent implements OnInit {
     // Subscribe to issue changes (WebSocket) for AI recommend fix updates
     this.issueSub = this.ws.subscribeIssueChanges().subscribe(event => {
       if (event.action === 'UPDATED' && event.issueId === this.issuesResult?.id) {
-        console.log('[Issuedetail] Issue updated via WS, re-fetching details...');
         this.loadIssueDetails(this.issuesResult.id);
       }
     });
@@ -194,15 +187,13 @@ export class IssuedetailComponent implements OnInit {
     }
 
     const topicId = issueId.toLowerCase();
-    console.log('[Issuedetail] Subscribing to comments for:', topicId);
 
     this.commentSub = this.ws.subscribeToIssueComments(topicId).subscribe({
       next: (comment: any) => {
-        console.log('Real-time comment received:', comment);
         // Add to SharedData to update UI
         this.sharedData.addComments(comment);
       },
-      error: (err: any) => console.error('WS comment error:', err)
+      error: (err: any) => { }
     });
   }
 
@@ -222,7 +213,6 @@ export class IssuedetailComponent implements OnInit {
         this.sharedData.SelectedIssues = data;
         this.sharedData.setLoading(false);
         this.replycomment(this.issuesResult?.commentData ?? []);
-        console.log('IssuesById loaded:', data);
         this.applyUserFilter();
       },
       error: () => this.sharedData.setLoading(false)
@@ -234,7 +224,6 @@ export class IssuedetailComponent implements OnInit {
         this.sharedData.SelectedIssueDetail = data;
         this.sharedData.setLoading(false);
         this.issuesDetails = data;
-        console.log('Issues Detail loaded:', data);
 
         // Set loading based on actual status from DB
         if (data.status === 'PENDING') {
@@ -255,7 +244,6 @@ export class IssuedetailComponent implements OnInit {
       next: (data) => {
         this.sharedData.UserShared = data;
         this.sharedData.setLoading(false);
-        console.log('User loaded Modal:', data);
       },
       error: () => this.sharedData.setLoading(false)
     });
@@ -267,8 +255,6 @@ export class IssuedetailComponent implements OnInit {
     this.filteredUsers = this.UserData.filter(u =>
       this.issuesResult?.commentData?.some(c => c.user.id === u.id)
     );
-
-    console.log('Filtered Users:', this.filteredUsers);
   }
   sortComments(list: commentResponseDTO[], order: string) {
     // 1. Deduplicate by ID to ensure UI never doubless
@@ -306,11 +292,9 @@ export class IssuedetailComponent implements OnInit {
 
     this.issesService.triggerRecommendFixAi(projectId, issueId).subscribe({
       next: (res) => {
-        console.log('AI fix triggered, status:', res.message);
         // Keep loading state - will be cleared when WebSocket event arrives and status is SUCCESS
       },
       error: (err) => {
-        console.error('Failed to trigger AI fix:', err);
         this.isAiLoading = false;
         // Revert status in SharedData
         if (this.issuesDetails) {
@@ -323,7 +307,6 @@ export class IssuedetailComponent implements OnInit {
 
   /* ===================== Mapper (BE -> FE) ===================== */
   private toIssue(r: ApiIssue): Issue {
-    console.log('Raw API issue:', r);
     return {
       id: (r as any).id ?? r.issueId ?? '',
       type: (r as any).type ?? 'Issue',
@@ -387,7 +370,7 @@ export class IssuedetailComponent implements OnInit {
       next: (list: IssueCommentModel[]) => {
         this.comments = (list ?? []).map((x: IssueCommentModel) => this.mapComment(x));
       },
-      error: (e: unknown) => console.error('loadComments error:', e),
+      error: (e: unknown) => { },
       complete: () => (this.loadingComments = false),
     });
   }
@@ -415,8 +398,6 @@ export class IssuedetailComponent implements OnInit {
       },
       error: (err) => {
         this.sendingComment = false;
-        console.error('Update comment failed:', err);
-        console.error('Payload was:', payload);
       }
     });
   }
@@ -476,9 +457,8 @@ export class IssuedetailComponent implements OnInit {
     ).subscribe({
       next: (res: any) => {
         this.sharedData.updateIssueSelect({ ...res, id: this.issue.id });
-        console.log('Assigned successfully:', res);
       },
-      error: (err: any) => console.error('Error:', err),
+      error: (err: any) => { },
     });
   }
 
@@ -501,7 +481,6 @@ export class IssuedetailComponent implements OnInit {
   //   }
 
   //   this.assignModal.openStatus(issue, nextStatus);
-  //   console.log('🟩 openStatus called with:', issue.status, '->', nextStatus);
   // }
 
   handleStatusSubmit(updated: { id?: string, issueId?: string, status: Issue['status'], annotation?: string }) {
@@ -511,7 +490,6 @@ export class IssuedetailComponent implements OnInit {
     const prevStatus = this.issue.status;
 
     if (!this.auth.isLoggedIn) {
-      console.error('User not logged in');
       return;
     }
 
@@ -531,11 +509,9 @@ export class IssuedetailComponent implements OnInit {
           assignedTo: res.assignedTo ?? this.issue.assignedTo,
           dueDate: res.dueDate ?? this.issue.dueDate
         };
-        console.log('Status updated successfully:', this.issue.status);
         this.assignModal.close();
       },
       error: (err: any) => {
-        console.error('Error updating status:', err);
         this.issue = { ...this.issue, status: prevStatus }; // rollback
       }
     });
@@ -546,13 +522,63 @@ export class IssuedetailComponent implements OnInit {
     } else {
       this.replyTo = { commentId: c.id, username: c.user?.username, parentCommentId: c.parentCommentId || '' };
       this.newComment = { comment: `@${this.replyTo?.username} `, parentCommentId: this.replyTo.commentId };
-      console.log('Replying to comment:', this.replyTo);
     }
   }
   cancelReply() {
     this.replyTo = null;
     this.newComment = { comment: '' };
   }
+
+  downloadMarkdown() {
+    if (!this.issuesDetails?.recommendedFixByAi) return;
+
+    let content = this.issuesDetails.recommendedFixByAi.trim();
+
+    if (content.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.recommendedFixAi) {
+          content = parsed.recommendedFixAi;
+        }
+      } catch {
+        try {
+          const normalized = content
+            .replace(/\\n/g, '\n');
+          const parsed2 = JSON.parse(normalized);
+          if (parsed2.recommendedFixAi) {
+            content = parsed2.recommendedFixAi;
+          }
+        } catch {
+          const match = content.match(/"recommendedFixAi"\s*:\s*"([\s\S]*?)"(?:\\n|\s)*\}?\s*$/);
+          if (match && match[1]) {
+            content = match[1];
+          }
+        }
+      }
+    }
+
+    content = content
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '\r')
+      .replace(/\\t/g, '\t')
+      .replace(/\\"/g, '"');
+
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    const issueKey = this.issuesResult?.id || 'Recommendation';
+    const filename = `AI_Fix_ID_${issueKey}.md`;
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  }
+
   private replycomment(comments: commentResponseDTO[]) {
     this.rootComments = [];
     this.replies.clear();

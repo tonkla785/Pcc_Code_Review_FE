@@ -126,14 +126,14 @@ export class AnalysisComponent implements OnInit, OnDestroy {
           this.sharedData.setSecurityIssues(issues);
           this.securityService.calculateAndStore(issues);
         },
-        error: (err) => console.error('Failed to load security data:', err)
+        error: (err) => { }
       });
     }
 
     if (!this.sharedData.hasScansHistoryCache) {
       this.scanService.getScansHistory().subscribe({
         next: (data) => this.sharedData.Scans = data,
-        error: (err) => console.error('Failed to load scan history', err)
+        error: (err) => { }
       });
     }
   }

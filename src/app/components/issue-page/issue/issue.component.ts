@@ -71,16 +71,13 @@ export class IssueComponent {
   ngOnInit(): void {
     if (!this.sharedData.hasUserCache) {
       this.loadUser();
-      console.log("No cache - load from server");
     }
     this.sharedData.AllUser$.subscribe(data => {
       this.UserData = data ?? [];
       // this.applyFilter();
-      console.log('User loaded Modal from sharedData:', data);
     });
     if (!this.sharedData.hasIssuesCache) {
       this.loadIssues();
-      console.log("No cache - load from server");
     }
     this.sharedData.AllIssues$.subscribe(data => {
       this.originalData = data || [];
@@ -89,11 +86,9 @@ export class IssueComponent {
     });
     if (!this.sharedData.hasRepositoriesCache) {
       this.loadRepositories();
-      console.log("No cache - load from server");
     }
     this.sharedData.repositories$.subscribe((repos) => {
       this.repositories = repos;
-      console.log('Repositories loaded from sharedData:', this.repositories);
     });
     this.route.queryParams.subscribe(params => {
       this.currentPage = +params['page'] || 1;
@@ -107,7 +102,6 @@ export class IssueComponent {
       next: (data) => {
         this.sharedData.IssuesShared = data;
         this.sharedData.setLoading(false);
-        console.log('Issues loaded:',);
       },
       error: () => this.sharedData.setLoading(false)
     });
@@ -118,7 +112,6 @@ export class IssueComponent {
       next: (data) => {
         this.sharedData.UserShared = data;
         this.sharedData.setLoading(false);
-        console.log('User loaded Modal:', data);
       },
       error: () => this.sharedData.setLoading(false)
     });
@@ -132,10 +125,8 @@ export class IssueComponent {
         // เก็บข้อมูลลง SharedDataService
         this.sharedData.setRepositories(repos);
         this.sharedData.setLoading(false);
-        console.log('Repositories loaded:', repos);
       },
       error: (err) => {
-        console.error('Failed to load repositories:', err);
         this.sharedData.setLoading(false);
       },
     });
@@ -312,7 +303,7 @@ export class IssueComponent {
   //         row.assignee = `@${dev}`;
   //         ok++;
   //       },
-  //       error: (e) => console.error('assign failed', e)
+  //       error: (e) => {}
   //     });
   //   });
 
@@ -358,13 +349,11 @@ export class IssueComponent {
     forkJoin(reqs).subscribe({
       next: (results) => {
         this.sharedData.updateIssues(results)
-        console.log('Assign successful for all selected issues:', results);
         this.selectedIdsForAssign = [];
         this.savingAssign = false;
         this.closeAssignModal();
       },
       error: (err) => {
-        console.error('Assign failed:', err);
         this.savingAssign = false;
       }
     });

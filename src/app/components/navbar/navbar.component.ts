@@ -4,6 +4,7 @@ import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/authservice/auth.service';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
 import Swal from 'sweetalert2';
+import { jwtDecode } from 'jwt-decode';
 
 interface SubmenuItem {
   label: string;
@@ -83,10 +84,18 @@ export class NavbarComponent implements OnInit {
     // ไม่ต้องเรียก API - ใช้ข้อมูลจาก localStorage ที่เก็บตอน login แทน
   }
 
-  // ตรวจสอบว่าเป็น ADMIN หรือไม่ - ดึงจาก localStorage
+  // ตรวจสอบว่าเป็น ADMIN หรือไม่ - ดึงจาก JWT token แทน localStorage
   get isAdmin(): boolean {
-    const loginUser = this.tokenStorage.getLoginUser();
-    return loginUser?.role === 'ADMIN';
+    const token = this.tokenStorage.getAccessToken();
+    if (!token) return false;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      const userRole = decoded.role || decoded.roles || decoded.authority;
+      return userRole === 'ADMIN';
+    } catch {
+      return false;
+    }
   }
 
   toggleNavbar() {

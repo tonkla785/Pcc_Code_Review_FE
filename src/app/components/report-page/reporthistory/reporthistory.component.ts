@@ -79,7 +79,6 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
         this.currentPage = 1;
       },
       error: (err) => {
-        console.error('Search failed:', err);
       }
     });
     this.subscriptions.push(searchSub);
@@ -169,7 +168,6 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
           break;
       }
     } catch (error) {
-      console.error('Error downloading report:', error);
       this.snack.open('Error downloading report', '', {
         duration: 2000,
         horizontalPosition: 'right',

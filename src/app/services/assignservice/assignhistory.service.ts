@@ -16,7 +16,7 @@ export interface AssignHistory {
   status: string;
   dueDate: string | null;
   annotation: string;
-  own : boolean;
+  own: boolean;
 }
 export interface UpdateStatusRequest {
   status: string;
@@ -42,33 +42,29 @@ export class AssignhistoryService {
   }
 
 
-addassign(issueId: string, assignedTo: string, dueDate: string) {
-  const body = {
-    assignTo: assignedTo,
-    dueDate: dueDate
-  };
-  return this.http.put(`${this.baseissue}/assign/${issueId}`, body);
-}
+  addassign(issueId: string, assignedTo: string, dueDate: string) {
+    const body = {
+      assignTo: assignedTo,
+      dueDate: dueDate
+    };
+    return this.http.put(`${this.baseissue}/assign/${issueId}`, body);
+  }
 
 
 
 
 
 
- getAllAssign(userId: string): Observable<AssignHistory[]> {
-  return this.http.get<AssignHistory[]>(`${this.baseassign}/${userId}`)
-    .pipe(
-      tap(data => console.log("Received data:", data)) // <-- log here
+  getAllAssign(userId: string): Observable<AssignHistory[]> {
+    return this.http.get<AssignHistory[]>(`${this.baseassign}/${userId}`);
+  }
+
+  updateStatus(userId: string, issueId: string, body: UpdateStatusRequest) {
+    return this.http.put<AssignHistory[]>(
+      `${this.baseassign}/update/${userId}/${issueId}`,
+      body,
     );
-}
-
-updateStatus(userId: string, issueId: string, body: UpdateStatusRequest) {
-  console.log(body);
-  return this.http.put<AssignHistory[]>(
-    `${this.baseassign}/update/${userId}/${issueId}`, 
-    body,
-  );
-}
+  }
 
 
 

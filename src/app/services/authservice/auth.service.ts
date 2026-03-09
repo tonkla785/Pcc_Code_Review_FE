@@ -95,7 +95,6 @@ export class AuthService {
       const decoded = JSON.parse(atob(payload));
       return decoded.sub || decoded.userId || null;
     } catch (e) {
-      console.error('Failed to decode token:', e);
       return null;
     }
   }

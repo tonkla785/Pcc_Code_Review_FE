@@ -97,8 +97,7 @@ export class AddrepositoryComponent implements OnInit {
       this.repositoryService.getAllRepo().subscribe({
         next: (repos) => {
           this.sharedData.setRepositories(repos);
-        },
-        error: (err) => console.error('Failed to load repositories for validation', err)
+        }
       });
     }
   }
@@ -133,8 +132,7 @@ export class AddrepositoryComponent implements OnInit {
 
         // Edit Mode: Use existing Project Key from DB
         this.sonarConfig.projectKey = this.gitRepository.sonarProjectKey || '';
-      },
-      error: (err) => console.error('Failed to load repository', err),
+      }
     });
   }
 

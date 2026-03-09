@@ -154,7 +154,6 @@ export class DetailrepositoryComponent implements OnInit {
           this.sharedData.IssuesShared = data; // อัปเดตข้อมูลลง SharedData
           // Subscription ด้านล่างจะได้รับข้อมูลชุดนี้อัตโนมัติ
         },
-        error: (err: any) => console.error('load all issues failed:', err)
       });
     }
 

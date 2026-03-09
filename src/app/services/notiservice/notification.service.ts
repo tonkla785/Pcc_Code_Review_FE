@@ -50,13 +50,11 @@ export class NotificationService {
         };
         this.notificationData.addNotification(notification);
       },
-      error: (err) => console.error('WebSocket notification error:', err)
     });
 
     // Global notifications (broadcast to all users: scan complete, quality gate failed, new issues)
     this.webSocketService.subscribeGlobalNotifications().subscribe({
       next: (event: NotificationEvent) => {
-        console.log('Global notification received:', event);
         // Add global notification to shared data for all users
         const notification: Notification = {
           id: event.id,
@@ -77,7 +75,6 @@ export class NotificationService {
           this.notificationData.addNotification(notification);
         }
       },
-      error: (err) => console.error('WebSocket global notification error:', err)
     });
   }
 
@@ -208,14 +205,12 @@ export class NotificationService {
             isBroadcast: true
           }).subscribe({
             error: (err) => {
-              console.error('Failed to create notification:', err);
               // On error, remove from cache so we can retry later if needed
               this.notifiedIssueIds.delete(issue.id);
             }
           });
         }
       },
-      error: (err) => console.error('Failed to load notifications:', err)
     });
   }
 
@@ -244,7 +239,6 @@ export class NotificationService {
     // Quick check: skip if all failed scans are already in local cache
     const uncached = failedScans.filter(s => !this.notifiedQualityGateScanIds.has(s.id));
     if (!uncached.length) {
-      console.log('No new quality gate failures to notify (local cache)');
       return;
     }
 
@@ -265,7 +259,6 @@ export class NotificationService {
         );
 
         if (!newFailedScans.length) {
-          console.log('No new quality gate failures to notify');
           this._qgInProgress = false;
           return;
         }
@@ -287,12 +280,10 @@ export class NotificationService {
             isBroadcast: true // Broadcast quality gate failures to all users
           }).subscribe({
             next: () => {
-              console.log(`Quality Gate notification created for scan: ${scan.id}`);
               completed++;
               if (completed >= newFailedScans.length) this._qgInProgress = false;
             },
             error: (err) => {
-              console.error('Failed to create notification:', err);
               // On error, remove from cache so we can retry later
               this.notifiedQualityGateScanIds.delete(scan.id);
               completed++;
@@ -302,7 +293,6 @@ export class NotificationService {
         }
       },
       error: (err) => {
-        console.error('Failed to load notifications:', err);
         this._qgInProgress = false;
       }
     });

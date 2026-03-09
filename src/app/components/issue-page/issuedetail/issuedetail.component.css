@@ -1107,6 +1107,36 @@
   line-height: 1.6;
 }
 
+.ai-download-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(63, 170, 232, 0.25);
+}
+
+.btn-download-md {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #5a7bab;
+  background: transparent;
+  border: 1px solid #a0bcd8;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-download-md:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3);
+}
+
 /* Footer / Action */
 .card-footer-clean {
   padding: 0 1.5rem 1.5rem;
@@ -1195,6 +1225,21 @@
 
 :host-context(.dark-mode) .ai-content {
   color: #e2e8f0;
+}
+
+:host-context(.dark-mode) .ai-download-bar {
+  border-top-color: rgba(59, 130, 246, 0.2);
+}
+
+:host-context(.dark-mode) .btn-download-md {
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+:host-context(.dark-mode) .btn-download-md:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
 }
 
 :host-context(.dark-mode) .card-footer-clean {
@@ -1423,6 +1468,14 @@
 
 :host-context(.dark-mode) .comment-input::placeholder {
   color: #6b7280;
+}
+
+:host-context(.dark-mode) ::ng-deep .markdown-body h1,
+:host-context(.dark-mode) ::ng-deep .markdown-body h2,
+:host-context(.dark-mode) ::ng-deep .markdown-body h3,
+:host-context(.dark-mode) ::ng-deep .markdown-body h4,
+:host-context(.dark-mode) ::ng-deep .markdown-body h5 {
+  color: #f8fafc !important;
 }
 
 .ai-loading-box {
@@ -1829,4 +1882,65 @@
   to {
     transform: translate(-50%, 2.5em);
   }
+}
+
+/* ========================
+   Markdown Body Styles
+   ======================== */
+::ng-deep .markdown-body {
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: inherit;
+}
+
+::ng-deep .markdown-body p {
+  margin-bottom: 1rem;
+}
+
+::ng-deep .markdown-body pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  border: 1px solid #333;
+}
+
+::ng-deep .markdown-body code {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85em;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+::ng-deep .markdown-body pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+::ng-deep .markdown-body ul,
+::ng-deep .markdown-body ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+::ng-deep .markdown-body li {
+  margin-bottom: 0.25rem;
+}
+
+::ng-deep .markdown-body h1,
+::ng-deep .markdown-body h2,
+::ng-deep .markdown-body h3,
+::ng-deep .markdown-body h4,
+::ng-deep .markdown-body h5 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #212529;
 }
