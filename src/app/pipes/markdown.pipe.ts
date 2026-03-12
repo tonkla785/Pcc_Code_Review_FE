@@ -12,16 +12,13 @@ export class MarkdownPipe implements PipeTransform {
 
         let content = value.trim();
 
-        // Handle case where the full JSON object is stored e.g. {\n "recommendedFixAi": "..."}
         if (content.startsWith('{')) {
-            // Step 1: try JSON.parse directly
             try {
                 const parsed = JSON.parse(content);
                 if (parsed.recommendedFixAi) {
                     content = parsed.recommendedFixAi;
                 }
             } catch {
-                // Step 2: literal \n in the JSON structure makes it invalid — normalize then re-parse
                 try {
                     const normalized = content.replace(/\\n/g, '\n');
                     const parsed2 = JSON.parse(normalized);
@@ -29,7 +26,6 @@ export class MarkdownPipe implements PipeTransform {
                         content = parsed2.recommendedFixAi;
                     }
                 } catch {
-                    // Step 3: last resort regex extraction
                     const match = content.match(/"recommendedFixAi"\s*:\s*"([\s\S]*?)"(?:\\n|\s)*\}?\s*$/);
                     if (match && match[1]) {
                         content = match[1];
@@ -38,17 +34,38 @@ export class MarkdownPipe implements PipeTransform {
             }
         }
 
-        // Unescape any remaining literal \n, \r, \t sequences
         content = content
             .replace(/\\n/g, '\n')
             .replace(/\\r/g, '\r')
             .replace(/\\t/g, '\t')
             .replace(/\\"/g, '"');
 
-        // Parse markdown to HTML
+        content = this.sanitizeMarkdown(content);
+
         const html = marked.parse(content) as string;
 
-        // Sanitize HTML to prevent XSS
         return DOMPurify.sanitize(html);
+    }
+
+    private sanitizeMarkdown(md: string): string {
+        let s = md;
+
+        s = s.replace(/"```/g, '\n```');
+        s = s.replace(/```"/g, '```\n');
+
+        s = s.replace(/([^\n])```(\w*)/g, '$1\n```$2');
+
+        s = s.replace(/([^\n])```(\s*\n|$)/g, '$1\n```$2');
+
+        s = s.replace(/([^\n#])(#{1,5}\s)/g, '$1\n$2');
+
+        s = s.replace(/```\s*```/g, '```');
+
+        s = s.replace(/^\s*\{\s*"recommendedFixAi"\s*:\s*"?/i, '');
+        s = s.replace(/"?\s*\}\s*$/, '');
+
+         s = s.replace(/\n{3,}/g, '\n\n');
+
+        return s.trim();
     }
 }
