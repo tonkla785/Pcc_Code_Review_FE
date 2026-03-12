@@ -532,6 +532,9 @@ export class IssuedetailComponent implements OnInit {
   downloadMarkdown() {
     if (!this.issuesDetails?.recommendedFixByAi) return;
 
+<<<<<<< HEAD
+    const content = MarkdownPipe.extractCleanMarkdown(this.issuesDetails.recommendedFixByAi);
+=======
     let content = this.issuesDetails.recommendedFixByAi.trim();
 
     if (content.startsWith('{')) {
@@ -562,6 +565,7 @@ export class IssuedetailComponent implements OnInit {
       .replace(/\\r/g, '\r')
       .replace(/\\t/g, '\t')
       .replace(/\\"/g, '"');
+>>>>>>> main
 
     const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
