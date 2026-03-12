@@ -532,40 +532,7 @@ export class IssuedetailComponent implements OnInit {
   downloadMarkdown() {
     if (!this.issuesDetails?.recommendedFixByAi) return;
 
-<<<<<<< HEAD
     const content = MarkdownPipe.extractCleanMarkdown(this.issuesDetails.recommendedFixByAi);
-=======
-    let content = this.issuesDetails.recommendedFixByAi.trim();
-
-    if (content.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(content);
-        if (parsed.recommendedFixAi) {
-          content = parsed.recommendedFixAi;
-        }
-      } catch {
-        try {
-          const normalized = content
-            .replace(/\\n/g, '\n');
-          const parsed2 = JSON.parse(normalized);
-          if (parsed2.recommendedFixAi) {
-            content = parsed2.recommendedFixAi;
-          }
-        } catch {
-          const match = content.match(/"recommendedFixAi"\s*:\s*"([\s\S]*?)"(?:\\n|\s)*\}?\s*$/);
-          if (match && match[1]) {
-            content = match[1];
-          }
-        }
-      }
-    }
-
-    content = content
-      .replace(/\\n/g, '\n')
-      .replace(/\\r/g, '\r')
-      .replace(/\\t/g, '\t')
-      .replace(/\\"/g, '"');
->>>>>>> main
 
     const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
