@@ -116,7 +116,7 @@ export class IssuemodalComponent {
       }
     });
   }
-
+  
   closeModal() {
     this.showAssign = false;
     this.showStatus = false;

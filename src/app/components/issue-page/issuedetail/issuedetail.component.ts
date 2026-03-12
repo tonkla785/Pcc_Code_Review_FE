@@ -18,6 +18,7 @@ import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../..
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { IssuesDetailResponseDTO, IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_interface';
 import { commentRequestDTO, commentResponseDTO } from '../../../interface/comment_interface';
+import { MarkdownPipe } from '../../../pipes/markdown.pipe';
 type SortOrder = 'ASC' | 'DESC';
 interface Attachment { filename: string; url: string; }
 interface IssueComment {
@@ -49,7 +50,7 @@ const isUUID = (s: string) =>
 @Component({
   selector: 'app-issuedetail',
   standalone: true,
-  imports: [CommonModule, FormsModule, IssuemodalComponent],
+  imports: [CommonModule, FormsModule, IssuemodalComponent, MarkdownPipe],
   templateUrl: './issuedetail.component.html',
   styleUrl: './issuedetail.component.css',
 })
@@ -527,6 +528,57 @@ export class IssuedetailComponent implements OnInit {
     this.replyTo = null;
     this.newComment = { comment: '' };
   }
+
+  downloadMarkdown() {
+    if (!this.issuesDetails?.recommendedFixByAi) return;
+
+    let content = this.issuesDetails.recommendedFixByAi.trim();
+
+    if (content.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.recommendedFixAi) {
+          content = parsed.recommendedFixAi;
+        }
+      } catch {
+        try {
+          const normalized = content
+            .replace(/\\n/g, '\n');
+          const parsed2 = JSON.parse(normalized);
+          if (parsed2.recommendedFixAi) {
+            content = parsed2.recommendedFixAi;
+          }
+        } catch {
+          const match = content.match(/"recommendedFixAi"\s*:\s*"([\s\S]*?)"(?:\\n|\s)*\}?\s*$/);
+          if (match && match[1]) {
+            content = match[1];
+          }
+        }
+      }
+    }
+
+    content = content
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '\r')
+      .replace(/\\t/g, '\t')
+      .replace(/\\"/g, '"');
+
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    const issueKey = this.issuesResult?.id || 'Recommendation';
+    const filename = `AI_Fix_ID_${issueKey}.md`;
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  }
+
   private replycomment(comments: commentResponseDTO[]) {
     this.rootComments = [];
     this.replies.clear();

@@ -477,24 +477,24 @@ export class IssueComponent {
     const total = this.totalPages;
     const current = this.currentPage;
 
-    if (total <= 5) {
+    if (total <= 7) {
       const pages: (number | string)[] = [];
       for (let i = 1; i <= total; i++) pages.push(i);
       return pages;
     }
 
-    // Near start: [1] [2] [3] [...] [last]
+    // Near start: [1] [2] [3] [4] [...] [last]
     if (current <= 3) {
-      return [1, 2, 3, '...', total];
+      return [1, 2, 3, 4, '...', total];
     }
 
-    // Near end: [1] [...] [n-2] [n-1] [n]
+    // Near end: [1] [...] [n-3] [n-2] [n-1] [n]
     if (current >= total - 2) {
-      return [1, '...', total - 2, total - 1, total];
+      return [1, '...', total - 3, total - 2, total - 1, total];
     }
 
-    // Middle: [1] [...] [current] [...] [last]
-    return [1, '...', current, '...', total];
+    // Middle: [1] [...] [current-1] [current] [current+1] [...] [last]
+    return [1, '...', current - 1, current, current + 1, '...', total];
   }
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
