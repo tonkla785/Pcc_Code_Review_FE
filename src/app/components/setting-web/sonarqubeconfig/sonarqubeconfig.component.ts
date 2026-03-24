@@ -24,7 +24,7 @@ import { Subscription } from 'rxjs';
   styleUrl: './sonarqubeconfig.component.css'
 })
 export class SonarqubeconfigComponent implements OnInit, OnDestroy {
-  serverUrl = 'https://code.pccth.com';
+  serverUrl = '';
   authToken = '';
   organization = 'PCCTH';
   showToken = false;
@@ -173,7 +173,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
   }
 
   resetSettings() {
-    this.serverUrl = 'https://code.pccth.com';
+    this.serverUrl = '';
     this.authToken = '';
     this.organization = 'PCCTH';
     this.angularSettings = {
@@ -246,7 +246,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
 
 
 
-    this.serverUrl = config.serverUrl || 'https://code.pccth.com';
+    this.serverUrl = config.serverUrl || '';
     this.authToken = config.authToken || '';
     this.organization = config.organization || 'PCCTH';
 

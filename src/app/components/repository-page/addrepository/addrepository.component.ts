@@ -67,7 +67,7 @@ export class AddrepositoryComponent implements OnInit {
     projectName: '',
     projectVersion: '',
     sources: 'src',
-    serverUrl: 'https://code.pccth.com',
+    serverUrl: '',
     token: '',
     enableAutoScan: true,
     enableQualityGate: true,
@@ -91,6 +91,13 @@ export class AddrepositoryComponent implements OnInit {
 
     // Fetch SonarQube Config to ensure we have the token for validation
     this.userSettingService.getSonarQubeConfig().subscribe();
+
+    // Sync serverUrl from user settings into sonarConfig for display
+    this.userSettingsData.sonarQubeConfig$.subscribe((config) => {
+      if (config?.serverUrl) {
+        this.sonarConfig.serverUrl = config.serverUrl;
+      }
+    });
 
     // Fix: Load repositories if cache is empty (for Duplicate Name Validation on refresh)
     if (!this.sharedData.hasRepositoriesCache) {
@@ -189,11 +196,11 @@ export class AddrepositoryComponent implements OnInit {
 
     // Validate SonarQube Token
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
-    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '' || !sonarConfig?.serverUrl || sonarConfig.serverUrl.trim() === '') {
       Swal.fire({
         icon: 'warning',
-        title: 'Missing SonarQube Token',
-        text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
+        title: 'Missing SonarQube Token or Server URL',
+        text: 'Please configure your SonarQube Token and Server URL in User Settings before adding a repository.',
         showCancelButton: true,
         confirmButtonText: 'Go to Settings',
         confirmButtonColor: '#3085d6',
@@ -269,7 +276,7 @@ export class AddrepositoryComponent implements OnInit {
                 );
 
                 this.repositoryService
-                  .startScan(savedRepo.projectId, 'main', tokenToUse as any)
+                  .startScan(savedRepo.projectId, 'dev', tokenToUse as any, this.userSettingsData.sonarQubeConfig?.serverUrl)
                   .subscribe({
                     next: (newScan) => {
                       // ล้าง token หลังส่ง
@@ -418,7 +425,7 @@ export class AddrepositoryComponent implements OnInit {
         projectName: '',
         projectVersion: '',
         sources: 'src',
-        serverUrl: 'https://code.pccth.com',
+        serverUrl: this.userSettingsData.sonarQubeConfig?.serverUrl || '',
         token: '',
         enableAutoScan: true,
         enableQualityGate: true,
@@ -432,8 +439,8 @@ export class AddrepositoryComponent implements OnInit {
           name: '',
           repositoryUrl: '',
           projectType: undefined,
-          branch: 'main',
-          serverUrl: 'https://code.pccth.com',
+          branch: 'dev',
+          serverUrl: this.userSettingsData.sonarQubeConfig?.serverUrl || '',
           projectKey: '',
           enableAutoScan: true,
           enableQualityGate: true,

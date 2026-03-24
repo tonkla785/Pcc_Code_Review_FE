@@ -32,13 +32,14 @@ export class RepositoryService {
   private readonly userSettingsData = inject(UserSettingsDataService);
 
   // เริ่มสแกน - ดึง settings จาก SharedData (SonarQube Config)
-  startScan(projectId: string, branch: string = 'main', gitToken?: string | null): Observable<any> {
+  startScan(projectId: string, branch: string = 'dev', gitToken?: string | null, serverUrl?: string | null): Observable<any> {
 
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
 
     const requestBody: any = {
       branch,
       sonarToken: sonarConfig?.authToken || '',
+      serverUrl: (serverUrl && serverUrl.trim() !== '') ? serverUrl.trim() : null,
       gitToken: (gitToken && gitToken.trim() !== '') ? gitToken.trim() : null,
     };
 

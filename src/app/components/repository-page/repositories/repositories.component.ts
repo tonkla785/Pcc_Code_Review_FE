@@ -189,11 +189,11 @@ export class RepositoriesComponent implements OnInit {
 
     // Validate SonarQube Token
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
-    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '' || !sonarConfig?.serverUrl || sonarConfig.serverUrl.trim() === '') {
       Swal.fire({
         icon: 'warning',
-        title: 'Missing SonarQube Token',
-        text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
+        title: 'Missing SonarQube Token or Server URL',
+        text: 'Please configure your SonarQube Token and Server URL in User Settings before adding a repository.',
         showCancelButton: true,
         confirmButtonText: 'Go to Settings',
         confirmButtonColor: '#3085d6',
@@ -226,7 +226,7 @@ export class RepositoriesComponent implements OnInit {
         // Private needs Token
         Swal.fire({
           title: 'Enter Git Token',
-          input: 'text',
+          input: 'password',
           inputLabel: 'Git Token',
           inputPlaceholder: 'Enter Git Token',
           showCancelButton: true,
@@ -259,7 +259,7 @@ export class RepositoriesComponent implements OnInit {
 
     this.updateSummaryStats();
 
-    this.repoService.startScan(repo.projectId!, 'main', token).subscribe({
+    this.repoService.startScan(repo.projectId!, 'dev', token, this.userSettingsData.sonarQubeConfig?.serverUrl).subscribe({
       next: (response: any) => {
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,
