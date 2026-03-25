@@ -26,7 +26,7 @@ import { Subscription } from 'rxjs';
 export class SonarqubeconfigComponent implements OnInit, OnDestroy {
   serverUrl = '';
   authToken = '';
-  organization = 'PCCTH';
+  organization = '';
   showToken = false;
   isTestingConnection = false;
 
@@ -115,7 +115,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     }
   }
 
-  testConnection() {
+  testConnection(): Promise<boolean> {
     if (!this.serverUrl) {
       Swal.fire({
         icon: 'warning',
@@ -123,7 +123,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
         text: 'Please enter SonarQube Server URL.',
         confirmButtonColor: '#3085d6'
       });
-      return;
+      return Promise.resolve(false);
     }
     if (!this.authToken) {
       Swal.fire({
@@ -132,50 +132,55 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
         text: 'Please enter SonarQube Token.',
         confirmButtonColor: '#3085d6'
       });
-      return;
+      return Promise.resolve(false);
     }
 
     this.isTestingConnection = true;
 
-    this.sonarQubeService.testConnect({
-      sonarHostUrl: this.serverUrl,
-      sonarToken: this.authToken
-    }).subscribe({
-      next: (response) => {
-        this.isTestingConnection = false;
-        if (response.connected) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Connection Successful',
-            text: 'Successfully connected to SonarQube server!',
-            confirmButtonColor: '#28a745'
-          });
-        } else {
+    return new Promise((resolve) => {
+      this.sonarQubeService.testConnect({
+        sonarHostUrl: this.serverUrl,
+        sonarToken: this.authToken
+      }).subscribe({
+        next: (response) => {
+          this.isTestingConnection = false;
+          if (response.connected) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Connection Successful',
+              text: 'Successfully connected to SonarQube server!',
+              confirmButtonColor: '#28a745'
+            });
+            resolve(true);
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Connection Failed',
+              text: 'Unable to connect to SonarQube server.',
+              confirmButtonColor: '#dc3545'
+            });
+            resolve(false);
+          }
+        },
+        error: (error) => {
+          this.isTestingConnection = false;
+          const errorMessage = error.error?.message || error.message || 'Network error';
           Swal.fire({
             icon: 'error',
             title: 'Connection Failed',
-            text: 'Unable to connect to SonarQube server.',
+            text: errorMessage,
             confirmButtonColor: '#dc3545'
           });
+          resolve(false);
         }
-      },
-      error: (error) => {
-        this.isTestingConnection = false;
-        const errorMessage = error.error?.message || error.message || 'Network error';
-        Swal.fire({
-          icon: 'error',
-          title: 'Connection Failed',
-          text: errorMessage,
-          confirmButtonColor: '#dc3545'
-        });
-      }
+      });
     });
   }
 
   resetSettings() {
     this.serverUrl = '';
     this.authToken = '';
-    this.organization = 'PCCTH';
+    this.organization = '';
     this.angularSettings = {
       runNpm: false,
       coverage: false,
@@ -197,7 +202,12 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     });
   }
 
-  saveSettings() {
+  async saveSettings() {
+    const isConnected = await this.testConnection();
+
+    if (!isConnected) {
+      return;
+    }
     const config: Partial<SonarQubeConfig> = {
       serverUrl: this.serverUrl,
       authToken: this.authToken,
@@ -248,7 +258,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
 
     this.serverUrl = config.serverUrl || '';
     this.authToken = config.authToken || '';
-    this.organization = config.organization || 'PCCTH';
+    this.organization = config.organization || '';
 
     this.angularSettings = {
       runNpm: config.angularRunNpm,
