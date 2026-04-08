@@ -34,7 +34,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     runNpm: false,
     coverage: false,
     tsFiles: false,
-    exclusions: '**/node_modules/**, **/*.spec.ts'
+    exclusions: '**/node_modules/**,**/dist/**,**/*.spec.ts'
   };
 
   springSettings: SpringSettings = {
@@ -185,7 +185,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       runNpm: false,
       coverage: false,
       tsFiles: false,
-      exclusions: '**/node_modules/**, **/*.spec.ts'
+      exclusions: '**/node_modules/**,**/dist/**,**/*.spec.ts'
     };
     this.springSettings = {
       runTests: false,
@@ -264,7 +264,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       runNpm: config.angularRunNpm,
       coverage: config.angularCoverage,
       tsFiles: config.angularTsFiles,
-      exclusions: config.angularExclusions || '**/node_modules/**, **/*.spec.ts'
+      exclusions: config.angularExclusions || '**/node_modules/**,**/dist/**,**/*.spec.ts'
     };
 
     this.springSettings = {
