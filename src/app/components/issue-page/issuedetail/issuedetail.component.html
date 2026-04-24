@@ -185,7 +185,7 @@
         </div>
 
         <!-- Button: show only when recommendedFixByAi is null/empty and not loading -->
-        <div class="card-footer-clean" *ngIf="!issuesDetails?.recommendedFixByAi && !isAiLoading">
+        <div class="card-footer-clean" *ngIf="(!issuesDetails?.recommendedFixByAi || issuesDetails?.status === 'FAILED') && !isAiLoading">
           <button class="btn-magic" (click)="triggerAiFix()">
             <i class="bi bi-stars"></i>
             <span>Generate AI Fix</span>

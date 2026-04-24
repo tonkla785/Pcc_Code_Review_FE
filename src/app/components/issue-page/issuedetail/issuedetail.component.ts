@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -50,7 +51,7 @@ const isUUID = (s: string) =>
 @Component({
   selector: 'app-issuedetail',
   standalone: true,
-  imports: [CommonModule, FormsModule, IssuemodalComponent, MarkdownPipe],
+  imports: [CommonModule, FormsModule, IssuemodalComponent, MarkdownPipe, MatSnackBarModule],
   templateUrl: './issuedetail.component.html',
   styleUrl: './issuedetail.component.css',
 })
@@ -90,6 +91,17 @@ export class IssuedetailComponent implements OnInit {
   sortedComments: commentResponseDTO[] = [];
   selectedScans: any[] = [];
   isAiLoading = false;
+  private _pendingAiFix = false; // Set only by triggerAiFix(), cleared on FAILED/SUCCESS
+
+  /**
+   * Detect if AI fix actually failed.
+   * Backend may return status:'SUCCESS' with recommendedFixByAi:null when the AI workflow fails.
+   */
+  private isAiFixFailed(data: IssuesDetailResponseDTO): boolean {
+    if (data.status === 'FAILED') return true;
+    if (data.status === 'SUCCESS' && !data.recommendedFixByAi) return true;
+    return false;
+  }
 
   constructor(
     private readonly router: Router,
@@ -103,7 +115,8 @@ export class IssuedetailComponent implements OnInit {
     private readonly issesService: IssueService,
     private readonly tokenStorage: TokenStorageService,
     private readonly userDataService: UserService,
-    private readonly ws: WebSocketService
+    private readonly ws: WebSocketService,
+    private readonly snack: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -149,6 +162,27 @@ export class IssuedetailComponent implements OnInit {
     this.sharedData.issueDetail$.subscribe(data => {
       if (data) {
         this.issuesDetails = data;
+
+        // Handle AI fix status transitions
+        if (this.isAiFixFailed(data)) {
+          this.isAiLoading = false;
+          if (this._pendingAiFix) {
+            this._pendingAiFix = false;
+            this.snack.open('❌ AI Fix generation failed. Please try again.', '', {
+              duration: 4000,
+              horizontalPosition: 'right',
+              verticalPosition: 'top',
+              panelClass: ['app-snack', 'app-snack-red']
+            });
+          }
+        } else if (data.status === 'PENDING') {
+          this.isAiLoading = true;
+        } else if (data.status === 'SUCCESS' && data.recommendedFixByAi) {
+          this._pendingAiFix = false;
+          this.isAiLoading = false;
+        } else {
+          this.isAiLoading = false;
+        }
       }
     });
 
@@ -221,12 +255,25 @@ export class IssuedetailComponent implements OnInit {
   loadIssueDetails(issueId: string) {
     this.issesService.getAllIssuesDetails(issueId).subscribe({
       next: (data) => {
+        console.log('[IssueDetail] loadIssueDetails response:', { status: data.status, recommendedFixByAi: data.recommendedFixByAi, pendingFlag: this._pendingAiFix, isAiLoading: this.isAiLoading });
         this.sharedData.SelectedIssueDetail = data;
         this.sharedData.setLoading(false);
         this.issuesDetails = data;
 
-        // Set loading based on actual status from DB
-        if (data.status === 'PENDING') {
+        // Direct handling as safety net
+        if (this.isAiFixFailed(data) && this._pendingAiFix) {
+          this._pendingAiFix = false;
+          this.isAiLoading = false;
+          this.snack.open('❌ AI Fix generation failed. Please try again.', '', {
+            duration: 4000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-red']
+          });
+        } else if (data.status === 'SUCCESS' && data.recommendedFixByAi) {
+          this._pendingAiFix = false;
+          this.isAiLoading = false;
+        } else if (data.status === 'PENDING') {
           this.isAiLoading = true;
         } else {
           this.isAiLoading = false;
@@ -283,6 +330,7 @@ export class IssuedetailComponent implements OnInit {
     if (!projectId || !issueId) return;
 
     this.isAiLoading = true;
+    this._pendingAiFix = true;
 
     // Update SharedData with PENDING status immediately
     if (this.issuesDetails) {
@@ -292,15 +340,22 @@ export class IssuedetailComponent implements OnInit {
 
     this.issesService.triggerRecommendFixAi(projectId, issueId).subscribe({
       next: (res) => {
-        // Keep loading state - will be cleared when WebSocket event arrives and status is SUCCESS
+        // Keep loading state - will be cleared when WebSocket event arrives and status is SUCCESS/FAILED
       },
       error: (err) => {
         this.isAiLoading = false;
+        this._pendingAiFix = false;
         // Revert status in SharedData
         if (this.issuesDetails) {
           const revertDetail = { ...this.issuesDetails, status: null };
           this.sharedData.SelectedIssueDetail = revertDetail;
         }
+        this.snack.open('❌ Failed to trigger AI Fix. Please try again.', '', {
+          duration: 4000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
       }
     });
   }
