@@ -274,7 +274,7 @@ span.inactive {
      🌙 Dark Mode Overrides
      =============================== */
 :host-context(.dark-mode) .user-management-container {
-  background: #111827;
+  /* background: #111827; */
   color: #f3f4f6;
 }
 
