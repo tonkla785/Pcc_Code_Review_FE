@@ -1,4 +1,6 @@
 .settings-container {                 /* กล่องหลักครอบทั้งหมด */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  background-color: #ffffff;
   max-width: 800px;                   /* กำหนดความกว้างสูงสุด */
   margin: 2rem auto;                  /* จัดให้อยู่กลางหน้าด้วย margin */
   padding: 1rem;                      /* ระยะห่างด้านใน */

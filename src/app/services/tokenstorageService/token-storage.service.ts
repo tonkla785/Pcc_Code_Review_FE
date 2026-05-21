@@ -5,14 +5,12 @@ import { LoginUser } from '../../interface/user_interface';
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
-  private readonly ACCESS_TOKEN_KEY = 'access_token';
   private readonly userKey = 'login_user';
-
+  private accessToken: string | null = null;
   private loginUserSubject = new BehaviorSubject<LoginUser | null>(this.getLoginUser());
   loginUser$ = this.loginUserSubject.asObservable();
 
   constructor() {
-    // sync ข้ามแท็บ / ข้ามหน้าต่าง
     fromEvent<StorageEvent>(window, 'storage')
       .pipe(filter(e => e.key === this.userKey))
       .subscribe(() => {
@@ -21,29 +19,30 @@ export class TokenStorageService {
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+    return this.accessToken;
   }
 
   setAccessToken(token: string) {
-    localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
-  }
-
-  clear() {
-    localStorage.clear();
-    this.loginUserSubject.next(null);
+    this.accessToken = token;
   }
 
   hasToken(): boolean {
-    return !!this.getAccessToken();
+    return !!this.accessToken;
   }
 
   setLoginUser(user: LoginUser) {
-    localStorage.setItem(this.userKey, JSON.stringify(user));
-    this.loginUserSubject.next(user); // ✅ สำคัญ
+    sessionStorage.setItem(this.userKey, JSON.stringify(user));
+    this.loginUserSubject.next(user);
   }
 
   getLoginUser(): LoginUser | null {
-    const raw = localStorage.getItem(this.userKey);
+    const raw = sessionStorage.getItem(this.userKey);
     return raw ? (JSON.parse(raw) as LoginUser) : null;
+  }
+
+  clear() {
+    this.accessToken = null;
+    sessionStorage.removeItem(this.userKey);
+    this.loginUserSubject.next(null);
   }
 }

@@ -13,6 +13,7 @@ import {
   IssueChangeEvent,
   UserVerifyStatusEvent,
 } from '../../interface/websocket_interface';
+import { TokenStorageService } from '../tokenstorageService/token-storage.service';
 
 function mapToUiStatus(status: BackendScanStatus): UiScanStatus {
   if (status === 'PENDING') return 'SCANNING';
@@ -48,10 +49,23 @@ export class WebSocketService {
   private userNotiSub?: StompSubscription;
   private verifySub?: StompSubscription;
 
-  constructor() {
+  constructor(private tokenStorage: TokenStorageService) {
     this.client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
       reconnectDelay: 5000,
+
+      beforeConnect: async () => {
+        const token = this.getToken();
+
+        if (!token) {
+          this.client.deactivate();
+          return;
+        }
+        
+        this.client.connectHeaders = {
+          Authorization: `Bearer ${token}`
+        };
+      },
     });
 
     this.client.onConnect = () => {
@@ -69,6 +83,10 @@ export class WebSocketService {
       this.connectionState$.next(false);
       this.resetSubscriptions();
     };
+  }
+
+  private getToken(): string {
+    return this.tokenStorage.getAccessToken() || '';
   }
 
   private resetSubscriptions() {

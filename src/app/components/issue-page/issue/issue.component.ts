@@ -56,6 +56,8 @@ export class IssueComponent {
   showAssignModal = false;
   savingAssign = false;
   UserData: UserInfo[] = [];
+  private initialized = false;
+
   constructor(
     private readonly router: Router,
     private readonly issueApi: IssueService,
@@ -69,31 +71,28 @@ export class IssueComponent {
   ) { }
 
   ngOnInit(): void {
-    if (!this.sharedData.hasUserCache) {
-      this.loadUser();
-    }
-    this.sharedData.AllUser$.subscribe(data => {
-      this.UserData = data ?? [];
-      // this.applyFilter();
-    });
-    if (!this.sharedData.hasIssuesCache) {
-      this.loadIssues();
-    }
+    const params = this.route.snapshot.queryParams;
+    this.currentPage = +params['page'] || 1;
+    if (params['type']) this.filterType = params['type'];
+    if (params['severity']) this.filterSeverity = params['severity'];
+    if (params['status']) this.filterStatus = params['status'];
+    if (params['project']) this.filterProject = params['project'];
+    if (params['search']) this.searchText = params['search'];
+
+    if (!this.sharedData.hasUserCache) this.loadUser();
+    this.sharedData.AllUser$.subscribe(data => { this.UserData = data ?? []; });
+
+    if (!this.sharedData.hasIssuesCache) this.loadIssues();
     this.sharedData.AllIssues$.subscribe(data => {
       this.originalData = data || [];
       this.issuesAll = [...this.originalData];
       this.applyFilter();
     });
-    if (!this.sharedData.hasRepositoriesCache) {
-      this.loadRepositories();
-    }
-    this.sharedData.repositories$.subscribe((repos) => {
-      this.repositories = repos;
-    });
-    this.route.queryParams.subscribe(params => {
-      this.currentPage = +params['page'] || 1;
-      this.updatePage();
-    })
+
+    if (!this.sharedData.hasRepositoriesCache) this.loadRepositories();
+    this.sharedData.repositories$.subscribe((repos) => { this.repositories = repos; });
+
+    setTimeout(() => this.initialized = true, 0);
   }
 
   loadIssues() {
@@ -219,6 +218,7 @@ export class IssueComponent {
       this.currentPage = this.totalPages || 1;
     }
     this.updatePage();
+    if (this.initialized) this.updateUrl();
   }
 
   onSearchChange(value: string) {
@@ -250,10 +250,19 @@ export class IssueComponent {
       this.selectedIssues = this.selectedIssues.filter(s => !this.paginatedIssues.some(p => p.id === s.id));
     }
   }
+
   updateUrl() {
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { page: this.currentPage },
+      queryParams: {
+        page: this.currentPage,
+        type: this.filterType,
+        severity: this.filterSeverity,
+        status: this.filterStatus,
+        project: this.filterProject,
+        search: this.searchText || null,
+      },
+      queryParamsHandling: 'merge'
     });
   }
 
@@ -452,11 +461,11 @@ export class IssueComponent {
 
     return status;
   }
+
   viewResult(issueId: IssuesResponseDTO) {
-    this.router.navigate(['/issuedetail', issueId.id], {
-      queryParams: { page: this.currentPage }
-    });
+    this.router.navigate(['/issuedetail', issueId.id]);
   }
+
   isSelected(issue: IssuesResponseDTO): boolean {
     return this.selectedIssues.some(s => s.id === issue.id);
   }

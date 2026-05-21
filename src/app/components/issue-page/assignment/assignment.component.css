@@ -25,7 +25,7 @@
     color: #0dcaf0;
   }
 }
-   
+
 /* 🔙 ปุ่ม Back */
 .back-btn {
   display: inline-flex;
@@ -36,15 +36,17 @@
   margin-bottom: 15px;
   color: #2563eb;
   text-decoration: none;
-  background: transparent;
+  background: transparent(0.01);
   border: none;
   border-radius: 12px;
   transition: background 0.25s ease, transform 0.25s ease;
 }
+
 .back-btn:hover {
   background: #e5f0ff;
   transform: translateX(-4px);
 }
+
 .back-btn i {
   font-size: 1.5rem;
 }
@@ -54,7 +56,7 @@
   color: #fff !important;
 }
 
-  
+
 /* ===============================
    🌑 Modal Backdrop
    =============================== */
@@ -63,7 +65,7 @@
   backdrop-filter: blur(3px);
   transition: opacity 0.3s ease;
 }
-  
+
 /* ===============================
    🎬 Modal Animation
    =============================== */
@@ -72,20 +74,37 @@
   opacity: 1;
   animation: fadeIn 0.3s ease forwards;
 }
+
 .modal-hide {
   display: none;
   opacity: 0;
   animation: fadeOut 0.3s ease forwards;
 }
+
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
+
 @keyframes fadeOut {
-  from { opacity: 1; transform: scale(1) translateY(0); }
-  to   { opacity: 0; transform: scale(0.95) translateY(10px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
 }
-  
+
 /* ===============================
    📦 Modal Dialog & Content
    =============================== */
@@ -93,19 +112,28 @@
   max-width: 800px;
   margin: 1.75rem auto;
 }
+
 .modal-content {
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   border: none;
   overflow: hidden;
   animation: slideUp 0.4s ease;
 }
+
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
-  
+
 /* ===============================
    📝 Modal Header
    =============================== */
@@ -113,6 +141,7 @@
   border-bottom: 1px solid #f1f1f1;
   padding: 16px 20px;
 }
+
 .modal-title {
   font-weight: 600;
   font-size: 1.1rem;
@@ -120,10 +149,12 @@
   align-items: center;
   gap: 6px;
 }
+
 /* ปุ่ม Close */
 .btn-close {
   transition: transform 0.25s ease;
 }
+
 .btn-close:hover {
   cursor: pointer;
   transform: rotate(90deg) scale(1.1);
@@ -132,7 +163,10 @@
 /* ===============================
    📄 Modal Body & Footer
    =============================== */
-.modal-body { padding: 20px; }
+.modal-body {
+  padding: 20px;
+}
+
 .modal-footer {
   border-top: 1px solid #f1f1f1;
   padding: 14px 20px;
@@ -145,8 +179,9 @@
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
 .table thead th {
   background: #f9fafb;
   font-weight: 600;
@@ -156,26 +191,31 @@
 .table tbody tr {
   cursor: pointer;
   transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-  position: relative; 
-  z-index: 1; 
+  position: relative;
+  z-index: 1;
 }
+
 .table tbody tr:hover {
-  background: #e5f0ff !important; /* ใช้สีฟ้าอ่อนและบังคับใช้ */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); 
-  transform: translateY(-3px); 
-  z-index: 10; 
+  background: #e5f0ff !important;
+  /* ใช้สีฟ้าอ่อนและบังคับใช้ */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  z-index: 10;
 }
+
 /* และยังคงต้องเพิ่มโค้ดให้ td โปร่งใส */
 .table tbody tr:hover td {
-  background-color: transparent !important; 
+  background-color: transparent !important;
 }
+
 /* สำหรับ Dark Mode */
 :host-context(.dark-mode) .assignment-wrapper .assignment-table tbody tr:hover {
   /* เปลี่ยนเป็นสีฟ้าเข้มสำหรับ Dark Mode */
-  background-color: #0d47a1 !important; /* ตัวอย่างสีฟ้าเข้ม */
+  background-color: #0d47a1 !important;
+  /* ตัวอย่างสีฟ้าเข้ม */
   box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
 }
-  
+
 /* ===============================
    🔘 Buttons
    =============================== */
@@ -183,24 +223,31 @@
   border-radius: 8px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
 .btn-primary {
   background: #2563eb;
   border: none;
 }
-.btn-primary:hover { background: #1e40af; }
+
+.btn-primary:hover {
+  background: #1e40af;
+}
+
 .btn-outline-primary {
   border: 1px solid #2563eb;
   color: #2563eb;
 }
+
 .btn-outline-primary:hover {
   background: #2563eb;
   color: #fff;
 }
-  
+
 /* ===============================
    ✍️ Form Inputs
    =============================== */
@@ -209,12 +256,13 @@
   border-radius: 10px;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
+
 .form-select:focus,
 .form-control:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
-  
+
 /* ===============================
    🌙 Dark Mode
    =============================== */
@@ -223,19 +271,23 @@
   color: var(--text-main) !important;
   border-color: var(--card-border) !important;
 }
+
 :host-context(.dark-mode) .assignment-wrapper .assignment-table thead th {
   background-color: #1e293b !important;
   color: var(--table-header-text) !important;
   border-color: var(--card-border) !important;
 }
+
 :host-context(.dark-mode) .assignment-wrapper .assignment-table tbody tr {
   background-color: #1e293b !important;
   color: var(--text-main) !important;
 }
+
 :host-context(.dark-mode) .assignment-wrapper .assignment-table td {
   background-color: #1e293b !important;
   color: var(--text-main) !important;
 }
+
 /* โค้ดที่ซ้ำซ้อนถูกลบออกแล้ว */
 
 
@@ -262,21 +314,25 @@
   background: #fee2e2;
   border-color: #fca5a5;
 }
+
 .status-in-progress {
   color: #b45309;
   background: #fef3c7;
   border-color: #fcd34d;
 }
+
 .status-done {
   color: #15803d;
   background: #dcfce7;
   border-color: #86efac;
 }
+
 .status-reject {
   color: #374151;
   background: #e5e7eb;
   border-color: #9ca3af;
 }
+
 .status-unknown {
   color: #1e3a8a;
   background: #dbeafe;
@@ -289,16 +345,19 @@
   background: rgba(220, 38, 38, 0.15);
   border-color: rgba(220, 38, 38, 0.3);
 }
+
 :host-context(.dark-mode) .status-in-progress {
   color: #fcd34d;
   background: rgba(245, 158, 11, 0.15);
   border-color: rgba(245, 158, 11, 0.3);
 }
+
 :host-context(.dark-mode) .status-done {
   color: #86efac;
   background: rgba(22, 163, 74, 0.15);
   border-color: rgba(22, 163, 74, 0.3);
 }
+
 :host-context(.dark-mode) .status-reject {
   color: #d1d5db;
   background: rgba(107, 114, 128, 0.15);
@@ -314,14 +373,15 @@
 
 .custom-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* ===============================
 📱 Mobile Responsive (≤768px)
 =============================== */
 @media (max-width: 768px) {
-/* หัวข้อ My Assignments */
+
+  /* หัวข้อ My Assignments */
   .assignment-header h3,
   .assignment-wrapper h3 {
     font-size: 1.2rem !important;
@@ -374,10 +434,11 @@
     max-width: 95% !important;
   }
 }
+
 /* ทำให้คอลัมน์ Status sticky ด้านขวา */
 .assignment-table th:last-child,
 .assignment-table td:last-child {
-  position: sticky;
+
   right: 0;
   background: var(--bg-card, #fff);
   z-index: 2;
@@ -385,6 +446,7 @@
 
 /* เฉพาะมือถือ */
 @media (max-width: 768px) {
+
   .assignment-table th,
   .assignment-table td {
     font-size: 0.7rem;

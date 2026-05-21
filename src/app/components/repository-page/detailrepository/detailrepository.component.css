@@ -36,12 +36,13 @@
 
   --radius: 16px;
   --radius-sm: 8px;
+  --title-color: #2563eb;
 }
 
 /* --- Layout & Animation --- */
 .page-container {
   padding: 2rem;
-  background-color: #f9fafb;
+  background-color: none;
   min-height: 100vh;
   font-family: 'Check Project', 'Inter', sans-serif;
 }
@@ -145,7 +146,7 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--title-color);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -646,11 +647,12 @@
   --gray: #9ca3af;
   --light-gray: #374151;
   --white: #1f2937;
+  --title-color: #ffffff;
   background-color: #111827;
 }
 
 :host-context(.dark-mode) .page-container {
-  background-color: #111827;
+  background-color: none;
 }
 
 /* Dark Mode Hover Fixes */

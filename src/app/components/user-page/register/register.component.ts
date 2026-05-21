@@ -58,7 +58,7 @@ export class RegisterComponent {
       upper: /[A-Z]/.test(pwd),
       lower: /[a-z]/.test(pwd),
       number: /\d/.test(pwd),
-      special: /[!@#$%&*]/.test(pwd),
+      special: /[!@#$%&*.]/.test(pwd),
     };
   }
 

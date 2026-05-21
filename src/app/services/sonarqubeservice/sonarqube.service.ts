@@ -37,7 +37,7 @@ export class SonarQubeService {
 
     getQualityGates(): QualityGates {
         try {
-            const raw = localStorage.getItem(this.KEY);
+            const raw = sessionStorage.getItem(this.KEY);
             if (!raw) return { ...this.DEFAULT_QUALITY_GATES };
 
             const parsed = JSON.parse(raw);

@@ -30,7 +30,7 @@ export class LogviewerComponent {
     private route: ActivatedRoute,
     private readonly scanService: ScanService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   groupedIssues!: GroupedIssues;
   majorIssues: any[] = [];
@@ -189,7 +189,7 @@ export class LogviewerComponent {
     let scannerType: ScannerType = 'npm sonar';
 
     if (projectType === 'SPRING_BOOT') {
-      // Check buildTool from sonarConfig in localStorage
+      // Check buildTool from sonarConfig in sessionStorage
       const sonarConfig = this.getSonarConfigFromStorage();
       const buildTool = sonarConfig?.springSettings?.buildTool || 'maven';
       scannerType = buildTool === 'gradle' ? 'gradle sonar' : 'mvn sonar';
@@ -207,7 +207,7 @@ export class LogviewerComponent {
 
   private getSonarConfigFromStorage(): any {
     try {
-      const raw = localStorage.getItem('sonarConfig_v1');
+      const raw = sessionStorage.getItem('sonarConfig_v1');
       if (!raw) return null;
       return JSON.parse(raw);
     } catch {
@@ -250,62 +250,62 @@ export class LogviewerComponent {
   }
 
   sendEmail(): void {
-  const toEmail = this.currentUser?.email;
+    const toEmail = this.currentUser?.email;
 
-  if (!toEmail) {
+    if (!toEmail) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Cannot send email',
+        text: 'No email address found for the current user.',
+      });
+      return;
+    }
+
+    const applicationName = this.log.applicationName;
+    const subject = `Scan Report: ${applicationName}`;
+
+    const md = this.generateMarkdown();
+    const html = this.wrapAsPre(md);
+
+
+    // 🔄 Loading popup
     Swal.fire({
-      icon: 'warning',
-      title: 'Cannot send email',
-      text: 'No email address found for the current user.',
+      title: 'Sending email...',
+      text: 'Please wait a moment',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
     });
-    return;
+
+    this.emailService
+      .scanReportEmail({
+        type: 'ScanReport',
+        email: toEmail,
+        applicationName,
+        subject,
+        html,
+      })
+      .subscribe({
+        next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Email sent successfully',
+            text: `The scan report has been sent to ${toEmail}.`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        },
+        error: (err) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Email failed',
+            text: 'An error occurred while sending the email. Please try again.',
+          });
+        },
+      });
   }
-
-  const applicationName = this.log.applicationName;
-  const subject = `Scan Report: ${applicationName}`;
-
-  const md = this.generateMarkdown();
-  const html = this.wrapAsPre(md);
-
-
-  // 🔄 Loading popup
-  Swal.fire({
-    title: 'Sending email...',
-    text: 'Please wait a moment',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => {
-      Swal.showLoading();
-    },
-  });
-
-  this.emailService
-    .scanReportEmail({
-      type: 'ScanReport',
-      email: toEmail,
-      applicationName,
-      subject,
-      html,
-    })
-    .subscribe({
-      next: () => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Email sent successfully',
-          text: `The scan report has been sent to ${toEmail}.`,
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      },
-      error: (err) => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Email failed',
-          text: 'An error occurred while sending the email. Please try again.',
-        });
-      },
-    });
-}
 
   private wrapAsPre(md: string): string {
     const esc = md

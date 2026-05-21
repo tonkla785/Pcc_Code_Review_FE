@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import {
   LoginRequest,
   LoginResponse,
@@ -10,7 +10,7 @@ import {
   UserInfo,
 } from '../../interface/user_interface';
 import { TokenStorageService } from '../tokenstorageService/token-storage.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, EMPTY } from 'rxjs';
 import { NotificationService } from '../notiservice/notification.service';
 import { UserSettingsDataService } from '../shared-data/user-settings-data.service';
 import { ReportHistoryDataService } from '../shared-data/report-history-data.service';
@@ -65,7 +65,7 @@ export class AuthService {
           const userId = res.id || this.getUserIdFromToken(res.accessToken);
           if (userId) {
             this.notificationService.connectWebSocket(userId);
-            // Load all user data after login (now user is available in localStorage)
+            // Load all user data after login (now user is available in sessionStorage)
             this.loadAllUserData();
           }
         })
@@ -151,13 +151,26 @@ export class AuthService {
    */
   reconnectWebSocket(): void {
     const token = this.tokenStorage.getAccessToken();
+
     if (token) {
       const userId = this.getUserIdFromToken(token);
       if (userId) {
         this.notificationService.connectWebSocket(userId);
-        // Load all user data
         this.loadAllUserData();
       }
+    } else {
+      this.refresh().pipe(
+        catchError(() => EMPTY)
+      ).subscribe(() => {
+        const newToken = this.tokenStorage.getAccessToken();
+        if (newToken) {
+          const userId = this.getUserIdFromToken(newToken);
+          if (userId) {
+            this.notificationService.connectWebSocket(userId);
+            this.loadAllUserData();
+          }
+        }
+      });
     }
   }
 }

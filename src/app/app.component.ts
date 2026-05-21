@@ -13,7 +13,7 @@ import { AuthService } from './services/authservice/auth.service';
 import { NotificationService } from './services/notiservice/notification.service';
 import { TokenStorageService } from './services/tokenstorageService/token-storage.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subscription, bufferTime, filter, of } from 'rxjs';
+import { Subscription, bufferTime, filter, of, EMPTY } from 'rxjs';
 import { switchMap, catchError, distinctUntilChanged, map } from 'rxjs/operators';
 import { UserService } from './services/userservice/user.service';
 
@@ -56,11 +56,19 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Theme restore
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = sessionStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkMode = true;
       document.body.classList.add('dark-mode');
     }
+
+    // if (!this.authService.isLoggedIn) {
+    //   this.authService.refresh().pipe(
+    //     catchError(() => EMPTY)
+    //   ).subscribe();
+    // }
+
+    this.authService.reconnectWebSocket();
 
     /**
      * ✅ สำคัญสุด: ผูก WS + state กับ loginUser$ (แก้เคส login ใหม่ๆ แล้วไม่ connect / connect user เก่าค้าง)
@@ -80,7 +88,7 @@ export class AppComponent implements OnInit {
         this.ws.connect(userId);
         this.notificationService.connectWebSocket(userId);
 
-        // 2) restore shared data จาก localStorage (ทันที)
+        // 2) restore shared data จาก sessionStorage (ทันที)
         const savedUser = this.tokenStorage.getLoginUser();
         if (savedUser) {
           this.sharedData.LoginUserShared = savedUser;
@@ -109,14 +117,14 @@ export class AppComponent implements OnInit {
      * AuthService.reconnectWebSocket() ของมึงทำแค่ connect แต่ไม่ได้ set login_user เสมอ
      * ดังนั้น call เดิมไว้ได้ แต่หลักๆให้ loginUser$ เป็นตัวคุม
      */
-    if (this.authService.isLoggedIn) {
-      this.authService.reconnectWebSocket();
+    // if (this.authService.isLoggedIn) {
+    //   this.authService.reconnectWebSocket();
 
-      const savedUser = this.tokenStorage.getLoginUser();
-      if (savedUser) {
-        this.sharedData.LoginUserShared = savedUser;
-      }
-    }
+    //   const savedUser = this.tokenStorage.getLoginUser();
+    //   if (savedUser) {
+    //     this.sharedData.LoginUserShared = savedUser;
+    //   }
+    // }
 
     this.subscribeToNotifications();
 
@@ -487,10 +495,10 @@ export class AppComponent implements OnInit {
 
     if (this.darkMode) {
       document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark');
+      sessionStorage.setItem('theme', 'dark');
     } else {
       document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light');
+      sessionStorage.setItem('theme', 'light');
     }
   }
 }

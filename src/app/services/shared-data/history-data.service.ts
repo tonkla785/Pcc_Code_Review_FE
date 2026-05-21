@@ -40,11 +40,11 @@ export class HistoryDataService {
         const stored = this.getReportSnapshots();
         stored.push(snapshot);
         const recent = stored.slice(-this.MAX_SNAPSHOTS);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(recent));
+        sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(recent));
     }
 
     getReportSnapshots(): ReportSnapshot[] {
-        const raw = localStorage.getItem(this.STORAGE_KEY);
+        const raw = sessionStorage.getItem(this.STORAGE_KEY);
         return raw ? JSON.parse(raw) : [];
     }
 
@@ -54,12 +54,12 @@ export class HistoryDataService {
     }
 
     clearAllSnapshots(): void {
-        localStorage.removeItem(this.STORAGE_KEY);
+        sessionStorage.removeItem(this.STORAGE_KEY);
     }
 
     removeSnapshotById(id: string): void {
         const snapshots = this.getReportSnapshots();
         const filtered = snapshots.filter(s => s.id !== id);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered));
+        sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered));
     }
 }

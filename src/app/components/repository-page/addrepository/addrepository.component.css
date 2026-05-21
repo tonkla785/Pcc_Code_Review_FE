@@ -14,6 +14,7 @@
   --input-bg: #f8fafc;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --title-color: #2563eb;
 }
 
 :host-context(.dark-mode) {
@@ -27,6 +28,7 @@
   --input-bg: #0f172a;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  --title-color: #ffffff;
 }
 
 /* --- Animation --- */
@@ -50,7 +52,7 @@
 .page-wrapper {
   min-height: 100vh;
   padding: 40px 20px;
-  background: var(--bg-gradient);
+  background: none;
   display: flex;
   justify-content: center;
   align-items: flex-start;

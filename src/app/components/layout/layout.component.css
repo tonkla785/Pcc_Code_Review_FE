@@ -1,11 +1,11 @@
 .app-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-color: var(--bg-main);
   color: var(--text-color);
 }
 
-/* Navbar ด้านซ้าย */
 app-navbar {
   width: 220px;
   background-color: var(--navbar-bg);
@@ -13,30 +13,87 @@ app-navbar {
   flex-shrink: 0;
   padding: 15px;
   box-sizing: border-box;
+  overflow-y: auto;
+  transition: width 0.3s ease;
 }
 
-/* เนื้อหาหลัก */
 .main-content {
   flex: 1;
-  padding: 20px;
   box-sizing: border-box;
+  height: 100vh;
   overflow-y: auto;
   overflow-x: auto;
-  background-color: var(--bg-main);
+  position: relative;
+  background-image: url('/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--text-color);
 }
 
-/* Responsive */
+/* ✅ overlay fade animation ไม่กระทบ component ลูก */
+.main-content::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(22, 97, 114, 0.75),
+    rgba(15, 23, 42, 0.85)
+  );
+  transition: opacity 0.4s ease; /* ✅ animate opacity แทน background */
+}
+
+:host-context(.dark-mode) .main-content::after {
+  opacity: 1; /* ✅ fade in */
+}
+
+/* ✅ wrapper อยู่เหนือ overlay */
+.content-wrapper {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* Tablet */
+@media (max-width: 992px) {
+  app-navbar {
+    width: 180px;
+    padding: 10px;
+  }
+
+  .content-wrapper {
+    padding: 15px;
+  }
+}
+
+/* Mobile */
 @media (max-width: 767px) {
   .app-container {
     flex-direction: column;
+    height: auto;
+    overflow: visible;
   }
 
   app-navbar {
     width: 100%;
+    height: auto;
+    overflow-y: visible;
+    padding: 10px 15px;
   }
 
   .main-content {
-    width: 100%;
+    height: calc(100vh - 60px);
+    background-attachment: scroll;
+  }
+
+  .content-wrapper {
+    padding: 15px;
   }
 }

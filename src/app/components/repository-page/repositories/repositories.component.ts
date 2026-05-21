@@ -84,7 +84,7 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.getAllRepo().subscribe({
       next: (repos) => {
-        // [Refactor] ไม่เช็ค localStorage แล้ว ใช้ข้อมูลจาก DB ล้วนๆ
+        // [Refactor] ไม่เช็ค sessionStorage แล้ว ใช้ข้อมูลจาก DB ล้วนๆ
         // ถ้า DB บอกว่าเป็น PENDING/SCANNING ก็จะขึ้นหมุนติ้วๆ เอง
 
         // เก็บข้อมูลลง SharedDataService
@@ -254,7 +254,7 @@ export class RepositoriesComponent implements OnInit {
 
     if (repo.projectId) {
       this.sharedData.updateRepoStatus(repo.projectId, 'Scanning', 0);
-      // [Refactor] ไม่เก็บ localStorage แล้ว เชื่อใจ WebSocket + DB
+      // [Refactor] ไม่เก็บ sessionStorage แล้ว เชื่อใจ WebSocket + DB
     }
 
     this.updateSummaryStats();

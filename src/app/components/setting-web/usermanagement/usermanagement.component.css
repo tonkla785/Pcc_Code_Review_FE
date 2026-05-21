@@ -531,7 +531,7 @@ span.inactive {
 .user-table th:last-child,
 .user-table td:last-child {
   position: -webkit-sticky;
-  position: sticky;
+
   right: 0;
   background: #fff;
   z-index: 5;

@@ -21,7 +21,7 @@ export function getPasswordRules(password: string): PasswordRules {
         upper: /[A-Z]/.test(pwd),
         lower: /[a-z]/.test(pwd),
         number: /\d/.test(pwd),
-        special: /[!@#$%&*]/.test(pwd),
+        special: /[!@#$%&*.]/.test(pwd),
     };
 }
 

@@ -88,6 +88,10 @@ export type ChartOptions = {
 export class DashboardComponent {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    if (target.closest('app-navbar')) return;
+
     if (this.showNotifications) {
       this.showNotifications = false;
     }
@@ -183,10 +187,10 @@ export class DashboardComponent {
       // ถ้ามึงอยากให้ UI เด้งทันทีชัวร์ๆ
       this.cdr.detectChanges();
     });
-    if (!this.auth.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
+    // if (!this.auth.isLoggedIn) {
+    //   this.router.navigate(['/login']);
+    //   return;
+    // }
 
     const user = this.tokenStorage.getLoginUser();
     if (user) {
