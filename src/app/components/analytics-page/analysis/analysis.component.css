@@ -49,8 +49,8 @@
   border: none !important;
   background: none !important;
   box-shadow: none !important;
-  padding-left: 20px;
-  margin: 0;
+  padding: 0 15px !important;
+  margin: 0 auto !important;
 }
 
 /* =========================
@@ -125,11 +125,10 @@
 .list-group-item {
   background: var(--card-bg);
   color: var(--text-main);
-  margin-bottom: 10px;
   border-radius: 12px;
   border: 1px solid var(--border-color);
   padding: 12px 16px;
-  margin: 0;
+  margin: 0 0 10px 0;
   font-weight: 500;
   transition: transform 0.25s ease,
     background-color 0.25s ease,
@@ -262,11 +261,70 @@ p strong {
 /* ===============================
    📱 TABLET TEXT SCALE ONLY
    =============================== */
+/* ===============================
+   📱 TABLET & MOBILE RESPONSIVE
+   =============================== */
 @media (min-width: 768px) and (max-width: 1024px) {
   .summary-card h5 {
     font-size: 0.9rem !important;
     line-height: 1 !important;
     overflow: hidden !important;
     text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .analytics-container {
+    padding: 0 8px !important;
+    margin: 0 auto !important;
+  }
+
+  .analytics-header {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .analytics-header h3,
+  .analytics-header h3.text-primary {
+    font-size: 1.2rem !important;
+  }
+
+  .summary-card {
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+  }
+
+  .summary-card h5 {
+    font-size: 0.95rem !important;
+  }
+
+  .summary-card p.display-6 {
+    font-size: 1.8rem !important;
+  }
+
+  .summary-card button {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Space between stacked columns on mobile */
+  .row.mt-4 > div:not(:first-child) {
+    margin-top: 20px;
+  }
+
+  h5 {
+    font-size: 1.05rem !important;
+    margin-bottom: 12px;
+  }
+
+  .list-group-item {
+    font-size: 0.85rem !important;
+    padding: 10px 12px;
+    margin-bottom: 8px;
   }
 }
