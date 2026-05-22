@@ -94,25 +94,30 @@
 }
 
 .back-link {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-sm);
-  background: var(--white);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   border: 1px solid var(--light-gray);
+  background: var(--white);
+  color: var(--dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--gray);
-  font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
+  font-size: 1.2rem;
 }
 
 .back-link:hover {
+  background: var(--light-gray);
   color: var(--primary);
-  border-color: var(--primary-light);
-  transform: translateX(-2px);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.back-link:active {
+  transform: translateY(0) scale(0.95);
 }
 
 .project-info {
@@ -669,17 +674,7 @@
   /* Stronger shadow for dark mode */
 }
 
-:host-context(.dark-mode) .back-link {
-  background-color: var(--white);
-  border-color: #374151;
-  color: var(--gray);
-}
-
-:host-context(.dark-mode) .back-link:hover {
-  background-color: #262f3e;
-  border-color: var(--primary);
-  color: var(--primary);
-}
+/* Standardized back-link automatically inherits dark mode variables */
 
 :host-context(.dark-mode) .btn-settings {
   background-color: var(--white);

@@ -26,29 +26,36 @@
   }
 }
 
-/* 🔙 ปุ่ม Back */
+/* 🔙 ปุ่ม Back (Standardized Premium Style) */
 .back-btn {
-  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border, #e2e8f0);
+  background: var(--bg-card, #ffffff);
+  color: var(--text-main, #1e293b);
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
-  font-size: 1.3rem;
-  margin-bottom: 15px;
-  color: #2563eb;
-  text-decoration: none;
-  background: transparent(0.01);
-  border: none;
-  border-radius: 12px;
-  transition: background 0.25s ease, transform 0.25s ease;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.2rem;
 }
 
 .back-btn:hover {
-  background: #e5f0ff;
-  transform: translateX(-4px);
+  background: var(--bg-main, #f8fafc);
+  color: var(--btn-primary-bg, #2563eb);
+  border-color: var(--btn-primary-bg, #2563eb);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.back-btn:active {
+  transform: translateY(0) scale(0.95);
 }
 
 .back-btn i {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 :host-context(.dark-mode) .assignment-wrapper h3,
