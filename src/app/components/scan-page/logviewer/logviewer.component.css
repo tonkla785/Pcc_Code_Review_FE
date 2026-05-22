@@ -154,6 +154,29 @@
 /* Orange */
 
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+.scanning-placeholder {
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  padding: 32px !important;
+}
+
+:host-context(.dark-mode) .scanning-placeholder {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+}
+
 /* --- Stats Grid (Execution Summary) --- */
 .stats-grid {
   display: grid;

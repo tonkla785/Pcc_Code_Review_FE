@@ -124,6 +124,11 @@
   color: #b91c1c;
 }
 
+.gate-scanning {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 :host-context(.dark-mode) .gate-pass {
   background: rgba(21, 128, 61, 0.2);
   color: #4ade80;
@@ -132,6 +137,11 @@
 :host-context(.dark-mode) .gate-fail {
   background: rgba(185, 28, 28, 0.2);
   color: #f87171;
+}
+
+:host-context(.dark-mode) .gate-scanning {
+  background: rgba(29, 78, 216, 0.2);
+  color: #60a5fa;
 }
 
 .btn-icon {
@@ -362,28 +372,39 @@
        Table
        =============================== */
 .scan-history-table {
-  background-color: var(--card-bg);
-  /* Add background to table */
+  background-color: #ffffff;
   border-radius: 12px;
   overflow: hidden;
-  /* For rounded corners */
   box-shadow: var(--shadow-sm);
 }
 
 .table th {
   background-color: var(--table-header-bg);
-  /* พื้นหลังหัวตาราง */
   font-weight: 600;
   color: var(--table-header-text);
-  /* สีข้อความหัว */
   border-bottom: 1px solid var(--border-color);
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 .table td {
-  background-color: var(--table-row-bg);
-  /* Explicit row background */
+  background-color: #ffffff;
   color: var(--text-main);
+}
+
+.table tbody tr:nth-child(even) td {
+  background-color: #fafafa;
+}
+
+:host-context(body.dark-mode) .scan-history-table {
+  background-color: #1e293b;
+}
+
+:host-context(body.dark-mode) .table td {
+  background-color: #1e293b !important;
+}
+
+:host-context(body.dark-mode) .table tbody tr:nth-child(even) td {
+  background-color: #0f172a !important;
 }
 
 .table td,

@@ -116,8 +116,8 @@
           </td>
           <!-- <td>{{scan.ownerScan}}</td> -->
           <td>
-            <span class="gate-badge" [ngClass]="scan.qualityGate === 'OK' ? 'gate-pass' : 'gate-fail'">
-              {{ scan.qualityGate === 'OK' ? 'Passed' : 'Failed' }}
+            <span class="gate-badge" [ngClass]="scan.status === 'PENDING' ? 'gate-scanning' : (scan.qualityGate === 'OK' ? 'gate-pass' : 'gate-fail')">
+              {{ scan.status === 'PENDING' ? 'Scanning' : (scan.qualityGate === 'OK' ? 'Passed' : 'Failed') }}
             </span>
           </td>
 
@@ -271,19 +271,20 @@
               Grade
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
-              <span class="badge px-3 py-2" [ngClass]="scan.qualityGate === 'OK'
-              ? 'bg-success-subtle text-success'
-              : 'bg-danger-subtle text-danger'">
-                {{ scan.qualityGate === 'OK' ? 'Pass' : 'Failed' }}
+              <span class="badge px-3 py-2" [ngClass]="scan.status === 'PENDING'
+              ? 'bg-info-subtle text-info'
+              : (scan.qualityGate === 'OK' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger')">
+                {{ scan.status === 'PENDING' ? 'Scanning' : (scan.qualityGate === 'OK' ? 'Pass' : 'Failed') }}
               </span>
             </td>
             <td class="text-center pe-3">
               <ng-container>
                 <span class="badge px-3 py-2" [ngClass]="{
-                    'bg-success-subtle text-success': selectedScans[selectedScans.length - 1].qualityGate === 'OK',
-                    'bg-danger-subtle text-danger': selectedScans[selectedScans.length - 1].qualityGate !== 'OK'
+                    'bg-info-subtle text-info': selectedScans[selectedScans.length - 1].status === 'PENDING',
+                    'bg-success-subtle text-success': selectedScans[selectedScans.length - 1].status !== 'PENDING' && selectedScans[selectedScans.length - 1].qualityGate === 'OK',
+                    'bg-danger-subtle text-danger': selectedScans[selectedScans.length - 1].status !== 'PENDING' && selectedScans[selectedScans.length - 1].qualityGate !== 'OK'
                   }">
-                  {{selectedScans[selectedScans.length - 1].qualityGate === 'OK' ? '▲ Pass' : '▼ Failed' }}
+                  {{ selectedScans[selectedScans.length - 1].status === 'PENDING' ? '↻ Scanning' : (selectedScans[selectedScans.length - 1].qualityGate === 'OK' ? '▲ Pass' : '▼ Failed') }}
                 </span>
               </ng-container>
               <ng-template #showZero>
