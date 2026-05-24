@@ -237,7 +237,6 @@ export class DashboardComponent {
       this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
-      this.generateQualityGateNotifications(this.DashboardData);
     });
 
     this.sharedData.LoginUser$.subscribe((data) => {
@@ -258,9 +257,6 @@ export class DashboardComponent {
       );
 
       this.allIssues = notifiableIssues.filter((issue) => issue.severity === 'CRITICAL');
-
-      // Generate notifications for filtered issues
-      this.generateIssueNotifications(notifiableIssues);
     });
 
     // ==================== STEP 2: Load data from API AFTER subscriptions are ready ====================

@@ -13,8 +13,8 @@ import { AuthService } from './services/authservice/auth.service';
 import { NotificationService } from './services/notiservice/notification.service';
 import { TokenStorageService } from './services/tokenstorageService/token-storage.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subscription, bufferTime, filter, of, EMPTY } from 'rxjs';
-import { switchMap, catchError, distinctUntilChanged, map } from 'rxjs/operators';
+import { Subscription, bufferTime, filter, of, EMPTY, Subject } from 'rxjs';
+import { switchMap, catchError, distinctUntilChanged, map, debounceTime } from 'rxjs/operators';
 import { UserService } from './services/userservice/user.service';
 
 @Component({
@@ -37,6 +37,9 @@ export class AppComponent implements OnInit {
   private bootstrapSub?: Subscription;
   private projectSub?: Subscription;
   private issueSub?: Subscription;
+
+  private refreshIssues$ = new Subject<void>();
+  private refreshIssuesSub?: Subscription;
 
   constructor(
     private ws: WebSocketService,
@@ -128,6 +131,11 @@ export class AppComponent implements OnInit {
 
     this.subscribeToNotifications();
 
+    // Debounce issue refresh — collapse multiple scan-complete events into 1 fetch
+    this.refreshIssuesSub = this.refreshIssues$.pipe(debounceTime(400)).subscribe(() => {
+      this.fetchAndOverwriteIssues();
+    });
+
     // Global WebSocket Listener - Scan
     this.wsSub = this.ws.subscribeScanStatus().subscribe((event) => {
 
@@ -142,27 +150,32 @@ export class AppComponent implements OnInit {
       if (event.status === 'SCANNING') {
         this.fetchScanData(event.projectId, event.status);
       } else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-        const settings = this.userSettingsData.notificationSettings;
-        const showScanAlert = !settings || settings.scansEnabled;
-
-        if (showScanAlert && this.authService.isLoggedIn) {
-          this.snack.open(
-            event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
-            '',
-            {
-              duration: 3000,
-              horizontalPosition: 'right',
-              verticalPosition: 'top',
-              panelClass: [
-                'app-snack',
-                event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red',
-              ],
-            },
-          );
+        // Only show snackbar for the user who triggered this scan
+        if (this.repoService.isMyTriggeredScan(event.projectId) && this.authService.isLoggedIn) {
+          const settings = this.userSettingsData.notificationSettings;
+          if (!settings || settings.scansEnabled) {
+            const projectName = this.sharedData.repositoriesValue
+              .find(r => r.projectId === event.projectId)?.name || 'Project';
+            this.snack.open(
+              event.status === 'SUCCESS'
+                ? `✅ ${projectName} scan completed`
+                : `❌ ${projectName} scan failed`,
+              '',
+              {
+                duration: 3000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: [
+                  'app-snack',
+                  event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red',
+                ],
+              },
+            );
+          }
         }
 
         this.fetchScanDataAndNotify(event.projectId, event.status);
-        this.fetchAndOverwriteIssues();
+        this.refreshIssues$.next();
       }
     });
 
@@ -387,6 +400,11 @@ export class AppComponent implements OnInit {
   }
 
   private fetchScanDataAndNotify(projectId: string, wsStatus: string) {
+    const notifyMe = this.repoService.isMyTriggeredScan(projectId);
+    if (notifyMe) {
+      this.repoService.clearMyTriggeredScan(projectId);
+    }
+
     this.repoService.getFullRepository(projectId).subscribe({
       next: (fullRepo) => {
         if (!fullRepo) return;
@@ -427,7 +445,35 @@ export class AppComponent implements OnInit {
           }
 
           this.sharedData.upsertScan(latestScan);
-          this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
+
+          if (notifyMe) {
+            // Scan complete / failed notification (only for the user who triggered)
+            this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
+
+            if (wsStatus === 'SUCCESS') {
+              // Quality gate notification
+              this.notificationService.generateQualityGateNotifications([{
+                id: latestScan.id,
+                qualityGate: latestScan.qualityGate,
+                project: { id: projectId, name: projectName },
+              }]);
+
+              // Issue notifications for MAJOR+ (no CODE_SMELL)
+              this.issueService.getAllIssues().subscribe({
+                next: (allIssues) => {
+                  const projectIssues = (allIssues || []).filter((i: any) =>
+                    i.projectId === projectId &&
+                    ['MAJOR', 'CRITICAL', 'BLOCKER'].includes(i.severity) &&
+                    i.type !== 'CODE_SMELL'
+                  );
+                  if (projectIssues.length > 0) {
+                    this.notificationService.generateIssueNotifications(projectIssues);
+                  }
+                },
+                error: () => {},
+              });
+            }
+          }
         }
       },
       error: (err) => { },
@@ -469,7 +515,7 @@ export class AppComponent implements OnInit {
         message,
         relatedProjectId: projectId,
         relatedScanId: scanId,
-        isBroadcast: true,
+        isBroadcast: false,
       })
       .subscribe({
         error: (err) => { },

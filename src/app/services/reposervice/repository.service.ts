@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, switchMap, map, of, catchError } from 'rxjs';
+import { Observable, forkJoin, switchMap, map, of, catchError, tap } from 'rxjs';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { ScanService, Scan } from '../scanservice/scan.service';
 import { IssueService, Issue } from '../issueservice/issue.service';
@@ -16,6 +16,19 @@ export type { Repository, ScanIssue };
 
 @Injectable({ providedIn: 'root' })
 export class RepositoryService {
+
+  private myTriggeredProjectIds = new Set<string>(
+    JSON.parse(sessionStorage.getItem('_my_scan_projects') || '[]')
+  );
+
+  isMyTriggeredScan(projectId: string): boolean {
+    return this.myTriggeredProjectIds.has(projectId);
+  }
+
+  clearMyTriggeredScan(projectId: string): void {
+    this.myTriggeredProjectIds.delete(projectId);
+    sessionStorage.setItem('_my_scan_projects', JSON.stringify([...this.myTriggeredProjectIds]));
+  }
 
   private authOpts() {
     const token = this.auth.token;
@@ -69,6 +82,11 @@ export class RepositoryService {
       `${environment.apiUrl}/${projectId}/scan`,
       requestBody,
       this.authOpts()
+    ).pipe(
+      tap(() => {
+        this.myTriggeredProjectIds.add(projectId);
+        sessionStorage.setItem('_my_scan_projects', JSON.stringify([...this.myTriggeredProjectIds]));
+      })
     );
   }
 
