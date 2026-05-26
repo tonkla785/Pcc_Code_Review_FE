@@ -54,17 +54,17 @@
             <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)">
           </th>
           <th class="text-start">Type</th>
-          <th >Severity</th>
-          <th>Issue</th>
-          <th>Project</th>
-          <th>Assigned</th>
-          <th>Status</th>
+          <th class="text-start">Severity</th>
+          <th class="text-start">Issue</th>
+          <th class="text-start">Project</th>
+          <th class="text-start">Assigned</th>
+          <th class="text-start">Status</th>
           <th class="text-center view-column sticky-col">View</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let issue of paginatedIssues">
-          <td (click)="$event.stopPropagation()">
+          <td class="text-center" (click)="$event.stopPropagation()">
             <input type="checkbox" [checked]="isSelected(issue)" (change)="toggleIssueSelection(issue, $event)" />
           </td>
           <td><i class="bi me-1" [ngClass]="typeIcon(issue.type)"></i>{{ issue.type | titlecase }}</td>
