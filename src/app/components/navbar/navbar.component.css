@@ -333,6 +333,13 @@
   }
 }
 
+/* Tablet Match Placeholder */
+@media (max-width: 992px) and (min-width: 768px) {
+  .vertical-navbar {
+    width: 180px;
+  }
+}
+
 @media (max-width: 767px) {
   .vertical-navbar {
     position: fixed;
