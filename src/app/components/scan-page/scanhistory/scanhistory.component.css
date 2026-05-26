@@ -634,18 +634,6 @@
   animation-delay: 0.25s;
 }
 
-@keyframes fadeInRow {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* ===============================
      Tablet Responsive (เฉพาะ 768px–1024px)
      =============================== */
@@ -1038,13 +1026,11 @@
 
   /* Table base */
   .scan-history-table {
-    min-width: 660px;
-    /* ย่อรวมทั้งตาราง */
-    table-layout: fixed;
+    min-width: 860px;
+    table-layout: auto;
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 11.8px;
-    /* ย่อฟอนต์อีกเล็กน้อย */
+    font-size: 12px;
   }
 
   .scan-history-table th,
@@ -1056,22 +1042,27 @@
     vertical-align: middle;
   }
 
+  /* Hide checkbox column on mobile — saves space */
+  .scan-history-table th:first-child,
+  .scan-history-table td:first-child {
+    display: none;
+  }
+
   /* คอลัมน์ Log / Result */
   .scan-history-table th.log-col,
   .scan-history-table td.log-col {
-    width: 78px;
+    width: 60px;
   }
 
   .scan-history-table th.result-col,
   .scan-history-table td.result-col {
-    width: 78px;
+    width: 60px;
   }
 
   /* Sticky col */
   .scan-history-table .sticky-col {
-
     z-index: 3;
-    background: var(--bg-panel);
+    background: var(--table-row-bg);
     contain: paint;
     transform: translateZ(0);
     backface-visibility: hidden;

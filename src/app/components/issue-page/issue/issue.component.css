@@ -144,13 +144,6 @@
   animation-delay: 0.2s;
 }
 
-@keyframes fadeInRow {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* ===============================
      Buttons
      =============================== */
@@ -529,14 +522,6 @@
 
 .issues-container .table tbody tr:hover {
   background-color: var(--table-header-bg2);
-}
-
-/* Fade-in animation */
-@keyframes fadeInRow {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .issues-container .table tbody tr:nth-child(1) {

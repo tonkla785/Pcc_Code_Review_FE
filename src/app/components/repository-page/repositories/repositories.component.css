@@ -41,22 +41,6 @@
   color: var(--text-main);
 }
 
-.fade-in {
-  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* --- Header --- */
 .dashboard-header {
   margin-bottom: 20px;
@@ -530,16 +514,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 /* Card Footer */

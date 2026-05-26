@@ -47,22 +47,8 @@
   font-family: 'Check Project', 'Inter', sans-serif;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
 .fade-in-up {
   animation: fadeInUp 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 @keyframes fadeInUp {
@@ -455,16 +441,6 @@
   height: 100%;
   background: var(--primary);
   transition: width 0.3s ease;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 .details-list {

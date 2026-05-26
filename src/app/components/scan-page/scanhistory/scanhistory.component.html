@@ -25,7 +25,7 @@
 
     <!-- 3. Status -->
     <div class="d-flex align-items-center gap-2">
-      <label class="fw-bold">Status:</label>
+      <label class="fw-bold">Scan Status:</label>
       <select class="form-control form-control-sm" (ngModelChange)="applyFilterStatus()" [(ngModel)]="filterType"
         (ngModelChange)="applyFilterStatus()" style="width: 120px;">
         <option value="ALL">ALL</option>
@@ -61,7 +61,7 @@
       <thead class="table-light">
         <tr>
           <th style="width: 40px;">
-            <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)" />
+            <!-- <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)" /> -->
           </th>
           <th>Date/Time</th>
           <th>Project</th>
