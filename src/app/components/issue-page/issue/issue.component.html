@@ -192,15 +192,17 @@
       (click)="nextPage()">
       <i class="bi bi-chevron-right"></i>
     </button>
-  </div>
 
-  <div class="bottom-action-buttons">
-    <button class="action-btn assign" (click)="openAssignModal()" title="Assign Developer">
-      <i class="bi bi-person-plus"></i>
-    </button>
-    <button class="action-btn export" (click)="exportData()" title="Export">
-      <i class="bi bi-download"></i>
-    </button>
+    <span class="pagination-divider" style="margin: 0 8px;"></span>
+
+    <div class="bottom-action-buttons" style="position: static;">
+      <button class="action-btn assign" (click)="openAssignModal()" title="Assign Developer">
+        <i class="bi bi-person-plus"></i>
+      </button>
+      <button class="action-btn export" (click)="exportData()" title="Export">
+        <i class="bi bi-download"></i>
+      </button>
+    </div>
   </div>
 
 </div>
