@@ -256,7 +256,9 @@ export class DashboardComponent {
         ['CRITICAL', 'BLOCKER', 'MAJOR'].includes(issue.severity)
       );
 
-      this.allIssues = notifiableIssues.filter((issue) => issue.severity === 'CRITICAL');
+      this.allIssues = notifiableIssues.filter((issue) =>
+        issue.severity === 'CRITICAL' && (issue.type as string)?.toUpperCase() !== 'CODE_SMELL'
+      );
     });
 
     // ==================== STEP 2: Load data from API AFTER subscriptions are ready ====================

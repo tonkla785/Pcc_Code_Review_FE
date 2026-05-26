@@ -261,7 +261,7 @@
         <div class="card-header">
           <h3><i class="bi bi-exclamation-triangle-fill"></i> Top Issues</h3>
         </div>
-        <ul class="issue-list">
+        <ul class="issue-list" *ngIf="allIssues.length > 0; else noIssues">
           <li *ngFor="let i of allIssues | slice:0:4">
             <div class="issue-content">
               <span class="issue-msg">{{ i.message }}</span>
@@ -269,6 +269,9 @@
             </div>
           </li>
         </ul>
+        <ng-template #noIssues>
+          <p class="text-muted text-center py-3">No issues found</p>
+        </ng-template>
       </div>
     </div>
 

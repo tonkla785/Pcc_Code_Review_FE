@@ -178,6 +178,15 @@
             </td>
           </tr>
           <tr>
+            <td>Security Hotspot Rating</td>
+            <td><span class="gate-grade">{{ getHotspotReviewRating() }}</span></td>
+            <td>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'A'"><i class="bi bi-check-circle-fill"></i> Pass</span>
+              <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'E'"><i class="bi bi-x-circle-fill"></i> Fail</span>
+            </td>
+          </tr>
+          <tr>
             <td>Security Review Rating</td>
             <td><span class="gate-grade">{{ getAverageRating() }}</span></td>
             <td>

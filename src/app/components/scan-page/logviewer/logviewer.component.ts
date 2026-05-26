@@ -108,6 +108,7 @@ export class LogviewerComponent {
   countIssues(issues: any[]): GroupedIssues {
     return issues.reduce<GroupedIssues>(
       (acc, issue) => {
+        if ((issue.type as string)?.toUpperCase() === 'CODE_SMELL') return acc;
         const sev = issue.severity as Severity;
         if (sev === 'MAJOR') acc.MAJOR.push(issue);
         if (sev === 'CRITICAL') acc.CRITICAL.push(issue);
@@ -221,6 +222,13 @@ export class LogviewerComponent {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}${m}${d}`;
+  }
+
+  getHotspotReviewRating(): string {
+    if (this.scanResult?.status === 'PENDING') return '-';
+    const metrics = this.scanResult?.metrics;
+    if (!metrics) return '-';
+    return metrics.securityHotspots === 0 ? 'A' : 'E';
   }
 
   // ปุ่มย้อนกลับ
@@ -381,6 +389,7 @@ ${esc}
 - **Coverage**: ${metrics?.coverage ?? '-'}%
 - **Bugs**: ${metrics?.bugs ?? '-'}
 - **Vulnerabilities**: ${metrics?.vulnerabilities ?? '-'}
+- **Security Hotspots**: ${metrics?.securityHotspots ?? '-'} (Rating: ${this.getHotspotReviewRating()})
 - **Code Smells**: ${metrics?.codeSmells ?? '-'}
 
 ### Details Analysis
