@@ -16,7 +16,7 @@
 .issues-header {
   border: 1px solid var(--card-border);
   border-radius: 10px;
-  background-color: var(--bg-panel);
+  background-color: #ffffff !important;
   padding: 12px 16px;
   margin-bottom: 16px;
   display: flex;
@@ -36,7 +36,7 @@
 }
 
 :host-context(body.dark-mode) .issues-header {
-  background-color: #1e293b;
+  background-color: #1e293b !important;
   border-color: var(--card-border);
 }
 
@@ -96,14 +96,7 @@
      Table
      =============================== */
 .issues-container .table {
-  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.3s ease;
-}
-
-.issues-container .table:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .issues-container .table th {
@@ -149,13 +142,6 @@
 
 .issues-container .table tbody tr:nth-child(4) {
   animation-delay: 0.2s;
-}
-
-@keyframes fadeInRow {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ===============================
@@ -359,7 +345,6 @@
   }
 
   .issues-container .table {
-    overflow: visible !important;
     border-radius: 10px;
   }
 }
@@ -390,6 +375,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .issues-header h2 {
@@ -481,29 +467,33 @@
    4. TABLE
    ============================================================ */
 .issues-container .table-responsive {
-  height: 400px;
-  overflow-y: auto;
   overflow-x: auto;
 }
 
 .sticky-top {
-  position: sticky;
   top: -2px;
   z-index: 1;
 }
 
 .issues-container .table {
-  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.3s ease;
   min-width: 900px;
   width: 100%;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
 }
 
 .issues-container .table:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
+
+:host-context(body.dark-mode) .issues-container .table {
+  background-color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 
 .issues-container .table th {
   background-color: var(--table-header-bg);
@@ -532,14 +522,6 @@
 
 .issues-container .table tbody tr:hover {
   background-color: var(--table-header-bg2);
-}
-
-/* Fade-in animation */
-@keyframes fadeInRow {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .issues-container .table tbody tr:nth-child(1) {
@@ -1210,7 +1192,6 @@
   }
 
   .issues-container .table {
-    overflow: visible !important;
     border-radius: 10px;
   }
 }
@@ -1221,7 +1202,7 @@
 @media (max-width: 768px) {
   :host ::ng-deep .issues-table .sticky-col {
     border-left: 1px solid var(--card-border);
-    position: sticky;
+
     right: -1px;
     background: #fff;
     z-index: 3;
@@ -1537,7 +1518,7 @@
 
   :host ::ng-deep .issues-table .sticky-col {
     position: -webkit-sticky;
-    position: sticky;
+
     right: 0;
     left: auto;
     z-index: 5;
@@ -1572,11 +1553,14 @@
   }
 }
 
-/* Safari fix: ป้องกัน transform / overflow ทำให้ sticky หลุด */
-:host ::ng-deep .issues-container,
-:host ::ng-deep .issues-table {
+/* Safari fix: ป้องกัน transform ทำให้ sticky หลุด */
+:host ::ng-deep .issues-container {
   transform: none !important;
   overflow: visible !important;
+}
+
+:host ::ng-deep .issues-table {
+  transform: none !important;
 }
 
 .modal-backdrop-custom {
@@ -1797,4 +1781,47 @@
 :host-context(body.dark-mode) .modal-body .form-select option {
   background-color: #1e293b;
   color: #f8fafc;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: #94a3b8 !important;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b !important;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: #64748b !important;
+  font-size: 1rem;
+}
+
+:host-context(body.dark-mode) .empty-icon {
+  color: #94a3b8 !important;
+}
+
+:host-context(body.dark-mode) .empty-state h3 {
+  color: #f1f5f9 !important;
+}
+
+:host-context(body.dark-mode) .empty-state p {
+  color: #94a3b8 !important;
 }

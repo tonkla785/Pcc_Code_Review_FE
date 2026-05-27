@@ -17,6 +17,7 @@
 
   --angular-color: #dd0031;
   --spring-color: #6db33f;
+  --title-color: #2563eb;
 }
 
 :host-context(.dark-mode) {
@@ -29,30 +30,15 @@
   --border-color: #334155;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --title-color: #ffffff;
 }
 
 /* --- Global Utilities --- */
 .scan-result-dashboard {
   min-height: 100vh;
-  background-color: var(--bg-main);
+  background-color: none;
   padding: 30px;
   color: var(--text-main);
-}
-
-.fade-in {
-  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* --- Header --- */
@@ -72,35 +58,11 @@
   gap: 12px;
 }
 
-.back-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-  background: var(--card-bg);
-  color: var(--text-main);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1.2rem;
-}
-
-.back-btn:hover {
-  background: var(--bg-main);
-  color: var(--primary);
-  border-color: var(--primary);
-}
-
 .header-content h1 {
   font-size: 1.8rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, var(--title-color) 0%, var(--text-sub) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--title-color);
 }
 
 .header-content p {
@@ -191,6 +153,14 @@
 
 .qa-icon.fail {
   color: #ef4444;
+}
+
+.qa-icon.scanning {
+  color: #3b82f6;
+}
+
+.qa-text h3.scanning {
+  color: #3b82f6;
 }
 
 .qa-text h3 {

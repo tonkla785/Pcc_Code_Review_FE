@@ -21,6 +21,7 @@
   /* Gray 700 */
   --primary-hover: #1d4ed8;
   /* Darker Blue for gradient */
+  --title-color: #2563eb;
 }
 
 :host-context(.dark-mode) {
@@ -39,6 +40,7 @@
   --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
   --chart-text: #f3f4f6;
+  --title-color: #ffffff;
 
   .text-muted {
     color: #94a3b8 !important;
@@ -50,7 +52,7 @@
 /* --- Layout Container --- */
 .dashboard-container {
   padding: 24px 32px;
-  background-color: var(--bg-main);
+  background-color: none;
   min-height: 100vh;
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--text-main);
@@ -65,39 +67,28 @@
   padding-bottom: 40px;
 }
 
-.fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* --- Sticky Glass Header --- */
 .dashboard-header {
-  position: sticky;
   top: 0;
   z-index: 50;
-  margin: -24px -32px 20px -32px;
-  padding: 16px 32px;
+  margin: 0;
   background: rgba(248, 250, 252, 0.85);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(203, 213, 225, 0.4);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  padding: 12px 16px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 :host-context(.dark-mode) .dashboard-header {
-  background: rgba(15, 23, 42, 0.8);
-  border-bottom-color: rgba(51, 65, 85, 0.4);
+  background-color: #1e293b;
+  border-color: var(--card-border);
 }
 
 .header-content {
@@ -285,7 +276,6 @@
 
 /* --- 1. Welcome Card --- */
 .welcome-card {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--primary-light) 300%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -916,7 +906,7 @@ tr:last-child td {
   }
 
   .dashboard-header {
-    margin: -20px -20px 20px -20px;
+    margin: 0;
     padding: 16px 20px;
   }
 
@@ -940,7 +930,7 @@ tr:last-child td {
   }
 
   .dashboard-header {
-    margin: -16px -16px 16px -16px;
+    margin: 0;
     padding: 12px 16px;
   }
 
@@ -1255,4 +1245,8 @@ tr:last-child td {
 :host-context(.dark-mode) .status-badge.unverified {
   color: #f87171;
   background: rgba(239, 68, 68, 0.25);
+}
+
+:host-context(.dark-mode) .modal-footer {
+  background: #374151 !important;
 }

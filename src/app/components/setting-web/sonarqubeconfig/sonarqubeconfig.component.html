@@ -14,7 +14,7 @@
             <div class="col-12">
               <label class="form-label" for="sonarserverUrl">SonarQube Server URL *</label>
               <input type="url" id="sonarserverUrl" name="serverUrl" class="form-control" [(ngModel)]="serverUrl"
-                required pattern="https?://.+" placeholder="https://code.pccth.com" #serverUrlRef="ngModel" />
+                required pattern="https?://.+" placeholder="https://Example.com" #serverUrlRef="ngModel" />
               <div class="text-danger small" *ngIf="serverUrlRef.invalid && serverUrlRef.touched">
                 <div *ngIf="serverUrlRef.errors?.['required']">Server URL is required.</div>
                 <div *ngIf="serverUrlRef.errors?.['pattern']">Please enter a valid URL.</div>

@@ -36,56 +36,6 @@
 }
 
 /* =========================
-     BACK BUTTON (Neumorphism Light Mode)
-     ========================= */
-.back-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #2563eb;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-  transition: background 0.3s ease, transform 0.25s ease;
-}
-
-
-
-.back-btn:hover {
-  background: #e5f0ff;
-  transform: translateX(-3px);
-}
-
-.back-btn:active {
-  background: #dbeafe;
-  transform: scale(0.95);
-}
-
-/* =========================
-     DARK MODE BACK BUTTON
-     ========================= */
-:host-context(.dark-mode) .back-btn {
-  background: transparent !important;
-  color: #3b82f6 !important;
-  box-shadow: none !important;
-}
-
-:host-context(.dark-mode) .back-btn:hover {
-  background: rgba(59, 130, 246, 0.15) !important;
-  transform: translateX(-3px);
-}
-
-:host-context(.dark-mode) .back-btn:active {
-  background: rgba(59, 130, 246, 0.25) !important;
-  transform: scale(0.95);
-}
-
-/* =========================
      CARD
      ========================= */
 .card {

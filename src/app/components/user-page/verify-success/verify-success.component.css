@@ -18,12 +18,6 @@
   animation: fadeIn 0.8s ease forwards;
 }
 
-/* Smooth fade in */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 /* Success Box Card */
 .success-box {
   background: #fff;

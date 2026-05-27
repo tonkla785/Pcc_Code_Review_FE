@@ -36,32 +36,19 @@
 
   --radius: 16px;
   --radius-sm: 8px;
+  --title-color: #2563eb;
 }
 
 /* --- Layout & Animation --- */
 .page-container {
   padding: 2rem;
-  background-color: #f9fafb;
+  background-color: none;
   min-height: 100vh;
   font-family: 'Check Project', 'Inter', sans-serif;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
 .fade-in-up {
   animation: fadeInUp 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 @keyframes fadeInUp {
@@ -93,25 +80,30 @@
 }
 
 .back-link {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-sm);
-  background: var(--white);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   border: 1px solid var(--light-gray);
+  background: var(--white);
+  color: var(--dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--gray);
-  font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
+  font-size: 1.2rem;
 }
 
 .back-link:hover {
+  background: var(--light-gray);
   color: var(--primary);
-  border-color: var(--primary-light);
-  transform: translateX(-2px);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.back-link:active {
+  transform: translateY(0) scale(0.95);
 }
 
 .project-info {
@@ -145,7 +137,7 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--title-color);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -451,16 +443,6 @@
   transition: width 0.3s ease;
 }
 
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .details-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -646,11 +628,12 @@
   --gray: #9ca3af;
   --light-gray: #374151;
   --white: #1f2937;
+  --title-color: #ffffff;
   background-color: #111827;
 }
 
 :host-context(.dark-mode) .page-container {
-  background-color: #111827;
+  background-color: none;
 }
 
 /* Dark Mode Hover Fixes */
@@ -667,17 +650,7 @@
   /* Stronger shadow for dark mode */
 }
 
-:host-context(.dark-mode) .back-link {
-  background-color: var(--white);
-  border-color: #374151;
-  color: var(--gray);
-}
-
-:host-context(.dark-mode) .back-link:hover {
-  background-color: #262f3e;
-  border-color: var(--primary);
-  color: var(--primary);
-}
+/* Standardized back-link automatically inherits dark mode variables */
 
 :host-context(.dark-mode) .btn-settings {
   background-color: var(--white);

@@ -58,7 +58,7 @@ export class RegisterComponent {
       upper: /[A-Z]/.test(pwd),
       lower: /[a-z]/.test(pwd),
       number: /\d/.test(pwd),
-      special: /[!@#$%&*]/.test(pwd),
+      special: /[!@#$%&*.]/.test(pwd),
     };
   }
 
@@ -124,19 +124,6 @@ export class RegisterComponent {
           });
           this.router.navigate(['/login']);
         }),
-        switchMap(() =>
-          this.emailService
-            .registerEmail({
-              type: 'Register',
-              email,
-              username,
-            })
-            .pipe(
-              catchError((e) => {
-                return of(null);
-              }),
-            ),
-        ),
         finalize(() => (this.loading = false)),
       )
       .subscribe({

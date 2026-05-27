@@ -5,7 +5,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  background: #f8f9fa;
+  background: none;
   min-height: 100vh;
 }
 
@@ -35,23 +35,25 @@
 }
 
 .back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   backdrop-filter: blur(10px);
   margin-bottom: 1rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-size: 1.2rem;
 }
 
 .back-btn:hover {
   background: rgba(255, 255, 255, 0.3);
-  transform: translateX(-5px);
+  transform: translateY(-2px);
 }
 
 .header-content {
@@ -190,15 +192,15 @@
 }
 
 .badge-severity.severity-minor {
-  background: #fff9db;
-  color: #e67700;
-  border: 1px solid #ffe066;
-}
-
-.badge-severity.severity-major {
   background: #ebfbee;
   color: #2b8a3e;
   border: 1px solid #b2f2bb;
+}
+
+.badge-severity.severity-major {
+  background: #fff9db;
+  color: #e67700;
+  border: 1px solid #ffe066;
 }
 
 /* Status Badges */
@@ -365,6 +367,7 @@
   background: #1e1e1e;
   color: #d4d4d4;
   padding: 1.5rem;
+  padding: 1rem 0;
   margin: 0;
   overflow-x: auto;
   font-family: 'Fira Code', 'Consolas', monospace;
@@ -374,6 +377,68 @@
 
 .code-block code {
   color: inherit;
+  display: block;
+}
+
+/* Premium Code Line Rendering (SonarQube Style) */
+.code-line {
+  display: flex;
+  min-height: 26px;
+  line-height: 26px;
+  padding: 0 1.5rem;
+  font-family: inherit;
+  font-size: inherit;
+  transition: background-color 0.2s ease;
+}
+
+.code-line:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.line-number {
+  color: #5c6370;
+  text-align: right;
+  width: 45px;
+  padding-right: 15px;
+  user-select: none;
+  font-size: 0.8rem;
+  border-right: 1px solid #3e4451;
+  margin-right: 15px;
+  display: inline-block;
+}
+
+.line-text {
+  flex: 1;
+  white-space: pre;
+  color: #abb2bf;
+}
+
+/* Premium Highlight for Target Vulnerable Line */
+.code-line.vulnerable-line {
+  background-color: rgba(224, 108, 117, 0.12) !important; /* Soft premium red transparent background */
+  position: relative;
+}
+
+.code-line.vulnerable-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background-color: #e06c75; /* Thick solid red bar on the left */
+  box-shadow: 0 0 8px rgba(224, 108, 117, 0.5);
+}
+
+.code-line.vulnerable-line .line-number {
+  color: #e06c75;
+  font-weight: 700;
+  border-right: 1px solid #e06c75;
+}
+
+.code-line.vulnerable-line .line-text {
+  color: #e06c75; /* Highlight vulnerable text in red */
+  font-weight: 500;
 }
 
 /* ========================
@@ -639,21 +704,6 @@
   .comment-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-}
-
-/* ========================
-   Animations
-   ======================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1248,7 +1298,7 @@
 
 /* Container */
 :host-context(.dark-mode) .issue-container {
-  background: #0f172a;
+  background: none;
 }
 
 /* Header */
@@ -1307,15 +1357,15 @@
 }
 
 :host-context(.dark-mode) .badge-severity.severity-minor {
-  background: rgba(230, 119, 0, 0.2);
-  color: #fcd34d;
-  border-color: rgba(230, 119, 0, 0.4);
-}
-
-:host-context(.dark-mode) .badge-severity.severity-major {
   background: rgba(43, 138, 62, 0.2);
   color: #86efac;
   border-color: rgba(43, 138, 62, 0.4);
+}
+
+:host-context(.dark-mode) .badge-severity.severity-major {
+  background: rgba(230, 119, 0, 0.2);
+  color: #fcd34d;
+  border-color: rgba(230, 119, 0, 0.4);
 }
 
 /* Status Badges - Dark */

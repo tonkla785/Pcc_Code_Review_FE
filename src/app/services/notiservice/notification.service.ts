@@ -202,7 +202,7 @@ export class NotificationService {
             message: issue.message,
             relatedIssueId: issue.id,
             relatedProjectId: issue.projectData?.id,
-            isBroadcast: true
+            isBroadcast: false
           }).subscribe({
             error: (err) => {
               // On error, remove from cache so we can retry later if needed
@@ -277,7 +277,7 @@ export class NotificationService {
             message: `${projectName} failed quality gate check`,
             relatedProjectId: scan.project?.id,
             relatedScanId: scan.id,
-            isBroadcast: true // Broadcast quality gate failures to all users
+            isBroadcast: false
           }).subscribe({
             next: () => {
               completed++;

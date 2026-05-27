@@ -4,7 +4,7 @@
   <!-- Header with gradient background -->
   <div class="issue-header">
     <button title="Back to Issue" class="back-btn" (click)="goBack()">
-      <i class="bi bi-arrow-left"></i>
+      <i class="bi bi-chevron-left"></i>
     </button>
     <div class="header-content">
       <div class="issue-type-badge">
@@ -138,7 +138,7 @@
             <i class="bi bi-clipboard"></i>
           </button>
         </div>
-        <pre class="code-block"><code>{{ issuesDetails?.vulnerableCode }}</code></pre>
+        <pre class="code-block"><code><div *ngFor="let line of parsedVulnerableLines" [class.vulnerable-line]="line.isTarget" class="code-line"><span class="line-number">{{ line.lineNum }}</span><span class="line-text">{{ line.text }}</span></div></code></pre>
       </div>
 
       <div class="smart-card" *ngIf="issuesDetails?.recommendedFix">
@@ -185,7 +185,7 @@
         </div>
 
         <!-- Button: show only when recommendedFixByAi is null/empty and not loading -->
-        <div class="card-footer-clean" *ngIf="!issuesDetails?.recommendedFixByAi && !isAiLoading">
+        <div class="card-footer-clean" *ngIf="(!issuesDetails?.recommendedFixByAi || issuesDetails?.status === 'FAILED') && !isAiLoading">
           <button class="btn-magic" (click)="triggerAiFix()">
             <i class="bi bi-stars"></i>
             <span>Generate AI Fix</span>

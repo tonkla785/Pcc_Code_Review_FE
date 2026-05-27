@@ -25,6 +25,7 @@
   --table-header-bg2: #f8fafc;
   /* hover */
   --table-row-bg: #ffffff;
+  --title-color: #2563eb;
 }
 
 :host-context(.dark-mode) {
@@ -45,6 +46,7 @@
   --table-header-bg2: #334155;
   /* hover */
   --table-row-bg: #1e293b;
+  --title-color: #ffffff;
 }
 
 /* ===============================
@@ -52,32 +54,50 @@
    =============================== */
 .scan-history-container {
   min-height: 100vh;
-  background-color: var(--bg-main);
+  background-color: none;
   padding: 30px;
   color: var(--text-main);
-  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 .scan-history-container:hover {
   box-shadow: none;
 }
 
+.btn-primary {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  border: none;
+  color: #fff;
+}
+
 /* --- Header --- */
 .dashboard-header {
+  margin-bottom: 20px;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 250, 252, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+:host-context(.dark-mode) .dashboard-header {
+  background-color: #1e293b;
+  border-color: var(--card-border);
 }
 
 .dashboard-header h1 {
   font-size: 1.8rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, var(--title-color) 0%, var(--text-sub) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--title-color);
 }
 
 .dashboard-header p {
@@ -104,6 +124,11 @@
   color: #b91c1c;
 }
 
+.gate-scanning {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 :host-context(.dark-mode) .gate-pass {
   background: rgba(21, 128, 61, 0.2);
   color: #4ade80;
@@ -112,6 +137,11 @@
 :host-context(.dark-mode) .gate-fail {
   background: rgba(185, 28, 28, 0.2);
   color: #f87171;
+}
+
+:host-context(.dark-mode) .gate-scanning {
+  background: rgba(29, 78, 216, 0.2);
+  color: #60a5fa;
 }
 
 .btn-icon {
@@ -342,28 +372,39 @@
        Table
        =============================== */
 .scan-history-table {
-  background-color: var(--card-bg);
-  /* Add background to table */
+  background-color: #ffffff;
   border-radius: 12px;
   overflow: hidden;
-  /* For rounded corners */
   box-shadow: var(--shadow-sm);
 }
 
 .table th {
   background-color: var(--table-header-bg);
-  /* พื้นหลังหัวตาราง */
   font-weight: 600;
   color: var(--table-header-text);
-  /* สีข้อความหัว */
   border-bottom: 1px solid var(--border-color);
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 .table td {
-  background-color: var(--table-row-bg);
-  /* Explicit row background */
+  background-color: #ffffff;
   color: var(--text-main);
+}
+
+.table tbody tr:nth-child(even) td {
+  background-color: #fafafa;
+}
+
+:host-context(body.dark-mode) .scan-history-table {
+  background-color: #1e293b;
+}
+
+:host-context(body.dark-mode) .table td {
+  background-color: #1e293b !important;
+}
+
+:host-context(body.dark-mode) .table tbody tr:nth-child(even) td {
+  background-color: #0f172a !important;
 }
 
 .table td,
@@ -470,6 +511,31 @@
   background-color: var(--btn-stop-hover);
   /* hover แดงเข้ม */
 }
+/* ===============================
+       Outline Primary Button
+       =============================== */
+.btn-outline-primary {
+  border: 1px solid #A5D8FF;
+  color: #007BFF;
+  background: #fff;
+}
+
+.btn-outline-primary:hover {
+  background-color: #74C0FC;
+  border-color: #74C0FC;
+  color: #fff;
+}
+
+:host-context(.dark-mode) .btn-outline-primary {
+  background-color: #2563eb;
+  color: #fff;
+  border: 1px solid #1d4ed8;
+}
+
+:host-context(.dark-mode) .btn-outline-primary:hover {
+  background-color: #1d4ed8;
+}
+
 
 
 /* ===============================
@@ -566,18 +632,6 @@
 
 .table tbody tr:nth-child(5) {
   animation-delay: 0.25s;
-}
-
-@keyframes fadeInRow {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ===============================
@@ -828,7 +882,7 @@
   text-align: center;
   padding: 10px;
   border-bottom: 2px solid var(--card-border);
-  position: sticky;
+
   top: 0;
   z-index: 1;
 }
@@ -972,13 +1026,11 @@
 
   /* Table base */
   .scan-history-table {
-    min-width: 660px;
-    /* ย่อรวมทั้งตาราง */
-    table-layout: fixed;
+    min-width: 860px;
+    table-layout: auto;
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 11.8px;
-    /* ย่อฟอนต์อีกเล็กน้อย */
+    font-size: 12px;
   }
 
   .scan-history-table th,
@@ -990,22 +1042,27 @@
     vertical-align: middle;
   }
 
+  /* Hide checkbox column on mobile — saves space */
+  .scan-history-table th:first-child,
+  .scan-history-table td:first-child {
+    display: none;
+  }
+
   /* คอลัมน์ Log / Result */
   .scan-history-table th.log-col,
   .scan-history-table td.log-col {
-    width: 78px;
+    width: 60px;
   }
 
   .scan-history-table th.result-col,
   .scan-history-table td.result-col {
-    width: 78px;
+    width: 60px;
   }
 
   /* Sticky col */
   .scan-history-table .sticky-col {
-    position: sticky;
     z-index: 3;
-    background: var(--bg-panel);
+    background: var(--table-row-bg);
     contain: paint;
     transform: translateZ(0);
     backface-visibility: hidden;

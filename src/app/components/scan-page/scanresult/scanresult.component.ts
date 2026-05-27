@@ -268,6 +268,15 @@ ${esc}
     this.router.navigate(['/issues', this.scanInfo?.scanId]);
   }
 
+  // SonarQube: hotspots from fresh scan are unreviewed (0% reviewed)
+  // A=≥80% reviewed → 0 hotspots; E=<30% reviewed → any unreviewed hotspot
+  getHotspotReviewRating(): string {
+    if (this.scanResult?.status === 'PENDING') return '-';
+    const metrics = this.scanResult?.metrics;
+    if (!metrics) return '-';
+    return metrics.securityHotspots === 0 ? 'A' : 'E';
+  }
+
   getAverageRating(): string {
     const metrics = this.scanResult?.metrics;
     if (!metrics) return '-';

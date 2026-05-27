@@ -3,8 +3,8 @@
 
   <!-- Search bar -->
   <div class="toolbar">
-    <input type="text" placeholder="Search username..." [(ngModel)]="searchText" (ngModelChange)="onSearchChange($event)"
-      class="search-input" />
+    <input type="text" placeholder="Search username..." [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange($event)" class="search-input" />
     <button class="btn btn-primary" (click)="openAddUser()">
       <i class="bi bi-person-plus"></i> Add User
     </button>
@@ -113,7 +113,7 @@
           </div> -->
         </form>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="background-color: #1f2937 !important;">
         <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
         <button class="btn btn-primary" [disabled]="!canSave() || isEmail" (click)="onSubmitUser()">
           {{ editingUser ? "Update" : "Add" }}

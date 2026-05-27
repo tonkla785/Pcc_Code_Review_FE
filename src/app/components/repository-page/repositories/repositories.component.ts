@@ -84,7 +84,7 @@ export class RepositoriesComponent implements OnInit {
 
     this.repoService.getAllRepo().subscribe({
       next: (repos) => {
-        // [Refactor] ไม่เช็ค localStorage แล้ว ใช้ข้อมูลจาก DB ล้วนๆ
+        // [Refactor] ไม่เช็ค sessionStorage แล้ว ใช้ข้อมูลจาก DB ล้วนๆ
         // ถ้า DB บอกว่าเป็น PENDING/SCANNING ก็จะขึ้นหมุนติ้วๆ เอง
 
         // เก็บข้อมูลลง SharedDataService
@@ -189,11 +189,11 @@ export class RepositoriesComponent implements OnInit {
 
     // Validate SonarQube Token
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
-    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '') {
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '' || !sonarConfig?.serverUrl || sonarConfig.serverUrl.trim() === '') {
       Swal.fire({
         icon: 'warning',
-        title: 'Missing SonarQube Token',
-        text: 'Please configure your SonarQube Token in User Settings before adding a repository.',
+        title: 'Missing SonarQube Token or Server URL',
+        text: 'Please configure your SonarQube Token and Server URL in User Settings before adding a repository.',
         showCancelButton: true,
         confirmButtonText: 'Go to Settings',
         confirmButtonColor: '#3085d6',
@@ -226,7 +226,7 @@ export class RepositoriesComponent implements OnInit {
         // Private needs Token
         Swal.fire({
           title: 'Enter Git Token',
-          input: 'text',
+          input: 'password',
           inputLabel: 'Git Token',
           inputPlaceholder: 'Enter Git Token',
           showCancelButton: true,
@@ -254,12 +254,12 @@ export class RepositoriesComponent implements OnInit {
 
     if (repo.projectId) {
       this.sharedData.updateRepoStatus(repo.projectId, 'Scanning', 0);
-      // [Refactor] ไม่เก็บ localStorage แล้ว เชื่อใจ WebSocket + DB
+      // [Refactor] ไม่เก็บ sessionStorage แล้ว เชื่อใจ WebSocket + DB
     }
 
     this.updateSummaryStats();
 
-    this.repoService.startScan(repo.projectId!, 'main', token).subscribe({
+    this.repoService.startScan(repo.projectId!, 'dev', token, this.userSettingsData.sonarQubeConfig?.serverUrl).subscribe({
       next: (response: any) => {
         this.snack.open(`Scan started: ${repo.name}`, '', {
           duration: 2500,

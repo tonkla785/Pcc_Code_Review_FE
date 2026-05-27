@@ -47,24 +47,21 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((p) => {
-      const tk = p.get('token');
+    const tk = this.route.snapshot.queryParamMap.get('token');
 
-      if (tk) {
-        this.token = tk;
-        sessionStorage.setItem('reset_token', tk); // ✅ เก็บไว้ก่อน
+    if (tk) {
+      this.token = tk;
+      sessionStorage.setItem('reset_token', tk); 
 
-        // ✅ ค่อยลบออกจาก URL (กัน token โผล่ใน history)
-        this.router.navigate([], {
-          queryParams: { token: null },
-          queryParamsHandling: 'merge',
-          replaceUrl: true,
-        });
-      } else {
-        // ✅ ถ้า URL ไม่มี token (เช่น refresh) ก็ไปดึงจาก storage
-        this.token = sessionStorage.getItem('reset_token');
-      }
-    });
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { token: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    } else {
+      this.token = sessionStorage.getItem('reset_token');
+    }
   }
   goBack() {
     sessionStorage.removeItem('reset_token');

@@ -34,13 +34,12 @@
         <div class="qa-gate-content">
           <div class="qa-status">
             <i class="bi qa-icon"
-              [ngClass]="scanResult.qualityGate === 'OK' ? 'bi-check-circle-fill pass' : 'bi-x-circle-fill fail'"></i>
+              [ngClass]="scanResult.status === 'PENDING' ? 'bi-arrow-repeat scanning spin' : (scanResult.qualityGate === 'OK' ? 'bi-check-circle-fill pass' : 'bi-x-circle-fill fail')"></i>
             <div class="qa-text">
-              <h3 [ngClass]="scanResult.qualityGate === 'OK' ? 'pass' : 'fail'">
-                {{ scanResult.qualityGate === 'OK' ? 'Passed' : 'Failed' }}
+              <h3 [ngClass]="scanResult.status === 'PENDING' ? 'scanning' : (scanResult.qualityGate === 'OK' ? 'pass' : 'fail')">
+                {{ scanResult.status === 'PENDING' ? 'Scanning' : (scanResult.qualityGate === 'OK' ? 'Passed' : 'Failed') }}
               </h3>
-              <span>{{ scanResult.qualityGate === 'OK' ? 'Code is safe and clean' : 'Issues found, please review'
-                }}</span>
+              <span>{{ scanResult.status === 'PENDING' ? 'Analysis in progress, please wait...' : (scanResult.qualityGate === 'OK' ? 'Code is safe and clean' : 'Issues found, please review') }}</span>
             </div>
           </div>
         </div>
@@ -142,11 +141,12 @@
             <td>Reliability Rating</td>
             <td><span class="gate-grade">{{ scanResult.metrics?.reliabilityRating ?? '-' }}</span></td>
             <td>
-              <span class="text-success" *ngIf="scanResult.metrics?.reliabilityRating === 'A'"><i
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.reliabilityRating === 'A'"><i
                   class="bi bi-check-circle-fill"></i> Pass</span>
-              <span class="text-warning" *ngIf="scanResult.metrics?.reliabilityRating === 'B'"><i
+              <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.reliabilityRating === 'B'"><i
                   class="bi bi-exclamation-circle-fill"></i> Warning</span>
-              <span class="text-danger" *ngIf="['C','D','E'].includes(scanResult.metrics?.reliabilityRating || '')"><i
+              <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(scanResult.metrics?.reliabilityRating || '')"><i
                   class="bi bi-x-circle-fill"></i> Fail</span>
             </td>
           </tr>
@@ -154,11 +154,12 @@
             <td>Security Rating</td>
             <td><span class="gate-grade">{{ scanResult.metrics?.securityRating ?? '-' }}</span></td>
             <td>
-              <span class="text-success" *ngIf="scanResult.metrics?.securityRating === 'A'"><i
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.securityRating === 'A'"><i
                   class="bi bi-check-circle-fill"></i> Pass</span>
-              <span class="text-warning" *ngIf="scanResult.metrics?.securityRating === 'B'"><i
+              <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.securityRating === 'B'"><i
                   class="bi bi-exclamation-circle-fill"></i> Warning</span>
-              <span class="text-danger" *ngIf="['C','D','E'].includes(scanResult.metrics?.securityRating || '')"><i
+              <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(scanResult.metrics?.securityRating || '')"><i
                   class="bi bi-x-circle-fill"></i> Fail</span>
             </td>
           </tr>
@@ -166,24 +167,35 @@
             <td>Maintainability Rating</td>
             <td><span class="gate-grade">{{ scanResult.metrics?.maintainabilityRating ?? '-' }}</span></td>
             <td>
-              <span class="text-success" *ngIf="scanResult.metrics?.maintainabilityRating === 'A'"><i
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.maintainabilityRating === 'A'"><i
                   class="bi bi-check-circle-fill"></i> Pass</span>
-              <span class="text-warning" *ngIf="scanResult.metrics?.maintainabilityRating === 'B'"><i
+              <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.maintainabilityRating === 'B'"><i
                   class="bi bi-exclamation-circle-fill"></i> Warning</span>
               <span class="text-danger"
-                *ngIf="['C','D','E'].includes(scanResult.metrics?.maintainabilityRating || '')"><i
+                *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(scanResult.metrics?.maintainabilityRating || '')"><i
                   class="bi bi-x-circle-fill"></i> Fail</span>
+            </td>
+          </tr>
+          <tr>
+            <td>Security Hotspot Rating</td>
+            <td><span class="gate-grade">{{ getHotspotReviewRating() }}</span></td>
+            <td>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'A'"><i class="bi bi-check-circle-fill"></i> Pass</span>
+              <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'E'"><i class="bi bi-x-circle-fill"></i> Fail</span>
             </td>
           </tr>
           <tr>
             <td>Security Review Rating</td>
             <td><span class="gate-grade">{{ getAverageRating() }}</span></td>
             <td>
-              <span class="text-success" *ngIf="getAverageRating() === 'A'"><i class="bi bi-check-circle-fill"></i>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && getAverageRating() === 'A'"><i class="bi bi-check-circle-fill"></i>
                 Pass</span>
-              <span class="text-warning" *ngIf="getAverageRating() === 'B'"><i
+              <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && getAverageRating() === 'B'"><i
                   class="bi bi-exclamation-circle-fill"></i> Warning</span>
-              <span class="text-danger" *ngIf="['C','D','E'].includes(getAverageRating())"><i
+              <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(getAverageRating())"><i
                   class="bi bi-x-circle-fill"></i> Fail</span>
             </td>
           </tr>

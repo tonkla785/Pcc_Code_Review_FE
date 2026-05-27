@@ -1,38 +1,33 @@
 <!-- Top Bar: Login / Register (ขวาบน) -->
-<nav
-  class="navbar navbar-light bg-transparent position-absolute top-0 end-0 p-3 z-3"
->
-  <div class="d-flex gap-2">
-    <button
-      type="button"
-      class="btn btn-outline-primary btn-sm"
-      (click)="goToLogin()"
-    >
-      Login
-    </button>
-    <button
-      type="button"
-      class="btn btn-primary btn-sm"
-      (click)="goToRegister()"
-    >
-      Register
-    </button>
+<nav class="navbar navbar-light bg-transparent position-absolute top-0 start-0 end-0 p-3 z-3">
+  <div class="d-flex w-100 justify-content-between align-items-center">
+
+    <!-- Logo ชิดซ้าย -->
+    <img src="logo.png" alt="logo" style="height: 80px; object-fit: contain; min-width: 0;">
+
+    <!-- ปุ่ม Login/Register ชิดขวา -->
+    <div class="d-flex gap-2 flex-shrink-0 ms-3" style="align-self: flex-start;">
+      <button type="button" class="btn btn-outline-primary btn-sm" style="min-width: 80px;" (click)="goToLogin()">
+        Login
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" style="min-width: 80px;" (click)="goToRegister()">
+        Register
+      </button>
+    </div>
+
   </div>
 </nav>
 
 <!-- Hero Section -->
 <section class="hero d-flex align-items-center text-center">
+
   <div class="container">
     <h1 class="display-5 fw-bold mb-2">PCCTH Automate Code Review</h1>
     <p class="lead mb-4">
       Automated code quality improvement:<br class="d-none d-md-block" />
       <span class="fw-semibold">fast, accurate, and transparent.</span>
     </p>
-    <button
-      type="button"
-      class="btn btn-primary btn-lg px-4"
-      (click)="scrollTo('features')"
-    >
+    <button type="button" class="btn btn-primary btn-lg px-4" (click)="scrollTo('features')">
       Explore Features
     </button>
   </div>
@@ -91,9 +86,7 @@
     <div class="d-flex flex-wrap justify-content-center gap-3">
       <span class="badge rounded-pill bg-success px-3 py-2">Success</span>
       <span class="badge rounded-pill bg-info text-dark px-3 py-2">Info</span>
-      <span class="badge rounded-pill bg-warning text-dark px-3 py-2"
-        >Warning</span
-      >
+      <span class="badge rounded-pill bg-warning text-dark px-3 py-2">Warning</span>
       <span class="badge rounded-pill bg-danger px-3 py-2">Error</span>
     </div>
   </div>
@@ -104,11 +97,7 @@
   <div class="container">
     <h2 class="h4 fw-bold mb-2">Start Automating Your Code Reviews Today</h2>
     <p class="mb-4">Fast, accurate, transparent code quality.</p>
-    <button
-      type="button"
-      class="btn btn-outline-light btn-lg"
-      (click)="goToRegister()"
-    >
+    <button type="button" class="btn btn-outline-light btn-lg" (click)="goToRegister()">
       Get Started
     </button>
   </div>

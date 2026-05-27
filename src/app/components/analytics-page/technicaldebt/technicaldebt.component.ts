@@ -476,7 +476,7 @@ export class TechnicaldebtComponent {
   }
 
   goToProject(projectId: string): void {
-    this.router.navigate(['/settingrepo', projectId]);
+    this.router.navigate(['/detailrepo', projectId]);
   }
 
   generateDebtReport(): void {

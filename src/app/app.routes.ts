@@ -28,21 +28,24 @@ import { TechnicaldebtComponent } from './components/analytics-page/technicaldeb
 import { Component } from '@angular/core';
 import { roleGuard } from './services/authservice/role.guard';
 import { VerifyEmailComponent } from './components/user-page/verify-email/verify-email.component';
+import { authGuard } from './services/authservice/auth.guard';
 
 export const routes: Routes = [
-
   { path: '', component: LandingpageComponent, pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'verify-email', component: VerifyEmailComponent }, // ✅ เพิ่มอันนี้
+  { path: 'verify-email', component: VerifyEmailComponent },
   { path: 'verify-success', component: VerifySuccessComponent },
   { path: 'verify-failed', component: VerifyFailedComponent },
 
+  // ✅ เปลี่ยนจาก path: '' เป็น path: 'app'
+  // หรือใช้ component: LayoutComponent เป็น parent โดยตรง
   {
     path: '',
-    component: LayoutComponent, // Layout มี Navbar
+    component: LayoutComponent,
+    canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'repositories', component: RepositoriesComponent },
@@ -66,7 +69,5 @@ export const routes: Routes = [
     ]
   },
 
-  // fallback
   { path: '**', redirectTo: '' }
 ];
-

@@ -17,6 +17,7 @@
 
   --angular-color: #dd0031;
   --spring-color: #6db33f;
+  --title-color: #2563eb;
 }
 
 :host-context(.dark-mode) {
@@ -29,48 +30,46 @@
   --border-color: #334155;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --title-color: #ffffff;
 }
 
 /* --- Global Utilities --- */
 .repo-dashboard {
   min-height: 100vh;
-  background-color: var(--bg-main);
+  background-color: none;
   padding: 30px;
   color: var(--text-main);
 }
 
-.fade-in {
-  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* --- Header --- */
 .dashboard-header {
+  margin-bottom: 20px;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 250, 252, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+:host-context(.dark-mode) .dashboard-header {
+  background-color: #1e293b;
+  border-color: var(--card-border);
 }
 
 .dashboard-header h1 {
   font-size: 1.8rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, var(--title-color) 0%, var(--text-sub) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--title-color);
 }
 
 .dashboard-header p {
@@ -515,16 +514,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 /* Card Footer */

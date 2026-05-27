@@ -1,46 +1,19 @@
-/* =========================
-   BACK BUTTON
-   ========================= */
-.back-btn {
-  display: inline-flex;
-  /* ทำให้ปุ่มจัดไอคอนกับตัวอักษรในแนวนอน */
-  align-items: center;
-  /* จัดให้อยู่กึ่งกลางแนวตั้ง */
-  justify-content: center;
-  /* จัดให้อยู่กึ่งกลางแนวนอน */
-  padding: 8px 12px;
-  /* ระยะห่างรอบปุ่ม */
-  font-size: 1.3rem;
-  /* ขนาดตัวอักษรในปุ่ม */
-  margin-bottom: 15px;
-  /* เว้นด้านล่าง */
-  color: #2563eb;
-  /* ฟ้าเข้ม */
-  text-decoration: none;
-  /* ตัดเส้นใต้ลิงก์ออก */
-  border: none;
-  /* ไม่มีเส้นขอบ */
-  border-radius: 12px;
-  /* มุมโค้งมน */
-  background: #ffffff;
-  /* พื้นหลังขาว */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  /* เงาบาง */
-  transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
+:host {
+  --primary: #2563eb;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.back-btn:hover {
-  background: #f0f6ff;
-  /* เปลี่ยนพื้นหลังเมื่อ hover */
-  transform: translateX(-4px);
-  /* ขยับไปทางซ้ายเล็กน้อย */
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  /* เงาเข้มขึ้น */
-}
-
-.back-btn i {
-  font-size: 1.5rem;
-  /* ไอคอนใหญ่กว่าตัวอักษร */
+:host-context(.dark-mode) {
+  --primary: #3b82f6;
+  --bg-main: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --border-color: #334155;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* =========================
@@ -180,20 +153,7 @@ ol li {
 /* =========================
    DARK MODE OVERRIDE
    ========================= */
-:host-context(.dark-mode) .back-btn {
-  background: #2563eb !important;
-  /* พื้นหลังน้ำเงิน */
-  color: #ffffff !important;
-  /* ไอคอน/ข้อความ ขาว */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-:host-context(.dark-mode) .back-btn:hover {
-  background: #1d4ed8 !important;
-  /* น้ำเงินเข้ม */
-  transform: translateX(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
+/* Standardized back-btn inherits variables dynamically */
 
 /* Card */
 :host-context(.dark-mode) .card {
@@ -293,65 +253,7 @@ body.dark-mode .apexcharts-tooltip {
 /* =========================
    BACK BUTTON
    ========================= */
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  /* กะทัดรัด */
-  font-size: 1.3rem;
-  margin-bottom: 15px;
-  color: #2563eb;
-  /* ฟ้า */
-  text-decoration: none;
-  border: none;
-  border-radius: 12px;
-  /* มุมโค้งมน */
-  background: transparent;
-  /* พื้นหลังใส */
-  box-shadow: none;
-  /* ไม่มีเงา */
-  transition: background 0.25s ease, transform 0.25s ease;
-}
-
-.back-btn:hover {
-  background: #e5f0ff;
-  /* ฟ้าอ่อนตอน hover */
-  transform: translateX(-4px);
-  /* ขยับซ้าย */
-}
-
-.back-btn:active {
-  background: #dbeafe;
-  /* ฟ้าเข้มขึ้นตอนกด */
-  transform: translateX(-2px) scale(0.96);
-  /* ย่อลงเล็กน้อย */
-}
-
-.back-btn i {
-  font-size: 1.5rem;
-}
-
-/* =========================
-     DARK MODE OVERRIDE
-     ========================= */
-:host-context(.dark-mode) .back-btn {
-  background: transparent !important;
-  /* ปกติใส */
-  color: #3b82f6 !important;
-  /* ฟ้าอ่อนกว่าเล็กน้อย */
-  box-shadow: none !important;
-}
-
-:host-context(.dark-mode) .back-btn:hover {
-  background: rgba(59, 130, 246, 0.15) !important;
-  /* ฟ้าใสตอน hover */
-}
-
-:host-context(.dark-mode) .back-btn:active {
-  background: rgba(59, 130, 246, 0.25) !important;
-  /* ฟ้าเข้มขึ้นตอนกด */
-}
+/* Removed duplicate back-btn definition */
 
 
 /* Heading colors */

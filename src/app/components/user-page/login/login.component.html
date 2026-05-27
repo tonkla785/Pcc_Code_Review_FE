@@ -9,8 +9,8 @@
 
     <div class="login-box">
       <div class="login-header">
-        <a routerLink="/" class="back-btn">
-          <i class="bi bi-arrow-left"></i>
+        <a routerLink="/" class="back-btn" title="Back to Home">
+          <i class="bi bi-chevron-left"></i>
         </a>
         <h2>Login</h2>
       </div>
@@ -19,7 +19,8 @@
           <label for="email">Email</label>
           <input type="email" name="email" [(ngModel)]="email" required email
           pattern="^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$" #emailRef="ngModel"
-          placeholder="Enter your email" title="Please enter your email address" />
+          placeholder="Enter your email" title="Please enter your email address"
+          [class.input-error]="(submitted && emailRef.invalid) || loginFailed" />
           <div *ngIf="emailRef.touched || emailRef.dirty || submitted">
             <small *ngIf="emailRef.errors?.['required']" class="error-message">
                 Email is required
@@ -36,7 +37,8 @@
         <div class="input-group">
           <label for="password">Password</label>
           <input type="password" name="password" [(ngModel)]="password" required #pwdRef="ngModel"
-            placeholder="Enter your password" title="Please enter your password" />
+            placeholder="Enter your password" title="Please enter your password"
+            [class.input-error]="(submitted && pwdRef.invalid) || loginFailed" />
           <div *ngIf="pwdRef.touched || pwdRef.dirty || submitted">
             <small *ngIf="pwdRef.errors?.['required']" class="error-message">
               Password is required

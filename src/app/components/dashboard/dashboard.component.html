@@ -1,120 +1,121 @@
 <div class="dashboard-container fade-in">
 
-  <!-- Sticky Header -->
-  <div class="dashboard-header">
-    <div class="header-content">
-      <div class="dashboard-title">
-        <i class="bi bi-grid-1x2-fill"></i>
-        <div>
-          <h1>Dashboard</h1>
-          <p>Project Quality Overview</p>
-        </div>
-      </div>
 
-      <div class="dashboard-actions">
-        <button class="export-btn" (click)="onExport()" title="Export Report">
-          <i class="bi bi-download"></i>
-        </button>
 
-        <div class="notification-wrapper" (click)="toggleNotifications(); $event.stopPropagation()"
-          title="Notifications">
-          <i class="bi bi-bell"></i>
-          <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
-
-          <!-- Notification Dropdown -->
-          <div class="notifications-panel" *ngIf="showNotifications" (click)="$event.stopPropagation()">
-            <div class="notifications-header">
-              <span>Notifications</span>
-              <button class="close-btn" (click)="closeNotifications(); $event.stopPropagation()">✕</button>
-            </div>
-
-            <div class="notification-tabs">
-              <button [class.active]="activeTab === 'All'" (click)="selectTab('All')">All</button>
-              <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')">Unread</button>
-              <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')">Scans</button>
-              <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')">Issues</button>
-              <button [class.active]="activeTab === 'System'" (click)="selectTab('System')">System</button>
-              <button class="mark-all" (click)="markAllRead()">Mark Read</button>
-            </div>
-
-            <div class="notification-list" (scroll)="onNotificationScroll($event)">
-              <div class="notification-item" *ngFor="let n of filteredNotifications" [class.unread]="!n.isRead"
-                (click)="viewNotification(n)">
-                <div class="item-header">
-                  <span class="n-title">{{ n.title }}</span>
-                  <span class="n-time">{{ getTimeAgo(n.createdAt) }}</span>
-                </div>
-                <div class="n-message">{{ n.message }}</div>
-
-                <!-- Action button for Issues -->
-                <a *ngIf="n.type === 'Issues'" class="view-issue-link"
-                  (click)="handleViewIssue(n); $event.stopPropagation()">
-                  View Issue →
-                </a>
-                <!-- Action button for Scans -->
-                <a *ngIf="n.type === 'Scans'" class="view-issue-link"
-                  (click)="handleViewScan(n); $event.stopPropagation()">
-                  View Results →
-                </a>
-                <!-- Action button for System -->
-                <a *ngIf="n.type === 'System'" class="view-issue-link"
-                  (click)="handleViewSystem(n); $event.stopPropagation()">
-                  View Details →
-                </a>
-              </div>
-              <div class="notification-empty" *ngIf="filteredNotifications.length === 0">
-                No notifications
-              </div>
-            </div>
+  <!-- MAIN CONTENT (Classic Vertical Layout) -->
+  <div class="dashboard-content">
+    <!-- Sticky Header -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <div class="dashboard-title">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <div>
+            <h1>Dashboard</h1>
+            <p>Project Quality Overview</p>
           </div>
         </div>
 
-        <!-- Profile -->
-        <div class="profile-dropdown" (click)="toggleProfileDropdown(); $event.stopPropagation()">
-          <div class="profile-avatar"><span>{{ userProfile?.username?.charAt(0)?.toUpperCase() || '' }}</span><i
-              *ngIf="!userProfile?.username" class="bi bi-person-fill"></i></div>
-          <span class="profile-name" *ngIf="userProfile?.username">{{ userProfile?.username }}</span>
+        <div class="dashboard-actions">
+          <button class="export-btn" (click)="onExport()" title="Export Report">
+            <i class="bi bi-download"></i>
+          </button>
 
-          <div class="profile-menu" *ngIf="showProfileDropdown" (click)="$event.stopPropagation()">
-            <div class="menu-header"
-              style="padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px;">
-              <div class="user-info" style="display: flex; flex-direction: column;">
-                <strong style="font-size: 16px;">{{ UserLogin?.username || userProfile?.username }}</strong>
-                <span style="font-size: 12px; color: var(--text-sub);">{{ UserLogin?.email }}</span>
+          <div class="notification-wrapper" (click)="toggleNotifications(); $event.stopPropagation()"
+            title="Notifications">
+            <i class="bi bi-bell"></i>
+            <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
+
+            <!-- Notification Dropdown -->
+            <div class="notifications-panel" *ngIf="showNotifications" (click)="$event.stopPropagation()">
+              <div class="notifications-header">
+                <span>Notifications</span>
+                <button class="close-btn" (click)="closeNotifications(); $event.stopPropagation()">✕</button>
               </div>
-              <div style="margin-top: 8px;">
-                <span class="status-badge">Email Verify:</span>
-                <span class="status-badge" [ngClass]="{
+
+              <div class="notification-tabs">
+                <button [class.active]="activeTab === 'All'" (click)="selectTab('All')">All</button>
+                <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')">Unread</button>
+                <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')">Scans</button>
+                <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')">Issues</button>
+                <button [class.active]="activeTab === 'System'" (click)="selectTab('System')">System</button>
+                <button class="mark-all" (click)="markAllRead()">Mark Read</button>
+              </div>
+
+              <div class="notification-list" (scroll)="onNotificationScroll($event)">
+                <div class="notification-item" *ngFor="let n of filteredNotifications" [class.unread]="!n.isRead"
+                  (click)="viewNotification(n)">
+                  <div class="item-header">
+                    <span class="n-title">{{ n.title }}</span>
+                    <span class="n-time">{{ getTimeAgo(n.createdAt) }}</span>
+                  </div>
+                  <div class="n-message">{{ n.message }}</div>
+
+                  <!-- Action button for Issues -->
+                  <a *ngIf="n.type === 'Issues'" class="view-issue-link"
+                    (click)="handleViewIssue(n); $event.stopPropagation()">
+                    View Issue →
+                  </a>
+                  <!-- Action button for Scans -->
+                  <a *ngIf="n.type === 'Scans'" class="view-issue-link"
+                    (click)="handleViewScan(n); $event.stopPropagation()">
+                    View Results →
+                  </a>
+                  <!-- Action button for System -->
+                  <a *ngIf="n.type === 'System'" class="view-issue-link"
+                    (click)="handleViewSystem(n); $event.stopPropagation()">
+                    View Details →
+                  </a>
+                </div>
+                <div class="notification-empty" *ngIf="filteredNotifications.length === 0">
+                  No notifications
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile -->
+          <div class="profile-dropdown" (click)="toggleProfileDropdown(); $event.stopPropagation()">
+            <div class="profile-avatar"><span>{{ userProfile?.username?.charAt(0)?.toUpperCase() || '' }}</span><i
+                *ngIf="!userProfile?.username" class="bi bi-person-fill"></i></div>
+            <span class="profile-name" *ngIf="userProfile?.username">{{ userProfile?.username }}</span>
+
+            <div class="profile-menu" *ngIf="showProfileDropdown" (click)="$event.stopPropagation()">
+              <div class="menu-header"
+                style="padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px;">
+                <div class="user-info" style="display: flex; flex-direction: column;">
+                  <strong style="font-size: 16px;">{{ UserLogin?.username || userProfile?.username }}</strong>
+                  <span style="font-size: 12px; color: var(--text-sub);">{{ UserLogin?.email }}</span>
+                </div>
+                <div style="margin-top: 8px;">
+                  <span class="status-badge">Email Verify:</span>
+                  <span class="status-badge" [ngClass]="{
                   'verified': (UserLogin?.status || '').toUpperCase() === 'VERIFIED',
                   'pending_verification': (UserLogin?.status || '').toUpperCase() === 'PENDING_VERIFICATION',
                   'unverified': (UserLogin?.status || '').toUpperCase() === 'UNVERIFIED'
                 }">
-                  {{ UserLogin?.status | userStatus }}
-                </span>
+                    {{ UserLogin?.status | userStatus }}
+                  </span>
+                </div>
               </div>
-            </div>
-            <div class="menu-items">
-              <button (click)="openChangePasswordModal()" class="menu-btn">
-                <i class="bi bi-key"></i> Change Password
-              </button>
-              <button *ngIf="(UserLogin?.status || '').toUpperCase() !== 'VERIFIED'" (click)="sendVerifyEmail()"
-                class="menu-btn verify">
-                <i class="bi bi-envelope-check"></i> Verify Email
-              </button>
+              <div class="menu-items">
+                <button (click)="openChangePasswordModal()" class="menu-btn">
+                  <i class="bi bi-key"></i> Change Password
+                </button>
+                <button *ngIf="(UserLogin?.status || '').toUpperCase() !== 'VERIFIED'" (click)="sendVerifyEmail()"
+                  class="menu-btn verify">
+                  <i class="bi bi-envelope-check"></i> Verify Email
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- MAIN CONTENT (Classic Vertical Layout) -->
-  <div class="dashboard-content">
 
     <!-- 1. Welcome Banner -->
     <div class="dashboard-card welcome-card">
       <div class="welcome-text">
-        <h2>Welcome back, {{ UserLogin?.username || userProfile?.username }}! 👋</h2>
+        <h2>Welcome back, {{ UserLogin?.username || userProfile?.username }}!</h2>
         <p>Here's what's happening with your projects today.</p>
       </div>
       <div class="quick-stats">
@@ -169,9 +170,10 @@
           <h3><i class="bi bi-pie-chart-fill"></i> Quality Gate</h3>
         </div>
         <div class="chart-wrapper">
-          <apx-chart *ngIf="pieChartOptions" [series]="pieChartOptions.series!" [chart]="pieChartOptions.chart!"
-            [labels]="pieChartOptions.labels!" [colors]="pieChartOptions.colors!" [legend]="pieChartOptions.legend!"
-            [dataLabels]="pieChartOptions.dataLabels!" [plotOptions]="pieChartOptions.plotOptions!">
+          <apx-chart *ngIf="pieChartOptions && pieChartOptions.chart" [series]="pieChartOptions.series!"
+            [chart]="pieChartOptions.chart!" [labels]="pieChartOptions.labels!" [colors]="pieChartOptions.colors!"
+            [legend]="pieChartOptions.legend!" [dataLabels]="pieChartOptions.dataLabels!"
+            [plotOptions]="pieChartOptions.plotOptions!">
           </apx-chart>
         </div>
         <div class="gate-summary">
@@ -259,7 +261,7 @@
         <div class="card-header">
           <h3><i class="bi bi-exclamation-triangle-fill"></i> Top Issues</h3>
         </div>
-        <ul class="issue-list">
+        <ul class="issue-list" *ngIf="allIssues.length > 0; else noIssues">
           <li *ngFor="let i of allIssues | slice:0:4">
             <div class="issue-content">
               <span class="issue-msg">{{ i.message }}</span>
@@ -267,19 +269,24 @@
             </div>
           </li>
         </ul>
+        <ng-template #noIssues>
+          <p class="text-muted text-center py-3">No issues found</p>
+        </ng-template>
       </div>
     </div>
 
+    <!-- 5. Trends Chart (Full Width) -->
     <!-- 5. Trends Chart (Full Width) -->
     <div class="dashboard-card trends-card">
       <div class="card-header">
         <h3><i class="bi bi-graph-up"></i> Quality Trends</h3>
       </div>
       <div class="line-chart-wrapper">
-        <apx-chart [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!"
-          [xaxis]="coverageChartOptions.xaxis!" [stroke]="coverageChartOptions.stroke!"
-          [markers]="coverageChartOptions.markers!" [colors]="coverageChartOptions.colors!"
-          [yaxis]="coverageChartOptions.yaxis!" [grid]="{ show: false }">
+        <!-- ✅ เพิ่ม *ngIf ป้องกัน undefined -->
+        <apx-chart *ngIf="coverageChartOptions && coverageChartOptions.chart && coverageChartSeries"
+          [series]="coverageChartSeries!" [chart]="coverageChartOptions.chart!" [xaxis]="coverageChartOptions.xaxis!"
+          [stroke]="coverageChartOptions.stroke!" [markers]="coverageChartOptions.markers!"
+          [colors]="coverageChartOptions.colors!" [yaxis]="coverageChartOptions.yaxis!" [grid]="{ show: false }">
         </apx-chart>
       </div>
     </div>

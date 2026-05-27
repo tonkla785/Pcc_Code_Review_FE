@@ -29,11 +29,11 @@
   <div class="stats-grid">
     <div class="stat-panel">
       <div class="stat-icon"
-        [ngClass]="scanResult?.status === 'SUCCESS' ? 'text-success bg-success-subtle' : 'text-danger bg-danger-subtle'">
-        <i class="bi" [ngClass]="scanResult?.status === 'SUCCESS' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+        [ngClass]="scanResult?.status === 'PENDING' ? 'text-info bg-info-subtle' : (scanResult?.status === 'SUCCESS' ? 'text-success bg-success-subtle' : 'text-danger bg-danger-subtle')">
+        <i class="bi" [ngClass]="scanResult?.status === 'PENDING' ? 'bi-arrow-repeat spin' : (scanResult?.status === 'SUCCESS' ? 'bi-check-circle-fill' : 'bi-x-circle-fill')"></i>
       </div>
       <div class="stat-info">
-        <h3>{{ scanResult?.status | titlecase }}</h3>
+        <h3>{{ scanResult?.status === 'PENDING' ? 'Scanning' : (scanResult?.status | titlecase) }}</h3>
         <span>Status</span>
       </div>
     </div>
@@ -112,8 +112,13 @@
   </div>
 
   <ng-template #noSonar>
-    <div class="content-card p-4 text-center text-muted">
-      No SonarQube result available
+    <div class="content-card p-4 text-center" [ngClass]="scanResult?.status === 'PENDING' ? 'scanning-placeholder' : 'text-muted'">
+      <ng-container *ngIf="scanResult?.status === 'PENDING'; else noSonarDone">
+        <i class="bi bi-arrow-repeat spin fs-2 text-info mb-2 d-block"></i>
+        <div class="fw-semibold text-info">Scanning in progress...</div>
+        <div class="text-muted small mt-1">Metrics will appear here once the analysis is complete.</div>
+      </ng-container>
+      <ng-template #noSonarDone>No SonarQube result available</ng-template>
     </div>
   </ng-template>
 
@@ -168,6 +173,15 @@
             <span class="text-danger"
               *ngIf="['C','D','E'].includes(scanResult?.metrics?.maintainabilityRating || '')"><i
                 class="bi bi-x-circle-fill"></i> Fail</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Security Hotspot Rating</td>
+          <td><span class="gate-grade">{{ getHotspotReviewRating() }}</span></td>
+          <td>
+            <span class="text-info" *ngIf="scanResult?.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+            <span class="text-success" *ngIf="scanResult?.status !== 'PENDING' && getHotspotReviewRating() === 'A'"><i class="bi bi-check-circle-fill"></i> Pass</span>
+            <span class="text-danger" *ngIf="scanResult?.status !== 'PENDING' && getHotspotReviewRating() === 'E'"><i class="bi bi-x-circle-fill"></i> Fail</span>
           </td>
         </tr>
       </tbody>
@@ -259,7 +273,14 @@
         </li>
       </ul>
       <ng-template #noDetails>
-        <div class="p-4 text-center text-muted">No detailed analysis logs available.</div>
+        <div class="p-4 text-center" [ngClass]="scanResult?.status === 'PENDING' ? 'scanning-placeholder' : 'text-muted'">
+          <ng-container *ngIf="scanResult?.status === 'PENDING'; else noLogsDone">
+            <i class="bi bi-arrow-repeat spin fs-2 text-info mb-2 d-block"></i>
+            <div class="fw-semibold text-info">Waiting for scan logs...</div>
+            <div class="text-muted small mt-1">Log entries will stream here as the scanner runs.</div>
+          </ng-container>
+          <ng-template #noLogsDone>No detailed analysis logs available.</ng-template>
+        </div>
       </ng-template>
     </div>
   </div>

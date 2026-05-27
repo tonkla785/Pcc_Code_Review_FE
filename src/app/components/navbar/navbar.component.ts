@@ -81,10 +81,10 @@ export class NavbarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // ไม่ต้องเรียก API - ใช้ข้อมูลจาก localStorage ที่เก็บตอน login แทน
+    // ไม่ต้องเรียก API - ใช้ข้อมูลจาก sessionStorage ที่เก็บตอน login แทน
   }
 
-  // ตรวจสอบว่าเป็น ADMIN หรือไม่ - ดึงจาก JWT token แทน localStorage
+  // ตรวจสอบว่าเป็น ADMIN หรือไม่ - ดึงจาก JWT token แทน sessionStorage
   get isAdmin(): boolean {
     const token = this.tokenStorage.getAccessToken();
     if (!token) return false;

@@ -88,6 +88,10 @@ export type ChartOptions = {
 export class DashboardComponent {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    if (target.closest('app-navbar')) return;
+
     if (this.showNotifications) {
       this.showNotifications = false;
     }
@@ -183,10 +187,10 @@ export class DashboardComponent {
       // ถ้ามึงอยากให้ UI เด้งทันทีชัวร์ๆ
       this.cdr.detectChanges();
     });
-    if (!this.auth.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
+    // if (!this.auth.isLoggedIn) {
+    //   this.router.navigate(['/login']);
+    //   return;
+    // }
 
     const user = this.tokenStorage.getLoginUser();
     if (user) {
@@ -233,7 +237,6 @@ export class DashboardComponent {
       this.loadDashboardData();
       this.countBug();
       this.mockCoverageTrend();
-      this.generateQualityGateNotifications(this.DashboardData);
     });
 
     this.sharedData.LoginUser$.subscribe((data) => {
@@ -253,10 +256,9 @@ export class DashboardComponent {
         ['CRITICAL', 'BLOCKER', 'MAJOR'].includes(issue.severity)
       );
 
-      this.allIssues = notifiableIssues.filter((issue) => issue.severity === 'CRITICAL');
-
-      // Generate notifications for filtered issues
-      this.generateIssueNotifications(notifiableIssues);
+      this.allIssues = notifiableIssues.filter((issue) =>
+        issue.severity === 'CRITICAL' && (issue.type as string)?.toUpperCase() !== 'CODE_SMELL'
+      );
     });
 
     // ==================== STEP 2: Load data from API AFTER subscriptions are ready ====================

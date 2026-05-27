@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, DestroyRef } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router,ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Scan, ScanService } from '../../../services/scanservice/scan.service';
 import { AuthService } from '../../../services/authservice/auth.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
@@ -38,39 +39,50 @@ export class ScanhistoryComponent {
   pages: number[] = [];
   ScanHistory: ScanResponseDTO[] = [];
   originalData: ScanResponseDTO[] = [];
-  filteredScan:  ScanResponseDTO[] = [];
+  filteredScan: ScanResponseDTO[] = [];
   showGrade = true;
-showBugs = true;
-showCodeSmells = true;
-showCoverage = false;
-showDuplications = false;
+  showBugs = true;
+  showCodeSmells = true;
+  showCoverage = false;
+  showDuplications = false;
   filterProject = 'All Projects';
   filterType = 'ALL';
-    repositories: Repository[] = [];
+  repositories: Repository[] = [];
+
+  private initialized = false;
+
   constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
-    private sharedData: SharedDataService, private repoService: RepositoryService, private route: ActivatedRoute
+    private sharedData: SharedDataService, private repoService: RepositoryService, private route: ActivatedRoute,
+    private readonly location: Location, private readonly destroyRef: DestroyRef
   ) {
   }
 
 
   ngOnInit(): void {
-    if (!this.sharedData.hasScansHistoryCache) {
-      this.loadScanHistory();
-    }
-    if (!this.sharedData.hasRepositoriesCache) {
-      this.loadRepositories();
-    }
-    this.sharedData.scansHistory$.subscribe(data => {
+    const params = this.route.snapshot.queryParams;
+    this.currentPage = +params['page'] || 1;
+    if (params['filterType']) this.filterType = params['filterType'];
+    if (params['filterProject']) this.filterProject = params['filterProject'];
+    if (params['startDate']) this.startDate = params['startDate'];
+    if (params['endDate']) this.endDate = params['endDate'];
+
+    if (!this.sharedData.hasScansHistoryCache) this.loadScanHistory();
+    if (!this.sharedData.hasRepositoriesCache) this.loadRepositories();
+
+    this.sharedData.scansHistory$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
       this.originalData = data || [];
+      this.originalData.sort((a, b) =>
+        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+      );
       this.ScanHistory = [...this.originalData];
       this.applyFilterStatus();
     });
-        this.sharedData.repositories$.subscribe((repos) => {
+
+    this.sharedData.repositories$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((repos) => {
       this.repositories = repos;
     });
-        this.route.queryParams.subscribe(params => {
-        this.currentPage = +params['page'] || 1;
-      });
+
+    setTimeout(() => this.initialized = true, 0);
   }
 
   loadScanHistory() {
@@ -114,7 +126,9 @@ showDuplications = false;
     this.filteredScan = this.ScanHistory;
     this.currentPage = 1;
     this.updatePage();
+    if (this.initialized) this.updateUrl();
   }
+
   loadRepositories() {
     this.sharedData.setLoading(true);
 
@@ -129,6 +143,7 @@ showDuplications = false;
       },
     });
   }
+
   resetFilters() {
     this.searchDate = null;
     this.startDate = null;
@@ -136,7 +151,9 @@ showDuplications = false;
     this.minEndDate = null;
     this.filterType = 'ALL';
     this.filterProject = 'All Projects';
-    this.applyFilter();
+    this.currentPage = 1;
+
+    this.applyFilterStatus();
   }
 
   onStartDateChange() {
@@ -150,25 +167,32 @@ showDuplications = false;
   }
 
   updatePage() {
-    this.totalPages = Math.ceil(this.ScanHistory.length / this.pageSize);
+    this.totalPages = Math.ceil(this.filteredScan.length / this.pageSize);
     if (this.totalPages === 0) this.totalPages = 1;
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
     this.updatePagedScans();
-    
   }
 
   updatePagedScans() {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
     this.pagedScans = this.filteredScan.slice(start, end);
-    
   }
-updateUrl() {
-  this.router.navigate([], {
-    relativeTo: this.route,
-    queryParams: { page: this.currentPage },
-  });
-}
+
+  updateUrl() {
+    const urlTree = this.router.createUrlTree([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: this.currentPage,
+        filterType: this.filterType,
+        filterProject: this.filterProject,
+        startDate: this.startDate || null,
+        endDate: this.endDate || null,
+      },
+      queryParamsHandling: 'merge'
+    });
+    this.location.replaceState(this.router.serializeUrl(urlTree));
+  }
 
   goPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
@@ -195,16 +219,12 @@ updateUrl() {
   }
 
   viewLog(scan: ScanResponseDTO) {
-    this.router.navigate(['/logviewer', scan.id],{
-      queryParams: { page: this.currentPage }
-    });
+    this.router.navigate(['/logviewer', scan.id]);
   }
 
   viewResult(scan: ScanResponseDTO) {
     this.sharedData.ScansDetail = scan;
-    this.router.navigate(['/scanresult', scan.id], {
-    queryParams: { page: this.currentPage }
-    });
+    this.router.navigate(['/scanresult', scan.id]);
   }
 
   // Export 
@@ -300,20 +320,18 @@ updateUrl() {
   showCompareModal = false;
 
   toggleScanSelection(scan: ScanResponseDTO, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
+    if (event) event.stopPropagation();
 
-    // Toggle logic
     const index = this.selectedScans.findIndex(s => s.id === scan.id);
     if (index >= 0) {
       this.selectedScans.splice(index, 1);
     } else {
       this.selectedScans.push(scan);
     }
-     this.selectedScans.sort((a, b) =>
-    new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
-  );
+
+    this.selectedScans.sort((a, b) =>
+      new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
+    );
   }
 
 
@@ -388,65 +406,67 @@ updateUrl() {
       this.selectedScans = this.selectedScans.filter(s => !this.pagedScans.some(p => p.id === s.id));
     }
   }
-applyFilterStatus() {
-  const matchType = (this.filterType || 'ALL').toLowerCase();
-  const matchProject = (this.filterProject || 'All Projects').toLowerCase();
-  this.filteredScan = this.ScanHistory.filter(item => {
-    const d = new Date(item.startedAt);
 
-    let matchDate = true;
-    if (this.startDate && !this.endDate) {
-      const searchDay = new Date(this.startDate);
-      matchDate =
-        d.getFullYear() === searchDay.getFullYear() &&
-        d.getMonth() === searchDay.getMonth() &&
-        d.getDate() === searchDay.getDate();
-    }
+  applyFilterStatus() {
+    const matchType = (this.filterType || 'ALL').toLowerCase();
+    const matchProject = (this.filterProject || 'All Projects').toLowerCase();
+    this.filteredScan = this.ScanHistory.filter(item => {
+      const d = new Date(item.startedAt);
 
-    if (this.startDate && this.endDate) {
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-      end.setHours(23, 59, 59, 999);
-      matchDate = d >= start && d <= end;
-    }
+      let matchDate = true;
+      if (this.startDate && !this.endDate) {
+        const searchDay = new Date(this.startDate);
+        matchDate =
+          d.getFullYear() === searchDay.getFullYear() &&
+          d.getMonth() === searchDay.getMonth() &&
+          d.getDate() === searchDay.getDate();
+      }
 
-    const matchStatus =
-      matchType === 'all' ||
-      (item.status || '').toLowerCase() === matchType;
+      if (this.startDate && this.endDate) {
+        const start = new Date(this.startDate);
+        const end = new Date(this.endDate);
+        end.setHours(23, 59, 59, 999);
+        matchDate = d >= start && d <= end;
+      }
+
+      const matchStatus =
+        matchType === 'all' ||
+        (item.status || '').toLowerCase() === matchType;
 
       const projectName = (item?.project?.name || '').toLowerCase();
       const project = matchProject === 'all projects' || projectName === matchProject;
-    return matchDate && matchStatus && project;
-  });
-  this.updatePage();
-}
-metricsConfig = [
-  { key: 'grade', label: 'Grade', selected: true },
-  { key: 'bugs', label: 'Bugs', selected: true },
-  { key: 'codeSmells', label: 'Code Smells', selected: true },
-  { key: 'coverage', label: 'Coverage (%)', selected: false },
-  { key: 'duplicatedLinesDensity', label: 'Duplications', selected: false },
-];
-
-diffMetric(metric: string): number | null {
-  if (this.selectedScans.length < 2) return null;
-
-  const first = this.selectedScans[0];
-  const last = this.selectedScans[this.selectedScans.length - 1];
-  const getValue = (scan: any) => {
-    if (metric === 'grade') return scan.qualityGate;
-    return scan.metrics?.[metric] ?? 0;
-  };
-
-  const oldVal = getValue(first);
-  const newVal = getValue(last);
-
-  if (typeof oldVal !== 'number' || typeof newVal !== 'number') {
-    return null;
+      return matchDate && matchStatus && project;
+    });
+    this.updatePage();
+    if (this.initialized) this.updateUrl();
   }
-  const result = (newVal - oldVal);
-  return result ;
-}
+
+  metricsConfig = [
+    { key: 'grade', label: 'Grade', selected: true },
+    { key: 'bugs', label: 'Bugs', selected: true },
+    { key: 'codeSmells', label: 'Code Smells', selected: true },
+    { key: 'coverage', label: 'Coverage (%)', selected: false },
+    { key: 'duplicatedLinesDensity', label: 'Duplications', selected: false },
+  ];
+
+  diffMetric(metric: string): number | null {
+    if (this.selectedScans.length < 2) return null;
+
+    const oldScan = this.selectedScans[0];
+    const newScan = this.selectedScans[this.selectedScans.length - 1];
+
+    const getValue = (scan: any) => {
+      if (metric === 'grade') return scan.qualityGate;
+      return scan.metrics?.[metric] ?? 0;
+    };
+
+    const oldVal = getValue(oldScan);
+    const newVal = getValue(newScan);
+
+    if (typeof oldVal !== 'number' || typeof newVal !== 'number') return null;
+
+    return newVal - oldVal;
+  }
 
 }
 

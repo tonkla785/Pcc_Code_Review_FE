@@ -20,6 +20,7 @@ export class LoginComponent implements OnInit {
   password = '';
   loading = false;
   submitted = false;
+  loginFailed = false;
 
   constructor(
     private readonly auth: AuthService,
@@ -57,9 +58,11 @@ export class LoginComponent implements OnInit {
     }
 
     this.loading = true;
+    this.loginFailed = false;
     this.auth.login({ email: this.email, password: this.password }).subscribe({
       next: (user) => {
         this.loading = false;
+        this.loginFailed = false;
         this.snack.open('Login Successfully!', '', {
           duration: 2500,
           horizontalPosition: 'center',
@@ -72,6 +75,7 @@ export class LoginComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
+        this.loginFailed = true;
         this.snack.open('Login Failed. Please try again.', '', {
           duration: 2500,
           horizontalPosition: 'right',

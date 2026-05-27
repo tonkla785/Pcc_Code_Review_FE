@@ -13,8 +13,8 @@ import { AuthService } from './services/authservice/auth.service';
 import { NotificationService } from './services/notiservice/notification.service';
 import { TokenStorageService } from './services/tokenstorageService/token-storage.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subscription, bufferTime, filter, of } from 'rxjs';
-import { switchMap, catchError, distinctUntilChanged, map } from 'rxjs/operators';
+import { Subscription, bufferTime, filter, of, EMPTY, Subject } from 'rxjs';
+import { switchMap, catchError, distinctUntilChanged, map, debounceTime } from 'rxjs/operators';
 import { UserService } from './services/userservice/user.service';
 
 @Component({
@@ -38,6 +38,9 @@ export class AppComponent implements OnInit {
   private projectSub?: Subscription;
   private issueSub?: Subscription;
 
+  private refreshIssues$ = new Subject<void>();
+  private refreshIssuesSub?: Subscription;
+
   constructor(
     private ws: WebSocketService,
     private sharedData: SharedDataService,
@@ -56,11 +59,19 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Theme restore
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = sessionStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkMode = true;
       document.body.classList.add('dark-mode');
     }
+
+    // if (!this.authService.isLoggedIn) {
+    //   this.authService.refresh().pipe(
+    //     catchError(() => EMPTY)
+    //   ).subscribe();
+    // }
+
+    this.authService.reconnectWebSocket();
 
     /**
      * ✅ สำคัญสุด: ผูก WS + state กับ loginUser$ (แก้เคส login ใหม่ๆ แล้วไม่ connect / connect user เก่าค้าง)
@@ -80,7 +91,7 @@ export class AppComponent implements OnInit {
         this.ws.connect(userId);
         this.notificationService.connectWebSocket(userId);
 
-        // 2) restore shared data จาก localStorage (ทันที)
+        // 2) restore shared data จาก sessionStorage (ทันที)
         const savedUser = this.tokenStorage.getLoginUser();
         if (savedUser) {
           this.sharedData.LoginUserShared = savedUser;
@@ -109,16 +120,21 @@ export class AppComponent implements OnInit {
      * AuthService.reconnectWebSocket() ของมึงทำแค่ connect แต่ไม่ได้ set login_user เสมอ
      * ดังนั้น call เดิมไว้ได้ แต่หลักๆให้ loginUser$ เป็นตัวคุม
      */
-    if (this.authService.isLoggedIn) {
-      this.authService.reconnectWebSocket();
+    // if (this.authService.isLoggedIn) {
+    //   this.authService.reconnectWebSocket();
 
-      const savedUser = this.tokenStorage.getLoginUser();
-      if (savedUser) {
-        this.sharedData.LoginUserShared = savedUser;
-      }
-    }
+    //   const savedUser = this.tokenStorage.getLoginUser();
+    //   if (savedUser) {
+    //     this.sharedData.LoginUserShared = savedUser;
+    //   }
+    // }
 
     this.subscribeToNotifications();
+
+    // Debounce issue refresh — collapse multiple scan-complete events into 1 fetch
+    this.refreshIssuesSub = this.refreshIssues$.pipe(debounceTime(400)).subscribe(() => {
+      this.fetchAndOverwriteIssues();
+    });
 
     // Global WebSocket Listener - Scan
     this.wsSub = this.ws.subscribeScanStatus().subscribe((event) => {
@@ -134,27 +150,32 @@ export class AppComponent implements OnInit {
       if (event.status === 'SCANNING') {
         this.fetchScanData(event.projectId, event.status);
       } else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-        const settings = this.userSettingsData.notificationSettings;
-        const showScanAlert = !settings || settings.scansEnabled;
-
-        if (showScanAlert && this.authService.isLoggedIn) {
-          this.snack.open(
-            event.status === 'SUCCESS' ? 'Scan Successful' : 'Scan Failed',
-            '',
-            {
-              duration: 3000,
-              horizontalPosition: 'right',
-              verticalPosition: 'top',
-              panelClass: [
-                'app-snack',
-                event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red',
-              ],
-            },
-          );
+        // Only show snackbar for the user who triggered this scan
+        if (this.repoService.isMyTriggeredScan(event.projectId) && this.authService.isLoggedIn) {
+          const settings = this.userSettingsData.notificationSettings;
+          if (!settings || settings.scansEnabled) {
+            const projectName = this.sharedData.repositoriesValue
+              .find(r => r.projectId === event.projectId)?.name || 'Project';
+            this.snack.open(
+              event.status === 'SUCCESS'
+                ? `✅ ${projectName} scan completed`
+                : `❌ ${projectName} scan failed`,
+              '',
+              {
+                duration: 3000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+                panelClass: [
+                  'app-snack',
+                  event.status === 'SUCCESS' ? 'app-snack-green' : 'app-snack-red',
+                ],
+              },
+            );
+          }
         }
 
         this.fetchScanDataAndNotify(event.projectId, event.status);
-        this.fetchAndOverwriteIssues();
+        this.refreshIssues$.next();
       }
     });
 
@@ -379,6 +400,11 @@ export class AppComponent implements OnInit {
   }
 
   private fetchScanDataAndNotify(projectId: string, wsStatus: string) {
+    const notifyMe = this.repoService.isMyTriggeredScan(projectId);
+    if (notifyMe) {
+      this.repoService.clearMyTriggeredScan(projectId);
+    }
+
     this.repoService.getFullRepository(projectId).subscribe({
       next: (fullRepo) => {
         if (!fullRepo) return;
@@ -419,7 +445,35 @@ export class AppComponent implements OnInit {
           }
 
           this.sharedData.upsertScan(latestScan);
-          this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
+
+          if (notifyMe) {
+            // Scan complete / failed notification (only for the user who triggered)
+            this.createScanNotification(projectId, latestScan.id, wsStatus, projectName);
+
+            if (wsStatus === 'SUCCESS') {
+              // Quality gate notification
+              this.notificationService.generateQualityGateNotifications([{
+                id: latestScan.id,
+                qualityGate: latestScan.qualityGate,
+                project: { id: projectId, name: projectName },
+              }]);
+
+              // Issue notifications for MAJOR+ (no CODE_SMELL)
+              this.issueService.getAllIssues().subscribe({
+                next: (allIssues) => {
+                  const projectIssues = (allIssues || []).filter((i: any) =>
+                    i.projectId === projectId &&
+                    ['MAJOR', 'CRITICAL', 'BLOCKER'].includes(i.severity) &&
+                    i.type !== 'CODE_SMELL'
+                  );
+                  if (projectIssues.length > 0) {
+                    this.notificationService.generateIssueNotifications(projectIssues);
+                  }
+                },
+                error: () => {},
+              });
+            }
+          }
         }
       },
       error: (err) => { },
@@ -461,7 +515,7 @@ export class AppComponent implements OnInit {
         message,
         relatedProjectId: projectId,
         relatedScanId: scanId,
-        isBroadcast: true,
+        isBroadcast: false,
       })
       .subscribe({
         error: (err) => { },
@@ -487,10 +541,10 @@ export class AppComponent implements OnInit {
 
     if (this.darkMode) {
       document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark');
+      sessionStorage.setItem('theme', 'dark');
     } else {
       document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light');
+      sessionStorage.setItem('theme', 'light');
     }
   }
 }

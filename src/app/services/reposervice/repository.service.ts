@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, switchMap, map, of, catchError } from 'rxjs';
+import { Observable, forkJoin, switchMap, map, of, catchError, tap } from 'rxjs';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { ScanService, Scan } from '../scanservice/scan.service';
 import { IssueService, Issue } from '../issueservice/issue.service';
@@ -17,6 +17,19 @@ export type { Repository, ScanIssue };
 @Injectable({ providedIn: 'root' })
 export class RepositoryService {
 
+  private myTriggeredProjectIds = new Set<string>(
+    JSON.parse(sessionStorage.getItem('_my_scan_projects') || '[]')
+  );
+
+  isMyTriggeredScan(projectId: string): boolean {
+    return this.myTriggeredProjectIds.has(projectId);
+  }
+
+  clearMyTriggeredScan(projectId: string): void {
+    this.myTriggeredProjectIds.delete(projectId);
+    sessionStorage.setItem('_my_scan_projects', JSON.stringify([...this.myTriggeredProjectIds]));
+  }
+
   private authOpts() {
     const token = this.auth.token;
     return token
@@ -32,13 +45,14 @@ export class RepositoryService {
   private readonly userSettingsData = inject(UserSettingsDataService);
 
   // เริ่มสแกน - ดึง settings จาก SharedData (SonarQube Config)
-  startScan(projectId: string, branch: string = 'main', gitToken?: string | null): Observable<any> {
+  startScan(projectId: string, branch: string = 'dev', gitToken?: string | null, serverUrl?: string | null): Observable<any> {
 
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
 
     const requestBody: any = {
       branch,
       sonarToken: sonarConfig?.authToken || '',
+      serverUrl: (serverUrl && serverUrl.trim() !== '') ? serverUrl.trim() : null,
       gitToken: (gitToken && gitToken.trim() !== '') ? gitToken.trim() : null,
     };
 
@@ -68,6 +82,11 @@ export class RepositoryService {
       `${environment.apiUrl}/${projectId}/scan`,
       requestBody,
       this.authOpts()
+    ).pipe(
+      tap(() => {
+        this.myTriggeredProjectIds.add(projectId);
+        sessionStorage.setItem('_my_scan_projects', JSON.stringify([...this.myTriggeredProjectIds]));
+      })
     );
   }
 

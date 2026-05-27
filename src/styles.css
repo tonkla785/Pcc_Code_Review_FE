@@ -153,6 +153,17 @@
   /* ===== Generic Status ===== */
   --success: #10b981;
   --danger: #ef4444;
+
+  /* ===== Extended (shared with component themes) ===== */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --text-sub: #64748b;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --table-row-bg: #ffffff;
 }
 
 
@@ -222,6 +233,17 @@
 
   --apexcharts-text: #ffffff;
   /* ข้อความ chart */
+
+  /* Extended dark overrides */
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --card-bg: #1e293b;
+  --border-color: #334155;
+  --text-sub: #94a3b8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --table-row-bg: #1e293b;
 }
 
 
@@ -410,7 +432,7 @@ body.dark-mode .modal-footer .btn-primary:hover {
   background-color: var(--btn-primary-bg-hover) !important;
 }
 
-assign ทำปฏิทันขาวใน Dark mode .dark-mode input[type="date"] {
+.dark-mode input[type="date"] {
   color-scheme: dark !important;
   color: var(--text-main) !important;
 }
@@ -663,4 +685,115 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
   background: #f1f5f9 !important;
   /* Slate-100 */
   border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* ===============================
+   Shared Utility Classes
+   =============================== */
+
+/* Back Button (standard inline variant used across pages) */
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.2rem;
+}
+
+.back-btn:hover {
+  background: var(--bg-main);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.back-btn:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInRow {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Animation utility classes */
+.fade-in {
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* Status Badges */
+.th-status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.th-status-pass {
+  background: var(--status-passed-bg);
+  color: var(--status-passed-text);
+}
+
+.th-status-fail {
+  background: var(--status-failed-bg);
+  color: var(--status-failed-text);
+}
+
+.th-status-warn {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+}
+
+/* Quality Gate Badges */
+.gate-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.gate-pass {
+  background: var(--status-passed-bg);
+  color: var(--status-passed-text);
+}
+
+.gate-fail {
+  background: var(--status-failed-bg);
+  color: var(--status-failed-text);
+}
+
+.gate-scanning {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.dark-mode .gate-scanning {
+  background: #1e3a8a;
+  color: #93c5fd;
 }

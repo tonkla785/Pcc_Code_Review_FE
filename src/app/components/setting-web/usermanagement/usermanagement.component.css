@@ -236,16 +236,6 @@ span.inactive {
 /* ===============================
      🎞 Animations
      =============================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -274,7 +264,7 @@ span.inactive {
      🌙 Dark Mode Overrides
      =============================== */
 :host-context(.dark-mode) .user-management-container {
-  background: #111827;
+  /* background: #111827; */
   color: #f3f4f6;
 }
 
@@ -531,7 +521,7 @@ span.inactive {
 .user-table th:last-child,
 .user-table td:last-child {
   position: -webkit-sticky;
-  position: sticky;
+
   right: 0;
   background: #fff;
   z-index: 5;
