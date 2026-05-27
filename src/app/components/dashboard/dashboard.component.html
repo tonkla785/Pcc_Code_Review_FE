@@ -201,6 +201,7 @@
               <tr>
                 <th>Project</th>
                 <th>Status SCAN</th>
+                <th>Quality Gate</th>
                 <th>Time</th>
                 <th></th>
               </tr>
@@ -218,13 +219,19 @@
                     {{ scan.status === 'PENDING' ? 'SCANNING' : (scan.status === 'SUCCESS' ? 'PASSED' : scan.status) }}
                   </span>
                 </td>
+                <td>
+                  <span *ngIf="scan.qualityGate" class="status-badge" [ngClass]="scan.qualityGate === 'OK' ? 'success' : (scan.qualityGate === 'ERROR' ? 'failed' : 'pending')">
+                    {{ scan.qualityGate === 'OK' ? 'Passed' : (scan.qualityGate === 'ERROR' ? 'Failed' : scan.qualityGate) }}
+                  </span>
+                  <span *ngIf="!scan.qualityGate" class="text-muted">-</span>
+                </td>
                 <td class="text-muted">{{ scan.completedAt | date:'MMM d, h:mm a' }}</td>
                 <td class="text-end">
                   <button class="action-btn" (click)="viewDetail(scan)"><i class="bi bi-chevron-right"></i></button>
                 </td>
               </tr>
               <tr *ngIf="!DashboardData || DashboardData.length === 0">
-                <td colspan="4" class="empty-state">No recent activity found</td>
+                <td colspan="5" class="empty-state">No recent activity found</td>
               </tr>
             </tbody>
           </table>
