@@ -94,8 +94,8 @@
           <i class="bi bi-shield-exclamation"></i>
         </div>
         <div class="metric-info">
-          <h4>{{ scanResult.metrics?.vulnerabilities ?? 0 }}</h4>
-          <span>Vulnerabilities</span>
+          <h4>{{ (scanResult.metrics?.vulnerabilities ?? 0) + (scanResult.metrics?.securityHotspots ?? 0) }}</h4>
+          <span>Security</span>
         </div>
       </div>
 

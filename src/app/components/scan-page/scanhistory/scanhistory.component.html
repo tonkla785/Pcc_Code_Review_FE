@@ -127,9 +127,9 @@
               <span *ngIf="scan.metrics?.bugs !== undefined" title="Bugs" class="d-flex align-items-center gap-1">
                 <i class="bi bi-bug-fill text-danger"></i> {{scan.metrics?.bugs}}
               </span>
-              <span *ngIf="scan.metrics?.vulnerabilities !== undefined" title="Vulnerabilities"
+              <span *ngIf="scan.metrics?.vulnerabilities !== undefined" title="Security"
                 class="d-flex align-items-center gap-1">
-                <i class="bi bi-shield-fill-exclamation text-warning"></i> {{scan.metrics?.vulnerabilities}}
+                <i class="bi bi-shield-fill-exclamation text-warning"></i> {{(scan.metrics?.vulnerabilities ?? 0) + (scan.metrics?.securityHotspots ?? 0)}}
               </span>
               <span *ngIf="scan.metrics?.codeSmells !== undefined" title="Code Smells"
                 class="d-flex align-items-center gap-1">
