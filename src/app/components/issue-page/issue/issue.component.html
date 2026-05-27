@@ -56,6 +56,7 @@
           <th class="text-start">Type</th>
           <th class="text-start">Severity</th>
           <th class="text-start">Issue</th>
+          <th class="text-start">Component</th>
           <th class="text-start">Project</th>
           <th class="text-start">Assigned</th>
           <th class="text-start">Status</th>
@@ -77,6 +78,7 @@
           <td>
             <strong class="issue-message">{{ issue.message }}</strong><br>
           </td>
+          <td [title]="issue.component">{{ issue.component?.split('/')?.pop() }}</td>
           <td>{{issue.projectData?.name}}</td>
           <td>{{issue.assignedTo?.username ?? 'Unassigned'}}</td>
           <td>
@@ -93,7 +95,7 @@
         </tr>
         <!-- Empty State -->
         <tr *ngIf="paginatedIssues?.length === 0">
-          <td colspan="8" class="text-center py-5">
+          <td colspan="9" class="text-center py-5">
             <div class="empty-state">
               <div class="empty-icon">
                 <i class="bi bi-folder-x"></i>
