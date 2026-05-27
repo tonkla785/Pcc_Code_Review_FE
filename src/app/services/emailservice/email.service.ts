@@ -10,25 +10,18 @@ export class EmailService {
 
   constructor(private http: HttpClient) { }
 
-  registerEmail(payload: { type: 'Register'; email: string; username: string }) {
-    return this.http.post(`${this.base}/api/email`, payload);
-  }
-
-  passwordResetEmail(payload: { type: 'PasswordReset'; email: string; link: string }) {
-    return this.http.post(`${this.base}/api/email`, payload);
-  }
-
   requestPasswordReset(email: string) {
     return this.http.post(`${this.base}/user/forgot-password`, { email });
   }
+
   scanReportEmail(payload: {
-  type: 'ScanReport';
-  email: string;
-  applicationName: string;
-  subject: string;
-  html: string;
-}) {
-  return this.http.post(`${this.base}/api/email`, payload);
-}
+    type: 'ScanReport';
+    email: string;
+    applicationName: string;
+    subject: string;
+    html: string;
+  }) {
+    return this.http.post(`${this.base}/api/email/send`, payload);
+  }
 
 }

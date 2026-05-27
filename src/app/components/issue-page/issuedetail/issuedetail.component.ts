@@ -587,9 +587,14 @@ export class IssuedetailComponent implements OnInit {
   downloadMarkdown() {
     if (!this.issuesDetails?.recommendedFixByAi) return;
 
-    const content = MarkdownPipe.extractCleanMarkdown(this.issuesDetails.recommendedFixByAi);
+    let markdownContent = '';
+    if (this.issuesDetails.vulnerableCode) {
+      markdownContent += `### Original Code\n\`\`\`java\n${this.issuesDetails.vulnerableCode}\n\`\`\`\n\n`;
+    }
+    
+    markdownContent += MarkdownPipe.extractCleanMarkdown(this.issuesDetails.recommendedFixByAi);
 
-    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' });
+    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
@@ -629,4 +634,43 @@ export class IssuedetailComponent implements OnInit {
     }
   }
 
+  get parsedVulnerableLines() {
+    const code = this.issuesDetails?.vulnerableCode;
+    if (!code) return [];
+    
+    const lines = code.split('\n');
+    let targetLineNum: number | null = null;
+    let targetIndex = -1;
+    
+    lines.forEach((lineText, index) => {
+      if (lineText.includes('// <-- Target Line')) {
+        const match = lineText.match(/\/\/ <-- Target Line (\d+)/);
+        if (match) {
+          targetLineNum = parseInt(match[1], 10);
+          targetIndex = index;
+        }
+      }
+    });
+    
+    return lines.map((lineText, index) => {
+      const isTarget = index === targetIndex;
+      let cleanText = lineText;
+      if (lineText.includes('// <-- Target Line')) {
+        cleanText = lineText.split('// <-- Target Line')[0].trimEnd();
+      }
+      
+      let lineNum = index + 1;
+      if (targetLineNum !== null && targetIndex !== -1) {
+        lineNum = targetLineNum - (targetIndex - index);
+      }
+      
+      return {
+        text: cleanText,
+        isTarget: isTarget,
+        lineNum: lineNum
+      };
+    });
+  }
+
 }
+

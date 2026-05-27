@@ -124,19 +124,6 @@ export class RegisterComponent {
           });
           this.router.navigate(['/login']);
         }),
-        switchMap(() =>
-          this.emailService
-            .registerEmail({
-              type: 'Register',
-              email,
-              username,
-            })
-            .pipe(
-              catchError((e) => {
-                return of(null);
-              }),
-            ),
-        ),
         finalize(() => (this.loading = false)),
       )
       .subscribe({

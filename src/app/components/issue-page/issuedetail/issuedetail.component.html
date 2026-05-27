@@ -138,7 +138,7 @@
             <i class="bi bi-clipboard"></i>
           </button>
         </div>
-        <pre class="code-block"><code>{{ issuesDetails?.vulnerableCode }}</code></pre>
+        <pre class="code-block"><code><div *ngFor="let line of parsedVulnerableLines" [class.vulnerable-line]="line.isTarget" class="code-line"><span class="line-number">{{ line.lineNum }}</span><span class="line-text">{{ line.text }}</span></div></code></pre>
       </div>
 
       <div class="smart-card" *ngIf="issuesDetails?.recommendedFix">

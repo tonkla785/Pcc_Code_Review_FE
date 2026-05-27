@@ -30,7 +30,18 @@ function logoutAndRedirect(auth: AuthService, tokenStorage: TokenStorageService,
       isLoggingOut = false;
       isRefreshing = false;
       tokenStorage.clear();
-      router.navigate(['/']);
+
+      const isPublicPage = router.url.includes('/reset-password') ||
+        router.url.includes('/login') ||
+        router.url.includes('/register') ||
+        router.url.includes('/forgot-password') ||
+        router.url.includes('/verify-email') ||
+        router.url.includes('/verify-success') ||
+        router.url.includes('/verify-failed');
+
+      if (!isPublicPage) {
+        router.navigate(['/']);
+      }
     })
   ).subscribe();
 }
