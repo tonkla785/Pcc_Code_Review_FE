@@ -1330,13 +1330,15 @@
 
 /* === Dark Mode Colors === */
 :host-context(body.dark-mode) .severity-critical,
-:host-context(body.dark-mode) .text-danger {
+:host-context(body.dark-mode) .text-danger,
+:host-context(body.dark-mode) .status-reject {
   background-color: #7f1d1d;
   color: #fecaca;
   border-color: #991b1b;
 }
 
-:host-context(body.dark-mode) .severity-high {
+:host-context(body.dark-mode) .severity-high,
+:host-context(body.dark-mode) .status-open {
   background-color: #78350f;
   color: #fde68a;
   border-color: #92400e;
@@ -1350,46 +1352,18 @@
 }
 
 :host-context(body.dark-mode) .severity-low,
-:host-context(body.dark-mode) .text-success {
-  background-color: #14532d;
-  color: #bbf7d0;
-  border-color: #15803d;
-}
-
-/* === Status (Dark) === */
-:host-context(body.dark-mode) .status-open {
-  background-color: #78350f;
-  /* ส้มเข้มทองอ่อน = pending */
-  color: #fde68a;
-  /* เหลืองนวลอ่านง่าย */
-  border-color: #92400e;
-}
-
-:host-context(body.dark-mode) .status-inprogress {
-  background-color: #1e3a8a;
-  /* น้ำเงินกรมเข้ม */
-  color: #bfdbfe;
-  /* ฟ้าอ่อน */
-  border-color: #3b82f6;
-  /* ฟ้ากลาง */
-}
-
+:host-context(body.dark-mode) .text-success,
 :host-context(body.dark-mode) .status-done {
   background-color: #14532d;
-  /* เขียวเข้ม */
   color: #bbf7d0;
-  /* เขียวอ่อน */
   border-color: #15803d;
-  /* เขียวกลาง */
 }
 
-:host-context(body.dark-mode) .status-reject {
-  background-color: #7f1d1d;
-  /* แดงเข้ม */
-  color: #fecaca;
-  /* แดงอ่อน */
-  border-color: #991b1b;
-  /* แดงกลาง */
+/* === Status Inprogress (Dark) === */
+:host-context(body.dark-mode) .status-inprogress {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+  border-color: #3b82f6;
 }
 
 /* ===== Force white text inside badges on Dark Mode ===== */
