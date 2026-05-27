@@ -590,7 +590,7 @@ tr:last-child td {
 
 .issue-list li::before {
   content: '\f33a';
-  font-family: 'bootstrap-icons';
+  font-family: 'bootstrap-icons', sans-serif;
   color: #ef4444;
   font-size: 16px;
   background: rgba(239, 68, 68, 0.1);
