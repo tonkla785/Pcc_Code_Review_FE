@@ -1,7 +1,8 @@
 import { filter } from 'rxjs/operators';
 import { scan } from 'rxjs';
 import { SharedDataService } from './../../../services/shared-data/shared-data.service';
-import { Component } from '@angular/core';
+import { Component, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
@@ -67,7 +68,8 @@ export class IssueComponent {
     private readonly issuesService: IssueService,
     private readonly userDataService: UserService,
     private readonly repoService: RepositoryService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private readonly destroyRef: DestroyRef
   ) { }
 
   ngOnInit(): void {
@@ -80,17 +82,17 @@ export class IssueComponent {
     if (params['search']) this.searchText = params['search'];
 
     if (!this.sharedData.hasUserCache) this.loadUser();
-    this.sharedData.AllUser$.subscribe(data => { this.UserData = data ?? []; });
+    this.sharedData.AllUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => { this.UserData = data ?? []; });
 
     if (!this.sharedData.hasIssuesCache) this.loadIssues();
-    this.sharedData.AllIssues$.subscribe(data => {
+    this.sharedData.AllIssues$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
       this.originalData = data || [];
       this.issuesAll = [...this.originalData];
       this.applyFilter();
     });
 
     if (!this.sharedData.hasRepositoriesCache) this.loadRepositories();
-    this.sharedData.repositories$.subscribe((repos) => { this.repositories = repos; });
+    this.sharedData.repositories$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((repos) => { this.repositories = repos; });
 
     setTimeout(() => this.initialized = true, 0);
   }

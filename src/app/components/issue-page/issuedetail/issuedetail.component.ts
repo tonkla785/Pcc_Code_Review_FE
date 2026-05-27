@@ -13,7 +13,7 @@ import { LoginUser, UserInfo } from '../../../interface/user_interface';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 import { UserService } from '../../../services/userservice/user.service';
 import { WebSocketService } from '../../../services/websocket/websocket.service';
-import { Subscription } from 'rxjs';
+import { Subscription, interval } from 'rxjs';
 /** === เพิ่มสำหรับคอมเมนต์ === */
 import { CommentService, IssueCommentModel, AddIssueCommentPayload } from '../../../services/commentservice/comment.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
@@ -213,6 +213,7 @@ export class IssuedetailComponent implements OnInit {
 
   private commentSub?: Subscription;
   private issueSub?: Subscription;
+  private pollAiFixSub?: Subscription;
 
   subscribeToRealtimeComments(issueId: string) {
     // Unsubscribe previous if exists
@@ -231,6 +232,17 @@ export class IssuedetailComponent implements OnInit {
     });
   }
 
+  private startAiFixPolling(issueId: string) {
+    this.pollAiFixSub?.unsubscribe();
+    this.pollAiFixSub = interval(5000).subscribe(() => {
+      if (!this._pendingAiFix) {
+        this.pollAiFixSub?.unsubscribe();
+        return;
+      }
+      this.loadIssueDetails(issueId);
+    });
+  }
+
   ngOnDestroy() {
     if (this.commentSub) {
       this.commentSub.unsubscribe();
@@ -238,6 +250,7 @@ export class IssuedetailComponent implements OnInit {
     if (this.issueSub) {
       this.issueSub.unsubscribe();
     }
+    this.pollAiFixSub?.unsubscribe();
   }
 
   loadIssueById(issueId: string) {
@@ -340,7 +353,7 @@ export class IssuedetailComponent implements OnInit {
 
     this.issesService.triggerRecommendFixAi(projectId, issueId).subscribe({
       next: (res) => {
-        // Keep loading state - will be cleared when WebSocket event arrives and status is SUCCESS/FAILED
+        this.startAiFixPolling(issueId);
       },
       error: (err) => {
         this.isAiLoading = false;
