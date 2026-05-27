@@ -40,7 +40,7 @@
         {{ project.name }}
       </option>
     </select>
-    <input class="form-control w-auto" type="text" placeholder="Search issues..." [(ngModel)]="searchText"
+    <input class="form-control w-auto" type="text" placeholder="Search component..." [(ngModel)]="searchText"
       (ngModelChange)="onSearchChange($event)">
     <button class="btn btn-outline-primary" (click)="clearFilters()">Clear</button>
   </div>

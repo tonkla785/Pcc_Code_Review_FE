@@ -169,7 +169,7 @@ export class IssueComponent {
       (this.filterType === 'All Types' || i.type === this.filterType) &&
       (this.filterSeverity === 'All Severity' || i.severity === this.filterSeverity) &&
       (this.filterStatus === 'All Status' || i.status === this.filterStatus) &&
-      (this.searchText === '' || i.message.toLowerCase().includes(this.searchText.toLowerCase()))
+      (this.searchText === '' || (i.component || '').toLowerCase().includes(this.searchText.toLowerCase()))
     );
   }
   applyFilter() {
@@ -198,10 +198,10 @@ export class IssueComponent {
         const projectName = (i.projectData?.name || '').toLowerCase();
         const project = matchProject === 'all projects' || projectName === matchProject;
 
-        const messageOk =
-          keyword === '' || (i.message || '').toLowerCase().includes(keyword);
+        const componentOk =
+          keyword === '' || (i.component || '').toLowerCase().includes(keyword);
 
-        return type && severity && status && project && messageOk;
+        return type && severity && status && project && componentOk;
       })
       .sort((a, b) => {
         const dateDiff =
