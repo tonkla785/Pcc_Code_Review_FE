@@ -16,7 +16,9 @@ export class SonarQubeService {
         coverageThreshold: 0,
         maxBugs: 0,
         maxVulnerabilities: 0,
-        maxCodeSmells: 0
+        maxCodeSmells: 0,
+        maxDuplications: 0,
+        maxSecurityHotspots: 0
     };
 
 

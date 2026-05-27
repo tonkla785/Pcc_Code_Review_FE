@@ -182,69 +182,46 @@ export class RepositoriesComponent implements OnInit {
 
   runScan(repo: Repository) {
     if (repo.status === 'Scanning') return;
+    if (!repo.projectId) return;
 
-    if (!repo.projectId) {
-      return;
-    }
-
-    // Validate SonarQube Token
     const sonarConfig = this.userSettingsData.sonarQubeConfig;
+
+    // Validate SonarQube Token & Server URL
     if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '' || !sonarConfig?.serverUrl || sonarConfig.serverUrl.trim() === '') {
       Swal.fire({
         icon: 'warning',
         title: 'Missing SonarQube Token or Server URL',
-        text: 'Please configure your SonarQube Token and Server URL in User Settings before adding a repository.',
+        text: 'Please configure your SonarQube Token and Server URL in User Settings before scanning.',
         showCancelButton: true,
         confirmButtonText: 'Go to Settings',
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         reverseButtons: true,
       }).then((result: any) => {
-        if (result.isConfirmed) {
-          this.router.navigate(['/sonarqubeconfig']);
-        }
+        if (result.isConfirmed) this.router.navigate(['/sonarqubeconfig']);
       });
       return;
     }
 
-    Swal.fire({
-      title: 'Confirm Scan',
-      text: 'Is this repository Public or Private?',
-      icon: 'question',
-      showDenyButton: true,
-      showCancelButton: true,
-      confirmButtonText: 'Public',
-      denyButtonText: 'Private',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#28a745',
-      denyButtonColor: '#3085d6'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Public start now
-        this.executeScan(repo, null);
-      } else if (result.isDenied) {
-        // Private needs Token
-        Swal.fire({
-          title: 'Enter Git Token',
-          input: 'password',
-          inputLabel: 'Git Token',
-          inputPlaceholder: 'Enter Git Token',
-          showCancelButton: true,
-          confirmButtonText: 'Start Scan',
-          cancelButtonText: 'Cancel',
-          inputValidator: (value) => {
-            if (!value) {
-              return 'Please enter a token!';
-            }
-            return null;
-          }
-        }).then((tokenResult) => {
-          if (tokenResult.isConfirmed) {
-            this.executeScan(repo, tokenResult.value);
-          }
-        });
-      }
-    });
+    // Validate Git Access Token
+    const gitToken = sonarConfig?.gitAccessToken?.trim() || null;
+    if (!gitToken) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Git Access Token',
+        text: 'Please configure your Git Access Token in SonarQube Settings before scanning a private repository.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Settings',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true,
+      }).then((result: any) => {
+        if (result.isConfirmed) this.router.navigate(['/sonarqubeconfig']);
+      });
+      return;
+    }
+
+    this.executeScan(repo, gitToken);
   }
 
   private executeScan(repo: Repository, token: string | null) {
@@ -294,7 +271,47 @@ export class RepositoriesComponent implements OnInit {
   }
 
   resumeScan(repo: Repository) {
-    this.runScan(repo);
+    if (repo.status === 'Scanning') return;
+    if (!repo.projectId) return;
+
+    const sonarConfig = this.userSettingsData.sonarQubeConfig;
+
+    // Validate SonarQube Token & Server URL
+    if (!sonarConfig?.authToken || sonarConfig.authToken.trim() === '' || !sonarConfig?.serverUrl || sonarConfig.serverUrl.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing SonarQube Token or Server URL',
+        text: 'Please configure your SonarQube Token and Server URL in User Settings before scanning.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Settings',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true,
+      }).then((result: any) => {
+        if (result.isConfirmed) this.router.navigate(['/sonarqubeconfig']);
+      });
+      return;
+    }
+
+    // Validate Git Access Token
+    const gitToken = sonarConfig?.gitAccessToken?.trim() || null;
+    if (!gitToken) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Git Access Token',
+        text: 'Please configure your Git Access Token in SonarQube Settings before scanning a private repository.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Settings',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true,
+      }).then((result: any) => {
+        if (result.isConfirmed) this.router.navigate(['/sonarqubeconfig']);
+      });
+      return;
+    }
+
+    this.executeScan(repo, gitToken);
   }
 
   //ตัวแปรใน class

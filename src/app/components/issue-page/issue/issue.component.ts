@@ -171,7 +171,12 @@ export class IssueComponent {
       (this.filterType === 'All Types' || i.type === this.filterType) &&
       (this.filterSeverity === 'All Severity' || i.severity === this.filterSeverity) &&
       (this.filterStatus === 'All Status' || i.status === this.filterStatus) &&
-      (this.searchText === '' || (i.component || '').toLowerCase().includes(this.searchText.toLowerCase()))
+      (this.searchText === '' || (() => {
+        const path = (i.component || '').toLowerCase();
+        const kw = this.searchText.toLowerCase();
+        const idx = path.indexOf(kw);
+        return idx !== -1 && (idx === 0 || path[idx - 1] === '/' || path[idx - 1] === ':');
+      })())
     );
   }
   applyFilter() {
@@ -200,8 +205,13 @@ export class IssueComponent {
         const projectName = (i.projectData?.name || '').toLowerCase();
         const project = matchProject === 'all projects' || projectName === matchProject;
 
-        const componentOk =
-          keyword === '' || (i.component || '').toLowerCase().includes(keyword);
+        const componentOk = (() => {
+          if (keyword === '') return true;
+          const path = (i.component || '').toLowerCase();
+          const idx = path.indexOf(keyword);
+          if (idx === -1) return false;
+          return idx === 0 || path[idx - 1] === '/' || path[idx - 1] === ':';
+        })();
 
         return type && severity && status && project && componentOk;
       })

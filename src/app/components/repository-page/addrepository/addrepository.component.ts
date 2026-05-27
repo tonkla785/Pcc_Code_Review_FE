@@ -47,9 +47,6 @@ export class AddrepositoryComponent implements OnInit {
     );
   }
 
-  // แผน B: token ใช้ตอน startScan (optional)
-  gitToken: string = '';
-
   authMethod: 'usernamePassword' | 'accessToken' | null = null;
   isEditMode: boolean = false;
 
@@ -266,7 +263,7 @@ export class AddrepositoryComponent implements OnInit {
 
               // 3. Start Scan (Only after repo is firmly in SharedData)
               if (savedRepo?.projectId) {
-                const tokenToUse = this.gitToken?.trim() || null;
+                const tokenToUse = this.userSettingsData.sonarQubeConfig?.gitAccessToken?.trim() || null;
 
                 // Optimistic Update: Set status to Scanning immediately
                 this.sharedData.updateRepoStatus(
@@ -279,9 +276,6 @@ export class AddrepositoryComponent implements OnInit {
                   .startScan(savedRepo.projectId, 'dev', tokenToUse as any, this.userSettingsData.sonarQubeConfig?.serverUrl)
                   .subscribe({
                     next: (newScan) => {
-                      // ล้าง token หลังส่ง
-                      this.gitToken = '';
-
                       if (newScan) {
                         this.sharedData.upsertScan(newScan);
                       }
@@ -296,7 +290,6 @@ export class AddrepositoryComponent implements OnInit {
                       this.location.back();
                     },
                     error: (err) => {
-                      this.gitToken = '';
                       const msgErr = this.extractApiError(err);
                       this.snack.open(`Scan failed to start: ${msgErr}`, '', {
                         duration: 3000,
@@ -400,18 +393,13 @@ export class AddrepositoryComponent implements OnInit {
 
   clearForm(form?: NgForm) {
     if (this.isEditMode) {
-      // Edit Mode: Clear only editable fields (Name & Git Token)
       this.gitRepository.name = '';
-      this.gitToken = '';
       this.gitRepository.costPerDay = 1000;
 
       if (form) {
-        // Reset form controls only for editable fields to clear validation states
         form.controls['name']?.reset('');
-        form.controls['gitToken']?.reset('');
       }
     } else {
-      // Add Mode: Clear everything
       this.gitRepository = {
         projectId: undefined,
         user: '',
@@ -432,7 +420,6 @@ export class AddrepositoryComponent implements OnInit {
       };
 
       this.authMethod = null;
-      this.gitToken = '';
 
       if (form) {
         form.resetForm({
@@ -444,7 +431,6 @@ export class AddrepositoryComponent implements OnInit {
           projectKey: '',
           enableAutoScan: true,
           enableQualityGate: true,
-          gitToken: null,
         });
       }
     }

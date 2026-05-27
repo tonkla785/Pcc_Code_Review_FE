@@ -17,6 +17,7 @@ export interface SonarQubeConfig {
     serverUrl: string;
     authToken?: string;
     organization: string;
+    gitAccessToken?: string;
     angularRunNpm: boolean;
     angularCoverage: boolean;
     angularTsFiles: boolean;
@@ -30,6 +31,8 @@ export interface SonarQubeConfig {
     qgMaxBugs: number;
     qgMaxVulnerabilities: number;
     qgMaxCodeSmells: number;
+    qgMaxDuplications: number;
+    qgMaxSecurityHotspots: number;
     createdAt: Date;
     updatedAt: Date;
 }

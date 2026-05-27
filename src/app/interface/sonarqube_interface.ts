@@ -27,6 +27,8 @@ export interface QualityGates {
     maxBugs: number;
     maxVulnerabilities: number;
     maxCodeSmells: number;
+    maxDuplications: number;
+    maxSecurityHotspots: number;
 }
 
 export interface SonarQubeConfig {

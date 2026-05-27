@@ -75,7 +75,9 @@ export class RepositoryService {
       coverageThreshold: sonarConfig?.qgCoverageThreshold || 0,
       maxBugs: sonarConfig?.qgMaxBugs || 0,
       maxVulnerabilities: sonarConfig?.qgMaxVulnerabilities || 0,
-      maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0
+      maxCodeSmells: sonarConfig?.qgMaxCodeSmells || 0,
+      qgMaxDuplications: sonarConfig?.qgMaxDuplications || 0,
+      qgMaxSecurityHotspots: sonarConfig?.qgMaxSecurityHotspots || 0
     };
 
     return this.http.post(

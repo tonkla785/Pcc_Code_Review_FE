@@ -27,7 +27,9 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
   serverUrl = '';
   authToken = '';
   organization = '';
+  gitAccessToken = '';
   showToken = false;
+  showGitToken = false;
   isTestingConnection = false;
 
   angularSettings: AngularSettings = {
@@ -46,25 +48,18 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
 
   jdkVersions = [8, 11, 17, 21];
 
-  // Default Quality Gates (ค่า 0 ทั้งหมด)
-  readonly DEFAULT_QUALITY_GATES: QualityGates = {
+  readonly DEFAULT_QUALITY_GATES = { failOnError: false };
+  readonly ACTIVE_QUALITY_GATES = { failOnError: true };
+
+  qualityGates: QualityGates = {
     failOnError: false,
     coverageThreshold: 0,
     maxBugs: 0,
     maxVulnerabilities: 0,
-    maxCodeSmells: 0
+    maxCodeSmells: 0,
+    maxDuplications: 0,
+    maxSecurityHotspots: 0
   };
-
-  // ค่า Quality Gates เมื่อเลือก failOnError
-  readonly ACTIVE_QUALITY_GATES: QualityGates = {
-    failOnError: true,
-    coverageThreshold: 80,
-    maxBugs: 10,
-    maxVulnerabilities: 5,
-    maxCodeSmells: 100
-  };
-
-  qualityGates: QualityGates = { ...this.DEFAULT_QUALITY_GATES };
 
   private destroy$ = new Subscription();
 
@@ -104,15 +99,15 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     this.showToken = !this.showToken;
   }
 
-  // เมื่อ toggle failOnError checkbox
+  toggleShowGitToken() {
+    this.showGitToken = !this.showGitToken;
+  }
+
   onFailOnErrorChange() {
-    if (this.qualityGates.failOnError) {
-      // เมื่อติ๊ก → ใช้ค่า active
-      this.qualityGates = { ...this.ACTIVE_QUALITY_GATES };
-    } else {
-      // เมื่อไม่ติ๊ก → ใช้ค่า default (0 ทั้งหมด)
-      this.qualityGates = { ...this.DEFAULT_QUALITY_GATES };
-    }
+    this.qualityGates = {
+      ...this.qualityGates,
+      ...(this.qualityGates.failOnError ? this.ACTIVE_QUALITY_GATES : this.DEFAULT_QUALITY_GATES)
+    };
   }
 
   testConnection(): Promise<boolean> {
@@ -181,6 +176,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     this.serverUrl = '';
     this.authToken = '';
     this.organization = '';
+    this.gitAccessToken = '';
     this.angularSettings = {
       runNpm: false,
       coverage: false,
@@ -193,7 +189,15 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       buildTool: 'maven',
       jdkVersion: 21
     };
-    this.qualityGates = { ...this.DEFAULT_QUALITY_GATES };
+    this.qualityGates = {
+      failOnError: false,
+      coverageThreshold: 0,
+      maxBugs: 0,
+      maxVulnerabilities: 0,
+      maxCodeSmells: 0,
+      maxDuplications: 0,
+      maxSecurityHotspots: 0
+    };
     Swal.fire({
       icon: 'success',
       title: 'Reset Complete',
@@ -212,6 +216,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       serverUrl: this.serverUrl,
       authToken: this.authToken,
       organization: this.organization,
+      gitAccessToken: this.gitAccessToken,
 
       angularRunNpm: this.angularSettings.runNpm,
       angularCoverage: this.angularSettings.coverage,
@@ -227,7 +232,9 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       qgCoverageThreshold: this.qualityGates.coverageThreshold,
       qgMaxBugs: this.qualityGates.maxBugs,
       qgMaxVulnerabilities: this.qualityGates.maxVulnerabilities,
-      qgMaxCodeSmells: this.qualityGates.maxCodeSmells
+      qgMaxCodeSmells: this.qualityGates.maxCodeSmells,
+      qgMaxDuplications: this.qualityGates.maxDuplications,
+      qgMaxSecurityHotspots: this.qualityGates.maxSecurityHotspots
     };
 
     this.userSettingService.updateSonarQubeConfig(config).subscribe({
@@ -259,6 +266,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     this.serverUrl = config.serverUrl || '';
     this.authToken = config.authToken || '';
     this.organization = config.organization || '';
+    this.gitAccessToken = config.gitAccessToken || '';
 
     this.angularSettings = {
       runNpm: config.angularRunNpm,
@@ -279,7 +287,9 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       coverageThreshold: config.qgCoverageThreshold,
       maxBugs: config.qgMaxBugs,
       maxVulnerabilities: config.qgMaxVulnerabilities,
-      maxCodeSmells: config.qgMaxCodeSmells
+      maxCodeSmells: config.qgMaxCodeSmells,
+      maxDuplications: config.qgMaxDuplications ?? 0,
+      maxSecurityHotspots: config.qgMaxSecurityHotspots ?? 0
     };
 
     // Update SharedData for other components

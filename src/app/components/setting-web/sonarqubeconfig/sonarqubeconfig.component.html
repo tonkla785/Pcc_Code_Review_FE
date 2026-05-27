@@ -31,10 +31,45 @@
                 <div *ngIf="authTokenRef.errors?.['minlength']">Token must be at least 10 characters.</div>
               </div>
             </div>
-            <div class="col-12 col-md-4 d-flex align-items-end gap-2">
+            <div class="col-12 col-md-4">
+              <label class="form-label d-none d-md-block">&nbsp;</label>
               <button type="button" class="btn btn-outline-secondary w-100" (click)="toggleShowToken()">
                 <i class="bi" [ngClass]="showToken ? 'bi-eye-slash' : 'bi-eye'"></i>
                 &nbsp;{{ showToken ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+
+            <!-- Git Access Token -->
+            <div class="col-12 col-md-8">
+              <label class="form-label d-flex align-items-center" for="sonarGitAccessToken">
+                Git Access Token
+                <span class="info-badge ms-2" tabindex="0">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div class="tooltip-content">
+                    <strong>How to get a Git Token?</strong>
+                    <ol>
+                      <li>GitHub → Settings</li>
+                      <li>Developer settings → Personal access tokens</li>
+                      <li>Select <code>Fine-grained token</code></li>
+                      <li>Permissions: <code>Read-only</code> (Contents)</li>
+                    </ol>
+                    <div class="tooltip-note">No token needed for public repositories.</div>
+                  </div>
+                </span>
+              </label>
+              <input [type]="showGitToken ? 'text' : 'password'" id="sonarGitAccessToken" name="gitAccessToken"
+                class="form-control" [(ngModel)]="gitAccessToken" required minlength="10" maxlength="255"
+                #gitAccessTokenRef="ngModel" />
+              <div class="text-danger small" *ngIf="gitAccessTokenRef.invalid && gitAccessTokenRef.touched">
+                <div *ngIf="gitAccessTokenRef.errors?.['required']">Git Access Token is required.</div>
+                <div *ngIf="gitAccessTokenRef.errors?.['minlength']">Token must be at least 10 characters.</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label d-none d-md-block">&nbsp;</label>
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="toggleShowGitToken()">
+                <i class="bi" [ngClass]="showGitToken ? 'bi-eye-slash' : 'bi-eye'"></i>
+                &nbsp;{{ showGitToken ? 'Hide' : 'Show' }}
               </button>
             </div>
 
@@ -161,6 +196,16 @@
               <label class="form-label small" for="maxCodeSmells">Max code smells</label>
               <input type="number" id="maxCodeSmells" name="maxCodeSmells" class="form-control form-control-sm"
                 [(ngModel)]="qualityGates.maxCodeSmells" min="0" />
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small" for="maxDuplications">Max duplications</label>
+              <input type="number" id="maxDuplications" name="maxDuplications" class="form-control form-control-sm"
+                [(ngModel)]="qualityGates.maxDuplications" min="0" />
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small" for="maxSecurityHotspots">Max security hotspots</label>
+              <input type="number" id="maxSecurityHotspots" name="maxSecurityHotspots"
+                class="form-control form-control-sm" [(ngModel)]="qualityGates.maxSecurityHotspots" min="0" />
             </div>
           </div>
         </div>
