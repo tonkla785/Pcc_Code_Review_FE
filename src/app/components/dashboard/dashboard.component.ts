@@ -333,7 +333,10 @@ export class DashboardComponent {
     this.passedCountBug = bugs.reduce((sum, s) => sum + (s?.metrics?.bugs ?? 0), 0);
     this.securityCount = bugs.reduce((sum, s) => sum + (s?.metrics?.securityHotspots ?? 0) + (s?.metrics?.vulnerabilities ?? 0), 0);
     this.codeSmellCount = bugs.reduce((sum, s) => sum + (s?.metrics?.codeSmells ?? 0), 0);
-    this.coverRateCount = bugs.reduce((sum, s) => sum + (s?.metrics?.coverage ?? 0), 0);
+    const coverageItems = bugs.filter(s => s?.metrics?.coverage != null && s.metrics!.coverage > 0);
+    this.coverRateCount = coverageItems.length > 0
+      ? Math.round(coverageItems.reduce((sum, s) => sum + (s.metrics!.coverage ?? 0), 0) / coverageItems.length * 100) / 100
+      : 0;
   }
 
   // ใช้ formatISODate จาก utils แทน
