@@ -75,6 +75,7 @@ export class IssueComponent {
   ngOnInit(): void {
     const params = this.route.snapshot.queryParams;
     this.currentPage = +params['page'] || 1;
+    if (params['pageSize']) this.pageSize = +params['pageSize'];
     if (params['type']) this.filterType = params['type'];
     if (params['severity']) this.filterSeverity = params['severity'];
     if (params['status']) this.filterStatus = params['status'];
@@ -268,6 +269,7 @@ export class IssueComponent {
       relativeTo: this.route,
       queryParams: {
         page: this.currentPage,
+        pageSize: this.pageSize,
         type: this.filterType,
         severity: this.filterSeverity,
         status: this.filterStatus,
