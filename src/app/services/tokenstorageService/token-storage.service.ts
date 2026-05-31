@@ -31,18 +31,19 @@ export class TokenStorageService {
   }
 
   setLoginUser(user: LoginUser) {
-    sessionStorage.setItem(this.userKey, JSON.stringify(user));
+    // localStorage = แชร์ทุกแท็บ -> เปิดหลายแท็บใช้ session เดียวกัน ไม่เขียนทับกัน
+    localStorage.setItem(this.userKey, JSON.stringify(user));
     this.loginUserSubject.next(user);
   }
 
   getLoginUser(): LoginUser | null {
-    const raw = sessionStorage.getItem(this.userKey);
+    const raw = localStorage.getItem(this.userKey);
     return raw ? (JSON.parse(raw) as LoginUser) : null;
   }
 
   clear() {
     this.accessToken = null;
-    sessionStorage.removeItem(this.userKey);
+    localStorage.removeItem(this.userKey);
     this.loginUserSubject.next(null);
   }
 }

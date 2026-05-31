@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { environment } from '../../environments/environment';
 import { Observable, ReplaySubject, Subject, BehaviorSubject } from 'rxjs';
 
 import {
@@ -51,7 +52,7 @@ export class WebSocketService {
 
   constructor(private tokenStorage: TokenStorageService) {
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(`${environment.apiUrl}/ws`),
       reconnectDelay: 5000,
 
       beforeConnect: async () => {
@@ -260,6 +261,10 @@ export class WebSocketService {
 
   subscribeIssueChanges(): Observable<IssueChangeEvent> {
     return this.issueSubject.asObservable();
+  }
+
+  connectionState(): Observable<boolean> {
+    return this.connectionState$.asObservable();
   }
 
   /**

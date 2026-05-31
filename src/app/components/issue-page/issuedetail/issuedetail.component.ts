@@ -168,7 +168,7 @@ export class IssuedetailComponent implements OnInit {
           this.isAiLoading = false;
           if (this._pendingAiFix) {
             this._pendingAiFix = false;
-            this.snack.open('❌ AI Fix generation failed. Please try again.', '', {
+            this.snack.open('❌ AI Fix generation failed. Please try again. Ai Token is expired.', '', {
               duration: 4000,
               horizontalPosition: 'right',
               verticalPosition: 'top',
@@ -277,7 +277,7 @@ export class IssuedetailComponent implements OnInit {
         if (this.isAiFixFailed(data) && this._pendingAiFix) {
           this._pendingAiFix = false;
           this.isAiLoading = false;
-          this.snack.open('❌ AI Fix generation failed. Please try again.', '', {
+          this.snack.open('❌ AI Fix generation failed. Please try again. Ai Token is expired.', '', {
             duration: 4000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
@@ -363,7 +363,7 @@ export class IssuedetailComponent implements OnInit {
           const revertDetail = { ...this.issuesDetails, status: null };
           this.sharedData.SelectedIssueDetail = revertDetail;
         }
-        this.snack.open('❌ Failed to trigger AI Fix. Please try again.', '', {
+        this.snack.open('❌ Failed to trigger AI Fix. Please try again. Ai Token is expired. ', '', {
           duration: 4000,
           horizontalPosition: 'right',
           verticalPosition: 'top',

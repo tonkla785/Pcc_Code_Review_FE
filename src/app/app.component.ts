@@ -41,6 +41,9 @@ export class AppComponent implements OnInit {
   private refreshIssues$ = new Subject<void>();
   private refreshIssuesSub?: Subscription;
 
+  private connectionSub?: Subscription;
+  private hasEverConnected = false;
+
   constructor(
     private ws: WebSocketService,
     private sharedData: SharedDataService,
@@ -176,6 +179,15 @@ export class AppComponent implements OnInit {
 
         this.fetchScanDataAndNotify(event.projectId, event.status);
         this.refreshIssues$.next();
+      }
+    });
+
+    this.connectionSub = this.ws.connectionState().subscribe((isConnected) => {
+      if (isConnected) {
+        if (this.hasEverConnected) {
+          this.resyncAfterReconnect();
+        }
+        this.hasEverConnected = true;
       }
     });
 
@@ -352,6 +364,19 @@ export class AppComponent implements OnInit {
       });
   }
 
+  private resyncAfterReconnect() {
+    if (!this.authService.isLoggedIn) return;
+
+    this.repoService.getAllRepo().subscribe({
+      next: (repos: any[]) => {
+        this.sharedData.setRepositories(repos);
+      },
+      error: () => { },
+    });
+
+    this.refreshIssues$.next();
+  }
+
   private fetchScanData(projectId: string, wsStatus: string) {
     this.repoService.getFullRepository(projectId).subscribe({
       next: (fullRepo) => {
@@ -505,7 +530,7 @@ export class AppComponent implements OnInit {
 
     const isSuccess = status === 'SUCCESS';
     const title = isSuccess ? '✅ Scan Completed' : '❌ Scan Failed';
-    const message = isSuccess ? `${name} scan completed successfully` : `${name} scan failed`;
+    const message = isSuccess ? `${name} scan completed successfully` : `${name} scan failed caused by Git Token is Expired or Failed to connect to Server.`;
 
     this.notificationService
       .createNotification({
