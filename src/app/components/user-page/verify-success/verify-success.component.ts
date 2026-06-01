@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-verify-success',
@@ -9,7 +9,11 @@ import { Router } from '@angular/router';
   styleUrl: './verify-success.component.css'
 })
 export class VerifySuccessComponent {
-   constructor(private router: Router) {}
+  already = false;
+
+  constructor(private router: Router, private route: ActivatedRoute) {
+    this.already = this.route.snapshot.queryParamMap.get('status') === 'already';
+  }
 
   goToWebsite() {
     this.router.navigate(['/']);

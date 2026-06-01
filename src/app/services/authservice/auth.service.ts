@@ -107,6 +107,13 @@ export class AuthService {
     return this.http.post(`${this.base}/user/reset-password`, payload);
   }
 
+  validateResetToken(token: string) {
+    return this.http.get<{ status: string }>(
+      `${this.base}/user/reset-password/validate`,
+      { params: { token } },
+    );
+  }
+
   refresh() {
     return this.http
       .post<RefreshResponse>(

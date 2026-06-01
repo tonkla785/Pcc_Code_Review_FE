@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router } from '@angular/router';
 import { WebSocketService } from './services/websocket/websocket.service';
 import { SharedDataService } from './services/shared-data/shared-data.service';
 import { TechnicalDebtDataService } from './services/shared-data/technicaldebt-data.service';
@@ -58,7 +58,22 @@ export class AppComponent implements OnInit {
     private tokenStorage: TokenStorageService,
     private snack: MatSnackBar,
     private userService: UserService,
+    private router: Router,
   ) { }
+
+  private readonly publicRoutes = [
+    '/', '/login', '/register', '/reset-password', '/forgot-password',
+    '/verify-email', '/verify-success', '/verify-failed',
+  ];
+
+  private isOnPublicRoute(): boolean {
+    const path = (this.router.url.split(/[?#]/)[0] || '/').replace(/\/+$/, '') || '/';
+    return this.publicRoutes.includes(path);
+  }
+
+  private canShowSnackbar(): boolean {
+    return this.authService.isLoggedIn && !this.isOnPublicRoute();
+  }
 
   ngOnInit() {
     // Theme restore
@@ -153,8 +168,8 @@ export class AppComponent implements OnInit {
       if (event.status === 'SCANNING') {
         this.fetchScanData(event.projectId, event.status);
       } else if (event.status === 'SUCCESS' || event.status === 'FAILED') {
-        // Only show snackbar for the user who triggered this scan
-        if (this.repoService.isMyTriggeredScan(event.projectId) && this.authService.isLoggedIn) {
+        // Only show snackbar for the user who triggered this scan, and never on auth pages
+        if (this.repoService.isMyTriggeredScan(event.projectId) && this.canShowSnackbar()) {
           const settings = this.userSettingsData.notificationSettings;
           if (!settings || settings.scansEnabled) {
             const projectName = this.sharedData.repositoriesValue
@@ -198,7 +213,7 @@ export class AppComponent implements OnInit {
         this.sharedData.removeRepository(event.projectId);
         this.technicalDebtData.clearAllDebtData();
 
-        if (this.authService.isLoggedIn) {
+        if (this.canShowSnackbar()) {
           this.snack.open(`Project "${event.projectName}" was deleted`, '', {
             duration: 3000,
             horizontalPosition: 'right',
@@ -211,7 +226,7 @@ export class AppComponent implements OnInit {
           next: (repos: any[]) => {
             this.sharedData.setRepositories(repos);
 
-            if (this.authService.isLoggedIn) {
+            if (this.canShowSnackbar()) {
               const actionText = event.action === 'ADDED' ? 'added' : 'updated';
               this.snack.open(`Project "${event.projectName}" was ${actionText}`, '', {
                 duration: 3000,
@@ -256,7 +271,7 @@ export class AppComponent implements OnInit {
         this.tokenStorage.setLoginUser(merged);
         this.sharedData.LoginUserShared = merged;
 
-        if (this.authService.isLoggedIn) {
+        if (this.canShowSnackbar()) {
           this.snack.open(
             freshUser.status === 'VERIFIED'
               ? '✅ Email Verified'
@@ -302,7 +317,7 @@ export class AppComponent implements OnInit {
     this.notiSub = this.notificationData.newNotification$
       .pipe(bufferTime(2000), filter((list) => list.length > 0))
       .subscribe((notifications) => {
-        if (!this.authService.isLoggedIn) return;
+        if (!this.canShowSnackbar()) return;
 
         if (notifications.some((n) => n.type === 'Issues')) {
           const settings = this.userSettingsData.notificationSettings;

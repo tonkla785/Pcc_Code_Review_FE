@@ -4,8 +4,13 @@
       <i class="fas fa-xmark" style="color:white; font-size:32px;"></i>
     </div>
 
-    <h1>Verification Failed</h1>
-    <p>Sorry, your account could not be verified.</p>
+    @if (expired) {
+      <h1>Link Expired</h1>
+      <p>This verification link has expired. Please sign in to request a new verification email.</p>
+    } @else {
+      <h1>Verification Failed</h1>
+      <p>Sorry, this verification link is invalid. Please request a new verification email.</p>
+    }
 
     <button class="dashboard-btn" (click)="goToWebsite()">Go to Website</button>
   </div>

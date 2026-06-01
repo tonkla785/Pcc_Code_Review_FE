@@ -21,6 +21,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 export class ResetPasswordComponent implements OnInit {
   token: string | null = null;
   loading = false;
+  tokenState: 'checking' | 'valid' | 'expired' | 'used' | 'invalid' = 'checking';
   form: FormGroup;
 
   constructor(
@@ -51,7 +52,7 @@ export class ResetPasswordComponent implements OnInit {
 
     if (tk) {
       this.token = tk;
-      sessionStorage.setItem('reset_token', tk); 
+      sessionStorage.setItem('reset_token', tk);
 
       this.router.navigate([], {
         relativeTo: this.route,
@@ -62,6 +63,41 @@ export class ResetPasswordComponent implements OnInit {
     } else {
       this.token = sessionStorage.getItem('reset_token');
     }
+
+    this.checkToken();
+  }
+
+  private checkToken(): void {
+    if (!this.token) {
+      this.tokenState = 'invalid';
+      return;
+    }
+
+    this.tokenState = 'checking';
+    this.svc.validateResetToken(this.token).subscribe({
+      next: (res) => {
+        switch (res?.status) {
+          case 'VALID':
+            this.tokenState = 'valid';
+            break;
+          case 'EXPIRED':
+            this.tokenState = 'expired';
+            break;
+          case 'USED':
+            this.tokenState = 'used';
+            break;
+          default:
+            this.tokenState = 'invalid';
+        }
+        if (this.tokenState !== 'valid') {
+          sessionStorage.removeItem('reset_token');
+        }
+      },
+      error: () => {
+        this.tokenState = 'invalid';
+        sessionStorage.removeItem('reset_token');
+      },
+    });
   }
   goBack() {
     sessionStorage.removeItem('reset_token');

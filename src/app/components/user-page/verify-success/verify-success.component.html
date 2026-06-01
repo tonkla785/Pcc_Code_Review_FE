@@ -4,8 +4,13 @@
       <i class="fas fa-check checkmark"></i>
     </div>
 
-    <h1>Verification Successful!</h1>
-    <p>Your account has been successfully verified.</p>
+    @if (already) {
+      <h1>Already Verified</h1>
+      <p>Your email has already been verified. You can sign in and start using your account.</p>
+    } @else {
+      <h1>Verification Successful!</h1>
+      <p>Your account has been successfully verified.</p>
+    }
     <button class="dashboard-btn" (click)="goToWebsite()">Go to Website</button>
   </div>
 </div>

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-verify-failed',
@@ -9,7 +9,11 @@ import { Router } from '@angular/router';
   styleUrl: './verify-failed.component.css'
 })
 export class VerifyFailedComponent {
-  constructor(private router: Router) {}
+  expired = false;
+
+  constructor(private router: Router, private route: ActivatedRoute) {
+    this.expired = this.route.snapshot.queryParamMap.get('reason') === 'expired';
+  }
 
   goToWebsite() {
     this.router.navigate(['/']);
