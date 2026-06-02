@@ -68,13 +68,16 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   private checkToken(): void {
-    if (!this.token) {
+    const token = this.token ?? sessionStorage.getItem('reset_token');
+
+    if (!token) {
       this.tokenState = 'invalid';
       return;
     }
 
+    this.token = token;
     this.tokenState = 'checking';
-    this.svc.validateResetToken(this.token).subscribe({
+    this.svc.validateResetToken(token).subscribe({
       next: (res) => {
         switch (res?.status) {
           case 'VALID':
@@ -89,13 +92,9 @@ export class ResetPasswordComponent implements OnInit {
           default:
             this.tokenState = 'invalid';
         }
-        if (this.tokenState !== 'valid') {
-          sessionStorage.removeItem('reset_token');
-        }
       },
       error: () => {
         this.tokenState = 'invalid';
-        sessionStorage.removeItem('reset_token');
       },
     });
   }

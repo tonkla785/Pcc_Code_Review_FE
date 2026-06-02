@@ -46,7 +46,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     jdkVersion: 21
   };
 
-  jdkVersions = [8, 11, 17, 21];
+  jdkVersions = [8, 11, 17, 21, 25];
 
   readonly DEFAULT_QUALITY_GATES = { failOnError: false };
   readonly ACTIVE_QUALITY_GATES = { failOnError: true };
