@@ -121,11 +121,11 @@
       <div class="quick-stats">
         <div class="q-stat">
           <span class="label">Total Scans</span>
-          <span class="value">{{ DashboardData?.length || 0 }}</span>
+          <span class="value">{{ DashboardData.length || 0 }}</span>
         </div>
         <div class="q-stat">
           <span class="label">Projects</span>
-          <span class="value">{{ projectDistribution?.length || 0 }}</span>
+          <span class="value">{{ repositories.length || 0 }}</span>
         </div>
       </div>
     </div>
@@ -273,7 +273,7 @@
           <li *ngFor="let i of allIssues | slice:0:4">
             <div class="issue-content">
               <span class="issue-msg">{{ i.message }}</span>
-              <span class="severity-badge" [ngClass]="i.severity?.toLowerCase()">{{ i.severity }}</span>
+              <span class="severity-badge" [ngClass]="i.severity.toLowerCase()">{{ i.severity }}</span>
             </div>
           </li>
         </ul>

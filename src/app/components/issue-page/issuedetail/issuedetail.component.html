@@ -218,7 +218,7 @@
 
             <div class="comment-content ">
               <div class="comment-header">
-                <strong class="comment-author">{{ c.user?.username }}</strong>
+                <strong class="comment-author">{{ c.user.username }}</strong>
                 <span class="comment-time">
                   <i class="bi bi-clock"></i>
                   {{ c.createdAt | date:'dd/MM/yyyy, HH:mm' }}
@@ -285,7 +285,7 @@
 
           <input type="text" [placeholder]=" 'Write a comment...'" [(ngModel)]="newComment.comment" name="commentText"
             class="comment-input" title="Write your comment"
-            (keyup.enter)="newComment?.comment?.trim() && postComment()" />
+            (keyup.enter)="newComment.comment?.trim() && postComment()" />
           <button class="btn-send" type="button" title="Post comment" (click)="postComment()"
             [disabled]="!newComment.comment?.trim() || sendingComment">
             <i class="bi bi-send-fill" *ngIf="!sendingComment"></i>

@@ -941,61 +941,80 @@ export class DashboardComponent {
   private isValidGateLetter = isValidGrade;  // isValidGrade ใน utils เหมือนกันกับ isValidGateLetter
   private getGradeColor = getGradeColor;
 
-  // ================== โหลดข้อมูลสำหรับโดนัทและการ์ด ==================
   loadDashboardData() {
     const latest = this.getLatestScanByProject();
     const norm = (s?: string) => (s || '').trim().toUpperCase();
-    // Filter scans that have a qualityGate result
-    const validLatest = latest.filter((s) => this.notEmpty(s.qualityGate));
-
-    // ✅ pass = qualityGate is 'OK'
-    const passedCount = validLatest.filter((s) => {
+    
+    // ✅ pass = status is 'SUCCESS' or qualityGate is 'OK'
+    const passedCount = latest.filter((s) => {
       const qg = norm(s.qualityGate);
-      return qg === 'OK';
+      const st = norm(s.status);
+      return st === 'SUCCESS' || qg === 'OK';
     }).length;
 
-    // ✅ failed = qualityGate is NOT 'OK' (e.g. ERROR, WARN, NONE etc.)
-    const failedCount = validLatest.filter((s) => {
+    // ✅ failed = status is 'FAILED' or qualityGate is 'ERROR'
+    const failedCount = latest.filter((s) => {
       const qg = norm(s.qualityGate);
-      return qg !== 'OK' && qg !== 'NONE' && qg !== '';
+      const st = norm(s.status);
+      return st === 'FAILED' || qg === 'ERROR' || (st !== 'SUCCESS' && qg !== 'OK' && qg !== 'NONE' && qg !== '');
     }).length;
-    // ใช้เฉพาะที่จบแล้ว (pass+fail) มาหาร
-    const finishedTotal = passedCount + failedCount;
 
     this.Data = { passedCount, failedCount };
-    this.totalProjects = finishedTotal;
+    this.totalProjects = this.repositories.length > 0 ? this.repositories.length : (passedCount + failedCount);
 
-    const ratio = finishedTotal > 0 ? passedCount / finishedTotal : 0;
+    // Calculate Grade using ONLY passed scans' metrics
+    const ratingToNumber = (rating: string | undefined | null): number | null => {
+      if (!rating) return null;
+      const map: { [key: string]: number } = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+      return map[rating.toUpperCase()] ?? null;
+    };
 
-    this.grade =
-      ratio >= 0.8
-        ? 'A'
-        : ratio >= 0.7
-          ? 'B'
-          : ratio >= 0.6
-            ? 'C'
-            : ratio >= 0.5
-              ? 'D'
-              : ratio >= 0.4
-                ? 'E'
-                : 'F';
+    let totalRatingValue = 0;
+    let ratingCount = 0;
 
-    this.gradePercent = Math.round(ratio * 100);
+    const passedScans = latest.filter((s) => {
+      const qg = norm(s.qualityGate);
+      const st = norm(s.status);
+      return st === 'SUCCESS' || qg === 'OK';
+    });
 
-    // Use the computed grade directly for the center letter
-    const centerLetter: 'A' | 'B' | 'C' | 'D' | 'E' =
-      (this.grade === 'F' ? 'E' : this.grade) as 'A' | 'B' | 'C' | 'D' | 'E';
+    for (const scan of passedScans) {
+      if (scan.metrics) {
+         const r = ratingToNumber(scan.metrics.reliabilityRating);
+         const s = ratingToNumber(scan.metrics.securityRating);
+         const m = ratingToNumber(scan.metrics.maintainabilityRating);
+         if (r !== null) { totalRatingValue += r; ratingCount++; }
+         if (s !== null) { totalRatingValue += s; ratingCount++; }
+         if (m !== null) { totalRatingValue += m; ratingCount++; }
+      }
+    }
 
-    // ถ้าไม่มีข้อมูล ให้แสดง E สีเทา
-    const hasData = this.totalProjects > 0;
+    if (ratingCount > 0) {
+      const avg = totalRatingValue / ratingCount;
+      if (avg <= 1.5) this.grade = 'A';
+      else if (avg <= 2.5) this.grade = 'B';
+      else if (avg <= 3.5) this.grade = 'C';
+      else if (avg <= 4.5) this.grade = 'D';
+      else this.grade = 'E';
+    } else if (passedCount > 0) {
+      this.grade = 'A'; // Default to A if passed but no metrics found
+    } else if (failedCount > 0) {
+      this.grade = 'F';
+    } else {
+      this.grade = 'E'; // default
+    }
+
+    const hasData = passedCount > 0 || failedCount > 0;
     const displayGrade = hasData ? this.grade : 'E';
-    const displayPercent = hasData ? this.gradePercent : 0;
-    const successColor = hasData ? '#10B981' : '#E5E7EB'; // grey-400
-    const failedColor = hasData ? '#EF4444' : '#E5E7EB'; // grey-200 when no data
+    
+    // For pie chart series, we can just use passedCount and failedCount directly
+    const seriesData = hasData ? [passedCount, failedCount] : [0, 100];
+    const successColor = hasData ? '#10B981' : '#E5E7EB';
+    const failedColor = hasData ? '#EF4444' : '#E5E7EB';
 
     this.pieChartOptions = {
       chart: { type: 'donut', height: 300 },
-      series: hasData ? [displayPercent, 100 - displayPercent] : [0, 100],
+      series: seriesData,
       labels: ['PASSED', 'FAILED'],
       colors: [successColor, failedColor],
       states: {
@@ -1041,13 +1060,13 @@ export class DashboardComponent {
       legend: {
         show: true,
         markers: {
-          fillColors: ['#10B981', '#EF4444']
+          fillColors: [successColor, failedColor]
         }
       },
       tooltip: {
         enabled: true,
         y: {
-          formatter: (val: number) => `${Math.round(val)}%`
+          formatter: (val: number) => `${val} Project(s)`
         }
       },
     };

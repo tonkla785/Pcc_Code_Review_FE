@@ -512,8 +512,9 @@ tr:last-child td {
 
 .status-badge.pending,
 .status-badge.scanning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #92400e;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 /* Dark Mode Badge Text Fix */
@@ -529,8 +530,9 @@ tr:last-child td {
 
 :host-context(.dark-mode) .status-badge.pending,
 :host-context(.dark-mode) .status-badge.scanning {
-  color: #fbbf24;
-  background: rgba(245, 158, 11, 0.25);
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .action-btn {

@@ -79,7 +79,7 @@
           <td>
             <strong class="issue-message">{{ issue.message }}</strong><br>
           </td>
-          <td [title]="issue.component">{{ issue.component?.split('/')?.pop() }}</td>
+          <td [title]="issue.component">{{ issue.component.split('/').pop() }}</td>
           <td>{{issue.projectData?.name}}</td>
           <td>{{issue.assignedTo?.username ?? 'Unassigned'}}</td>
           <td>

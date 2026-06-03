@@ -21,7 +21,7 @@ export class DetailrepositoryComponent implements OnInit {
 
   issues: IssuesResponseDTO[] = [];
   repoId!: string;
-  repo!: Repository;
+  repo?: Repository;
   scans: ScanResponseDTO[] = [];
   activeTab: 'overview' | 'bugs' | 'history' = 'overview';
   loading: boolean = true;
