@@ -50,6 +50,16 @@ export class ScanresultComponent {
       }
     });
 
+    this.sharedData.scansHistory$.subscribe((scans) => {
+      if (!scans || !this.scanResult?.id) return;
+
+      const updatedScan = scans.find((s) => s.id === this.scanResult?.id);
+      if (updatedScan && updatedScan !== this.scanResult) {
+        this.scanResult = updatedScan;
+        this.sharedData.ScansDetail = updatedScan;
+      }
+    });
+
     // Check route params and decide whether to use cache or fetch from API
     this.route.paramMap.subscribe((pm) => {
       const id = pm.get('scanId');

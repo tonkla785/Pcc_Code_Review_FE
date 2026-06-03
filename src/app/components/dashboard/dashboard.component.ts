@@ -962,30 +962,31 @@ export class DashboardComponent {
     this.Data = { passedCount, failedCount };
     this.totalProjects = this.repositories.length > 0 ? this.repositories.length : (passedCount + failedCount);
 
-    // Calculate Grade using ONLY passed scans' metrics
     const ratingToNumber = (rating: string | undefined | null): number | null => {
       if (!rating) return null;
       const map: { [key: string]: number } = { A: 1, B: 2, C: 3, D: 4, E: 5 };
       return map[rating.toUpperCase()] ?? null;
     };
+    const WORST_RATING = 5; // E
 
     let totalRatingValue = 0;
     let ratingCount = 0;
 
-    const passedScans = latest.filter((s) => {
-      const qg = norm(s.qualityGate);
-      const st = norm(s.status);
-      return st === 'SUCCESS' || qg === 'OK';
-    });
+    for (const scan of latest) {
+      const qg = norm(scan.qualityGate);
+      const st = norm(scan.status);
+      const isPassed = st === 'SUCCESS' || qg === 'OK';
 
-    for (const scan of passedScans) {
-      if (scan.metrics) {
-         const r = ratingToNumber(scan.metrics.reliabilityRating);
-         const s = ratingToNumber(scan.metrics.securityRating);
-         const m = ratingToNumber(scan.metrics.maintainabilityRating);
-         if (r !== null) { totalRatingValue += r; ratingCount++; }
-         if (s !== null) { totalRatingValue += s; ratingCount++; }
-         if (m !== null) { totalRatingValue += m; ratingCount++; }
+      if (isPassed && scan.metrics) {
+        const r = ratingToNumber(scan.metrics.reliabilityRating);
+        const s = ratingToNumber(scan.metrics.securityRating);
+        const m = ratingToNumber(scan.metrics.maintainabilityRating);
+        if (r !== null) { totalRatingValue += r; ratingCount++; }
+        if (s !== null) { totalRatingValue += s; ratingCount++; }
+        if (m !== null) { totalRatingValue += m; ratingCount++; }
+      } else if (!isPassed) {
+        totalRatingValue += WORST_RATING * 3;
+        ratingCount += 3;
       }
     }
 

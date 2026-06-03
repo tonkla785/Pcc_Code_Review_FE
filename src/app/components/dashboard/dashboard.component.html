@@ -216,14 +216,24 @@
                 </td>
                 <td>
                   <span class="status-badge" [ngClass]="scan.status.toLowerCase()">
+                    <i *ngIf="scan.status === 'PENDING'" class="bi bi-arrow-repeat spin"></i>
                     {{ scan.status === 'PENDING' ? 'SCANNING' : (scan.status === 'SUCCESS' ? 'PASSED' : scan.status) }}
                   </span>
                 </td>
                 <td>
-                  <span *ngIf="scan.qualityGate" class="status-badge" [ngClass]="scan.qualityGate === 'OK' ? 'success' : (scan.qualityGate === 'ERROR' ? 'failed' : 'pending')">
-                    {{ scan.qualityGate === 'OK' ? 'Passed' : (scan.qualityGate === 'ERROR' ? 'Failed' : scan.qualityGate) }}
+                  <span *ngIf="scan.status === 'PENDING'" class="status-badge scanning">
+                    <i class="bi bi-arrow-repeat spin"></i> Scanning
                   </span>
-                  <span *ngIf="!scan.qualityGate" class="text-muted">-</span>
+
+                  <span *ngIf="scan.status !== 'PENDING' && scan.status !== 'SUCCESS'" class="status-badge failed">
+                    Failed
+                  </span>
+
+                  <ng-container *ngIf="scan.status === 'SUCCESS'">
+                    <span *ngIf="scan.qualityGate === 'OK'" class="status-badge success">Passed</span>
+                    <span *ngIf="scan.qualityGate === 'ERROR'" class="status-badge failed">Failed</span>
+                    <span *ngIf="scan.qualityGate !== 'OK' && scan.qualityGate !== 'ERROR'" class="text-muted">{{ scan.qualityGate || '-' }}</span>
+                  </ng-container>
                 </td>
                 <td class="text-muted">{{ scan.completedAt | date:'MMM d, h:mm a' }}</td>
                 <td class="text-end">
