@@ -323,9 +323,9 @@ export class DashboardComponent {
     });
   }
   countQualityGate() {
-    const scans = this.getLatestScanByProject() ?? [];
+    const scans = (this.getLatestScanByProject() ?? [])
+      .filter(s => (s?.status ?? '').toUpperCase() === 'SUCCESS');
     this.passedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() === 'OK').length;
-    // ถ้าไม่ใช่ OK ให้เป็น failed ทั้งหมด
     this.failedCount = scans.filter(s => (s?.qualityGate ?? '').toUpperCase() !== 'OK').length;
   }
   countBug() {
@@ -942,67 +942,35 @@ export class DashboardComponent {
   private getGradeColor = getGradeColor;
 
   loadDashboardData() {
-    const latest = this.getLatestScanByProject();
     const norm = (s?: string) => (s || '').trim().toUpperCase();
-    
-    // ✅ pass = status is 'SUCCESS' or qualityGate is 'OK'
-    const passedCount = latest.filter((s) => {
-      const qg = norm(s.qualityGate);
-      const st = norm(s.status);
-      return st === 'SUCCESS' || qg === 'OK';
-    }).length;
 
-    // ✅ failed = status is 'FAILED' or qualityGate is 'ERROR'
-    const failedCount = latest.filter((s) => {
-      const qg = norm(s.qualityGate);
-      const st = norm(s.status);
-      return st === 'FAILED' || qg === 'ERROR' || (st !== 'SUCCESS' && qg !== 'OK' && qg !== 'NONE' && qg !== '');
-    }).length;
+    const success = this.getLatestScanByProject().filter(
+      (s) => norm(s.status) === 'SUCCESS'
+    );
 
+    const passedCount = success.filter((s) => norm(s.qualityGate) === 'OK').length;
+    const failedCount = success.filter((s) => norm(s.qualityGate) !== 'OK').length;
+
+    this.passedCount = passedCount;
+    this.failedCount = failedCount;
     this.Data = { passedCount, failedCount };
     this.totalProjects = this.repositories.length > 0 ? this.repositories.length : (passedCount + failedCount);
+    
+    const totalForGrade = passedCount + failedCount;
+    const passPercent = totalForGrade > 0 ? (passedCount / totalForGrade) * 100 : 0;
 
-    const ratingToNumber = (rating: string | undefined | null): number | null => {
-      if (!rating) return null;
-      const map: { [key: string]: number } = { A: 1, B: 2, C: 3, D: 4, E: 5 };
-      return map[rating.toUpperCase()] ?? null;
-    };
-    const WORST_RATING = 5; // E
-
-    let totalRatingValue = 0;
-    let ratingCount = 0;
-
-    for (const scan of latest) {
-      const qg = norm(scan.qualityGate);
-      const st = norm(scan.status);
-      const isPassed = st === 'SUCCESS' || qg === 'OK';
-
-      if (isPassed && scan.metrics) {
-        const r = ratingToNumber(scan.metrics.reliabilityRating);
-        const s = ratingToNumber(scan.metrics.securityRating);
-        const m = ratingToNumber(scan.metrics.maintainabilityRating);
-        if (r !== null) { totalRatingValue += r; ratingCount++; }
-        if (s !== null) { totalRatingValue += s; ratingCount++; }
-        if (m !== null) { totalRatingValue += m; ratingCount++; }
-      } else if (!isPassed) {
-        totalRatingValue += WORST_RATING * 3;
-        ratingCount += 3;
-      }
-    }
-
-    if (ratingCount > 0) {
-      const avg = totalRatingValue / ratingCount;
-      if (avg <= 1.5) this.grade = 'A';
-      else if (avg <= 2.5) this.grade = 'B';
-      else if (avg <= 3.5) this.grade = 'C';
-      else if (avg <= 4.5) this.grade = 'D';
-      else this.grade = 'E';
-    } else if (passedCount > 0) {
-      this.grade = 'A'; // Default to A if passed but no metrics found
-    } else if (failedCount > 0) {
-      this.grade = 'F';
+    if (totalForGrade === 0) {
+      this.grade = 'E';
+    } else if (passPercent >= 80) {
+      this.grade = 'A';
+    } else if (passPercent >= 60) {
+      this.grade = 'B';
+    } else if (passPercent >= 40) {
+      this.grade = 'C';
+    } else if (passPercent >= 20) {
+      this.grade = 'D';
     } else {
-      this.grade = 'E'; // default
+      this.grade = 'E';
     }
 
     const hasData = passedCount > 0 || failedCount > 0;
