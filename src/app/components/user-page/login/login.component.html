@@ -3,8 +3,8 @@
 
     <!-- LEFT: Welcome -->
     <div class="welcome-section">
-      <h1>Hello,<br> welcome Back !</h1>
-      <p>PCCTH Automate Code Review.</p>
+      <h1 [innerHTML]="'LOGIN.WELCOME_TITLE' | translate"></h1>
+      <p>{{ 'LOGIN.WELCOME_TEXT' | translate }}</p>
     </div>
 
     <div class="login-box">
@@ -12,55 +12,54 @@
         <a routerLink="/" class="back-btn" title="Back to Home">
           <i class="bi bi-chevron-left"></i>
         </a>
-        <h2>Login</h2>
+        <h2>{{ 'AUTH.LOGIN' | translate }}</h2>
+        <app-language-switcher class="lang-switcher-abs"></app-language-switcher>
       </div>
-      <form (ngSubmit)="onSubmit(form)" #form="ngForm" novalidate >
+      <form (ngSubmit)="onSubmit(form)" #form="ngForm" novalidate>
         <div class="input-group">
-          <label for="email">Email</label>
-          <input type="email" name="email" [(ngModel)]="email" required email
-          pattern="^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$" #emailRef="ngModel"
-          placeholder="Enter your email" title="Please enter your email address"
-          [class.input-error]="(submitted && emailRef.invalid) || loginFailed" />
+          <label for="email">{{ 'AUTH.EMAIL' | translate }}</label>
+          <input type="email" name="email" [(ngModel)]="email" required email pattern="^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$"
+            #emailRef="ngModel" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" title="Please enter your email address"
+            [class.input-error]="(submitted && emailRef.invalid) || loginFailed" />
           <div *ngIf="emailRef.touched || emailRef.dirty || submitted">
             <small *ngIf="emailRef.errors?.['required']" class="error-message">
-                Email is required
+              {{ 'LOGIN.EMAIL_REQUIRED' | translate }}
             </small>
             <small *ngIf="emailRef.errors?.['email']" class="error-message">
-                Enter a valid email
+              {{ 'LOGIN.EMAIL_VALID' | translate }}
             </small>
             <small *ngIf="emailRef.errors?.['pattern']" class="error-message">
-                Email must have at least 2 characters after "."
+              {{ 'LOGIN.EMAIL_PATTERN' | translate }}
             </small>
           </div>
         </div>
 
         <div class="input-group">
-          <label for="password">Password</label>
+          <label for="password">{{ 'AUTH.PASSWORD' | translate }}</label>
           <input type="password" name="password" [(ngModel)]="password" required #pwdRef="ngModel"
-            placeholder="Enter your password" title="Please enter your password"
+            [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" title="Please enter your password"
             [class.input-error]="(submitted && pwdRef.invalid) || loginFailed" />
           <div *ngIf="pwdRef.touched || pwdRef.dirty || submitted">
             <small *ngIf="pwdRef.errors?.['required']" class="error-message">
-              Password is required
+              {{ 'LOGIN.PASSWORD_REQUIRED' | translate }}
             </small>
           </div>
         </div>
 
-        <button type="submit">Login</button>
+        <button type="submit">{{ 'AUTH.LOGIN_BUTTON' | translate }}</button>
       </form>
 
       <div class="extra-links">
         <p>
-          Forgot your Password?
-          <a [routerLink]="['/forgot-password']">Reset Password</a>
+          {{ 'LOGIN.FORGOT_PASSWORD' | translate }}
+          <a [routerLink]="['/forgot-password']">{{ 'AUTH.RESET_PASSWORD' | translate }}</a>
         </p>
         <p>
-          Don't have an account?
-          <a [routerLink]="['/register']">Register</a>
+          {{ 'LOGIN.DONT_HAVE_ACCOUNT' | translate }}
+          <a [routerLink]="['/register']">{{ 'AUTH.REGISTER' | translate }}</a>
         </p>
       </div>
     </div>
 
   </div>
 </div>
-

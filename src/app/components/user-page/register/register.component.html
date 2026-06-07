@@ -4,10 +4,9 @@
 
     <!-- LEFT: Welcome -->
     <div class="welcome-section">
-      <h1>Welcome to the community !</h1>
+      <h1>{{ 'REGISTER.WELCOME_TITLE' | translate }}</h1>
       <p>
-        Register now to access greater benefits and improve the effectiveness of
-        code review in our organization.
+        {{ 'REGISTER.WELCOME_TEXT' | translate }}
       </p>
     </div>
 
@@ -17,20 +16,20 @@
         <a routerLink="/" class="back-btn" title="Back to Home">
           <i class="bi bi-chevron-left"></i>
         </a>
-        <h2>Register</h2>
+        <h2>{{ 'REGISTER.TITLE' | translate }}</h2>
       </div>
 
       <form (ngSubmit)="onSubmit(form)" #form="ngForm" novalidate>
         <!-- Username -->
         <div class="input-group">
-          <label for="username">Username</label>
+          <label for="username">{{ 'REGISTER.USERNAME' | translate }}</label>
           <input
             type="text"
             name="username"
             [(ngModel)]="username"
             required
             minlength="8"
-            placeholder="Enter your username"
+            [placeholder]="'REGISTER.USERNAME_PLACEHOLDER' | translate"
             #usernameRef="ngModel"
             [class.is-invalid]="
               (usernameRef.invalid && (usernameRef.touched || submitted)) ||
@@ -41,22 +40,22 @@
             <small
               *ngIf="usernameRef.errors?.['required']"
               class="error-message"
-              >Username is required</small
+              >{{ 'REGISTER.USERNAME_REQUIRED' | translate }}</small
             >
             <small
               *ngIf="usernameRef.errors?.['minlength']"
               class="error-message"
-              >Username must be at least 8 characters</small
+              >{{ 'REGISTER.USERNAME_MINLENGTH' | translate }}</small
             >
             <small *ngIf="checkUsername(usernameRef)" class="error-message"
-              >Username already exists</small
+              >{{ 'REGISTER.USERNAME_EXISTS' | translate }}</small
             >
           </div>
         </div>
 
         <!-- Email -->
         <div class="input-group">
-          <label for="email">Email</label>
+          <label for="email">{{ 'AUTH.EMAIL' | translate }}</label>
           <input
             type="email"
             name="email"
@@ -64,7 +63,7 @@
             required
             email
             [pattern]="emailPattern"
-            placeholder="Enter your email"
+            [placeholder]="'REGISTER.EMAIL_PLACEHOLDER' | translate"
             #emailRef="ngModel"
             [class.is-invalid]="
               (emailRef.invalid && (emailRef.touched || submitted)) ||
@@ -73,23 +72,23 @@
           />
           <div *ngIf="emailRef.touched || emailRef.dirty || submitted">
             <small *ngIf="emailRef.errors?.['required']" class="error-message"
-              >Email is required</small
+              >{{ 'REGISTER.EMAIL_REQUIRED' | translate }}</small
             >
             <small *ngIf="emailRef.errors?.['email']" class="error-message"
-              >Enter a valid email</small
+              >{{ 'REGISTER.EMAIL_VALID' | translate }}</small
             >
             <small *ngIf="emailRef.errors?.['pattern']" class="error-message"
-              >Email must have at least 2 characters after "."</small
+              >{{ 'REGISTER.EMAIL_PATTERN' | translate }}</small
             >
             <small *ngIf="checkEmail(emailRef)" class="error-message"
-              >This email is already taken</small
+              >{{ 'REGISTER.EMAIL_EXISTS' | translate }}</small
             >
           </div>
         </div>
 
         <!-- Phone Number -->
         <div class="input-group">
-          <label for="phoneNumber">Phone Number</label>
+          <label for="phoneNumber">{{ 'REGISTER.PHONE_NUMBER' | translate }}</label>
           <input
             type="tel"
             name="phoneNumber"
@@ -97,7 +96,7 @@
             required
             pattern="^0\d{9}$"
             maxlength="10"
-            placeholder="Enter your phone number"
+            [placeholder]="'REGISTER.PHONE_PLACEHOLDER' | translate"
             #telRef="ngModel"
             [class.is-invalid]="
               (telRef.invalid && (telRef.touched || submitted)) ||
@@ -106,20 +105,20 @@
           />
           <div *ngIf="telRef.touched || telRef.dirty || submitted">
             <small *ngIf="telRef.errors?.['required']" class="error-message"
-              >Phone Number is required</small
+              >{{ 'REGISTER.PHONE_REQUIRED' | translate }}</small
             >
             <small *ngIf="telRef.errors?.['pattern']" class="error-message"
-              >Phone Number must start with 0 and be 10 digits</small
+              >{{ 'REGISTER.PHONE_PATTERN' | translate }}</small
             >
             <small *ngIf="checkPhoneNumber(telRef)" class="error-message"
-              >This phone number is already taken</small
+              >{{ 'REGISTER.PHONE_EXISTS' | translate }}</small
             >
           </div>
         </div>
 
         <!-- Password -->
         <div class="input-group">
-          <label for="password">Password</label>
+          <label for="password">{{ 'AUTH.PASSWORD' | translate }}</label>
           <input
             type="password"
             name="password"
@@ -127,7 +126,7 @@
             [(ngModel)]="password"
             required
             minlength="8"
-            placeholder="Enter your password"
+            [placeholder]="'REGISTER.PASSWORD_PLACEHOLDER' | translate"
             #pwdRef="ngModel"
             [class.is-invalid]="
               (pwdRef.invalid && (pwdRef.touched || submitted)) ||
@@ -149,7 +148,7 @@
                     : 'bi-x-circle-fill'
                 "
               ></i>
-              At least 8 characters
+              {{ 'REGISTER.RULE_MINLENGTH' | translate }}
             </li>
 
             <li
@@ -164,7 +163,7 @@
                     : 'bi-x-circle-fill'
                 "
               ></i>
-              Contains an uppercase letter (A-Z)
+              {{ 'REGISTER.RULE_UPPERCASE' | translate }}
             </li>
 
             <li
@@ -179,7 +178,7 @@
                     : 'bi-x-circle-fill'
                 "
               ></i>
-              Contains a lowercase letter (a-z)
+              {{ 'REGISTER.RULE_LOWERCASE' | translate }}
             </li>
 
             <li
@@ -194,7 +193,7 @@
                     : 'bi-x-circle-fill'
                 "
               ></i>
-              Contains a number (0-9)
+              {{ 'REGISTER.RULE_NUMBER' | translate }}
             </li>
 
             <li
@@ -209,40 +208,40 @@
                     : 'bi-x-circle-fill'
                 "
               ></i>
-              Contains a special character (!&#64;#$%&*.)
+              {{ 'REGISTER.RULE_SPECIAL' | translate }}
             </li>
           </ul>
         </div>
 
         <!-- Confirm Password -->
         <div class="input-group">
-          <label for="confirmPassword">Confirm Password</label>
+          <label for="confirmPassword">{{ 'AUTH.CONFIRM_PASSWORD' | translate }}</label>
           <input
             type="password"
             name="confirmPassword"
             [(ngModel)]="confirmPassword"
             required
             minlength="8"
-            placeholder="Confirm your password"
+            [placeholder]="'REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
             #confirmRef="ngModel"
           />
           <div *ngIf="confirmRef.touched || confirmRef.dirty || submitted">
             <small *ngIf="confirmRef.errors?.['required']" class="error-message"
-              >Confirm password is required</small
+              >{{ 'REGISTER.CONFIRM_PASSWORD_REQUIRED' | translate }}</small
             >
             <small *ngIf="passwordsMismatch" class="error-message"
-              >Passwords do not match</small
+              >{{ 'REGISTER.PASSWORD_MISMATCH' | translate }}</small
             >
           </div>
         </div>
 
-        <button type="submit">Register</button>
+        <button type="submit">{{ 'REGISTER.BUTTON' | translate }}</button>
       </form>
 
       <div class="extra-links">
         <p>
-          Already have an account?
-          <a [routerLink]="['/login']">Login</a>
+          {{ 'REGISTER.ALREADY_HAVE_ACCOUNT' | translate }}
+          <a [routerLink]="['/login']">{{ 'AUTH.LOGIN' | translate }}</a>
         </p>
       </div>
     </div>

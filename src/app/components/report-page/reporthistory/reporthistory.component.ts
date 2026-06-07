@@ -13,11 +13,12 @@ import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reporthistory',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './reporthistory.component.html',
   styleUrl: './reporthistory.component.css'
 })
@@ -41,7 +42,8 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
     private readonly wordService: WordService,
     private readonly pptService: PowerpointService,
     private readonly pdfService: PdfService,
-    private readonly snack: MatSnackBar
+    private readonly snack: MatSnackBar,
+    private readonly translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -118,12 +120,14 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
   }
 
   getDateRange(report: ReportHistory): string {
-    return `${report.dateFrom} to ${report.dateTo}`;
+    const toStr = this.translate.instant('REPORT_HISTORY.TO');
+    return `${report.dateFrom} ${toStr} ${report.dateTo}`;
   }
 
   downloadReport(report: ReportHistory): void {
+    const t = (key: string) => this.translate.instant(key);
     if (!report.snapshotData) {
-      this.snack.open('Cannot download report - no snapshot data', 'close', {
+      this.snack.open(t('REPORT_HISTORY.SNACKBAR.NO_SNAPSHOT'), 'close', {
         duration: 2000,
         horizontalPosition: 'right',
         verticalPosition: 'top',
@@ -159,7 +163,7 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
           this.pdfService.generatePdf(context);
           break;
         default:
-          this.snack.open('Format not supported', '', {
+          this.snack.open(t('REPORT_HISTORY.SNACKBAR.FORMAT_NOT_SUPPORTED'), '', {
             duration: 2000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
@@ -168,7 +172,7 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
           break;
       }
     } catch (error) {
-      this.snack.open('Error downloading report', '', {
+      this.snack.open(t('REPORT_HISTORY.SNACKBAR.DOWNLOAD_ERROR'), '', {
         duration: 2000,
         horizontalPosition: 'right',
         verticalPosition: 'top',

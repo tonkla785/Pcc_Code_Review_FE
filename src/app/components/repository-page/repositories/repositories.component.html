@@ -3,11 +3,11 @@
   <!-- Header -->
   <div class="dashboard-header">
     <div>
-      <h1>Repositories</h1>
-      <p>Manage and monitor your project quality</p>
+      <h1>{{ 'REPOSITORY.TITLE' | translate }}</h1>
+      <p>{{ 'REPOSITORY.SUBTITLE' | translate }}</p>
     </div>
     <button class="btn btn-primary-gradient" (click)="goToAddRepository()">
-      <i class="bi bi-plus-lg"></i> New Repository
+      <i class="bi bi-plus-lg"></i> {{ 'REPOSITORY.NEW_REPOSITORY' | translate }}
     </button>
   </div>
 
@@ -19,7 +19,12 @@
       </div>
       <div class="stat-info">
         <h3>{{ stat.count }}</h3>
-        <span>{{ stat.label }}</span>
+        <span>{{ 
+          (stat.label === 'Total Repositories' ? 'REPOSITORY.STATS_TOTAL' : 
+           stat.label === 'Active' ? 'REPOSITORY.STATS_ACTIVE' :
+           stat.label === 'Scanning' ? 'REPOSITORY.STATS_SCANNING' :
+           stat.label === 'Error' ? 'REPOSITORY.STATS_ERROR' : stat.label) | translate 
+        }}</span>
       </div>
     </div>
   </div>
@@ -29,13 +34,13 @@
     <!-- Filter Tabs -->
     <div class="filter-tabs">
       <button class="tab-btn" [class.active]="activeFilter === 'all'" (click)="filterBy('all')">
-        All <span class="badge-count">{{ repositories.length }}</span>
+        {{ 'REPOSITORY.TAB_ALL' | translate }} <span class="badge-count">{{ repositories.length }}</span>
       </button>
       <button class="tab-btn" [class.active]="activeFilter === 'ANGULAR'" (click)="filterBy('ANGULAR')">
-        Angular <span class="badge-count">{{ countByType('ANGULAR') }}</span>
+        {{ 'REPOSITORY.TAB_ANGULAR' | translate }} <span class="badge-count">{{ countByType('ANGULAR') }}</span>
       </button>
       <button class="tab-btn" [class.active]="activeFilter === 'SPRING_BOOT'" (click)="filterBy('SPRING_BOOT')">
-        Spring Boot <span class="badge-count">{{ countByType('SPRING_BOOT') }}</span>
+        {{ 'REPOSITORY.TAB_SPRING' | translate }} <span class="badge-count">{{ countByType('SPRING_BOOT') }}</span>
       </button>
     </div>
 
@@ -43,15 +48,15 @@
     <div class="search-actions">
       <div class="search-input">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Search repositories..." (input)="searchRepositories($event)">
+        <input type="text" [placeholder]="'REPOSITORY.SEARCH_PLACEHOLDER' | translate" (input)="searchRepositories($event)">
       </div>
 
       <div class="status-select">
         <select [(ngModel)]="selectedStatus" (change)="filterByStatus()">
-          <option value="all">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Scanning">Scanning</option>
-          <option value="Error">Error</option>
+          <option value="all">{{ 'REPOSITORY.STATUS_ALL' | translate }}</option>
+          <option value="Active">{{ 'REPOSITORY.STATUS_ACTIVE' | translate }}</option>
+          <option value="Scanning">{{ 'REPOSITORY.STATUS_SCANNING' | translate }}</option>
+          <option value="Error">{{ 'REPOSITORY.STATUS_ERROR' | translate }}</option>
         </select>
         <i class="bi bi-chevron-down dropdown-icon"></i>
       </div>
@@ -75,7 +80,7 @@
                 {{ repo.projectTypeLabel }}
               </span>
               <a [href]="repo.repositoryUrl" target="_blank" class="repo-url">
-                <i class="bi bi-link-45deg"></i> Link
+                <i class="bi bi-link-45deg"></i> {{ 'REPOSITORY.LINK' | translate }}
               </a>
             </div>
           </div>
@@ -98,39 +103,39 @@
           <div class="progress-bar-wrapper">
             <div class="progress-bar-animated"></div>
           </div>
-          <span class="scanning-label"><i class="bi bi-arrow-repeat spin"></i> Analyzing...</span>
+          <span class="scanning-label"><i class="bi bi-arrow-repeat spin"></i> {{ 'REPOSITORY.ANALYZING' | translate }}</span>
         </div>
 
         <!-- Metrics State -->
         <div *ngIf="repo.status !== 'Scanning'" class="metrics-row">
-          <div class="metric-item" title="Bugs">
+          <div class="metric-item" [title]="'REPOSITORY.BUGS' | translate">
             <i class="bi bi-bug text-danger"></i>
             <span class="metric-value">{{ repo.metrics?.bugs || 0 }}</span>
-            <span class="metric-label">Bugs</span>
+            <span class="metric-label">{{ 'REPOSITORY.BUGS' | translate }}</span>
           </div>
-          <div class="metric-item" title="Vulnerabilities">
+          <div class="metric-item" [title]="'REPOSITORY.SECURITY' | translate">
             <i class="bi bi-shield-exclamation text-warning"></i>
             <span class="metric-value">{{ getSecurityTotal(repo.metrics) }}</span>
-            <span class="metric-label">Security</span>
+            <span class="metric-label">{{ 'REPOSITORY.SECURITY' | translate }}</span>
           </div>
-          <div class="metric-item" title="Coverage">
+          <div class="metric-item" [title]="'REPOSITORY.COVERAGE' | translate">
             <i class="bi bi-graph-up text-success"></i>
             <span class="metric-value">{{ repo.metrics?.coverage || 0 }}%</span>
-            <span class="metric-label">Coverage</span>
+            <span class="metric-label">{{ 'REPOSITORY.COVERAGE' | translate }}</span>
           </div>
 
           <!-- Quality Gate -->
           <div class="metric-item quality-gate" *ngIf="repo.qualityGate">
             <span class="gate-badge" [ngClass]="repo.qualityGate === 'Passed' ? 'gate-pass' : 'gate-fail'">
-              {{ repo.qualityGate }}
+              {{ (repo.qualityGate === 'Passed' ? 'REPOSITORY.PASSED' : 'REPOSITORY.FAILED') | translate }}
             </span>
-            <span class="metric-label">Quality Gate</span>
+            <span class="metric-label">{{ 'REPOSITORY.QUALITY_GATE' | translate }}</span>
           </div>
         </div>
 
         <!-- Last Scan Info -->
         <div class="last-updated" *ngIf="repo.status !== 'Scanning'">
-          <i class="bi bi-clock"></i> {{ repo.lastScan ? (repo.lastScan | date:'medium') : 'Never scanned' }}
+          <i class="bi bi-clock"></i> {{ repo.lastScan ? (repo.lastScan | date:'medium') : ('REPOSITORY.NEVER_SCANNED' | translate) }}
         </div>
       </div>
 
@@ -139,30 +144,30 @@
         <div class="action-buttons">
 
           <!-- Run Scan -->
-          <button class="btn-icon btn-run" *ngIf="repo.status === 'Active'" (click)="runScan(repo)" title="Run Scan">
+          <button class="btn-icon btn-run" *ngIf="repo.status === 'Active'" (click)="runScan(repo)" [title]="'REPOSITORY.TOOLTIP_RUN' | translate">
             <i class="bi bi-play-fill"></i>
           </button>
 
           <!-- Resume Scan -->
           <button class="btn-icon btn-resume" *ngIf="repo.status === 'Error'" (click)="resumeScan(repo)"
-            title="Retry Scan">
+            [title]="'REPOSITORY.TOOLTIP_RETRY' | translate">
             <i class="bi bi-arrow-clockwise"></i>
           </button>
 
           <!-- Actions visible only when NOT Scanning -->
           <ng-container *ngIf="repo.status !== 'Scanning'">
             <!-- View Details -->
-            <button class="btn-icon btn-view" (click)="viewRepo(repo)" title="View Details">
+            <button class="btn-icon btn-view" (click)="viewRepo(repo)" [title]="'REPOSITORY.TOOLTIP_VIEW' | translate">
               <i class="bi bi-eye"></i>
             </button>
 
             <!-- Edit -->
-            <button class="btn-icon btn-edit" (click)="editRepo(repo)" title="Settings">
+            <button class="btn-icon btn-edit" (click)="editRepo(repo)" [title]="'REPOSITORY.TOOLTIP_SETTINGS' | translate">
               <i class="bi bi-gear"></i>
             </button>
 
             <!-- Delete -->
-            <button class="btn-icon btn-delete" (click)="onDelete(repo)" title="Delete">
+            <button class="btn-icon btn-delete" (click)="onDelete(repo)" [title]="'REPOSITORY.TOOLTIP_DELETE' | translate">
               <i class="bi bi-trash"></i>
             </button>
           </ng-container>
@@ -177,8 +182,8 @@
     <div class="empty-icon">
       <i class="bi bi-folder-x"></i>
     </div>
-    <h3>No Repositories Found</h3>
-    <p>Try adjusting your search or add a new repository.</p>
+    <h3>{{ 'REPOSITORY.NO_REPOS_FOUND' | translate }}</h3>
+    <p>{{ 'REPOSITORY.NO_REPOS_FOUND_DESC' | translate }}</p>
   </div>
 
 </div>
@@ -189,7 +194,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="bi bi-shield-lock"></i> Run Scan
+          <i class="bi bi-shield-lock"></i> {{ 'REPOSITORY.RUN_SCAN_TITLE' | translate }}
         </h5>
         <button class="btn-close" (click)="closeScanModal()"></button>
       </div>
@@ -197,19 +202,19 @@
       <form #scanForm="ngForm" (ngSubmit)="confirmScan(scanForm)">
         <div class="modal-body">
           <div class="form-group mb-3">
-            <label>Username</label>
+            <label>{{ 'REPOSITORY.USERNAME' | translate }}</label>
             <input type="text" [(ngModel)]="scanUsername" name="username" class="form-control" required />
           </div>
           <div class="form-group mb-3">
-            <label>Git Token</label>
+            <label>{{ 'REPOSITORY.GIT_TOKEN' | translate }}</label>
             <input type="password" [(ngModel)]="scanPassword" name="password" class="form-control" required
-              placeholder="Paste your token here" />
+              [placeholder]="'REPOSITORY.TOKEN_PLACEHOLDER' | translate" />
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-text" (click)="closeScanModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary-gradient">Start Scan</button>
+          <button type="button" class="btn btn-text" (click)="closeScanModal()">{{ 'REPOSITORY.CANCEL' | translate }}</button>
+          <button type="submit" class="btn btn-primary-gradient">{{ 'REPOSITORY.START_SCAN' | translate }}</button>
         </div>
       </form>
     </div>

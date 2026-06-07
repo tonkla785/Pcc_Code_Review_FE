@@ -5,6 +5,8 @@ import { AuthService } from '../../services/authservice/auth.service';
 import { TokenStorageService } from '../../services/tokenstorageService/token-storage.service';
 import Swal from 'sweetalert2';
 import { jwtDecode } from 'jwt-decode';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 
 interface SubmenuItem {
   label: string;
@@ -24,7 +26,7 @@ interface MenuItem {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule, TranslatePipe, LanguageSwitcherComponent],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
@@ -64,7 +66,8 @@ export class NavbarComponent implements OnInit {
     private readonly router: Router,
     public readonly authService: AuthService,
     private readonly tokenStorage: TokenStorageService,
-    private readonly elementRef: ElementRef
+    private readonly elementRef: ElementRef,
+    private readonly translate: TranslateService
   ) {
 
 
@@ -148,15 +151,16 @@ export class NavbarComponent implements OnInit {
   }
 
   logout(): void {
+    const t = (key: string) => this.translate.instant(key);
     Swal.fire({
-      title: 'Logout?',
-      text: 'Are you sure you want to logout?',
+      title: t('AUTH.LOGOUT_CONFIRM_TITLE'),
+      text: t('AUTH.LOGOUT_CONFIRM_TEXT'),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Logout',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: t('AUTH.LOGOUT_BUTTON'),
+      cancelButtonText: t('AUTH.CANCEL')
     }).then((result) => {
       if (result.isConfirmed) {
         this.authService.logout().subscribe({
@@ -166,8 +170,8 @@ export class NavbarComponent implements OnInit {
           error: () => {
             Swal.fire({
               icon: 'error',
-              title: 'Logout Failed',
-              text: 'Please try again.'
+              title: t('AUTH.LOGOUT_FAILED_TITLE'),
+              text: t('AUTH.LOGOUT_FAILED_TEXT')
             });
           }
         });

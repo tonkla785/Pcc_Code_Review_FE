@@ -8,10 +8,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { jwtDecode } from 'jwt-decode';
 import { TokenStorageService } from '../../../services/tokenstorageService/token-storage.service';
 
+import { LanguageSwitcherComponent } from '../../language-switcher/language-switcher.component';
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule, LanguageSwitcherComponent, TranslatePipe],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 })

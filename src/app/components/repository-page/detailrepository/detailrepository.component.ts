@@ -8,12 +8,13 @@ import { Issue, IssueService } from '../../../services/issueservice/issue.servic
 import { AuthService } from '../../../services/authservice/auth.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
   selector: 'app-detailrepository',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslatePipe],
   templateUrl: './detailrepository.component.html',
   styleUrls: ['./detailrepository.component.css']
 })

@@ -24,14 +24,35 @@ interface CategoryShare {
   icon: string;
 }
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-technicaldebt',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgApexchartsModule, DebtTimePipe],
+  imports: [CommonModule, FormsModule, NgApexchartsModule, DebtTimePipe, TranslatePipe],
   templateUrl: './technicaldebt.component.html',
   styleUrl: './technicaldebt.component.css'
 })
 export class TechnicaldebtComponent {
+
+  getCategoryKey(name: string): string {
+    const clean = name.trim().toLowerCase();
+    if (clean === 'documentation') return 'TECHNICAL_DEBT.CAT_DOCUMENTATION';
+    if (clean === 'architecture') return 'TECHNICAL_DEBT.CAT_ARCHITECTURE';
+    if (clean === 'code quality') return 'TECHNICAL_DEBT.CAT_CODE_QUALITY';
+    if (clean === 'test coverage') return 'TECHNICAL_DEBT.CAT_TEST_COVERAGE';
+    if (clean === 'security') return 'TECHNICAL_DEBT.CAT_SECURITY';
+    return name;
+  }
+
+  getPriorityKey(priority: string): string {
+    if (!priority) return '';
+    const p = priority.toLowerCase().trim();
+    if (p === 'high') return 'ANALYTICS.PRIORITY_HIGH';
+    if (p === 'med' || p === 'medium') return 'ANALYTICS.PRIORITY_MED';
+    if (p === 'low') return 'ANALYTICS.PRIORITY_LOW';
+    return priority;
+  }
 
 
   // Meta (matches your text)
@@ -289,7 +310,7 @@ export class TechnicaldebtComponent {
         }
       },
       title: {
-        text: 'Cumulative Debt Growth (New Projects - Last 60 Days)',
+        text: '',
         align: 'left'
       },
       colors: ['#008FFB'],

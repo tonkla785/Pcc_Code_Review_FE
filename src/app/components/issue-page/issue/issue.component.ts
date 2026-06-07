@@ -31,10 +31,12 @@ interface TopIssue {
   count: number;
 }
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-issue',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
   templateUrl: './issue.component.html',
   styleUrls: ['./issue.component.css']
 })

@@ -14,12 +14,13 @@ import { WebSocketService } from '../../../services/websocket/websocket.service'
 import { ScanEvent } from '../../../interface/websocket_interface';
 import Swal from 'sweetalert2';
 import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
   selector: 'app-repositories',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './repositories.component.html',
   styleUrl: './repositories.component.css'
 })

@@ -6,10 +6,12 @@ import { EmailService } from '../../../services/emailservice/email.service';
 import { Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 @Component({
   standalone: true,
   selector: 'app-forgot-password',
-  imports: [CommonModule, ReactiveFormsModule, MatSnackBarModule],
+  imports: [CommonModule, ReactiveFormsModule, MatSnackBarModule, TranslatePipe],
   templateUrl: './forgot-password.html',
   styleUrls: ['./forgot-password.scss'],
 })
@@ -23,7 +25,8 @@ export class ForgotPasswordComponent {
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
     private readonly router: Router,
-    private readonly snack: MatSnackBar
+    private readonly snack: MatSnackBar,
+    private readonly translate: TranslateService
   ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -34,7 +37,7 @@ export class ForgotPasswordComponent {
     this.submitted = true;
 
     if (this.form.invalid) {
-      this.snack.open('Please fill in a valid email.', '', {
+      this.snack.open(this.translate.instant('FORGOT_PASSWORD.SNACK_VALID_EMAIL'), '', {
         duration: 2500,
         horizontalPosition: 'right',
         verticalPosition: 'top',
@@ -51,7 +54,7 @@ export class ForgotPasswordComponent {
         this.loading = false;
         this.form.reset();
         this.submitted = false;
-        this.snack.open('If the account exists, a reset link has been sent.', '', {
+        this.snack.open(this.translate.instant('FORGOT_PASSWORD.SNACK_LINK_SENT'), '', {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -60,7 +63,7 @@ export class ForgotPasswordComponent {
       },
       error: () => {
         this.loading = false;
-        this.snack.open('Something went wrong. Please try again.', '', {
+        this.snack.open(this.translate.instant('FORGOT_PASSWORD.SNACK_ERROR'), '', {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',

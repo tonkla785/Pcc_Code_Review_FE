@@ -2,7 +2,7 @@
 
   <!-- Title outside box -->
   <h2 class="report-title">
-    <i class="bi bi-file-earmark-text"></i> Generate Report
+    <i class="bi bi-file-earmark-text"></i> {{ 'GENERATE_REPORT.TITLE' | translate }}
   </h2>
 
   <!-- Form inside box -->
@@ -26,7 +26,7 @@
 
       <!-- Projects -->
       <div class="mb-3">
-        <label class="form-label fw-bold mb-2" for="projects">Projects to Include<span
+        <label class="form-label fw-bold mb-2" for="projects">{{ 'GENERATE_REPORT.PROJECTS_TO_INCLUDE' | translate }}<span
             class="text-danger">*</span></label>
         <div class="form-check" *ngFor="let p of projects">
           <input class="form-check-input" type="checkbox" [(ngModel)]="p.selected" name="proj_{{p.name}}"
@@ -37,7 +37,7 @@
         </div>
 
         <div class="text-danger small" *ngIf="reportForm.submitted && !hasSelectedProjects()">
-          Please select at least one project.
+          {{ 'GENERATE_REPORT.PROJECT_REQUIRED' | translate }}
         </div>
       </div>
 
@@ -65,7 +65,7 @@
 
       <!-- Date Range -->
       <div class="mb-3">
-        <label class="form-label fw-bold mb-2" for="dateRange">Date Range <span class="text-danger">*</span></label>
+        <label class="form-label fw-bold mb-2" for="dateRange">{{ 'GENERATE_REPORT.DATE_RANGE' | translate }} <span class="text-danger">*</span></label>
         <div class="d-flex gap-2">
           <input type="date" class="form-control" [(ngModel)]="dateFrom" name="dateFrom" required [max]="today"
             (change)="onDateFromChange()" />
@@ -73,25 +73,24 @@
             [max]="today" (change)="onDateToChange()" [disabled]="!dateFrom" />
         </div>
         <div class="text-danger small" *ngIf="reportForm.submitted && (!dateFrom || !dateTo)">
-          Please select both start and end dates.
+          {{ 'GENERATE_REPORT.DATE_REQUIRED' | translate }}
         </div>
         <div class="text-danger small" *ngIf="reportForm.submitted && dateFrom && dateTo && dateFrom > dateTo">
-          Start date cannot be later than end date.
+          {{ 'GENERATE_REPORT.DATE_INVALID' | translate }}
         </div>
         <div class="text-warning small" *ngIf="noScanInRange && hasSelectedProjects() && dateFrom && dateTo">
-          <i class="bi bi-exclamation-triangle"></i> No scan found in the selected date range. Please select a different
-          date.
+          <i class="bi bi-exclamation-triangle"></i> {{ 'GENERATE_REPORT.NO_SCAN_FOUND' | translate }}
         </div>
       </div>
 
       <!-- Sections -->
       <div class="mb-3">
-        <label class="form-label fw-bold mb-2" for="sections">Include Sections<span class="text-danger">*</span></label>
+        <label class="form-label fw-bold mb-2" for="sections">{{ 'GENERATE_REPORT.INCLUDE_SECTIONS' | translate }}<span class="text-danger">*</span></label>
         <div class="form-check" *ngFor="let s of sections">
           <input class="form-check-input" type="checkbox" [(ngModel)]="s.selected" name="section_{{s.name}}"
             id="{{s.name}}" [disabled]="s.disabled">
           <label class="form-check-label" for="{{s.name}}" [class.text-muted]="s.disabled">
-            {{s.name}} <span *ngIf="s.disabled" class="badge bg-secondary ms-1"></span>
+            {{ 'GENERATE_REPORT.SECTIONS.' + s.key | translate }} <span *ngIf="s.disabled" class="badge bg-secondary ms-1"></span>
           </label>
         </div>
       </div>
@@ -99,7 +98,7 @@
       <!-- Output Format -->
       <div class="mb-3">
         <label class="form-label fw-bold mb-2" for="format">
-          Output Format <span class="text-danger">*</span>
+          {{ 'GENERATE_REPORT.OUTPUT_FORMAT' | translate }} <span class="text-danger">*</span>
         </label>
 
         <div class="format-option">
@@ -121,7 +120,7 @@
           </div>
         </div>
         <div class="text-danger small mt-1" *ngIf="reportForm.submitted && !outputFormat">
-          Please select an output format.
+          {{ 'GENERATE_REPORT.FORMAT_REQUIRED' | translate }}
         </div>
       </div>
 
@@ -150,10 +149,10 @@
 
       <!-- Actions -->
       <div class="d-flex justify-content-end gap-2">
-        <button class="btn btn-secondary" type="button" (click)="cancel()">Cancel</button>
+        <button class="btn btn-secondary" type="button" (click)="cancel()">{{ 'GENERATE_REPORT.CANCEL' | translate }}</button>
         <!-- <button class="btn btn-primary" type="button" (click)="onPreview(reportForm)"><i class="bi bi-eye"></i> Preview</button> -->
         <button class="btn btn-success" type="submit" [disabled]="loading">
-          {{ loading ? 'Generating...' : 'Generate' }}
+          {{ (loading ? 'GENERATE_REPORT.GENERATING' : 'GENERATE_REPORT.GENERATE') | translate }}
         </button>
       </div>
 

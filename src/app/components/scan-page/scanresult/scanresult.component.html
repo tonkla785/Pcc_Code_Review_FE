@@ -2,25 +2,25 @@
 
   <div class="dashboard-header">
     <div class="header-title">
-      <button title="Back" class="back-btn" (click)="goBack()">
+      <button [title]="'SCAN_RESULT.BACK_TOOLTIP' | translate" class="back-btn" (click)="goBack()">
         <i class="bi bi-chevron-left"></i>
       </button>
       <div class="header-content">
-        <h1>Scan Results: {{ scanResult?.project?.name }}</h1>
-        <p>Detailed analysis report and quality metrics</p>
+        <h1>{{ 'SCAN_RESULT.TITLE' | translate:{ name: scanResult?.project?.name } }}</h1>
+        <p>{{ 'SCAN_RESULT.SUBTITLE' | translate }}</p>
       </div>
     </div>
 
     <div class="header-actions">
       <button class="btn-action btn-download" (click)="downloadReport()">
-        <i class="bi bi-download"></i> Download
+        <i class="bi bi-download"></i> {{ 'SCAN_RESULT.DOWNLOAD' | translate }}
       </button>
       <button class="btn-action btn-email" (click)="emailReport()">
-        <i class="bi bi-envelope"></i> Email
+        <i class="bi bi-envelope"></i> {{ 'SCAN_RESULT.EMAIL' | translate }}
       </button>
       <button class="btn-action btn-issues" [routerLink]="['/issue']"
         [queryParams]="{ project: scanResult?.project?.name, scanId: scanResult?.id }">
-        <i class="bi bi-list-check"></i> View Issues
+        <i class="bi bi-list-check"></i> {{ 'SCAN_RESULT.VIEW_ISSUES' | translate }}
       </button>
     </div>
   </div>
@@ -30,16 +30,16 @@
     <div class="stats-grid">
       <!-- Quality Gate Card -->
       <div class="stat-panel qa-panel">
-        <label class="section-label mb-3">Quality Gate Status</label>
+        <label class="section-label mb-3">{{ 'SCAN_RESULT.QUALITY_GATE_STATUS' | translate }}</label>
         <div class="qa-gate-content">
           <div class="qa-status">
             <i class="bi qa-icon"
               [ngClass]="scanResult.status === 'PENDING' ? 'bi-arrow-repeat scanning spin' : (scanResult.qualityGate === 'OK' ? 'bi-check-circle-fill pass' : 'bi-x-circle-fill fail')"></i>
             <div class="qa-text">
               <h3 [ngClass]="scanResult.status === 'PENDING' ? 'scanning' : (scanResult.qualityGate === 'OK' ? 'pass' : 'fail')">
-                {{ scanResult.status === 'PENDING' ? 'Scanning' : (scanResult.qualityGate === 'OK' ? 'Passed' : 'Failed') }}
+                {{ scanResult.status === 'PENDING' ? ('SCAN_RESULT.SCANNING' | translate) : (scanResult.qualityGate === 'OK' ? ('SCAN_RESULT.PASSED' | translate) : ('SCAN_RESULT.FAILED' | translate)) }}
               </h3>
-              <span>{{ scanResult.status === 'PENDING' ? 'Analysis in progress, please wait...' : (scanResult.qualityGate === 'OK' ? 'Code is safe and clean' : 'Issues found, please review') }}</span>
+              <span>{{ scanResult.status === 'PENDING' ? ('SCAN_RESULT.ANALYSIS_IN_PROGRESS' | translate) : (scanResult.qualityGate === 'OK' ? ('SCAN_RESULT.CODE_CLEAN' | translate) : ('SCAN_RESULT.ISSUES_FOUND' | translate)) }}</span>
             </div>
           </div>
         </div>
@@ -47,10 +47,10 @@
 
       <!-- Timing Card -->
       <div class="stat-panel timing-panel">
-        <label class="section-label mb-4">Scan Duration</label>
+        <label class="section-label mb-4">{{ 'SCAN_RESULT.SCAN_DURATION' | translate }}</label>
         <div class="scan-timing-list">
           <div class="timing-item">
-            <label>Started</label>
+            <label>{{ 'SCAN_RESULT.STARTED' | translate }}</label>
             <div>
               <i class="bi bi-calendar-event me-2 text-primary"></i>
               {{ scanResult.startedAt | date:'dd/MM/yyyy HH:mm' }}
@@ -60,7 +60,7 @@
           <div class="vr bg-secondary opacity-25"></div>
 
           <div class="timing-item">
-            <label>Completed</label>
+            <label>{{ 'SCAN_RESULT.COMPLETED' | translate }}</label>
             <div>
               <i class="bi bi-check2-circle me-2 text-success"></i>
               {{ scanResult.completedAt | date:'dd/MM/yyyy HH:mm' }}
@@ -73,7 +73,7 @@
 
     <!-- Metrics Grid -->
     <div class="metrics-section-title">
-      <i class="bi bi-bar-chart-line-fill text-primary"></i> Metrics Overview
+      <i class="bi bi-bar-chart-line-fill text-primary"></i> {{ 'SCAN_RESULT.METRICS_OVERVIEW' | translate }}
     </div>
 
     <div class="metrics-grid">
@@ -84,7 +84,7 @@
         </div>
         <div class="metric-info">
           <h4>{{ scanResult.metrics?.bugs ?? 0 }}</h4>
-          <span>Bugs</span>
+          <span>{{ 'SCAN_RESULT.BUGS' | translate }}</span>
         </div>
       </div>
 
@@ -95,7 +95,7 @@
         </div>
         <div class="metric-info">
           <h4>{{ (scanResult.metrics?.vulnerabilities ?? 0) + (scanResult.metrics?.securityHotspots ?? 0) }}</h4>
-          <span>Security</span>
+          <span>{{ 'SCAN_RESULT.SECURITY' | translate }}</span>
         </div>
       </div>
 
@@ -106,7 +106,7 @@
         </div>
         <div class="metric-info">
           <h4>{{ scanResult.metrics?.codeSmells ?? 0 }}</h4>
-          <span>Code Smells</span>
+          <span>{{ 'SCAN_RESULT.CODE_SMELLS' | translate }}</span>
         </div>
       </div>
 
@@ -117,87 +117,87 @@
         </div>
         <div class="metric-info">
           <h4>{{ scanResult.metrics?.coverage ?? 0 }}%</h4>
-          <span>Coverage</span>
+          <span>{{ 'SCAN_RESULT.COVERAGE' | translate }}</span>
         </div>
       </div>
     </div>
 
     <!-- Overall Gates Table -->
     <div class="metrics-section-title mt-5">
-      <i class="bi bi-shield-check text-primary"></i> Overall Gates
+      <i class="bi bi-shield-check text-primary"></i> {{ 'SCAN_RESULT.OVERALL_GATES' | translate }}
     </div>
 
     <div class="gates-panel">
       <table class="table">
-        <caption class="visually-hidden">Scan Results Overview</caption>
+        <caption class="visually-hidden">{{ 'SCAN_RESULT.TABLE_CAPTION' | translate }}</caption>
         <thead>
           <tr>
-            <th>Metric Gate</th>
-            <th>Grade</th>
-            <th>Status</th>
+            <th>{{ 'SCAN_RESULT.COL_METRIC_GATE' | translate }}</th>
+            <th>{{ 'SCAN_RESULT.COL_GRADE' | translate }}</th>
+            <th>{{ 'SCAN_RESULT.COL_STATUS' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Reliability Rating</td>
+            <td>{{ 'SCAN_RESULT.RELIABILITY_RATING' | translate }}</td>
             <td><span class="gate-grade">{{ scanResult.metrics?.reliabilityRating ?? '-' }}</span></td>
             <td>
-              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> {{ 'SCAN_RESULT.SCANNING_DOTS' | translate }}</span>
               <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.reliabilityRating === 'A'"><i
-                  class="bi bi-check-circle-fill"></i> Pass</span>
+                  class="bi bi-check-circle-fill"></i> {{ 'SCAN_RESULT.PASS' | translate }}</span>
               <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.reliabilityRating === 'B'"><i
-                  class="bi bi-exclamation-circle-fill"></i> Warning</span>
+                  class="bi bi-exclamation-circle-fill"></i> {{ 'SCAN_RESULT.WARNING' | translate }}</span>
               <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(scanResult.metrics?.reliabilityRating || '')"><i
-                  class="bi bi-x-circle-fill"></i> Fail</span>
+                  class="bi bi-x-circle-fill"></i> {{ 'SCAN_RESULT.FAIL' | translate }}</span>
             </td>
           </tr>
           <tr>
-            <td>Security Rating</td>
+            <td>{{ 'SCAN_RESULT.SECURITY_RATING' | translate }}</td>
             <td><span class="gate-grade">{{ scanResult.metrics?.securityRating ?? '-' }}</span></td>
             <td>
-              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> {{ 'SCAN_RESULT.SCANNING_DOTS' | translate }}</span>
               <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.securityRating === 'A'"><i
-                  class="bi bi-check-circle-fill"></i> Pass</span>
+                  class="bi bi-check-circle-fill"></i> {{ 'SCAN_RESULT.PASS' | translate }}</span>
               <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.securityRating === 'B'"><i
-                  class="bi bi-exclamation-circle-fill"></i> Warning</span>
+                  class="bi bi-exclamation-circle-fill"></i> {{ 'SCAN_RESULT.WARNING' | translate }}</span>
               <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(scanResult.metrics?.securityRating || '')"><i
-                  class="bi bi-x-circle-fill"></i> Fail</span>
+                  class="bi bi-x-circle-fill"></i> {{ 'SCAN_RESULT.FAIL' | translate }}</span>
             </td>
           </tr>
           <tr>
-            <td>Maintainability Rating</td>
+            <td>{{ 'SCAN_RESULT.MAINTAINABILITY_RATING' | translate }}</td>
             <td><span class="gate-grade">{{ scanResult.metrics?.maintainabilityRating ?? '-' }}</span></td>
             <td>
-              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> {{ 'SCAN_RESULT.SCANNING_DOTS' | translate }}</span>
               <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.maintainabilityRating === 'A'"><i
-                  class="bi bi-check-circle-fill"></i> Pass</span>
+                  class="bi bi-check-circle-fill"></i> {{ 'SCAN_RESULT.PASS' | translate }}</span>
               <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && scanResult.metrics?.maintainabilityRating === 'B'"><i
-                  class="bi bi-exclamation-circle-fill"></i> Warning</span>
+                  class="bi bi-exclamation-circle-fill"></i> {{ 'SCAN_RESULT.WARNING' | translate }}</span>
               <span class="text-danger"
                 *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(scanResult.metrics?.maintainabilityRating || '')"><i
-                  class="bi bi-x-circle-fill"></i> Fail</span>
+                  class="bi bi-x-circle-fill"></i> {{ 'SCAN_RESULT.FAIL' | translate }}</span>
             </td>
           </tr>
           <tr>
-            <td>Security Hotspot Rating</td>
+            <td>{{ 'SCAN_RESULT.SECURITY_HOTSPOT_RATING' | translate }}</td>
             <td><span class="gate-grade">{{ getHotspotReviewRating() }}</span></td>
             <td>
-              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
-              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'A'"><i class="bi bi-check-circle-fill"></i> Pass</span>
-              <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'E'"><i class="bi bi-x-circle-fill"></i> Fail</span>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> {{ 'SCAN_RESULT.SCANNING_DOTS' | translate }}</span>
+              <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'A'"><i class="bi bi-check-circle-fill"></i> {{ 'SCAN_RESULT.PASS' | translate }}</span>
+              <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && getHotspotReviewRating() === 'E'"><i class="bi bi-x-circle-fill"></i> {{ 'SCAN_RESULT.FAIL' | translate }}</span>
             </td>
           </tr>
           <tr>
-            <td>Security Review Rating</td>
+            <td>{{ 'SCAN_RESULT.SECURITY_REVIEW_RATING' | translate }}</td>
             <td><span class="gate-grade">{{ getAverageRating() }}</span></td>
             <td>
-              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
+              <span class="text-info" *ngIf="scanResult.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> {{ 'SCAN_RESULT.SCANNING_DOTS' | translate }}</span>
               <span class="text-success" *ngIf="scanResult.status !== 'PENDING' && getAverageRating() === 'A'"><i class="bi bi-check-circle-fill"></i>
-                Pass</span>
+                {{ 'SCAN_RESULT.PASS' | translate }}</span>
               <span class="text-warning" *ngIf="scanResult.status !== 'PENDING' && getAverageRating() === 'B'"><i
-                  class="bi bi-exclamation-circle-fill"></i> Warning</span>
+                  class="bi bi-exclamation-circle-fill"></i> {{ 'SCAN_RESULT.WARNING' | translate }}</span>
               <span class="text-danger" *ngIf="scanResult.status !== 'PENDING' && ['C','D','E'].includes(getAverageRating())"><i
-                  class="bi bi-x-circle-fill"></i> Fail</span>
+                  class="bi bi-x-circle-fill"></i> {{ 'SCAN_RESULT.FAIL' | translate }}</span>
             </td>
           </tr>
         </tbody>
@@ -209,8 +209,8 @@
   <ng-template #loadingOrError>
     <div class="empty-state" *ngIf="!scanResult">
       <div class="empty-icon"><i class="bi bi-hourglass-split"></i></div>
-      <h3>Loading Results...</h3>
-      <p>Please wait while we fetch the scan details.</p>
+      <h3>{{ 'SCAN_RESULT.LOADING_RESULTS' | translate }}</h3>
+      <p>{{ 'SCAN_RESULT.LOADING_DESC' | translate }}</p>
     </div>
   </ng-template>
 

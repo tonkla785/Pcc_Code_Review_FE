@@ -13,12 +13,13 @@ import { SseService } from '../../../services/scanservice/sse.service';
 import { SharedDataService } from '../../../services/shared-data/shared-data.service';
 import { UserSettingService } from '../../../services/usersettingservice/user-setting.service';
 import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
+import { TranslatePipe } from '@ngx-translate/core';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-addrepository',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule, TranslatePipe],
   templateUrl: './addrepository.component.html',
   styleUrls: ['./addrepository.component.css'],
 })

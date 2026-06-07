@@ -3,24 +3,24 @@
   <!-- Header -->
   <div class="dashboard-header">
     <div class="header-title">
-      <button title="Back" class="back-btn" (click)="goBack()">
+      <button [title]="'LOG_VIEWER.BACK_TOOLTIP' | translate" class="back-btn" (click)="goBack()">
         <i class="bi bi-chevron-left"></i>
       </button>
       <div class="header-content">
-        <h1>Scan Report: {{ log.applicationName }}</h1>
-        <p>Executed on {{ scanResult?.startedAt | date:'dd/MM/yyyy, hh:mm a' }}</p>
+        <h1>{{ 'LOG_VIEWER.REPORT_TITLE' | translate:{ name: log.applicationName } }}</h1>
+        <p>{{ 'LOG_VIEWER.EXECUTED_ON' | translate:{ date: (scanResult?.startedAt | date:'dd/MM/yyyy, hh:mm a') } }}</p>
       </div>
     </div>
 
     <div class="header-actions">
       <button class="btn-action btn-download" (click)="downloadLog()">
-        <i class="bi bi-download"></i> Download
+        <i class="bi bi-download"></i> {{ 'LOG_VIEWER.DOWNLOAD' | translate }}
       </button>
       <button class="btn-action btn-email" (click)="sendEmail()">
-        <i class="bi bi-envelope"></i> Email
+        <i class="bi bi-envelope"></i> {{ 'LOG_VIEWER.EMAIL' | translate }}
       </button>
       <button class="btn-action btn-print" (click)="printLog()">
-        <i class="bi bi-printer"></i> Print
+        <i class="bi bi-printer"></i> {{ 'LOG_VIEWER.PRINT' | translate }}
       </button>
     </div>
   </div>
@@ -33,8 +33,8 @@
         <i class="bi" [ngClass]="scanResult?.status === 'PENDING' ? 'bi-arrow-repeat spin' : (scanResult?.status === 'SUCCESS' ? 'bi-check-circle-fill' : 'bi-x-circle-fill')"></i>
       </div>
       <div class="stat-info">
-        <h3>{{ scanResult?.status === 'PENDING' ? 'Scanning' : (scanResult?.status | titlecase) }}</h3>
-        <span>Status</span>
+        <h3>{{ scanResult?.status === 'PENDING' ? ('LOG_VIEWER.SCANNING' | translate) : (scanResult?.status | titlecase) }}</h3>
+        <span>{{ 'LOG_VIEWER.STATUS' | translate }}</span>
       </div>
     </div>
 
@@ -44,7 +44,7 @@
       </div>
       <div class="stat-info">
         <h3>{{ getDurationSeconds(scanResult?.startedAt, scanResult?.completedAt) }}</h3>
-        <span>Duration</span>
+        <span>{{ 'LOG_VIEWER.DURATION' | translate }}</span>
       </div>
     </div>
 
@@ -54,7 +54,7 @@
       </div>
       <div class="stat-info">
         <h3>{{ log.content.scannerType }}</h3>
-        <span>Scanner Type</span>
+        <span>{{ 'LOG_VIEWER.SCANNER_TYPE' | translate }}</span>
       </div>
     </div>
   </div>
@@ -62,7 +62,7 @@
 
   <!-- Metrics Overview (Grid of Cards) -->
   <div class="metrics-section-title">
-    <i class="bi bi-bar-chart-line-fill text-primary"></i> Metrics Overview
+    <i class="bi bi-bar-chart-line-fill text-primary"></i> {{ 'LOG_VIEWER.METRICS_OVERVIEW' | translate }}
   </div>
 
   <div class="metrics-grid" *ngIf="scanResult?.metrics; else noSonar">
@@ -73,7 +73,7 @@
       </div>
       <div class="metric-info">
         <h4>{{ scanResult?.metrics?.bugs ?? 0 }}</h4>
-        <span>Bugs</span>
+        <span>{{ 'LOG_VIEWER.BUGS' | translate }}</span>
       </div>
     </div>
 
@@ -84,7 +84,7 @@
       </div>
       <div class="metric-info">
         <h4>{{ (scanResult?.metrics?.vulnerabilities ?? 0) + (scanResult?.metrics?.securityHotspots ?? 0) }}</h4>
-        <span>Security</span>
+        <span>{{ 'LOG_VIEWER.SECURITY' | translate }}</span>
       </div>
     </div>
 
@@ -95,7 +95,7 @@
       </div>
       <div class="metric-info">
         <h4>{{ scanResult?.metrics?.codeSmells ?? 0 }}</h4>
-        <span>Code Smells</span>
+        <span>{{ 'LOG_VIEWER.CODE_SMELLS' | translate }}</span>
       </div>
     </div>
 
@@ -106,7 +106,7 @@
       </div>
       <div class="metric-info">
         <h4>{{ scanResult?.metrics?.coverage ?? 0 }}%</h4>
-        <span>Coverage</span>
+        <span>{{ 'LOG_VIEWER.COVERAGE' | translate }}</span>
       </div>
     </div>
   </div>
@@ -115,74 +115,74 @@
     <div class="content-card p-4 text-center" [ngClass]="scanResult?.status === 'PENDING' ? 'scanning-placeholder' : 'text-muted'">
       <ng-container *ngIf="scanResult?.status === 'PENDING'; else noSonarDone">
         <i class="bi bi-arrow-repeat spin fs-2 text-info mb-2 d-block"></i>
-        <div class="fw-semibold text-info">Scanning in progress...</div>
-        <div class="text-muted small mt-1">Metrics will appear here once the analysis is complete.</div>
+        <div class="fw-semibold text-info">{{ 'LOG_VIEWER.SCANNING_IN_PROGRESS' | translate }}</div>
+        <div class="text-muted small mt-1">{{ 'LOG_VIEWER.METRICS_WILL_APPEAR' | translate }}</div>
       </ng-container>
-      <ng-template #noSonarDone>No SonarQube result available</ng-template>
+      <ng-template #noSonarDone>{{ 'LOG_VIEWER.NO_SONAR_RESULT' | translate }}</ng-template>
     </div>
   </ng-template>
 
 
   <!-- Overall Gates Table (Ratings) -->
   <div class="metrics-section-title mt-4" *ngIf="scanResult?.metrics">
-    <i class="bi bi-shield-check text-primary"></i> Overall Gates
+    <i class="bi bi-shield-check text-primary"></i> {{ 'LOG_VIEWER.OVERALL_GATES' | translate }}
   </div>
 
   <div class="gate-panel" *ngIf="scanResult?.metrics">
     <table class="table">
-      <caption class="visually-hidden">Summary Log Details</caption>
+      <caption class="visually-hidden">{{ 'LOG_VIEWER.TABLE_CAPTION' | translate }}</caption>
       <thead>
         <tr>
-          <th>Metric Gate</th>
-          <th>Grade</th>
-          <th>Status</th>
+          <th>{{ 'LOG_VIEWER.COL_METRIC_GATE' | translate }}</th>
+          <th>{{ 'LOG_VIEWER.COL_GRADE' | translate }}</th>
+          <th>{{ 'LOG_VIEWER.COL_STATUS' | translate }}</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Reliability Rating</td>
+          <td>{{ 'LOG_VIEWER.RELIABILITY_RATING' | translate }}</td>
           <td><span class="gate-grade">{{ scanResult?.metrics?.reliabilityRating ?? '-' }}</span></td>
           <td>
             <span class="text-success" *ngIf="scanResult?.metrics?.reliabilityRating === 'A'"><i
-                class="bi bi-check-circle-fill"></i> Pass</span>
+                class="bi bi-check-circle-fill"></i> {{ 'LOG_VIEWER.PASS' | translate }}</span>
             <span class="text-warning" *ngIf="scanResult?.metrics?.reliabilityRating === 'B'"><i
-                class="bi bi-exclamation-circle-fill"></i> Warning</span>
+                class="bi bi-exclamation-circle-fill"></i> {{ 'LOG_VIEWER.WARNING' | translate }}</span>
             <span class="text-danger" *ngIf="['C','D','E'].includes(scanResult?.metrics?.reliabilityRating || '')"><i
-                class="bi bi-x-circle-fill"></i> Fail</span>
+                class="bi bi-x-circle-fill"></i> {{ 'LOG_VIEWER.FAIL' | translate }}</span>
           </td>
         </tr>
         <tr>
-          <td>Security Rating</td>
+          <td>{{ 'LOG_VIEWER.SECURITY_RATING' | translate }}</td>
           <td><span class="gate-grade">{{ scanResult?.metrics?.securityRating ?? '-' }}</span></td>
           <td>
             <span class="text-success" *ngIf="scanResult?.metrics?.securityRating === 'A'"><i
-                class="bi bi-check-circle-fill"></i> Pass</span>
+                class="bi bi-check-circle-fill"></i> {{ 'LOG_VIEWER.PASS' | translate }}</span>
             <span class="text-warning" *ngIf="scanResult?.metrics?.securityRating === 'B'"><i
-                class="bi bi-exclamation-circle-fill"></i> Warning</span>
+                class="bi bi-exclamation-circle-fill"></i> {{ 'LOG_VIEWER.WARNING' | translate }}</span>
             <span class="text-danger" *ngIf="['C','D','E'].includes(scanResult?.metrics?.securityRating || '')"><i
-                class="bi bi-x-circle-fill"></i> Fail</span>
+                class="bi bi-x-circle-fill"></i> {{ 'LOG_VIEWER.FAIL' | translate }}</span>
           </td>
         </tr>
         <tr>
-          <td>Maintainability Rating</td>
+          <td>{{ 'LOG_VIEWER.MAINTAINABILITY_RATING' | translate }}</td>
           <td><span class="gate-grade">{{ scanResult?.metrics?.maintainabilityRating ?? '-' }}</span></td>
           <td>
             <span class="text-success" *ngIf="scanResult?.metrics?.maintainabilityRating === 'A'"><i
-                class="bi bi-check-circle-fill"></i> Pass</span>
+                class="bi bi-check-circle-fill"></i> {{ 'LOG_VIEWER.PASS' | translate }}</span>
             <span class="text-warning" *ngIf="scanResult?.metrics?.maintainabilityRating === 'B'"><i
-                class="bi bi-exclamation-circle-fill"></i> Warning</span>
+                class="bi bi-exclamation-circle-fill"></i> {{ 'LOG_VIEWER.WARNING' | translate }}</span>
             <span class="text-danger"
               *ngIf="['C','D','E'].includes(scanResult?.metrics?.maintainabilityRating || '')"><i
-                class="bi bi-x-circle-fill"></i> Fail</span>
+                class="bi bi-x-circle-fill"></i> {{ 'LOG_VIEWER.FAIL' | translate }}</span>
           </td>
         </tr>
         <tr>
-          <td>Security Hotspot Rating</td>
+          <td>{{ 'LOG_VIEWER.SECURITY_HOTSPOT_RATING' | translate }}</td>
           <td><span class="gate-grade">{{ getHotspotReviewRating() }}</span></td>
           <td>
-            <span class="text-info" *ngIf="scanResult?.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> Scanning...</span>
-            <span class="text-success" *ngIf="scanResult?.status !== 'PENDING' && getHotspotReviewRating() === 'A'"><i class="bi bi-check-circle-fill"></i> Pass</span>
-            <span class="text-danger" *ngIf="scanResult?.status !== 'PENDING' && getHotspotReviewRating() === 'E'"><i class="bi bi-x-circle-fill"></i> Fail</span>
+            <span class="text-info" *ngIf="scanResult?.status === 'PENDING'"><i class="bi bi-arrow-repeat spin"></i> {{ 'LOG_VIEWER.SCANNING' | translate }}</span>
+            <span class="text-success" *ngIf="scanResult?.status !== 'PENDING' && getHotspotReviewRating() === 'A'"><i class="bi bi-check-circle-fill"></i> {{ 'LOG_VIEWER.PASS' | translate }}</span>
+            <span class="text-danger" *ngIf="scanResult?.status !== 'PENDING' && getHotspotReviewRating() === 'E'"><i class="bi bi-x-circle-fill"></i> {{ 'LOG_VIEWER.FAIL' | translate }}</span>
           </td>
         </tr>
       </tbody>
@@ -192,17 +192,17 @@
   <!-- Warnings Table -->
   <div class="table-panel" *ngIf="majorIssues?.length">
     <div class="table-header warning">
-      <i class="bi bi-exclamation-triangle-fill"></i> Warnings ({{ majorIssues.length }})
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ 'LOG_VIEWER.WARNINGS_WITH_COUNT' | translate:{ count: majorIssues.length } }}
     </div>
     <div class="table-responsive">
       <table class="table">
-        <caption class="visually-hidden">Detailed Analysis Log</caption>
+        <caption class="visually-hidden">{{ 'LOG_VIEWER.DETAILED_ANALYSIS_LOGS' | translate }}</caption>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Message</th>
-            <th>Component</th>
-            <th>Line</th>
+            <th>{{ 'LOG_VIEWER.COL_HASH' | translate }}</th>
+            <th>{{ 'LOG_VIEWER.COL_MESSAGE' | translate }}</th>
+            <th>{{ 'LOG_VIEWER.COL_COMPONENT' | translate }}</th>
+            <th>{{ 'LOG_VIEWER.COL_LINE' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -218,27 +218,27 @@
     <!-- Pagination (Simplified for brevity, can be expanded) -->
     <div class="p-3 d-flex justify-content-center gap-2">
       <button class="btn btn-sm btn-outline-secondary" (click)="prevPageMajor()"
-        [disabled]="currentPageMajor === 1">Prev</button>
+        [disabled]="currentPageMajor === 1">{{ 'LOG_VIEWER.PREV' | translate }}</button>
       <span class="align-self-center text-muted">{{ currentPageMajor }} / {{ totalPagesMajor }}</span>
       <button class="btn btn-sm btn-outline-secondary" (click)="nextPageMajor()"
-        [disabled]="currentPageMajor === totalPagesMajor">Next</button>
+        [disabled]="currentPageMajor === totalPagesMajor">{{ 'LOG_VIEWER.NEXT' | translate }}</button>
     </div>
   </div>
 
   <!-- Errors Table -->
   <div class="table-panel" *ngIf="criticalIssues?.length">
     <div class="table-header danger">
-      <i class="bi bi-x-octagon-fill"></i> Errors ({{ criticalIssues.length }})
+      <i class="bi bi-x-octagon-fill"></i> {{ 'LOG_VIEWER.ERRORS_WITH_COUNT' | translate:{ count: criticalIssues.length } }}
     </div>
     <div class="table-responsive">
       <table class="table">
-        <caption class="visually-hidden">Additional Source Code Log</caption>
+        <caption class="visually-hidden">{{ 'LOG_VIEWER.DETAILED_ANALYSIS_LOGS' | translate }}</caption>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Message</th>
-            <th>Component</th>
-            <th>Line</th>
+            <th>{{ 'LOG_VIEWER.COL_HASH' | translate }}</th>
+            <th>{{ 'LOG_VIEWER.COL_MESSAGE' | translate }}</th>
+            <th>{{ 'LOG_VIEWER.COL_COMPONENT' | translate }}</th>
+            <th>{{ 'LOG_VIEWER.COL_LINE' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -254,17 +254,17 @@
     <!-- Pagination -->
     <div class="p-3 d-flex justify-content-center gap-2">
       <button class="btn btn-sm btn-outline-secondary" (click)="prevPageCritical()"
-        [disabled]="currentPageCritical === 1">Prev</button>
+        [disabled]="currentPageCritical === 1">{{ 'LOG_VIEWER.PREV' | translate }}</button>
       <span class="align-self-center text-muted">{{ currentPageCritical }} / {{ totalPagesCritical }}</span>
       <button class="btn btn-sm btn-outline-secondary" (click)="nextPageCritical()"
-        [disabled]="currentPageCritical === totalPagesCritical">Next</button>
+        [disabled]="currentPageCritical === totalPagesCritical">{{ 'LOG_VIEWER.NEXT' | translate }}</button>
     </div>
   </div>
 
   <!-- Details Logs -->
   <div class="content-card">
     <div class="card-header">
-      <h3><i class="bi bi-terminal text-primary"></i> Detailed Analysis Logs</h3>
+      <h3><i class="bi bi-terminal text-primary"></i> {{ 'LOG_VIEWER.DETAILED_ANALYSIS_LOGS' | translate }}</h3>
     </div>
     <div class="card-body">
       <ul class="list-group" *ngIf="scanResult?.metrics?.analysisLogs?.length; else noDetails">
@@ -279,10 +279,10 @@
         <div class="p-4 text-center" [ngClass]="scanResult?.status === 'PENDING' ? 'scanning-placeholder' : 'text-muted'">
           <ng-container *ngIf="scanResult?.status === 'PENDING'; else noLogsDone">
             <i class="bi bi-arrow-repeat spin fs-2 text-info mb-2 d-block"></i>
-            <div class="fw-semibold text-info">Waiting for scan logs...</div>
-            <div class="text-muted small mt-1">Log entries will stream here as the scanner runs.</div>
+            <div class="fw-semibold text-info">{{ 'LOG_VIEWER.WAITING_FOR_LOGS' | translate }}</div>
+            <div class="text-muted small mt-1">{{ 'LOG_VIEWER.LOG_ENTRIES_STREAM' | translate }}</div>
           </ng-container>
-          <ng-template #noLogsDone>No detailed analysis logs available.</ng-template>
+          <ng-template #noLogsDone>{{ 'LOG_VIEWER.NO_DETAILED_LOGS' | translate }}</ng-template>
         </div>
       </ng-template>
     </div>

@@ -17,15 +17,27 @@ interface StatusUpdate {
 }
 
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-assignment',
   standalone: true,
-  imports: [CommonModule, FormsModule, IssuemodalComponent],
+  imports: [CommonModule, FormsModule, IssuemodalComponent, TranslatePipe],
   templateUrl: './assignment.component.html',
   styleUrl: './assignment.component.css'
 })
 export class AssignmentComponent implements OnInit {
   @ViewChild(IssuemodalComponent) assignModal!: IssuemodalComponent;
+
+  getStatusKey(status: string): string {
+    if (!status) return '';
+    const clean = status.replace(/_/g, ' ').toUpperCase().trim();
+    if (clean === 'IN PROGRESS' || clean === 'INPROGRESS') return 'IN_PROGRESS';
+    if (clean === 'OPEN') return 'OPEN';
+    if (clean === 'RESOLVED' || clean === 'DONE') return 'RESOLVED';
+    if (clean === 'CLOSED') return 'CLOSED';
+    return clean;
+  }
 
   goToDetail(issueId: string) {
     if (!this.auth.isLoggedIn || !issueId) return;

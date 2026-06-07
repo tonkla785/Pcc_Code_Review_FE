@@ -3,9 +3,13 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/authservice/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-landingpage',
   standalone: true,
+  imports: [LanguageSwitcherComponent, TranslatePipe],
   templateUrl: './landingpage.component.html',
   styleUrls: ['./landingpage.component.css']
 })

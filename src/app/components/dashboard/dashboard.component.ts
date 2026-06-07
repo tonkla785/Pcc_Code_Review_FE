@@ -68,6 +68,7 @@ import {
   generateLast30DaysLabels
 } from '../../utils/chart.utils';
 import { UserStatusPipe } from '../../pipes/user-status.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -81,7 +82,7 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule, UserStatusPipe],
+  imports: [CommonModule, NgApexchartsModule, RouterModule, FormsModule, MatSnackBarModule, UserStatusPipe, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
