@@ -22,11 +22,10 @@ import { ReportHistoryRequest } from '../../../interface/report_history_interfac
 import { NotificationService } from '../../../services/notiservice/notification.service';
 
 import { ScanResponseDTO } from '../../../interface/scan_interface';
-import { SecurityIssueDTO } from '../../../interface/security_interface';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
 
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { IssuesDetailResponseDTO } from '../../../interface/issues_interface';
 
@@ -251,14 +250,7 @@ export class GeneratereportComponent implements OnInit {
     }
 
     this.loading = true;
-
-    this.securityService.loadAndCalculate().subscribe({
-      next: () => this.executeReportGeneration(),
-      error: (err) => {
-        this.loading = false;
-        alert('Failed to generate report: Security data unavailable');
-      }
-    });
+    this.executeReportGeneration();
   }
 
   private executeReportGeneration(): void {
@@ -291,10 +283,10 @@ export class GeneratereportComponent implements OnInit {
     this.issueService.getAllIssues().subscribe({
       next: (allIssues) => {
         const filteredIssues = this.filterIssuesByProject(allIssues, project.id);
-        this.processReportData(project.id, project.name, filteredScans, filteredIssues, projectScans);
+        this.processReportData(project.id, project.name, filteredScans, filteredIssues);
       },
       error: () => {
-        this.processReportData(project.id, project.name, filteredScans, [], projectScans);
+        this.processReportData(project.id, project.name, filteredScans, []);
       }
     });
   }
@@ -315,52 +307,42 @@ export class GeneratereportComponent implements OnInit {
     projectId: string,
     projectName: string,
     scans: ScanResponseDTO[],
-    issues: IssuesResponseDTO[],
-    allProjectScans: ScanResponseDTO[] = []
+    issues: IssuesResponseDTO[]
   ): void {
-    const securityData = this.buildSecurityData(allProjectScans);
-    const selectedSections = this.buildSelectedSections();
+    this.buildSecurityData(projectId).subscribe(securityData => {
+      const selectedSections = this.buildSelectedSections();
 
-    if (selectedSections.recommendations) {
-      this.fetchRecommendationsData(issues).subscribe({
-        next: (recommendationsData) => {
-          this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, recommendationsData);
-        },
-        error: (err) => {
-          this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, []);
-        }
-      });
-    } else {
-      this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections);
-    }
+      if (selectedSections.recommendations) {
+        this.fetchRecommendationsData(issues).subscribe({
+          next: (recommendationsData) => {
+            this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, recommendationsData);
+          },
+          error: (err) => {
+            this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections, []);
+          }
+        });
+      } else {
+        this.finalizeReport(projectId, projectName, scans, issues, securityData, selectedSections);
+      }
+    });
   }
 
-  private buildSecurityData(scans: ScanResponseDTO[]): any {
+  // ดึง security metric ของ project นี้จาก BE (BE คำนวณ + กรอง open issue ราย project ให้แล้ว)
+  private buildSecurityData(projectId: string): Observable<any> {
     const isSecuritySelected = this.sections.find(s => s.key === 'SecurityAnalysis')?.selected;
 
     if (!isSecuritySelected) {
-      return undefined;
+      return of(undefined);
     }
 
-    const securityIssues = this.sharedDataService.securityIssuesValue as SecurityIssueDTO[];
-    if (!securityIssues) {
-      return undefined;
-    }
-
-    const validScanIds = new Set(scans.map(s => s.id));
-    const filteredSecurityIssues = securityIssues.filter(issue => {
-      const isCorrectProject = validScanIds.has(issue.scanId);
-      const status = (issue.status || '').toUpperCase();
-      const isOpen = status !== 'RESOLVED' && status !== 'CLOSED';
-      return isCorrectProject && isOpen;
-    });
-    const metrics = this.securityService.calculate(filteredSecurityIssues);
-
-    return {
-      metrics,
-      owaspCoverage: this.securityService.calculateOwaspCoverage(filteredSecurityIssues),
-      hotIssues: metrics.hotIssues
-    };
+    return this.securityService.getMetrics(projectId).pipe(
+      map(m => ({
+        metrics: m,
+        owaspCoverage: m.owaspCoverage,
+        hotIssues: m.hotIssues
+      })),
+      catchError(() => of(undefined))
+    );
   }
 
   private buildSelectedSections(): SelectedSections {

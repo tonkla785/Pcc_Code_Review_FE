@@ -8,7 +8,6 @@ import { SecurityService } from '../../../services/securityservice/security.serv
 import { ScanService } from '../../../services/scanservice/scan.service';
 import { ScanResponseDTO } from '../../../interface/scan_interface';
 import {
-  SecurityIssueDTO,
   VulnerabilitySeverity,
   OwaspCategory,
   HotSecurityIssue
@@ -25,7 +24,6 @@ import { Subscription } from 'rxjs';
 })
 export class SecuritydashboardComponent implements OnInit, OnDestroy {
 
-  securityIssues: SecurityIssueDTO[] = [];
   vulnerabilities: VulnerabilitySeverity[] = [];
   owaspCoverage: OwaspCategory[] = [];
   hotIssues: HotSecurityIssue[] = [];
@@ -59,14 +57,7 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
 
     this.initializeDefaults();
 
-    this.subscriptions.add(
-      this.sharedData.securityIssues$.subscribe(issues => {
-        if (issues) {
-          this.securityIssues = issues;
-          this.applyMetrics();
-        }
-      })
-    );
+    this.loadSecurityMetrics();
 
     this.subscriptions.add(
       this.sharedData.scansHistory$.subscribe(scans => {
@@ -76,9 +67,6 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
       })
     );
 
-    if (!this.sharedData.hasSecurityIssuesCache) {
-      this.loadSecurityData();
-    }
     if (!this.sharedData.hasScansHistoryCache) {
       this.loadTrendData();
     }
@@ -91,31 +79,26 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
       { severity: 'Medium', count: 0, color: 'bg-medium' },
       { severity: 'Low', count: 0, color: 'bg-low' }
     ];
-    this.owaspCoverage = [
-      { name: 'A01 Broken Access', count: 0, status: 'pass' },
-      { name: 'A02 Crypto Failures', count: 0, status: 'pass' },
-      { name: 'A03 Injection', count: 0, status: 'pass' },
-      { name: 'A04 Insecure Design', count: 0, status: 'pass' },
-      { name: 'A05 Security Config', count: 0, status: 'pass' },
-      { name: 'A06 Vulnerable Comp', count: 0, status: 'pass' },
-      { name: 'A07 Auth Failures', count: 0, status: 'pass' },
-      { name: 'A08 Data Integrity', count: 0, status: 'pass' },
-      { name: 'A09 Logging Fails', count: 0, status: 'pass' },
-      { name: 'A10 SSRF', count: 0, status: 'pass' }
-    ];
+    this.owaspCoverage = [];
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
-  loadSecurityData(): void {
-    this.securityService.getSecurityIssues().subscribe({
-      next: (issues) => {
-        this.sharedData.setSecurityIssues(issues);
-      },
-      error: (err) => { }
-    });
+  loadSecurityMetrics(): void {
+    this.subscriptions.add(
+      this.securityService.getMetrics().subscribe({
+        next: (m) => {
+          this.securityScore = m.score;
+          this.riskLevel = m.riskLevel;
+          this.hotIssues = m.hotIssues;
+          this.vulnerabilities = m.vulnerabilities;
+          this.owaspCoverage = m.owaspCoverage;
+        },
+        error: () => { }
+      })
+    );
   }
 
   loadTrendData(): void {
@@ -125,17 +108,6 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => { }
     });
-  }
-
-  private applyMetrics(): void {
-    const metrics = this.securityService.calculateAndStore(this.securityIssues);
-
-    this.securityScore = metrics.score;
-    this.riskLevel = metrics.riskLevel;
-    this.hotIssues = metrics.hotIssues;
-    this.vulnerabilities = metrics.vulnerabilities;
-
-    this.owaspCoverage = this.securityService.calculateOwaspCoverage(this.securityIssues);
   }
 
   private calculateTrend7Days(scans: ScanResponseDTO[]): void {

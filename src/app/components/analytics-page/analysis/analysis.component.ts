@@ -120,15 +120,14 @@ export class AnalysisComponent implements OnInit, OnDestroy {
       })
     );
 
-    if (!this.sharedData.hasSecurityIssuesCache) {
-      this.securityService.getSecurityIssues().subscribe({
-        next: (issues) => {
-          this.sharedData.setSecurityIssues(issues);
-          this.securityService.calculateAndStore(issues);
-        },
-        error: (err) => { }
-      });
-    }
+    this.securityService.getMetrics().subscribe({
+      next: (m) => this.sharedData.updateSecurityState({
+        score: m.score,
+        riskLevel: m.riskLevel,
+        hotIssues: m.hotIssues
+      }),
+      error: () => { }
+    });
 
     if (!this.sharedData.hasScansHistoryCache) {
       this.scanService.getScansHistory().subscribe({

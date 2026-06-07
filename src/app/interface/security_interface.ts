@@ -42,4 +42,19 @@ export interface SecurityMetrics {
     riskLevel: string;
     hotIssues: HotSecurityIssue[];
     vulnerabilities: VulnerabilitySeverity[];
+    owaspCoverage: OwaspCategory[];
+}
+
+export interface SecurityCountItemDTO {
+    name: string;
+    count: number;
+    status: string | null;
+}
+
+export interface SecurityMetricsResponse {
+    score: number;
+    riskLevel: string;
+    vulnerabilities: SecurityCountItemDTO[];
+    hotIssues: SecurityCountItemDTO[];
+    owaspCoverage: SecurityCountItemDTO[];
 }
