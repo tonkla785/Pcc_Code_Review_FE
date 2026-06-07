@@ -12,11 +12,12 @@ import Swal from 'sweetalert2';
 import { Repository } from '../../../interface/repository_interface';
 import { RepositoryService } from '../../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-scanhistory',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './scanhistory.component.html',
   styleUrls: ['./scanhistory.component.css']
 })

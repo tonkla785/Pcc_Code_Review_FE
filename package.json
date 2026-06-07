@@ -19,6 +19,8 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
     "@stomp/stompjs": "^7.2.1",
     "@types/sockjs-client": "^1.5.4",
     "apexcharts": "^3.54.1",

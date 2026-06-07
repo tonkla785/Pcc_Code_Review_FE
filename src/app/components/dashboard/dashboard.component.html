@@ -10,35 +10,35 @@
         <div class="dashboard-title">
           <i class="bi bi-grid-1x2-fill"></i>
           <div>
-            <h1>Dashboard</h1>
-            <p>Project Quality Overview</p>
+            <h1>{{ 'DASHBOARD.TITLE' | translate }}</h1>
+            <p>{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
           </div>
         </div>
 
         <div class="dashboard-actions">
-          <button class="export-btn" (click)="onExport()" title="Export Report">
+          <button class="export-btn" (click)="onExport()" [title]="'DASHBOARD.EXPORT_TOOLTIP' | translate">
             <i class="bi bi-download"></i>
           </button>
 
           <div class="notification-wrapper" (click)="toggleNotifications(); $event.stopPropagation()"
-            title="Notifications">
+            [title]="'DASHBOARD.NOTIFICATIONS' | translate">
             <i class="bi bi-bell"></i>
             <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
 
             <!-- Notification Dropdown -->
             <div class="notifications-panel" *ngIf="showNotifications" (click)="$event.stopPropagation()">
               <div class="notifications-header">
-                <span>Notifications</span>
+                <span>{{ 'DASHBOARD.NOTIFICATIONS' | translate }}</span>
                 <button class="close-btn" (click)="closeNotifications(); $event.stopPropagation()">✕</button>
               </div>
 
               <div class="notification-tabs">
-                <button [class.active]="activeTab === 'All'" (click)="selectTab('All')">All</button>
-                <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')">Unread</button>
-                <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')">Scans</button>
-                <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')">Issues</button>
-                <button [class.active]="activeTab === 'System'" (click)="selectTab('System')">System</button>
-                <button class="mark-all" (click)="markAllRead()">Mark Read</button>
+                <button [class.active]="activeTab === 'All'" (click)="selectTab('All')">{{ 'DASHBOARD.NOTI_TAB_ALL' | translate }}</button>
+                <button [class.active]="activeTab === 'Unread'" (click)="selectTab('Unread')">{{ 'DASHBOARD.NOTI_TAB_UNREAD' | translate }}</button>
+                <button [class.active]="activeTab === 'Scans'" (click)="selectTab('Scans')">{{ 'DASHBOARD.NOTI_TAB_SCANS' | translate }}</button>
+                <button [class.active]="activeTab === 'Issues'" (click)="selectTab('Issues')">{{ 'DASHBOARD.NOTI_TAB_ISSUES' | translate }}</button>
+                <button [class.active]="activeTab === 'System'" (click)="selectTab('System')">{{ 'DASHBOARD.NOTI_TAB_SYSTEM' | translate }}</button>
+                <button class="mark-all" (click)="markAllRead()">{{ 'DASHBOARD.NOTI_MARK_READ' | translate }}</button>
               </div>
 
               <div class="notification-list" (scroll)="onNotificationScroll($event)">
@@ -53,21 +53,21 @@
                   <!-- Action button for Issues -->
                   <a *ngIf="n.type === 'Issues'" class="view-issue-link"
                     (click)="handleViewIssue(n); $event.stopPropagation()">
-                    View Issue →
+                    {{ 'DASHBOARD.NOTI_VIEW_ISSUE' | translate }}
                   </a>
                   <!-- Action button for Scans -->
                   <a *ngIf="n.type === 'Scans'" class="view-issue-link"
                     (click)="handleViewScan(n); $event.stopPropagation()">
-                    View Results →
+                    {{ 'DASHBOARD.NOTI_VIEW_RESULTS' | translate }}
                   </a>
                   <!-- Action button for System -->
                   <a *ngIf="n.type === 'System'" class="view-issue-link"
                     (click)="handleViewSystem(n); $event.stopPropagation()">
-                    View Details →
+                    {{ 'DASHBOARD.NOTI_VIEW_DETAILS' | translate }}
                   </a>
                 </div>
                 <div class="notification-empty" *ngIf="filteredNotifications.length === 0">
-                  No notifications
+                  {{ 'DASHBOARD.NOTI_EMPTY' | translate }}
                 </div>
               </div>
             </div>
@@ -87,7 +87,7 @@
                   <span style="font-size: 12px; color: var(--text-sub);">{{ UserLogin?.email }}</span>
                 </div>
                 <div style="margin-top: 8px;">
-                  <span class="status-badge">Email Verify:</span>
+                  <span class="status-badge">{{ 'DASHBOARD.EMAIL_VERIFY' | translate }}</span>
                   <span class="status-badge" [ngClass]="{
                   'verified': (UserLogin?.status || '').toUpperCase() === 'VERIFIED',
                   'pending_verification': (UserLogin?.status || '').toUpperCase() === 'PENDING_VERIFICATION',
@@ -99,11 +99,11 @@
               </div>
               <div class="menu-items">
                 <button (click)="openChangePasswordModal()" class="menu-btn">
-                  <i class="bi bi-key"></i> Change Password
+                  <i class="bi bi-key"></i> {{ 'DASHBOARD.CHANGE_PASSWORD' | translate }}
                 </button>
                 <button *ngIf="(UserLogin?.status || '').toUpperCase() !== 'VERIFIED'" (click)="sendVerifyEmail()"
                   class="menu-btn verify">
-                  <i class="bi bi-envelope-check"></i> Verify Email
+                  <i class="bi bi-envelope-check"></i> {{ 'DASHBOARD.VERIFY_EMAIL' | translate }}
                 </button>
               </div>
             </div>
@@ -115,16 +115,16 @@
     <!-- 1. Welcome Banner -->
     <div class="dashboard-card welcome-card">
       <div class="welcome-text">
-        <h2>Welcome back, {{ UserLogin?.username || userProfile?.username }}!</h2>
-        <p>Here's what's happening with your projects today.</p>
+        <h2>{{ 'DASHBOARD.WELCOME_BACK' | translate }} {{ UserLogin?.username || userProfile?.username }}!</h2>
+        <p>{{ 'DASHBOARD.WELCOME_TEXT' | translate }}</p>
       </div>
       <div class="quick-stats">
         <div class="q-stat">
-          <span class="label">Total Scans</span>
+          <span class="label">{{ 'DASHBOARD.TOTAL_SCANS' | translate }}</span>
           <span class="value">{{ DashboardData.length || 0 }}</span>
         </div>
         <div class="q-stat">
-          <span class="label">Projects</span>
+          <span class="label">{{ 'DASHBOARD.PROJECTS' | translate }}</span>
           <span class="value">{{ repositories.length || 0 }}</span>
         </div>
       </div>
@@ -135,28 +135,28 @@
       <div class="metric-card bug">
         <div class="icon-box"><i class="bi bi-bug-fill"></i></div>
         <div class="info">
-          <span class="label">Bugs</span>
+          <span class="label">{{ 'DASHBOARD.BUGS' | translate }}</span>
           <span class="value">{{ passedCountBug }}</span>
         </div>
       </div>
       <div class="metric-card security">
         <div class="icon-box"><i class="bi bi-shield-lock-fill"></i></div>
         <div class="info">
-          <span class="label">Security</span>
+          <span class="label">{{ 'DASHBOARD.SECURITY' | translate }}</span>
           <span class="value">{{ securityCount }}</span>
         </div>
       </div>
       <div class="metric-card smell">
         <div class="icon-box"><i class="bi bi-wind"></i></div>
         <div class="info">
-          <span class="label">Code Smells</span>
+          <span class="label">{{ 'DASHBOARD.CODE_SMELLS' | translate }}</span>
           <span class="value">{{ codeSmellCount }}</span>
         </div>
       </div>
       <div class="metric-card coverage">
         <div class="icon-box"><i class="bi bi-check2-circle"></i></div>
         <div class="info">
-          <span class="label">Coverage</span>
+          <span class="label">{{ 'DASHBOARD.COVERAGE' | translate }}</span>
           <span class="value">{{ coverRateCount }}%</span>
         </div>
       </div>
@@ -167,7 +167,7 @@
       <!-- Quality Gate -->
       <div class="dashboard-card quality-gate-card">
         <div class="card-header">
-          <h3><i class="bi bi-pie-chart-fill"></i> Quality Gate</h3>
+          <h3><i class="bi bi-pie-chart-fill"></i> {{ 'DASHBOARD.QUALITY_GATE' | translate }}</h3>
         </div>
         <div class="chart-wrapper">
           <apx-chart *ngIf="pieChartOptions && pieChartOptions.chart" [series]="pieChartOptions.series!"
@@ -178,11 +178,11 @@
         </div>
         <div class="gate-summary">
           <div class="summary-item pass">
-            <i class="bi bi-check-circle-fill" style="color: var(--success); margin-right: 6px;"></i> Passed <strong>{{
+            <i class="bi bi-check-circle-fill" style="color: var(--success); margin-right: 6px;"></i> {{ 'DASHBOARD.PASSED' | translate }} <strong>{{
               passedCount }}</strong>
           </div>
           <div class="summary-item fail">
-            <i class="bi bi-x-circle-fill" style="color: var(--danger); margin-right: 6px;"></i> Failed <strong>{{
+            <i class="bi bi-x-circle-fill" style="color: var(--danger); margin-right: 6px;"></i> {{ 'DASHBOARD.FAILED' | translate }} <strong>{{
               failedCount }}</strong>
           </div>
         </div>
@@ -191,18 +191,18 @@
       <!-- Recent Scans (Wider) -->
       <div class="dashboard-card recent-scans-card">
         <div class="card-header">
-          <h3><i class="bi bi-clock-history"></i> Recent Activity</h3>
-          <a [routerLink]="['/scanhistory']" class="link-btn">View All <i class="bi bi-arrow-right"></i></a>
+          <h3><i class="bi bi-clock-history"></i> {{ 'DASHBOARD.RECENT_ACTIVITY' | translate }}</h3>
+          <a [routerLink]="['/scanhistory']" class="link-btn">{{ 'DASHBOARD.VIEW_ALL' | translate }} <i class="bi bi-arrow-right"></i></a>
         </div>
         <div class="table-responsive">
           <table>
             <caption class="visually-hidden">Project Quality Overview</caption>
             <thead>
               <tr>
-                <th>Project</th>
-                <th>Status SCAN</th>
-                <th>Quality Gate</th>
-                <th>Time</th>
+                <th>{{ 'DASHBOARD.COL_PROJECT' | translate }}</th>
+                <th>{{ 'DASHBOARD.COL_STATUS' | translate }}</th>
+                <th>{{ 'DASHBOARD.COL_QUALITY_GATE' | translate }}</th>
+                <th>{{ 'DASHBOARD.COL_TIME' | translate }}</th>
                 <th></th>
               </tr>
             </thead>
@@ -217,21 +217,21 @@
                 <td>
                   <span class="status-badge" [ngClass]="scan.status.toLowerCase()">
                     <i *ngIf="scan.status === 'PENDING'" class="bi bi-arrow-repeat spin"></i>
-                    {{ scan.status === 'PENDING' ? 'SCANNING' : (scan.status === 'SUCCESS' ? 'PASSED' : scan.status) }}
+                    {{ scan.status === 'PENDING' ? ('DASHBOARD.SCANNING' | translate) : (scan.status === 'SUCCESS' ? ('DASHBOARD.PASSED' | translate) : scan.status) }}
                   </span>
                 </td>
                 <td>
                   <span *ngIf="scan.status === 'PENDING'" class="status-badge scanning">
-                    <i class="bi bi-arrow-repeat spin"></i> Scanning
+                    <i class="bi bi-arrow-repeat spin"></i> {{ 'DASHBOARD.SCANNING' | translate }}
                   </span>
 
                   <span *ngIf="scan.status !== 'PENDING' && scan.status !== 'SUCCESS'" class="status-badge failed">
-                    Failed
+                    {{ 'DASHBOARD.FAILED' | translate }}
                   </span>
 
                   <ng-container *ngIf="scan.status === 'SUCCESS'">
-                    <span *ngIf="scan.qualityGate === 'OK'" class="status-badge success">Passed</span>
-                    <span *ngIf="scan.qualityGate === 'ERROR'" class="status-badge failed">Failed</span>
+                    <span *ngIf="scan.qualityGate === 'OK'" class="status-badge success">{{ 'DASHBOARD.PASSED' | translate }}</span>
+                    <span *ngIf="scan.qualityGate === 'ERROR'" class="status-badge failed">{{ 'DASHBOARD.FAILED' | translate }}</span>
                     <span *ngIf="scan.qualityGate !== 'OK' && scan.qualityGate !== 'ERROR'" class="text-muted">{{ scan.qualityGate || '-' }}</span>
                   </ng-container>
                 </td>
@@ -241,7 +241,7 @@
                 </td>
               </tr>
               <tr *ngIf="!DashboardData || DashboardData.length === 0">
-                <td colspan="5" class="empty-state">No recent activity found</td>
+                <td colspan="5" class="empty-state">{{ 'DASHBOARD.NO_RECENT_ACTIVITY' | translate }}</td>
               </tr>
             </tbody>
           </table>
@@ -254,7 +254,7 @@
       <!-- Project Distribution -->
       <div class="dashboard-card dist-card">
         <div class="card-header">
-          <h3><i class="bi bi-bar-chart-fill"></i> Project Types</h3>
+          <h3><i class="bi bi-bar-chart-fill"></i> {{ 'DASHBOARD.PROJECT_TYPES' | translate }}</h3>
         </div>
         <div class="dist-list">
           <div *ngFor="let p of projectDistribution" class="dist-item">
@@ -269,7 +269,7 @@
             </div>
           </div>
           <div *ngIf="!projectDistribution || projectDistribution.length === 0" class="empty-state">
-            No project data available
+            {{ 'DASHBOARD.NO_PROJECT_DATA' | translate }}
           </div>
         </div>
       </div>
@@ -277,7 +277,7 @@
       <!-- Top Issues -->
       <div class="dashboard-card issues-card">
         <div class="card-header">
-          <h3><i class="bi bi-exclamation-triangle-fill"></i> Top Issues</h3>
+          <h3><i class="bi bi-exclamation-triangle-fill"></i> {{ 'DASHBOARD.TOP_ISSUES' | translate }}</h3>
         </div>
         <ul class="issue-list" *ngIf="allIssues.length > 0; else noIssues">
           <li *ngFor="let i of allIssues | slice:0:4">
@@ -288,7 +288,7 @@
           </li>
         </ul>
         <ng-template #noIssues>
-          <p class="text-muted text-center py-3">No issues found</p>
+          <p class="text-muted text-center py-3">{{ 'DASHBOARD.NO_ISSUES_FOUND' | translate }}</p>
         </ng-template>
       </div>
     </div>
@@ -297,7 +297,7 @@
     <!-- 5. Trends Chart (Full Width) -->
     <div class="dashboard-card trends-card">
       <div class="card-header">
-        <h3><i class="bi bi-graph-up"></i> Quality Trends</h3>
+        <h3><i class="bi bi-graph-up"></i> {{ 'DASHBOARD.QUALITY_TRENDS' | translate }}</h3>
       </div>
       <div class="line-chart-wrapper">
         <!-- ✅ เพิ่ม *ngIf ป้องกัน undefined -->
@@ -317,26 +317,26 @@
   <div class="modal-dialog-custom" (mousedown)="$event.stopPropagation()">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Change Password</h5>
+        <h5 class="modal-title">{{ 'DASHBOARD.CHANGE_PASSWORD' | translate }}</h5>
         <button class="btn-close" (mousedown)="closeChangePasswordModal()"></button>
       </div>
       <form #passwordForm="ngForm" (ngSubmit)="submitChangePassword(passwordForm)">
         <div class="modal-body">
           <!-- Old Password -->
           <div class="form-group mb-3">
-            <label>Old Password</label>
+            <label>{{ 'DASHBOARD.OLD_PASSWORD' | translate }}</label>
             <input type="password" class="form-control" name="oldPassword" [(ngModel)]="passwordData.oldPassword"
               required #oldpassRef="ngModel" [class.is-invalid]="
                 (oldpassRef.touched || submitted) && !passwordData.oldPassword
               " />
             <div *ngIf="oldpassRef.dirty || oldpassRef.touched || submitted">
-              <small *ngIf="oldpassRef.errors?.['required']" class="text-danger">Old password is required</small>
+              <small *ngIf="oldpassRef.errors?.['required']" class="text-danger">{{ 'DASHBOARD.OLD_PASSWORD_REQUIRED' | translate }}</small>
             </div>
           </div>
 
           <!-- New Password -->
           <div class="form-group mb-3">
-            <label>New Password</label>
+            <label>{{ 'DASHBOARD.NEW_PASSWORD' | translate }}</label>
             <input type="password" class="form-control" name="newPassword" [(ngModel)]="passwordData.newPassword"
               required minlength="8" #newpassRef="ngModel" (focus)="isNewPasswordFocused = true" [class.is-invalid]="
                 isNewPasswordFocused &&
@@ -352,7 +352,7 @@
                       : 'bi-x-circle-fill'
                   ">
                 </i>
-                At least 8 characters
+                {{ 'DASHBOARD.RULE_MINLENGTH' | translate }}
               </li>
 
               <li [class.pass]="newPasswordRules.upper" [class.fail]="!newPasswordRules.upper">
@@ -362,7 +362,7 @@
                       : 'bi-x-circle-fill'
                   ">
                 </i>
-                Contains an uppercase letter
+                {{ 'DASHBOARD.RULE_UPPERCASE' | translate }}
               </li>
 
               <li [class.pass]="newPasswordRules.lower" [class.fail]="!newPasswordRules.lower">
@@ -372,7 +372,7 @@
                       : 'bi-x-circle-fill'
                   ">
                 </i>
-                Contains a lowercase letter
+                {{ 'DASHBOARD.RULE_LOWERCASE' | translate }}
               </li>
 
               <li [class.pass]="newPasswordRules.number" [class.fail]="!newPasswordRules.number">
@@ -382,7 +382,7 @@
                       : 'bi-x-circle-fill'
                   ">
                 </i>
-                Contains a number
+                {{ 'DASHBOARD.RULE_NUMBER' | translate }}
               </li>
 
               <li [class.pass]="newPasswordRules.special" [class.fail]="!newPasswordRules.special">
@@ -392,14 +392,14 @@
                       : 'bi-x-circle-fill'
                   ">
                 </i>
-                Contains a special character
+                {{ 'DASHBOARD.RULE_SPECIAL' | translate }}
               </li>
             </ul>
           </div>
 
           <!-- Confirm Password -->
           <div class="form-group mb-3">
-            <label>Confirm Password</label>
+            <label>{{ 'DASHBOARD.CONFIRM_PASSWORD' | translate }}</label>
             <input type="password" class="form-control" name="confirmPassword"
               [(ngModel)]="passwordData.confirmPassword" required #confRef="ngModel" [class.is-invalid]="
               (confRef.touched || submitted) &&
@@ -409,22 +409,22 @@
 
             <div *ngIf="confRef.dirty || confRef.touched || submitted">
               <small *ngIf="confRef.errors?.['required']" class="text-danger">
-                Confirm password is required
+                {{ 'DASHBOARD.CONFIRM_PASSWORD_REQUIRED' | translate }}
               </small>
               <small *ngIf="
                 passwordData.confirmPassword &&
                 passwordData.confirmPassword !== passwordData.newPassword
               " class="text-danger">
-                Passwords do not match
+                {{ 'DASHBOARD.PASSWORD_MISMATCH' | translate }}
               </small>
             </div>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Change Password</button>
+          <button type="submit" class="btn btn-primary">{{ 'DASHBOARD.CHANGE_PASSWORD' | translate }}</button>
           <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">
-            Cancel
+            {{ 'DASHBOARD.CANCEL' | translate }}
           </button>
         </div>
       </form>

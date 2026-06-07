@@ -24,15 +24,32 @@ interface DebtProject {
 
 import { Subscription } from 'rxjs';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-analysis',
   standalone: true,
-  imports: [CommonModule, DebtTimePipe],
+  imports: [CommonModule, DebtTimePipe, TranslatePipe],
   providers: [DebtTimePipe],
   templateUrl: './analysis.component.html',
   styleUrl: './analysis.component.css'
 })
 export class AnalysisComponent implements OnInit, OnDestroy {
+
+  getCardTitleKey(title: string): string {
+    if (title === 'Security Score') return 'ANALYTICS.SECURITY_SCORE';
+    if (title === 'Technical Debt') return 'ANALYTICS.TECHNICAL_DEBT';
+    return title;
+  }
+
+  getPriorityKey(priority: string): string {
+    if (!priority) return '';
+    const p = priority.toLowerCase().trim();
+    if (p === 'high') return 'ANALYTICS.PRIORITY_HIGH';
+    if (p === 'med' || p === 'medium') return 'ANALYTICS.PRIORITY_MED';
+    if (p === 'low') return 'ANALYTICS.PRIORITY_LOW';
+    return priority;
+  }
 
   securityScore = 0;
   technicalDebt = 0;

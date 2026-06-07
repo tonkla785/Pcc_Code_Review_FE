@@ -4,7 +4,7 @@
           <i class="bi bi-chevron-left"></i>
         </button>
         <h3 class="text-primary mb-0">
-            <i class="bi bi-graph-up"></i> Technical Debt Analysis
+            <i class="bi bi-graph-up"></i> {{ 'TECHNICAL_DEBT.TITLE' | translate }}
         </h3>
       </div>
   
@@ -12,12 +12,12 @@
     <div class="row mb-4">
       <div class="col-md-6">
         <div class="p-3 border rounded bg-light">
-          <strong>Total Debt:</strong> {{ totalDays }} days {{ totalHours }} hours {{ totalMinutes }} minutes
+          <strong>{{ 'TECHNICAL_DEBT.TOTAL_DEBT' | translate }}</strong> {{ totalDays }} {{ 'TECHNICAL_DEBT.DAYS' | translate }} {{ totalHours }} {{ 'TECHNICAL_DEBT.HOURS' | translate }} {{ totalMinutes }} {{ 'TECHNICAL_DEBT.MINUTES' | translate }}
         </div>
       </div>
       <div class="col-md-6">
         <div class="p-3 border rounded bg-light">
-          <strong>Estimated Cost:</strong> {{ totalCosts() | currency:'THB ':'symbol':'1.0-0' }}
+          <strong>{{ 'TECHNICAL_DEBT.ESTIMATED_COST' | translate }}</strong> {{ totalCosts() | currency:'THB ':'symbol':'1.0-0' }}
         </div>
       </div>
     </div>
@@ -25,13 +25,13 @@
     <!-- Project Distribution -->
     <div class="card mb-4">
       <div class="card-header">
-        <i class="bi bi-diagram-3"></i> Debt Distribution by Project
+        <i class="bi bi-diagram-3"></i> {{ 'TECHNICAL_DEBT.DEBT_DISTRIBUTION_BY_PROJECT' | translate }}
       </div>
       <div class="card-body">
         <div *ngFor="let p of ScanHistoy;" class="mb-3">
           <div class="d-flex justify-content-between">
             <span>{{ p.project.name }}</span>
-            <span>{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} - {{ formatTHB(toTechDebtDays(p.metrics?.technicalDebtMinutes || 0) * (p.project?.costPerDay || 1000)) }} ({{ formatTHB(p.project?.costPerDay || 1000) }}/day)</span>
+            <span>{{ (p.metrics?.technicalDebtMinutes || 0) | debtTime }} - {{ formatTHB(toTechDebtDays(p.metrics?.technicalDebtMinutes || 0) * (p.project?.costPerDay || 1000)) }} ({{ formatTHB(p.project?.costPerDay || 1000) }}/{{ 'TECHNICAL_DEBT.PER_DAY' | translate }})</span>
           </div>
           <div class="card p-3 mb-3 shadow-sm" style="cursor: pointer;" (click)="goToProject(p.project.id)">
             <h6 class="card-title mb-2">{{ p.project.name }}</h6>
@@ -57,13 +57,13 @@
         <div class="col-md-4">
           <div class="card mb-4">
             <div class="card-header">
-              <i class="bi bi-tags"></i> Debt by Category
+              <i class="bi bi-tags"></i> {{ 'TECHNICAL_DEBT.DEBT_BY_CATEGORY' | translate }}
             </div>
             <div class="card-body">
               <ul class="list-group">
                 <li *ngFor="let c of categories; trackBy: trackByName"
                     class="list-group-item d-flex justify-content-between align-items-center">
-                  <span><i [ngClass]="c.icon"></i> {{ c.name }}</span>
+                  <span><i [ngClass]="c.icon"></i> {{ getCategoryKey(c.name) | translate }}</span>
                   <span>{{ c.percent }}%</span>
                 </li>
               </ul>
@@ -75,9 +75,10 @@
         <div class="col-md-8">
           <div class="card p-3 shadow-sm mb-4">
             <div class="card-header">
-              <i class="bi bi-graph-up"></i> Debt Trend (Monthly)
+              <i class="bi bi-graph-up"></i> {{ 'TECHNICAL_DEBT.DEBT_TREND_MONTHLY' | translate }}
             </div>
             <div class="card-body">
+              <h5 class="text-primary mb-3"><i class="bi bi-graph-up"></i> {{ 'TECHNICAL_DEBT.TREND_TITLE' | translate }}</h5>
               <apx-chart
                 [series]="debtSeries"
                 [chart]="debtChartOptions.chart!"
@@ -100,17 +101,17 @@
     <!-- Top Debt Items -->
     <div class="card mb-4">
       <div class="card-header">
-        <i class="bi bi-exclamation-triangle"></i> Top Debt Project
+        <i class="bi bi-exclamation-triangle"></i> {{ 'TECHNICAL_DEBT.TOP_DEBT_PROJECT' | translate }}
       </div>
       <div class="card-body table-responsive">
         <table class="table table-bordered table-striped">
-          <caption class="visually-hidden">Technical Debt Metrics</caption>
+          <caption class="visually-hidden">{{ 'TECHNICAL_DEBT.TABLE_CAPTION' | translate }}</caption>
           <thead class="table-light">
             <tr>
-              <th class="py-3 px-4 text-left font-semibold">Priority</th>
-              <th class="py-3 px-4 text-left font-semibold">Project</th>
-              <th class="py-3 px-4 text-left font-semibold">Time</th>
-              <th class="py-3 px-4 text-right font-semibold">Cost (THB)</th>
+              <th class="py-3 px-4 text-left font-semibold">{{ 'TECHNICAL_DEBT.COL_PRIORITY' | translate }}</th>
+              <th class="py-3 px-4 text-left font-semibold">{{ 'TECHNICAL_DEBT.COL_PROJECT' | translate }}</th>
+              <th class="py-3 px-4 text-left font-semibold">{{ 'TECHNICAL_DEBT.COL_TIME' | translate }}</th>
+              <th class="py-3 px-4 text-right font-semibold">{{ 'TECHNICAL_DEBT.COL_COST' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -122,7 +123,7 @@
                         'bg-warning text-dark': i.priority === 'Med',
                         'bg-success': i.priority === 'Low'
                       }">
-                  {{ i.priority }}
+                  {{ getPriorityKey(i.priority) | translate }}
                 </span>
               </td>
               <td>{{ i.item }}</td>
@@ -137,10 +138,10 @@
     <!-- Actions -->
     <div class="d-flex justify-content-center gap-2">
       <button class="btn btn-primary" (click)="generateDebtReport()">
-        <i class="bi bi-file-earmark-text"></i> Generate Debt Report
+        <i class="bi bi-file-earmark-text"></i> {{ 'TECHNICAL_DEBT.GENERATE_DEBT_REPORT' | translate }}
       </button>
       <button class="btn btn-outline-success" (click)="exportToExcel()">
-        <i class="bi bi-file-earmark-excel"></i> Export to Excel
+        <i class="bi bi-file-earmark-excel"></i> {{ 'TECHNICAL_DEBT.EXPORT_TO_EXCEL' | translate }}
       </button>
       <!-- <button class="btn btn-warning" (click)="openModal()">
         <i class="bi bi-list-check"></i> Generate Action Plan
@@ -152,7 +153,7 @@
 <div class="custom-modal-backdrop" *ngIf="isModalOpen">
   <div class="custom-modal">
     <div class="modal-header">
-      <h5 class="modal-title">Action Plan (Draft)</h5>
+      <h5 class="modal-title">{{ 'TECHNICAL_DEBT.ACTION_PLAN_DRAFT' | translate }}</h5>
       <button type="button" class="btn-close" (click)="closeModal()"></button>
     </div>
 
@@ -161,8 +162,8 @@
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" (click)="closeModal()">Close</button>
-      <button type="button" class="btn btn-success">Save Plan</button>
+      <button type="button" class="btn btn-secondary" (click)="closeModal()">{{ 'TECHNICAL_DEBT.CLOSE' | translate }}</button>
+      <button type="button" class="btn btn-success">{{ 'TECHNICAL_DEBT.SAVE_PLAN' | translate }}</button>
     </div>
   </div>
 </div>

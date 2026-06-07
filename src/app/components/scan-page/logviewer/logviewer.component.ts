@@ -14,13 +14,13 @@ import {
 } from '../../../interface/scan_page_interface';
 import { LoginUser } from '../../../interface/user_interface';
 import { EmailService } from '../../../services/emailservice/email.service';
-import Swal from 'sweetalert2';
+import Swal from 'sweetalert2';import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
   selector: 'app-logviewer',
   standalone: true,
-  imports: [CommonModule, DebtTimePipe, ThbCurrencyPipe],
+  imports: [CommonModule, DebtTimePipe, ThbCurrencyPipe, TranslatePipe],
   templateUrl: './logviewer.component.html',
   styleUrl: './logviewer.component.css',
 })

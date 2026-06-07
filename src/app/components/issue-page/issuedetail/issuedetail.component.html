@@ -3,7 +3,7 @@
 
   <!-- Header with gradient background -->
   <div class="issue-header">
-    <button title="Back to Issue" class="back-btn" (click)="goBack()">
+    <button [title]="'ISSUE_DETAIL.BACK_TO_ISSUE' | translate" class="back-btn" (click)="goBack()">
       <i class="bi bi-chevron-left"></i>
     </button>
     <div class="header-content">
@@ -19,17 +19,17 @@
   <div class="issue-info-grid">
     <!-- Card 1: Basic Info -->
     <div class="info-card">
-      <h4 class="card-title"><i class="bi bi-info-circle-fill"></i> Basic Information</h4>
+      <h4 class="card-title"><i class="bi bi-info-circle-fill"></i> {{ 'ISSUE_DETAIL.BASIC_INFO' | translate }}</h4>
       <div class="info-item">
-        <span class="info-label">ID</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.ID' | translate }}</span>
         <span class="info-value">{{ issuesResult?.id }}</span>
       </div>
       <div class="info-item">
-        <span class="info-label">Type</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.TYPE' | translate }}</span>
         <span class="info-value">{{ issuesResult?.type }}</span>
       </div>
       <div class="info-item">
-        <span class="info-label">File</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.FILE' | translate }}</span>
         <span class="info-value text-truncate" [title]="issuesResult?.component">
           {{ issuesResult?.component }}
         </span>
@@ -38,9 +38,9 @@
 
     <!-- Card 2: Status & Severity -->
     <div class="info-card">
-      <h4 class="card-title"><i class="bi bi-flag-fill"></i> Status & Priority</h4>
+      <h4 class="card-title"><i class="bi bi-flag-fill"></i> {{ 'ISSUE_DETAIL.STATUS_PRIORITY' | translate }}</h4>
       <div class="info-item">
-        <span class="info-label">Severity</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.SEVERITY' | translate }}</span>
         <span [ngClass]="['badge','badge-severity','severity-'+(issuesResult?.severity || '').toLowerCase()]">
           <i class="bi bi-exclamation-triangle-fill"></i>
           {{ issuesResult?.severity }}
@@ -48,21 +48,21 @@
 
       </div>
       <div class="info-item">
-        <span class="info-label">Line</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.LINE' | translate }}</span>
         <span>
           <i class="bi bi-circle-fill"></i>
           {{ issuesResult?.line}}
         </span>
       </div>
       <div class="info-item">
-        <span class="info-label">Status</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.STATUS' | translate }}</span>
         <span [ngClass]="['badge','badge-status','status-'+(issuesResult?.status || '').toLowerCase()]">
           <i class="bi bi-circle-fill"></i>
           {{ issuesResult?.status }}
         </span>
       </div>
       <div class="info-item">
-        <span class="info-label">Created</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.CREATED' | translate }}</span>
         <span class="info-value">
           <i class="bi bi-calendar-event"></i>
           {{ issuesResult?.createdAt | date:'dd/MM/yyyy, hh:mm a' }}
@@ -72,9 +72,9 @@
 
     <!-- Card 3: Assignment -->
     <div class="info-card">
-      <h4 class="card-title"><i class="bi bi-person-fill"></i> Assignment</h4>
+      <h4 class="card-title"><i class="bi bi-person-fill"></i> {{ 'ISSUE_DETAIL.ASSIGNMENT' | translate }}</h4>
       <div class="info-item">
-        <span class="info-label">Assigned To</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.ASSIGNED_TO' | translate }}</span>
         <span class="info-value" *ngIf="issuesResult?.assignedTo?.username">
           <div class="assignee-tag">
             <i class="bi bi-person-circle"></i>
@@ -83,21 +83,21 @@
         </span>
         <span class="info-value text-muted" *ngIf="!issuesResult?.assignedTo?.username">
           <i class="bi bi-person-dash"></i>
-          No assignee
+          {{ 'ISSUE_DETAIL.NO_ASSIGNEE' | translate }}
         </span>
       </div>
       <div class="info-item mt-3">
-        <button type="button" class="btn btn-assign" (click)="openAssignModal()" title="Add Assignee">
+        <button type="button" class="btn btn-assign" (click)="openAssignModal()" [title]="'ISSUE_DETAIL.ADD_ASSIGNEE_TOOLTIP' | translate">
           <i class="bi bi-person-plus-fill"></i>
-          Assign / Update
+          {{ 'ISSUE_DETAIL.ASSIGN_UPDATE' | translate }}
         </button>
       </div>
     </div>
     <!-- Card 4: Status -->
     <div class="info-card">
-      <h4 class="card-title"><i class="bi bi-person-fill"></i> Status</h4>
+      <h4 class="card-title"><i class="bi bi-person-fill"></i> {{ 'ISSUE_DETAIL.STATUS' | translate }}</h4>
       <div class="info-item">
-        <span class="info-label">Status</span>
+        <span class="info-label">{{ 'ISSUE_DETAIL.STATUS' | translate }}</span>
         <span class="info-value" *ngIf="issuesResult?.status">
           <div class="">
             <span [ngClass]="['badge','badge-status','status-'+(issuesResult?.status || '').toLowerCase()]">
@@ -108,13 +108,13 @@
         </span>
         <span class="info-value text-muted" *ngIf="!issuesResult?.status">
           <i class="bi bi-person-dash"></i>
-          No Status
+          {{ 'ISSUE_DETAIL.NO_STATUS' | translate }}
         </span>
       </div>
       <div class="info-item mt-3">
-        <button type="button" class="btn btn-assign" (click)="openStatusModal()" title="Add Status">
+        <button type="button" class="btn btn-assign" (click)="openStatusModal()" [title]="'ISSUE_DETAIL.ADD_STATUS_TOOLTIP' | translate">
           <i class="bi bi-person-plus-fill"></i>
-          Status
+          {{ 'ISSUE_DETAIL.STATUS' | translate }}
         </button>
       </div>
     </div>
@@ -123,7 +123,7 @@
   <!-- Description Section -->
   <div class="description-section">
     <div class="section-header">
-      <h3><i class="bi bi-file-text-fill"></i> Description & Analysis</h3>
+      <h3><i class="bi bi-file-text-fill"></i> {{ 'ISSUE_DETAIL.DESC_ANALYSIS' | translate }}</h3>
     </div>
 
     <div class="description-content">
@@ -133,8 +133,8 @@
 
       <div class="code-section" *ngIf="issuesDetails?.vulnerableCode">
         <div class="code-header">
-          <span><i class="bi bi-code-slash"></i> Vulnerable Code</span>
-          <button class="btn-copy" title="Copy code">
+          <span><i class="bi bi-code-slash"></i> {{ 'ISSUE_DETAIL.VULNERABLE_CODE' | translate }}</span>
+          <button class="btn-copy" [title]="'ISSUE_DETAIL.COPY_CODE_TOOLTIP' | translate">
             <i class="bi bi-clipboard"></i>
           </button>
         </div>
@@ -148,8 +148,8 @@
             <i class="bi bi-lightbulb-fill"></i>
           </div>
           <div class="header-text">
-            <h5>Recommendation</h5>
-            <span class="subtitle">Suggested solution</span>
+            <h5>{{ 'ISSUE_DETAIL.RECOMMENDATION' | translate }}</h5>
+            <span class="subtitle">{{ 'ISSUE_DETAIL.SUGGESTED_SOLUTION' | translate }}</span>
           </div>
         </div>
 
@@ -162,13 +162,13 @@
           <div class="ai-suggestion-box"
             *ngIf="issuesDetails?.status === 'SUCCESS' && issuesDetails?.recommendedFixByAi">
             <div class="ai-badge">
-              <i class="bi bi-stars"></i> AI Optimized
+              <i class="bi bi-stars"></i> {{ 'ISSUE_DETAIL.AI_OPTIMIZED' | translate }}
             </div>
             <div class="ai-content markdown-body" [innerHTML]="issuesDetails?.recommendedFixByAi | markdown">
             </div>
             <div class="ai-download-bar">
               <button class="btn-download-md" (click)="downloadMarkdown()">
-                <i class="bi bi-download"></i> Download .md
+                <i class="bi bi-download"></i> {{ 'ISSUE_DETAIL.DOWNLOAD_MD' | translate }}
               </button>
             </div>
           </div>
@@ -180,7 +180,7 @@
               <div class="ai-orb"></div>
               <div class="ai-orb"></div>
             </div>
-            <span class="loading-text">Generating AI Fix...</span>
+            <span class="loading-text">{{ 'ISSUE_DETAIL.GENERATING_AI_FIX' | translate }}</span>
           </div>
         </div>
 
@@ -188,7 +188,7 @@
         <div class="card-footer-clean" *ngIf="(!issuesDetails?.recommendedFixByAi || issuesDetails?.status === 'FAILED') && !isAiLoading">
           <button class="btn-magic" (click)="triggerAiFix()">
             <i class="bi bi-stars"></i>
-            <span>Generate AI Fix</span>
+            <span>{{ 'ISSUE_DETAIL.GENERATE_AI_FIX' | translate }}</span>
           </button>
         </div>
 
@@ -200,7 +200,7 @@
       <div class="section-header">
         <h3>
           <i class="bi bi-chat-left-dots-fill"></i>
-          Comments
+          {{ 'ISSUE_DETAIL.COMMENTS' | translate }}
           <span class="comment-count">{{ issuesResult?.commentData?.length || 0 }}</span>
         </h3>
 
@@ -229,7 +229,7 @@
 
             <div class="comment-actions" *ngIf="c.user?.id !== UserLogin?.id">
               <button type="button" class="btn btn-link p-0" (click)="startReply(c)">
-                Reply
+                {{ 'ISSUE_DETAIL.REPLY' | translate }}
               </button>
             </div>
           </div>
@@ -264,7 +264,7 @@
         <!-- Empty State -->
         <div *ngIf="!rootComments.length && !loadingComments" class="empty-comments">
           <i class="bi bi-chat-square-text"></i>
-          <p>No comments yet. Be the first to share your thoughts!</p>
+          <p>{{ 'ISSUE_DETAIL.NO_COMMENTS_YET' | translate }}</p>
         </div>
       </div>
 
@@ -274,19 +274,19 @@
 
         <!-- Replying banner -->
         <div class="replying-banner" *ngIf="replyTo">
-          <span>Replying to <b>{{ replyTo.username }}</b></span>
+          <span>{{ 'ISSUE_DETAIL.REPLYING_TO' | translate }} <b>{{ replyTo.username }}</b></span>
           <button type="button" class="btn btn-sm btn-light" (click)="cancelReply()">
-            Cancel
+            {{ 'ISSUE_DETAIL.CANCEL' | translate }}
           </button>
         </div>
 
         <div class="comment-input-wrapper">
           <i class="bi bi-chat-dots input-icon"></i>
 
-          <input type="text" [placeholder]=" 'Write a comment...'" [(ngModel)]="newComment.comment" name="commentText"
-            class="comment-input" title="Write your comment"
+          <input type="text" [placeholder]="'ISSUE_DETAIL.WRITE_COMMENT_PLACEHOLDER' | translate" [(ngModel)]="newComment.comment" name="commentText"
+            class="comment-input" [title]="'ISSUE_DETAIL.WRITE_COMMENT_TOOLTIP' | translate"
             (keyup.enter)="newComment.comment?.trim() && postComment()" />
-          <button class="btn-send" type="button" title="Post comment" (click)="postComment()"
+          <button class="btn-send" type="button" [title]="'ISSUE_DETAIL.POST_COMMENT_TOOLTIP' | translate" (click)="postComment()"
             [disabled]="!newComment.comment?.trim() || sendingComment">
             <i class="bi bi-send-fill" *ngIf="!sendingComment"></i>
             <span class="spinner-border spinner-border-sm" *ngIf="sendingComment"></span>

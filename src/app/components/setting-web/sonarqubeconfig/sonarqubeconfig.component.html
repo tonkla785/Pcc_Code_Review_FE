@@ -1,83 +1,83 @@
 <div class="config-container container my-3">
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0"><i class="bi bi-gear"></i> SonarQube Configuration</h5>
+      <h5 class="mb-0"><i class="bi bi-gear"></i> {{ 'SONARQUBE_CONFIG.TITLE' | translate }}</h5>
     </div>
 
     <form #sonarForm="ngForm" novalidate>
       <div class="card-body">
         <!-- Server Configuration -->
         <div class="mb-4">
-          <h6 class="fw-semibold">Server Configuration</h6>
+          <h6 class="fw-semibold">{{ 'SONARQUBE_CONFIG.SERVER_CONFIG' | translate }}</h6>
           <div class="row g-3">
             <!-- URL -->
             <div class="col-12">
-              <label class="form-label" for="sonarserverUrl">SonarQube Server URL *</label>
+              <label class="form-label" for="sonarserverUrl">{{ 'SONARQUBE_CONFIG.SERVER_URL' | translate }}</label>
               <input type="url" id="sonarserverUrl" name="serverUrl" class="form-control" [(ngModel)]="serverUrl"
-                required pattern="https?://.+" placeholder="https://Example.com" #serverUrlRef="ngModel" />
+                required pattern="https?://.+" placeholder="https://Example.com" #serverUrlRef="ngModel" (blur)="trimFields()" />
               <div class="text-danger small" *ngIf="serverUrlRef.invalid && serverUrlRef.touched">
-                <div *ngIf="serverUrlRef.errors?.['required']">Server URL is required.</div>
-                <div *ngIf="serverUrlRef.errors?.['pattern']">Please enter a valid URL.</div>
+                <div *ngIf="serverUrlRef.errors?.['required']">{{ 'SONARQUBE_CONFIG.URL_REQUIRED' | translate }}</div>
+                <div *ngIf="serverUrlRef.errors?.['pattern']">{{ 'SONARQUBE_CONFIG.URL_INVALID' | translate }}</div>
               </div>
             </div>
 
             <!-- Token -->
             <div class="col-12 col-md-8">
-              <label class="form-label" for="sonarauthToken">Authentication Token *</label>
+              <label class="form-label" for="sonarauthToken">{{ 'SONARQUBE_CONFIG.AUTH_TOKEN' | translate }}</label>
               <input [type]="showToken ? 'text' : 'password'" id="sonarauthToken" name="authToken" class="form-control"
-                [(ngModel)]="authToken" required minlength="10" #authTokenRef="ngModel" />
+                [(ngModel)]="authToken" required minlength="10" #authTokenRef="ngModel" (blur)="trimFields()" />
               <div class="text-danger small" *ngIf="authTokenRef.invalid && authTokenRef.touched">
-                <div *ngIf="authTokenRef.errors?.['required']">Authentication Token is required.</div>
-                <div *ngIf="authTokenRef.errors?.['minlength']">Token must be at least 10 characters.</div>
+                <div *ngIf="authTokenRef.errors?.['required']">{{ 'SONARQUBE_CONFIG.AUTH_TOKEN_REQUIRED' | translate }}</div>
+                <div *ngIf="authTokenRef.errors?.['minlength']">{{ 'SONARQUBE_CONFIG.TOKEN_MIN_LENGTH' | translate }}</div>
               </div>
             </div>
             <div class="col-12 col-md-4">
               <label class="form-label d-none d-md-block">&nbsp;</label>
               <button type="button" class="btn btn-outline-secondary w-100" (click)="toggleShowToken()">
                 <i class="bi" [ngClass]="showToken ? 'bi-eye-slash' : 'bi-eye'"></i>
-                &nbsp;{{ showToken ? 'Hide' : 'Show' }}
+                &nbsp;{{ (showToken ? 'SONARQUBE_CONFIG.HIDE' : 'SONARQUBE_CONFIG.SHOW') | translate }}
               </button>
             </div>
 
             <!-- Git Access Token -->
             <div class="col-12 col-md-8">
               <label class="form-label d-flex align-items-center" for="sonarGitAccessToken">
-                Git Access Token
+                {{ 'SONARQUBE_CONFIG.GIT_TOKEN' | translate }}
                 <span class="info-badge ms-2" tabindex="0">
                   <i class="bi bi-info-circle-fill"></i>
                   <div class="tooltip-content">
-                    <strong>How to get a Git Token?</strong>
+                    <strong>{{ 'SONARQUBE_CONFIG.HOW_TO_GET_GIT_TOKEN' | translate }}</strong>
                     <ol>
-                      <li>GitHub → Settings</li>
-                      <li>Developer settings → Personal access tokens</li>
-                      <li>Select <code>Fine-grained token</code></li>
-                      <li>Permissions: <code>Read-only</code> (Contents)</li>
+                      <li>{{ 'SONARQUBE_CONFIG.STEP_1' | translate }}</li>
+                      <li>{{ 'SONARQUBE_CONFIG.STEP_2' | translate }}</li>
+                      <li>{{ 'SONARQUBE_CONFIG.STEP_3' | translate }}</li>
+                      <li>{{ 'SONARQUBE_CONFIG.STEP_4' | translate }}</li>
                     </ol>
-                    <div class="tooltip-note">No token needed for public repositories.</div>
+                    <div class="tooltip-note">{{ 'SONARQUBE_CONFIG.TOOLTIP_NOTE' | translate }}</div>
                   </div>
                 </span>
               </label>
               <input [type]="showGitToken ? 'text' : 'password'" id="sonarGitAccessToken" name="gitAccessToken"
                 class="form-control" [(ngModel)]="gitAccessToken" required minlength="10" maxlength="255"
-                #gitAccessTokenRef="ngModel" />
+                #gitAccessTokenRef="ngModel" (blur)="trimFields()" />
               <div class="text-danger small" *ngIf="gitAccessTokenRef.invalid && gitAccessTokenRef.touched">
-                <div *ngIf="gitAccessTokenRef.errors?.['required']">Git Access Token is required.</div>
-                <div *ngIf="gitAccessTokenRef.errors?.['minlength']">Token must be at least 10 characters.</div>
+                <div *ngIf="gitAccessTokenRef.errors?.['required']">{{ 'SONARQUBE_CONFIG.GIT_TOKEN_REQUIRED' | translate }}</div>
+                <div *ngIf="gitAccessTokenRef.errors?.['minlength']">{{ 'SONARQUBE_CONFIG.TOKEN_MIN_LENGTH' | translate }}</div>
               </div>
             </div>
             <div class="col-12 col-md-4">
               <label class="form-label d-none d-md-block">&nbsp;</label>
               <button type="button" class="btn btn-outline-secondary w-100" (click)="toggleShowGitToken()">
                 <i class="bi" [ngClass]="showGitToken ? 'bi-eye-slash' : 'bi-eye'"></i>
-                &nbsp;{{ showGitToken ? 'Hide' : 'Show' }}
+                &nbsp;{{ (showGitToken ? 'SONARQUBE_CONFIG.HIDE' : 'SONARQUBE_CONFIG.SHOW') | translate }}
               </button>
             </div>
 
             <!-- Organization -->
             <div class="col-12">
-              <label class="form-label" for="sonarorganization">Default Organization</label>
+              <label class="form-label" for="sonarorganization">{{ 'SONARQUBE_CONFIG.DEFAULT_ORG' | translate }}</label>
               <input type="text" id="sonarorganization" name="organization" class="form-control"
-                [(ngModel)]="organization" maxlength="50" placeholder="PCCTH" />
+                [(ngModel)]="organization" maxlength="50" placeholder="PCCTH" (blur)="trimFields()" />
             </div>
           </div>
         </div>
@@ -86,33 +86,33 @@
 
         <!-- Scanner Settings -->
         <div class="mb-4">
-          <h6 class="fw-semibold">Scanner Settings</h6>
+          <h6 class="fw-semibold">{{ 'SONARQUBE_CONFIG.SCANNER_SETTINGS' | translate }}</h6>
           <div class="row">
             <!-- Angular Projects -->
             <div class="col-12 col-lg-6 mb-3">
               <div class="card border-light">
                 <div class="card-body">
-                  <h6 class="card-title">Angular Projects</h6>
+                  <h6 class="card-title">{{ 'SONARQUBE_CONFIG.ANGULAR_PROJECTS' | translate }}</h6>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="runNpm" name="runNpm"
                       [(ngModel)]="angularSettings.runNpm">
-                    <label class="form-check-label" for="runNpm">Run npm install before scan</label>
+                    <label class="form-check-label" for="runNpm">{{ 'SONARQUBE_CONFIG.RUN_NPM' | translate }}</label>
                   </div>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="coverage" name="coverage"
                       [(ngModel)]="angularSettings.coverage">
-                    <label class="form-check-label" for="coverage">Generate coverage report</label>
+                    <label class="form-check-label" for="coverage">{{ 'SONARQUBE_CONFIG.GENERATE_COVERAGE' | translate }}</label>
                   </div>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="tsFiles" name="tsFiles"
                       [(ngModel)]="angularSettings.tsFiles">
-                    <label class="form-check-label" for="tsFiles">Include TypeScript files</label>
+                    <label class="form-check-label" for="tsFiles">{{ 'SONARQUBE_CONFIG.INCLUDE_TS' | translate }}</label>
                   </div>
                   <div class="mt-3">
-                    <label class="form-label small" for="exclusions">Exclusions</label>
+                    <label class="form-label small" for="exclusions">{{ 'SONARQUBE_CONFIG.EXCLUSIONS' | translate }}</label>
                     <input class="form-control form-control-sm" id="exclusions" name="exclusions"
-                      [(ngModel)]="angularSettings.exclusions" placeholder="**/node_modules/**, **/*.spec.ts" />
-                    <div class="form-text">Comma separated patterns</div>
+                      [(ngModel)]="angularSettings.exclusions" placeholder="**/node_modules/**, **/*.spec.ts" (blur)="trimFields()" />
+                    <div class="form-text">{{ 'SONARQUBE_CONFIG.COMMA_SEPARATED' | translate }}</div>
                   </div>
                 </div>
               </div>
@@ -122,42 +122,41 @@
             <div class="col-12 col-lg-6 mb-3">
               <div class="card border-light">
                 <div class="card-body">
-                  <h6 class="card-title">Spring Boot Projects</h6>
+                  <h6 class="card-title">{{ 'SONARQUBE_CONFIG.SPRING_PROJECTS' | translate }}</h6>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="runTests" name="runTests"
                       [(ngModel)]="springSettings.runTests">
-                    <label class="form-check-label" for="runTests">Run tests before scan</label>
+                    <label class="form-check-label" for="runTests">{{ 'SONARQUBE_CONFIG.RUN_TESTS' | translate }}</label>
                   </div>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="jacoco" name="jacoco"
                       [(ngModel)]="springSettings.jacoco">
-                    <label class="form-check-label" for="jacoco">Include JaCoCo coverage</label>
+                    <label class="form-check-label" for="jacoco">{{ 'SONARQUBE_CONFIG.INCLUDE_JACOCO' | translate }}</label>
                   </div>
 
                   <div class="mt-3">
-                    <label class="form-label small">Build Tool</label>
+                    <label class="form-label small">{{ 'SONARQUBE_CONFIG.BUILD_TOOL' | translate }}</label>
                     <div>
                       <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" id="maven" name="buildTool" value="maven"
                           [(ngModel)]="springSettings.buildTool" required>
-                        <label class="form-check-label" for="maven">Maven</label>
+                        <label class="form-check-label" for="maven">{{ 'SONARQUBE_CONFIG.MAVEN' | translate }}</label>
                       </div>
                       <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" id="gradle" name="buildTool" value="gradle"
                           [(ngModel)]="springSettings.buildTool">
-                        <label class="form-check-label" for="gradle">Gradle</label>
+                        <label class="form-check-label" for="gradle">{{ 'SONARQUBE_CONFIG.GRADLE' | translate }}</label>
                       </div>
                     </div>
                   </div>
 
                   <div class="mt-2">
-                    <label class="form-label small" for="jdkVersion">JDK Version</label>
+                    <label class="form-label small" for="jdkVersion">{{ 'SONARQUBE_CONFIG.JDK_VERSION' | translate }}</label>
                     <select id="jdkVersion" name="jdkVersion" class="form-select form-select-sm"
                       [(ngModel)]="springSettings.jdkVersion" required #jdkRef="ngModel">
                       <option *ngFor="let v of jdkVersions" [value]="v">{{ v }}</option>
                     </select>
-                    <div class="text-danger small" *ngIf="jdkRef.invalid && jdkRef.touched">Please select JDK version.
-                    </div>
+                    <div class="text-danger small" *ngIf="jdkRef.invalid && jdkRef.touched">{{ 'SONARQUBE_CONFIG.SELECT_JDK_ERR' | translate }}</div>
                   </div>
                 </div>
               </div>
@@ -169,41 +168,41 @@
 
         <!-- Quality Gates -->
         <div class="mb-3">
-          <h6 class="fw-semibold">Quality Gates</h6>
+          <h6 class="fw-semibold">{{ 'SONARQUBE_CONFIG.QUALITY_GATES' | translate }}</h6>
           <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="failOnError" name="failOnError"
               [(ngModel)]="qualityGates.failOnError" (change)="onFailOnErrorChange()">
-            <label class="form-check-label" for="failOnError">Fail scan if quality gate fails</label>
+            <label class="form-check-label" for="failOnError">{{ 'SONARQUBE_CONFIG.FAIL_ON_ERROR' | translate }}</label>
           </div>
 
           <div class="row g-2">
             <div class="col-6 col-md-3">
-              <label class="form-label small" for="coverageThreshold">Coverage threshold (%)</label>
+              <label class="form-label small" for="coverageThreshold">{{ 'SONARQUBE_CONFIG.COVERAGE_THRESHOLD' | translate }}</label>
               <input type="number" id="coverageThreshold" name="coverageThreshold" class="form-control form-control-sm"
                 [(ngModel)]="qualityGates.coverageThreshold" min="0" max="100" />
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small" for="maxBugs">Max bugs</label>
+              <label class="form-label small" for="maxBugs">{{ 'SONARQUBE_CONFIG.MAX_BUGS' | translate }}</label>
               <input type="number" id="maxBugs" name="maxBugs" class="form-control form-control-sm"
                 [(ngModel)]="qualityGates.maxBugs" min="0" />
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small" for="maxVulnerabilities">Max vulnerabilities</label>
+              <label class="form-label small" for="maxVulnerabilities">{{ 'SONARQUBE_CONFIG.MAX_VULNERABILITIES' | translate }}</label>
               <input type="number" id="maxVulnerabilities" name="maxVulnerabilities"
                 class="form-control form-control-sm" [(ngModel)]="qualityGates.maxVulnerabilities" min="0" />
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small" for="maxCodeSmells">Max code smells</label>
+              <label class="form-label small" for="maxCodeSmells">{{ 'SONARQUBE_CONFIG.MAX_CODE_SMELLS' | translate }}</label>
               <input type="number" id="maxCodeSmells" name="maxCodeSmells" class="form-control form-control-sm"
                 [(ngModel)]="qualityGates.maxCodeSmells" min="0" />
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small" for="maxDuplications">Max duplications (%)</label>
+              <label class="form-label small" for="maxDuplications">{{ 'SONARQUBE_CONFIG.MAX_DUPLICATIONS' | translate }}</label>
               <input type="number" id="maxDuplications" name="maxDuplications" class="form-control form-control-sm"
                 [(ngModel)]="qualityGates.maxDuplications" min="0" />
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small" for="maxSecurityHotspots">Max security hotspots</label>
+              <label class="form-label small" for="maxSecurityHotspots">{{ 'SONARQUBE_CONFIG.MAX_SECURITY_HOTSPOTS' | translate }}</label>
               <input type="number" id="maxSecurityHotspots" name="maxSecurityHotspots"
                 class="form-control form-control-sm" [(ngModel)]="qualityGates.maxSecurityHotspots" min="0" />
             </div>
@@ -216,11 +215,11 @@
           [disabled]="isTestingConnection">
           <span *ngIf="isTestingConnection" class="spinner-border spinner-border-sm me-1" role="status"></span>
           <i *ngIf="!isTestingConnection" class="bi bi-wifi"></i>
-          {{ isTestingConnection ? 'Testing...' : 'Test Connection' }}
+          {{ (isTestingConnection ? 'SONARQUBE_CONFIG.TESTING' : 'SONARQUBE_CONFIG.TEST_CONNECTION') | translate }}
         </button>
-        <button type="button" class="btn btn-outline-warning" (click)="resetSettings()">Reset</button>
+        <button type="button" class="btn btn-outline-warning" (click)="resetSettings()">{{ 'SONARQUBE_CONFIG.RESET' | translate }}</button>
         <button type="submit" class="btn btn-success" [disabled]="sonarForm.invalid" (click)="saveSettings()">
-          <i class="bi bi-save"></i> Save Settings
+          <i class="bi bi-save"></i> {{ 'SONARQUBE_CONFIG.SAVE_SETTINGS' | translate }}
         </button>
       </div>
     </form>

@@ -62,10 +62,12 @@ interface ReportContext {
   generatedBy: string;
 }
 
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-generatereport',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, TranslatePipe],
   templateUrl: './generatereport.component.html',
   styleUrl: './generatereport.component.css'
 })
@@ -113,7 +115,8 @@ export class GeneratereportComponent implements OnInit {
     private readonly reportHistoryService: ReportHistoryService,
     private readonly notificationService: NotificationService,
     private readonly snackBar: MatSnackBar,
-    private readonly userSettingsData: UserSettingsDataService
+    private readonly userSettingsData: UserSettingsDataService,
+    private readonly translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -376,7 +379,7 @@ export class GeneratereportComponent implements OnInit {
       const showReportAlert = !settings || settings.reportsEnabled;
 
       if (showReportAlert) {
-        this.snackBar.open('Report generated successfully', '', {
+        this.snackBar.open(this.translate.instant('GENERATE_REPORT.SNACKBAR.SUCCESS'), '', {
           duration: 2500,
           horizontalPosition: 'right',
           verticalPosition: 'top',
@@ -467,10 +470,12 @@ export class GeneratereportComponent implements OnInit {
     const userId = this.tokenStorageService.getLoginUser()?.id;
     if (!userId) return;
 
-    const title = isSuccess ? '✅ Report Generated' : '❌ Report Failed';
+    const title = isSuccess 
+      ? this.translate.instant('GENERATE_REPORT.NOTIFICATION.SUCCESS_TITLE') 
+      : this.translate.instant('GENERATE_REPORT.NOTIFICATION.FAILED_TITLE');
     const message = isSuccess
-      ? `Generate ${reportName} complete`
-      : `Generate ${reportName} failed`;
+      ? this.translate.instant('GENERATE_REPORT.NOTIFICATION.SUCCESS_MSG', { name: reportName })
+      : this.translate.instant('GENERATE_REPORT.NOTIFICATION.FAILED_MSG', { name: reportName });
 
     this.notificationService.createNotification({
       userId,

@@ -1,8 +1,8 @@
 <div class="scan-history-container p-4">
   <div class="dashboard-header mb-4">
     <div>
-      <h1>Scan History</h1>
-      <p>View past scan results and analysis reports</p>
+      <h1>{{ 'SCAN.TITLE' | translate }}</h1>
+      <p>{{ 'SCAN.SUBTITLE' | translate }}</p>
     </div>
   </div>
 
@@ -11,13 +11,13 @@
 
     <!-- 2. Date Range -->
     <div class="d-flex align-items-center gap-2">
-      <label class="fw-bold">Range:</label>
+      <label class="fw-bold">{{ 'SCAN.RANGE' | translate }}</label>
       <input #startInput type="date" [(ngModel)]="startDate" class="form-control form-control-sm"
-        (ngModelChange)="applyFilterStatus()" placeholder="Start Date" (keydown)="$event.preventDefault()"
+        (ngModelChange)="applyFilterStatus()" [placeholder]="'SCAN.START_DATE' | translate" (keydown)="$event.preventDefault()"
         (click)="startInput.showPicker()" />
       <span>-</span>
       <input #endInput type="date" [(ngModel)]="endDate" class="form-control form-control-sm" [min]="minEndDate"
-        placeholder="End Date" (ngModelChange)="applyFilterStatus()" (keydown)="$event.preventDefault()"
+        [placeholder]="'SCAN.END_DATE' | translate" (ngModelChange)="applyFilterStatus()" (keydown)="$event.preventDefault()"
         (click)="endInput.showPicker()" />
     </div>
 
@@ -25,19 +25,19 @@
 
     <!-- 3. Status -->
     <div class="d-flex align-items-center gap-2">
-      <label class="fw-bold">Scan Status:</label>
+      <label class="fw-bold">{{ 'SCAN.SCAN_STATUS' | translate }}</label>
       <select class="form-control form-control-sm" (ngModelChange)="applyFilterStatus()" [(ngModel)]="filterType"
         (ngModelChange)="applyFilterStatus()" style="width: 120px;">
-        <option value="ALL">ALL</option>
-        <option value="SUCCESS">Success</option>
-        <option value="FAILED">Failed</option>
+        <option value="ALL">{{ 'SCAN.ALL' | translate }}</option>
+        <option value="SUCCESS">{{ 'SCAN.STATUS_PASS' | translate }}</option>
+        <option value="FAILED">{{ 'SCAN.STATUS_FAILED' | translate }}</option>
       </select>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <label class="fw-bold">Project:</label>
+      <label class="fw-bold">{{ 'SCAN.PROJECT' | translate }}</label>
       <select class="form-control form-control-sm" style="width: 160px" [(ngModel)]="filterProject"
         (ngModelChange)="applyFilterStatus()">
-        <option value="All Projects">All Projects</option>
+        <option value="All Projects">{{ 'SCAN.ALL_PROJECTS' | translate }}</option>
         <option *ngFor="let project of repositories" [value]="project.name">
           {{ project.name }}
         </option>
@@ -51,25 +51,25 @@
     </button> -->
 
     <button class="btn btn-outline-primary btn-sm" (click)="resetFilters()">
-      <i class="bi bi-eraser"></i> Clear
+      <i class="bi bi-eraser"></i> {{ 'SCAN.CLEAR_FILTER' | translate }}
     </button>
   </div>
 
   <!-- Table -->
   <div class="table-responsive">
     <table class="table table-striped table-hover align-middle scan-history-table">
-      <caption class="visually-hidden">All Scan History Records</caption>
+      <caption class="visually-hidden">{{ 'SCAN.TABLE_CAPTION' | translate }}</caption>
       <thead class="table-light">
         <tr>
           <th style="width: 40px;">
             <!-- <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll($event)" /> -->
           </th>
-          <th>Date/Time</th>
-          <th>Project</th>
-          <th>Grade</th>
-          <th>Issues</th>
-          <th>Log</th>
-          <th>Result</th>
+          <th>{{ 'SCAN.COL_DATE_TIME' | translate }}</th>
+          <th>{{ 'SCAN.COL_PROJECT' | translate }}</th>
+          <th>{{ 'SCAN.COL_GRADE' | translate }}</th>
+          <th>{{ 'SCAN.COL_ISSUES' | translate }}</th>
+          <th>{{ 'SCAN.COL_LOG' | translate }}</th>
+          <th>{{ 'SCAN.COL_RESULT' | translate }}</th>
         </tr>
       </thead>
 
@@ -80,8 +80,8 @@
               <div class="empty-icon">
                 <i class="bi bi-folder-x"></i>
               </div>
-              <h3>No Scans Found</h3>
-              <p>Try adjusting your filters or run a new scan.</p>
+              <h3>{{ 'SCAN.NO_SCANS_FOUND' | translate }}</h3>
+              <p>{{ 'SCAN.NO_SCANS_FOUND_DESC' | translate }}</p>
             </div>
           </td>
         </tr>
@@ -110,7 +110,7 @@
                     'scanning': scan.status === 'PENDING'
                   }">
                   <span class="status-dot"></span>
-                  {{ scan.status === 'PENDING' ? 'SCANNING' : scan.status }}
+                  {{ scan.status === 'PENDING' ? ('SCAN.STATUS_SCANNING' | translate) : (scan.status === 'SUCCESS' ? ('SCAN.COMPLETED' | translate) : ('SCAN.FAILED' | translate)) }}
                 </span>
               </div>
             </div>
@@ -118,28 +118,28 @@
           <!-- <td>{{scan.ownerScan}}</td> -->
           <td>
             <span class="gate-badge" [ngClass]="scan.status === 'PENDING' ? 'gate-scanning' : (scan.qualityGate === 'OK' ? 'gate-pass' : 'gate-fail')">
-              {{ scan.status === 'PENDING' ? 'Scanning' : (scan.qualityGate === 'OK' ? 'Passed' : 'Failed') }}
+              {{ scan.status === 'PENDING' ? ('SCAN.STATUS_SCANNING' | translate) : (scan.qualityGate === 'OK' ? ('SCAN.STATUS_PASSED' | translate) : ('SCAN.STATUS_FAILED' | translate)) }}
             </span>
           </td>
 
           <td>
             <div class="d-flex gap-3 align-items-center">
-              <span *ngIf="scan.metrics?.bugs !== undefined" title="Bugs" class="d-flex align-items-center gap-1">
+              <span *ngIf="scan.metrics?.bugs !== undefined" [title]="'SCAN.BUGS' | translate" class="d-flex align-items-center gap-1">
                 <i class="bi bi-bug-fill text-danger"></i> {{scan.metrics?.bugs}}
               </span>
-              <span *ngIf="scan.metrics?.vulnerabilities !== undefined" title="Security"
+              <span *ngIf="scan.metrics?.vulnerabilities !== undefined" [title]="'SCAN.SECURITY' | translate"
                 class="d-flex align-items-center gap-1">
                 <i class="bi bi-shield-fill-exclamation text-warning"></i> {{(scan.metrics?.vulnerabilities ?? 0) + (scan.metrics?.securityHotspots ?? 0)}}
               </span>
-              <span *ngIf="scan.metrics?.codeSmells !== undefined" title="Code Smells"
+              <span *ngIf="scan.metrics?.codeSmells !== undefined" [title]="'SCAN.CODE_SMELLS' | translate"
                 class="d-flex align-items-center gap-1">
                 <i class="bi bi-code-slash text-info"></i> {{scan.metrics?.codeSmells}}
               </span>
-              <span *ngIf="scan.metrics?.coverage !== undefined" title="Coverage"
+              <span *ngIf="scan.metrics?.coverage !== undefined" [title]="'SCAN.COVERAGE' | translate"
                 class="d-flex align-items-center gap-1">
                 <i class="bi bi-graph-up text-success"></i> {{scan.metrics?.coverage | number: '1.0-2'}}%
               </span>
-              <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined" title="Duplications"
+              <span *ngIf="scan.metrics?.duplicatedLinesDensity !== undefined" [title]="'SCAN.DUPLICATIONS' | translate"
                 class="d-flex align-items-center gap-1">
                 <i class="bi bi-files text-secondary"></i> {{scan.metrics?.duplicatedLinesDensity | number: '1.0-2'}}%
               </span>
@@ -147,13 +147,13 @@
           </td>
 
           <td class="log-col sticky-col" (click)="$event.stopPropagation()">
-            <button title="View log" class="btn btn-icon btn-view" (click)="viewLog(scan); $event.stopPropagation()">
+            <button [title]="'SCAN.VIEW_LOG_TOOLTIP' | translate" class="btn btn-icon btn-view" (click)="viewLog(scan); $event.stopPropagation()">
               <i class="bi bi-file-text"></i>
             </button>
           </td>
 
           <td class="result-col sticky-col" (click)="$event.stopPropagation()">
-            <button title="View Result Scan" class="btn btn-icon btn-view"
+            <button [title]="'SCAN.VIEW_RESULT_TOOLTIP' | translate" class="btn btn-icon btn-view"
               (click)="viewResult(scan); $event.stopPropagation()">
               <i class="bi bi-eye"></i>
             </button>
@@ -170,7 +170,7 @@
     </button>
 
     <!-- Page Label -->
-    <span class="page-label">Page {{currentPage}} of {{totalPages}}</span>
+    <span class="page-label">{{ 'SCAN.PAGE_INFO' | translate:{ current: currentPage, total: totalPages } }}</span>
 
     <!-- Next -->
     <button class="page-btn next" [class.disabled]="currentPage === totalPages" (click)="goPage(currentPage + 1)">
@@ -183,13 +183,13 @@
   <!-- Actions -->
   <div class="actions mt-3 d-flex gap-2 flex-wrap">
     <button class="btn btn-success btn-sm" (click)="exportHistory()">
-      <i class="bi bi-download"></i> Export History
+      <i class="bi bi-download"></i> {{ 'SCAN.EXPORT_HISTORY' | translate }}
     </button>
     <button class="btn btn-info btn-sm" (click)="compareScans()">
-      <i class="bi bi-bar-chart"></i> Compare Scans
+      <i class="bi bi-bar-chart"></i> {{ 'SCAN.COMPARE_SCANS' | translate }}
     </button>
     <button class="btn btn-danger btn-sm" (click)="clearOldLogs()">
-      <i class="bi bi-trash"></i> Clear Old Logs
+      <i class="bi bi-trash"></i> {{ 'SCAN.CLEAR_OLD_LOGS' | translate }}
     </button>
   </div>
 </div>
@@ -198,21 +198,21 @@
 <div *ngIf="showCompareModal" class="modal-backdrop-custom">
   <div class="modal-content-custom">
     <div class="modal-header-custom">
-      <h5>Compare Scans</h5>
+      <h5>{{ 'SCAN.COMPARE_MODAL_TITLE' | translate }}</h5>
       <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">X</button>
     </div>
     <div class="modal-body-custom">
 
       <!-- Metrics Selection - แนวนอน -->
       <div class="mb-4">
-        <label class="fw-bold d-block mb-3">Please select the data you want to compare.</label>
+        <label class="fw-bold d-block mb-3">{{ 'SCAN.COMPARE_MODAL_DESC' | translate }}</label>
 
         <div class="d-flex flex-wrap gap-3">
           <div class="form-check">
             <input type="checkbox" class="form-check-input" id="checkGrade" [(ngModel)]="showGrade">
             <label class="form-check-label" for="checkGrade">
               <i class="bi bi-award-fill text-primary me-1"></i>
-              Grade
+              {{ 'SCAN.COMPARE_GRADE' | translate }}
             </label>
           </div>
 
@@ -220,7 +220,7 @@
             <input type="checkbox" class="form-check-input" id="checkBugs" [(ngModel)]="showBugs">
             <label class="form-check-label" for="checkBugs">
               <i class="bi bi-bug-fill text-danger me-1"></i>
-              Bugs
+              {{ 'SCAN.COMPARE_BUGS' | translate }}
             </label>
           </div>
 
@@ -228,7 +228,7 @@
             <input type="checkbox" class="form-check-input" id="checkSmells" [(ngModel)]="showCodeSmells">
             <label class="form-check-label" for="checkSmells">
               <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
-              Code Smells
+              {{ 'SCAN.COMPARE_CODE_SMELLS' | translate }}
             </label>
           </div>
 
@@ -236,7 +236,7 @@
             <input type="checkbox" class="form-check-input" id="checkCoverage" [(ngModel)]="showCoverage">
             <label class="form-check-label" for="checkCoverage">
               <i class="bi bi-shield-check text-success me-1"></i>
-              Coverage
+              {{ 'SCAN.COMPARE_COVERAGE' | translate }}
             </label>
           </div>
 
@@ -244,7 +244,7 @@
             <input type="checkbox" class="form-check-input" id="checkDuplications" [(ngModel)]="showDuplications">
             <label class="form-check-label" for="checkDuplications">
               <i class="bi bi-files text-info me-1"></i>
-              Duplications
+              {{ 'SCAN.COMPARE_DUPLICATIONS' | translate }}
             </label>
           </div>
         </div>
@@ -252,17 +252,17 @@
 
       <!-- Comparison Table -->
       <table class="table table-hover align-middle compare-table">
-        <caption class="visually-hidden">Scan Comparison Data</caption>
+        <caption class="visually-hidden">{{ 'SCAN.COMPARE_TABLE_CAPTION' | translate }}</caption>
         <thead>
           <tr>
-            <th class="ps-3">Metric</th>
+            <th class="ps-3">{{ 'SCAN.COL_METRIC' | translate }}</th>
             <th *ngFor="let scan of selectedScans" class="text-center">
               {{ scan.project?.name }}
               <div class="text-muted small">
                 {{ scan.startedAt | date:'yyyy-MM-dd' }}
               </div>
             </th>
-            <th class="text-center pe-3">Change</th>
+            <th class="text-center pe-3">{{ 'SCAN.COL_CHANGE' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -270,13 +270,13 @@
           <tr *ngIf="showGrade">
             <td class="fw-semibold ps-3">
               <i class="bi bi-award-fill text-primary me-2"></i>
-              Grade
+              {{ 'SCAN.COMPARE_GRADE' | translate }}
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
               <span class="badge px-3 py-2" [ngClass]="scan.status === 'PENDING'
               ? 'bg-info-subtle text-info'
               : (scan.qualityGate === 'OK' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger')">
-                {{ scan.status === 'PENDING' ? 'Scanning' : (scan.qualityGate === 'OK' ? 'Pass' : 'Failed') }}
+                {{ scan.status === 'PENDING' ? ('SCAN.STATUS_SCANNING' | translate) : (scan.qualityGate === 'OK' ? ('SCAN.STATUS_PASS' | translate) : ('SCAN.STATUS_FAILED' | translate)) }}
               </span>
             </td>
             <td class="text-center pe-3">
@@ -286,7 +286,7 @@
                     'bg-success-subtle text-success': selectedScans[selectedScans.length - 1].status !== 'PENDING' && selectedScans[selectedScans.length - 1].qualityGate === 'OK',
                     'bg-danger-subtle text-danger': selectedScans[selectedScans.length - 1].status !== 'PENDING' && selectedScans[selectedScans.length - 1].qualityGate !== 'OK'
                   }">
-                  {{ selectedScans[selectedScans.length - 1].status === 'PENDING' ? '↻ Scanning' : (selectedScans[selectedScans.length - 1].qualityGate === 'OK' ? '▲ Pass' : '▼ Failed') }}
+                  {{ selectedScans[selectedScans.length - 1].status === 'PENDING' ? ('SCAN.STATUS_SCANNING' | translate) : (selectedScans[selectedScans.length - 1].qualityGate === 'OK' ? '▲ ' + ('SCAN.STATUS_PASS' | translate) : '▼ ' + ('SCAN.STATUS_FAILED' | translate)) }}
                 </span>
               </ng-container>
               <ng-template #showZero>
@@ -303,7 +303,7 @@
           <tr *ngIf="showBugs">
             <td class="fw-semibold ps-3">
               <i class="bi bi-bug-fill text-danger me-2"></i>
-              Bugs
+              {{ 'SCAN.COMPARE_BUGS' | translate }}
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
               <span class="badge bg-danger-subtle text-danger px-3 py-2">
@@ -333,7 +333,7 @@
           <tr *ngIf="showCodeSmells">
             <td class="fw-semibold ps-3">
               <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-              Code Smells
+              {{ 'SCAN.COMPARE_CODE_SMELLS' | translate }}
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
               <span class="badge bg-warning-subtle text-warning px-3 py-2">
@@ -363,7 +363,7 @@
           <tr *ngIf="showCoverage">
             <td class="fw-semibold ps-3">
               <i class="bi bi-shield-check text-success me-2"></i>
-              Coverage
+              {{ 'SCAN.COMPARE_COVERAGE' | translate }}
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
               <span class="badge bg-success-subtle text-success px-3 py-2">
@@ -393,7 +393,7 @@
           <tr *ngIf="showDuplications">
             <td class="fw-semibold ps-3">
               <i class="bi bi-files text-info me-2"></i>
-              Duplications
+              {{ 'SCAN.COMPARE_DUPLICATIONS' | translate }}
             </td>
             <td *ngFor="let scan of selectedScans" class="text-center">
               <span class="badge bg-info-subtle text-info px-3 py-2">
@@ -423,7 +423,7 @@
 
     </div>
     <div class="modal-footer-custom">
-      <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">Close</button>
+      <button class="btn btn-primary btn-sm" (click)="closeCompareModal()">{{ 'SCAN.CLOSE' | translate }}</button>
     </div>
   </div>
 </div>

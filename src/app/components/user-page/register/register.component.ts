@@ -7,11 +7,12 @@ import { EmailService } from '../../../services/emailservice/email.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { catchError, finalize, of, switchMap, tap } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, RouterModule, MatSnackBarModule, TranslatePipe],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
 })

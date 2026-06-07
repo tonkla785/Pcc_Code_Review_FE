@@ -12,6 +12,8 @@ import { TokenStorageService } from './app/services/tokenstorageService/token-st
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { firstValueFrom, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 function initAuth(auth: AuthService, tokenStorage: TokenStorageService) {
   return () => {
@@ -31,6 +33,14 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideAnimations(),
     provideHttpClient(withInterceptors([AuthInterceptor])),
+    ...provideTranslateService({
+      lang: 'en',
+      fallbackLang: 'en',
+      loader: provideTranslateHttpLoader({
+        prefix: './assets/i18n/',
+        suffix: '.json',
+      }),
+    }),
     {
       provide: APP_INITIALIZER,
       useFactory: initAuth,

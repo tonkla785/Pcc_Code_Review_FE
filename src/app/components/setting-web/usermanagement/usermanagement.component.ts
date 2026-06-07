@@ -17,10 +17,12 @@ interface User {
   active: boolean;
 }
 
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-usermanagement',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, TranslatePipe],
   templateUrl: './usermanagement.component.html',
   styleUrl: './usermanagement.component.css'
 })
@@ -51,7 +53,8 @@ export class UsermanagementComponent {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly sharedData: SharedDataService,
-    private readonly userDateService: UserService
+    private readonly userDateService: UserService,
+    private readonly translate: TranslateService
   ) { }
 
   ngOnInit() {
@@ -167,15 +170,16 @@ export class UsermanagementComponent {
   };
 
   onDelete(id: string) {
+    const t = (key: string) => this.translate.instant(key);
     Swal.fire({
-      title: 'Delete?',
-      text: 'Are you sure you want to delete?',
+      title: t('USER_MGT.CONFIRM_DELETE_TITLE'),
+      text: t('USER_MGT.CONFIRM_DELETE_TEXT'),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: t('USER_MGT.CONFIRM_BUTTON'),
+      cancelButtonText: t('USER_MGT.CANCEL_BUTTON')
     }).then((result) => {
       if (result.isConfirmed) {
         this.userDateService.DeleteUser(id).subscribe({
@@ -184,8 +188,8 @@ export class UsermanagementComponent {
           },
           error: (err) => Swal.fire({
             icon: 'error',
-            title: 'Delete Failed',
-            text: 'Please try again.'
+            title: t('USER_MGT.DELETE_FAILED_TITLE'),
+            text: t('USER_MGT.DELETE_FAILED_TEXT')
           })
         });
       }

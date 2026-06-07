@@ -15,11 +15,12 @@ import { UserSettingService } from '../../../services/usersettingservice/user-se
 import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
 import { SonarQubeConfig } from '../../../interface/user_settings_interface';
 import { Subscription } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-sonarqubeconfig',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, TranslatePipe],
   templateUrl: './sonarqubeconfig.component.html',
   styleUrl: './sonarqubeconfig.component.css'
 })
@@ -69,7 +70,8 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     private readonly sonarQubeService: SonarQubeService,
     private readonly sharedData: SharedDataService,
     private readonly userSettingService: UserSettingService,
-    private readonly userSettingsData: UserSettingsDataService
+    private readonly userSettingsData: UserSettingsDataService,
+    private readonly translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -110,12 +112,24 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     };
   }
 
+  trimFields() {
+    this.serverUrl = this.serverUrl ? this.serverUrl.trim() : '';
+    this.authToken = this.authToken ? this.authToken.trim() : '';
+    this.organization = this.organization ? this.organization.trim() : '';
+    this.gitAccessToken = this.gitAccessToken ? this.gitAccessToken.trim() : '';
+    if (this.angularSettings) {
+      this.angularSettings.exclusions = this.angularSettings.exclusions ? this.angularSettings.exclusions.trim() : '';
+    }
+  }
+
   testConnection(): Promise<boolean> {
+    this.trimFields();
+    const t = (key: string) => this.translate.instant(key);
     if (!this.serverUrl) {
       Swal.fire({
         icon: 'warning',
-        title: 'Missing URL',
-        text: 'Please enter SonarQube Server URL.',
+        title: t('SONARQUBE_CONFIG.SWAL.MISSING_URL_TITLE'),
+        text: t('SONARQUBE_CONFIG.SWAL.MISSING_URL_TEXT'),
         confirmButtonColor: '#3085d6'
       });
       return Promise.resolve(false);
@@ -123,8 +137,8 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
     if (!this.authToken) {
       Swal.fire({
         icon: 'warning',
-        title: 'Missing Token',
-        text: 'Please enter SonarQube Token.',
+        title: t('SONARQUBE_CONFIG.SWAL.MISSING_TOKEN_TITLE'),
+        text: t('SONARQUBE_CONFIG.SWAL.MISSING_TOKEN_TEXT'),
         confirmButtonColor: '#3085d6'
       });
       return Promise.resolve(false);
@@ -142,16 +156,16 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
           if (response.connected) {
             Swal.fire({
               icon: 'success',
-              title: 'Connection Successful',
-              text: 'Successfully connected to SonarQube server!',
+              title: t('SONARQUBE_CONFIG.SWAL.CONN_SUCCESS_TITLE'),
+              text: t('SONARQUBE_CONFIG.SWAL.CONN_SUCCESS_TEXT'),
               confirmButtonColor: '#28a745'
             });
             resolve(true);
           } else {
             Swal.fire({
               icon: 'error',
-              title: 'Connection Failed',
-              text: 'Unable to connect to SonarQube server.',
+              title: t('SONARQUBE_CONFIG.SWAL.CONN_FAILED_TITLE'),
+              text: t('SONARQUBE_CONFIG.SWAL.CONN_FAILED_TEXT'),
               confirmButtonColor: '#dc3545'
             });
             resolve(false);
@@ -162,7 +176,7 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
           const errorMessage = error.error?.message || error.message || 'Network error';
           Swal.fire({
             icon: 'error',
-            title: 'Connection Failed',
+            title: t('SONARQUBE_CONFIG.SWAL.CONN_FAILED_TITLE'),
             text: errorMessage,
             confirmButtonColor: '#dc3545'
           });
@@ -198,20 +212,23 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
       maxDuplications: 0,
       maxSecurityHotspots: 0
     };
+    const t = (key: string) => this.translate.instant(key);
     Swal.fire({
       icon: 'success',
-      title: 'Reset Complete',
-      text: 'Settings have been reset to default (unsaved). Click Save to persist.',
+      title: t('SONARQUBE_CONFIG.SWAL.RESET_TITLE'),
+      text: t('SONARQUBE_CONFIG.SWAL.RESET_TEXT'),
       confirmButtonColor: '#3085d6'
     });
   }
 
   async saveSettings() {
+    this.trimFields();
     const isConnected = await this.testConnection();
 
     if (!isConnected) {
       return;
     }
+    const t = (key: string) => this.translate.instant(key);
     const config: Partial<SonarQubeConfig> = {
       serverUrl: this.serverUrl,
       authToken: this.authToken,
@@ -242,16 +259,16 @@ export class SonarqubeconfigComponent implements OnInit, OnDestroy {
         this.sharedData.setQualityGates(this.qualityGates);
         Swal.fire({
           icon: 'success',
-          title: 'Settings Saved',
-          text: 'Settings have been saved successfully.',
+          title: t('SONARQUBE_CONFIG.SWAL.SAVE_SUCCESS_TITLE'),
+          text: t('SONARQUBE_CONFIG.SWAL.SAVE_SUCCESS_TEXT'),
           confirmButtonColor: '#28a745'
         });
       },
       error: (err) => {
         Swal.fire({
           icon: 'error',
-          title: 'Save Failed',
-          text: 'Could not save settings to the server.',
+          title: t('SONARQUBE_CONFIG.SWAL.SAVE_FAILED_TITLE'),
+          text: t('SONARQUBE_CONFIG.SWAL.SAVE_FAILED_TEXT'),
           confirmButtonColor: '#dc3545'
         });
       }

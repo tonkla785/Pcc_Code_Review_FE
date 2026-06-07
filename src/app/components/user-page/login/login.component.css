@@ -119,6 +119,13 @@
   transform: translateY(-50%) scale(1.05);
 }
 
+.lang-switcher-abs {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 /* ==========================================================
    INPUTS / VALIDATION
 ========================================================== */

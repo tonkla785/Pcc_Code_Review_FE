@@ -10,20 +10,45 @@ import { ScanResponseDTO } from '../../../interface/scan_interface';
 import {
   VulnerabilitySeverity,
   OwaspCategory,
-  HotSecurityIssue
+  HotSecurityIssue,
+  SecurityIssueDTO
 } from '../../../interface/security_interface';
 
 import { Subscription } from 'rxjs';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-securitydashboard',
   standalone: true,
-  imports: [NgApexchartsModule, CommonModule, RouterLink],
+  imports: [NgApexchartsModule, CommonModule, RouterLink, TranslatePipe],
   templateUrl: './securitydashboard.component.html',
   styleUrl: './securitydashboard.component.css'
 })
 export class SecuritydashboardComponent implements OnInit, OnDestroy {
 
+  getRiskLevelKey(level: string): string {
+    if (!level) return '';
+    const l = level.toUpperCase().trim();
+    if (l === 'SAFE') return 'SECURITY_DASHBOARD.RISK_SAFE';
+    if (l === 'LOW') return 'SECURITY_DASHBOARD.RISK_LOW';
+    if (l === 'MEDIUM' || l === 'MED') return 'SECURITY_DASHBOARD.RISK_MEDIUM';
+    if (l === 'HIGH') return 'SECURITY_DASHBOARD.RISK_HIGH';
+    if (l === 'CRITICAL') return 'SECURITY_DASHBOARD.RISK_CRITICAL';
+    return level;
+  }
+
+  getSeverityKey(severity: string): string {
+    if (!severity) return '';
+    const s = severity.toLowerCase().trim();
+    if (s === 'critical') return 'SECURITY_DASHBOARD.SEVERITY_CRITICAL';
+    if (s === 'high') return 'SECURITY_DASHBOARD.SEVERITY_HIGH';
+    if (s === 'medium') return 'SECURITY_DASHBOARD.SEVERITY_MEDIUM';
+    if (s === 'low') return 'SECURITY_DASHBOARD.SEVERITY_LOW';
+    return severity;
+  }
+
+  securityIssues: SecurityIssueDTO[] = [];
   vulnerabilities: VulnerabilitySeverity[] = [];
   owaspCoverage: OwaspCategory[] = [];
   hotIssues: HotSecurityIssue[] = [];
@@ -202,7 +227,7 @@ export class SecuritydashboardComponent implements OnInit, OnDestroy {
       yaxis: { min: 0, forceNiceScale: true, decimalsInFloat: 0 },
       dataLabels: { enabled: false },
       tooltip: { enabled: true },
-      title: { text: 'Security Trend (7 Days)', align: 'left' },
+      title: { text: '', align: 'left' },
       colors: ['#008FFB']
     };
   }

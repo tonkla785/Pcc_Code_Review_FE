@@ -1,19 +1,19 @@
 <div class="settings-container">
-  <h2><i class="bi bi-gear"></i> Notification Settings</h2>
+  <h2><i class="bi bi-gear"></i> {{ 'NOTIFICATION_SETTINGS.TITLE' | translate }}</h2>
 
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
-    <p>Loading settings...</p>
+    <p>{{ 'NOTIFICATION_SETTINGS.LOADING' | translate }}</p>
   </div>
 
   <!-- Settings Form -->
   <div *ngIf="!loading">
     <!-- ประเภทการแจ้งเตือน -->
     <div class="card">
-      <h4>Notification Types</h4>
+      <h4>{{ 'NOTIFICATION_SETTINGS.TYPES' | translate }}</h4>
       <label class="switch-row">
-        <span>Scans Completed</span>
+        <span>{{ 'NOTIFICATION_SETTINGS.SCANS_COMPLETED' | translate }}</span>
         <label class="switch">
           <input type="checkbox" [(ngModel)]="settings.scans" />
           <span class="slider"></span>
@@ -21,7 +21,7 @@
       </label>
 
       <label class="switch-row">
-        <span>Issues (Bugs, Vulnerabilities, Code Smells)</span>
+        <span>{{ 'NOTIFICATION_SETTINGS.ISSUES' | translate }}</span>
         <label class="switch">
           <input type="checkbox" [(ngModel)]="settings.issues" />
           <span class="slider"></span>
@@ -29,7 +29,7 @@
       </label>
 
       <label class="switch-row">
-        <span>System Alerts</span>
+        <span>{{ 'NOTIFICATION_SETTINGS.SYSTEM_ALERTS' | translate }}</span>
         <label class="switch">
           <input type="checkbox" [(ngModel)]="settings.system" />
           <span class="slider"></span>
@@ -37,7 +37,7 @@
       </label>
 
       <label class="switch-row">
-        <span>Reports / Exports</span>
+        <span>{{ 'NOTIFICATION_SETTINGS.REPORTS_EXPORTS' | translate }}</span>
         <label class="switch">
           <input type="checkbox" [(ngModel)]="settings.reports" />
           <span class="slider"></span>
@@ -49,10 +49,10 @@
     <div class="actions">
       <button class="btn primary" (click)="saveSettings()" [disabled]="saving">
         <i class="bi" [ngClass]="saving ? 'bi-hourglass-split' : 'bi-save'"></i>
-        {{ saving ? 'Saving...' : 'Save' }}
+        {{ (saving ? 'NOTIFICATION_SETTINGS.SAVING' : 'NOTIFICATION_SETTINGS.SAVE') | translate }}
       </button>
       <button class="btn secondary" (click)="resetSettings()" [disabled]="saving">
-        <i class="bi bi-arrow-counterclockwise"></i> Reset
+        <i class="bi bi-arrow-counterclockwise"></i> {{ 'NOTIFICATION_SETTINGS.RESET' | translate }}
       </button>
     </div>
   </div>

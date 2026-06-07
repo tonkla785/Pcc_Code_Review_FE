@@ -15,10 +15,12 @@ interface LocalNotificationSettings {
   reports: boolean;
 }
 
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-notificationsetting',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './notificationsetting.component.html',
   styleUrl: './notificationsetting.component.css'
 })
@@ -40,7 +42,8 @@ export class NotificationsettingComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly userSettingService: UserSettingService,
-    private readonly userSettingsData: UserSettingsDataService
+    private readonly userSettingsData: UserSettingsDataService,
+    private readonly translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -82,13 +85,15 @@ export class NotificationsettingComponent implements OnInit, OnDestroy {
       reportsEnabled: this.settings.reports
     };
 
+    const t = (key: string) => this.translate.instant(key);
+
     this.userSettingService.updateNotificationSettings(updatePayload).subscribe({
       next: () => {
         this.saving = false;
         Swal.fire({
           icon: 'success',
-          title: 'Saved!',
-          text: 'Notification settings saved successfully.',
+          title: t('NOTIFICATION_SETTINGS.CONFIRM_SAVE_TITLE'),
+          text: t('NOTIFICATION_SETTINGS.CONFIRM_SAVE_TEXT'),
           confirmButtonColor: '#3085d6'
         });
       },
@@ -96,8 +101,8 @@ export class NotificationsettingComponent implements OnInit, OnDestroy {
         this.saving = false;
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: 'Failed to save settings. Please try again.',
+          title: t('NOTIFICATION_SETTINGS.ERROR_TITLE'),
+          text: t('NOTIFICATION_SETTINGS.ERROR_TEXT'),
           confirmButtonColor: '#d33'
         });
       }
@@ -132,10 +137,12 @@ export class NotificationsettingComponent implements OnInit, OnDestroy {
       reports: true,
     };
 
+    const t = (key: string) => this.translate.instant(key);
+
     Swal.fire({
       icon: 'info',
-      title: 'Reset',
-      text: 'Settings reset to default. Click Save to apply.',
+      title: t('NOTIFICATION_SETTINGS.RESET_TITLE'),
+      text: t('NOTIFICATION_SETTINGS.RESET_TEXT'),
       confirmButtonColor: '#3085d6'
     });
   }

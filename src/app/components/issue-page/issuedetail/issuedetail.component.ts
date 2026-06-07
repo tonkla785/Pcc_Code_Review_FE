@@ -48,10 +48,12 @@ interface StatusUpdate {
 const isUUID = (s: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-issuedetail',
   standalone: true,
-  imports: [CommonModule, FormsModule, IssuemodalComponent, MarkdownPipe, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, IssuemodalComponent, MarkdownPipe, MatSnackBarModule, TranslatePipe],
   templateUrl: './issuedetail.component.html',
   styleUrl: './issuedetail.component.css',
 })

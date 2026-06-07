@@ -12,10 +12,12 @@ import { IssuesRequestDTO, IssuesResponseDTO } from '../../../interface/issues_i
 
 
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-issuemodal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './issuemodal.component.html',
   styleUrl: './issuemodal.component.css'
 })

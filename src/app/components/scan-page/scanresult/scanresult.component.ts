@@ -12,10 +12,12 @@ import { LoginUser } from '../../../interface/user_interface';
 import Swal from 'sweetalert2';
 
 import { ActivatedRoute } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-scanresult',
   standalone: true,
-  imports: [RouterLink, CommonModule, RouterOutlet],
+  imports: [RouterLink, CommonModule, RouterOutlet, TranslatePipe],
   templateUrl: './scanresult.component.html',
   styleUrl: './scanresult.component.css',
 })
