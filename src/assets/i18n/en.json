@@ -772,6 +772,7 @@
     },
     "SNACKBAR": {
       "SUCCESS": "Report generated successfully",
+      "FAILED": "Failed to generate report",
       "ERROR_SECURITY": "Failed to generate report: Security data unavailable"
     },
     "NOTIFICATION": {

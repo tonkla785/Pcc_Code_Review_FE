@@ -10,6 +10,8 @@ import { ExcelService } from '../../../services/report-generator/excel/excel.ser
 import { WordService } from '../../../services/report-generator/word/word.service';
 import { PowerpointService } from '../../../services/report-generator/powerpoint/powerpoint.service';
 import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
+import { ReportService } from '../../../services/reportservice/report.service';
+import { ReportGenerateRequest } from '../../../interface/report_generate_interface';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
@@ -42,6 +44,7 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
     private readonly wordService: WordService,
     private readonly pptService: PowerpointService,
     private readonly pdfService: PdfService,
+    private readonly reportService: ReportService,
     private readonly snack: MatSnackBar,
     private readonly translate: TranslateService
   ) { }
@@ -126,6 +129,12 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
 
   downloadReport(report: ReportHistory): void {
     const t = (key: string) => this.translate.instant(key);
+
+    if (report.format === 'PDF') {
+      this.downloadPdfFromBackend(report);
+      return;
+    }
+
     if (!report.snapshotData) {
       this.snack.open(t('REPORT_HISTORY.SNACKBAR.NO_SNAPSHOT'), 'close', {
         duration: 2000,
@@ -179,5 +188,36 @@ export class ReporthistoryComponent implements OnInit, OnDestroy {
         panelClass: ['app-snack', 'app-snack-red']
       });
     }
+  }
+
+  private downloadPdfFromBackend(report: ReportHistory): void {
+    const t = (key: string) => this.translate.instant(key);
+
+    const request: ReportGenerateRequest = {
+      projectId: report.projectId,
+      dateFrom: report.dateFrom,
+      dateTo: report.dateTo,
+      format: 'pdf',
+      sections: {
+        qualityGate: report.includeQualityGate,
+        issueBreakdown: report.includeIssueBreakdown,
+        securityAnalysis: report.includeSecurityAnalysis,
+        technicalDebt: report.includeTechnicalDebt,
+        recommendations: report.includeRecommendations
+      },
+      generatedBy: report.generatedBy
+    };
+
+    this.reportService.generatePdf(request).subscribe({
+      next: (res) => this.reportService.downloadBase64(res.base64, res.fileName, res.mimeType),
+      error: () => {
+        this.snack.open(t('REPORT_HISTORY.SNACKBAR.DOWNLOAD_ERROR'), '', {
+          duration: 2000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+      }
+    });
   }
 }

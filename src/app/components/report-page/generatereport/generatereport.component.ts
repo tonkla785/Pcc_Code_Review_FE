@@ -19,6 +19,8 @@ import { PdfService } from '../../../services/report-generator/pdf/pdf.service';
 
 import { ReportHistoryService } from '../../../services/reporthistoryservice/report-history.service';
 import { ReportHistoryRequest } from '../../../interface/report_history_interface';
+import { ReportService } from '../../../services/reportservice/report.service';
+import { ReportGenerateRequest } from '../../../interface/report_generate_interface';
 import { NotificationService } from '../../../services/notiservice/notification.service';
 
 import { ScanResponseDTO } from '../../../interface/scan_interface';
@@ -113,6 +115,7 @@ export class GeneratereportComponent implements OnInit {
     private readonly pptService: PowerpointService,
     private readonly pdfService: PdfService,
     private readonly reportHistoryService: ReportHistoryService,
+    private readonly reportService: ReportService,
     private readonly notificationService: NotificationService,
     private readonly snackBar: MatSnackBar,
     private readonly userSettingsData: UserSettingsDataService,
@@ -253,7 +256,57 @@ export class GeneratereportComponent implements OnInit {
     }
 
     this.loading = true;
-    this.executeReportGeneration();
+
+    if (this.outputFormat === 'PDF') {
+      this.generatePdfViaBackend();
+    } else {
+      this.executeReportGeneration();
+    }
+  }
+
+  private generatePdfViaBackend(): void {
+    const project = this.getSelectedProject()!;
+    const user = this.tokenStorageService.getLoginUser();
+
+    const request: ReportGenerateRequest = {
+      projectId: project.id,
+      dateFrom: this.dateFrom!,
+      dateTo: this.dateTo!,
+      format: 'pdf',
+      sections: this.buildSelectedSections(),
+      userId: user?.id,
+      generatedBy: user?.username || 'Unknown'
+    };
+
+    this.reportService.generatePdf(request).subscribe({
+      next: (res) => {
+        this.reportService.downloadBase64(res.base64, res.fileName, res.mimeType);
+        this.reportHistoryService.loadReportHistory();
+        this.createReportNotification(project.name, true);
+
+        const settings = this.userSettingsData.notificationSettings;
+        const showReportAlert = !settings || settings.reportsEnabled;
+        if (showReportAlert) {
+          this.snackBar.open(this.translate.instant('GENERATE_REPORT.SNACKBAR.SUCCESS'), '', {
+            duration: 2500,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['app-snack', 'app-snack-green']
+          });
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.createReportNotification(project.name, false);
+        this.snackBar.open(this.translate.instant('GENERATE_REPORT.SNACKBAR.FAILED'), '', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['app-snack', 'app-snack-red']
+        });
+        this.loading = false;
+      }
+    });
   }
 
   private executeReportGeneration(): void {
