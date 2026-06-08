@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -84,6 +84,9 @@ export class GeneratereportComponent implements OnInit {
   today = new Date().toISOString().split('T')[0];
   noScanInRange = false;
 
+  projectDropdownOpen = false;
+  projectSearch = '';
+
   sections: Section[] = [
     { name: 'Quality Gate Summary', key: 'QualityGateSummary', selected: false, disabled: false },
     { name: 'Issue Breakdown', key: 'IssueBreakdown', selected: false, disabled: false },
@@ -119,7 +122,8 @@ export class GeneratereportComponent implements OnInit {
     private readonly notificationService: NotificationService,
     private readonly snackBar: MatSnackBar,
     private readonly userSettingsData: UserSettingsDataService,
-    private readonly translate: TranslateService
+    private readonly translate: TranslateService,
+    private readonly elRef: ElementRef
   ) { }
 
   ngOnInit(): void {
@@ -166,6 +170,38 @@ export class GeneratereportComponent implements OnInit {
     return this.projects.some(p => p.selected);
   }
 
+  get selectedProjectName(): string {
+    return this.projects.find(p => p.selected)?.name ?? '';
+  }
+
+  filteredProjects(): Project[] {
+    const q = this.projectSearch.trim().toLowerCase();
+    if (!q) return this.projects;
+    return this.projects.filter(p => p.name.toLowerCase().includes(q));
+  }
+
+  toggleProjectDropdown(): void {
+    this.projectDropdownOpen = !this.projectDropdownOpen;
+    if (this.projectDropdownOpen) {
+      this.projectSearch = '';
+    }
+  }
+
+  selectProjectFromDropdown(p: Project): void {
+    this.onSelectProject(p);
+    this.projectDropdownOpen = false;
+    this.projectSearch = '';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.projectDropdownOpen) return;
+    const wrapper = this.elRef.nativeElement.querySelector('.project-select-wrapper');
+    if (wrapper && !wrapper.contains(event.target as Node)) {
+      this.projectDropdownOpen = false;
+    }
+  }
+
   onDateFromChange(): void {
     if (this.dateTo && this.dateFrom! > this.dateTo) {
       this.dateTo = this.dateFrom;
@@ -205,6 +241,8 @@ export class GeneratereportComponent implements OnInit {
     this.dateFrom = '';
     this.dateTo = '';
     this.outputFormat = '';
+    this.projectDropdownOpen = false;
+    this.projectSearch = '';
   }
 
   // ตรวจสอบว่ามี scan อยู่ในวันที่เลือกปล่าว

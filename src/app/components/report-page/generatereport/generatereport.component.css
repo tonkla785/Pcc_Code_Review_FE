@@ -201,6 +201,140 @@ input[type="email"]:hover,
   transform: scale(1.1);
 }
 
+.project-select-wrapper {
+  position: relative;
+  max-width: 420px;
+}
+
+.project-select-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-select-toggle:hover {
+  border-color: var(--primary-hover);
+}
+
+.project-select-toggle.is-open {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.project-select-toggle .placeholder-text {
+  color: var(--text-sub);
+}
+
+.project-select-toggle .caret {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  transition: transform 0.2s ease;
+}
+
+.project-select-toggle.is-open .caret {
+  transform: rotate(180deg);
+}
+
+.project-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.project-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.project-search i {
+  color: var(--text-sub);
+  font-size: 0.9rem;
+}
+
+.project-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 2px 0;
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+.project-search input:focus {
+  box-shadow: none;
+}
+
+.project-options {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.project-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-main);
+  font-size: 0.92rem;
+  transition: background-color 0.15s ease;
+}
+
+.project-option:hover {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.project-option.active {
+  background-color: rgba(37, 99, 235, 0.12);
+  font-weight: 600;
+}
+
+.project-option i {
+  color: var(--primary);
+  font-size: 0.95rem;
+}
+
+.project-option-empty {
+  padding: 12px 10px;
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 0.88rem;
+}
+
+:host-context(.dark-mode) .project-option:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+:host-context(.dark-mode) .project-option.active {
+  background-color: rgba(59, 130, 246, 0.22);
+}
+
 /* ===============================
    Actions
    =============================== */
