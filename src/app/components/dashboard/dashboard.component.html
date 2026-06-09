@@ -217,7 +217,7 @@
                 <td>
                   <span class="status-badge" [ngClass]="scan.status.toLowerCase()">
                     <i *ngIf="scan.status === 'PENDING'" class="bi bi-arrow-repeat spin"></i>
-                    {{ scan.status === 'PENDING' ? ('DASHBOARD.SCANNING' | translate) : (scan.status === 'SUCCESS' ? ('DASHBOARD.PASSED' | translate) : scan.status) }}
+                    {{ scan.status === 'PENDING' ? ('DASHBOARD.SCANNING' | translate) : (scan.status === 'SUCCESS' ? ('DASHBOARD.PASSED' | translate) : ('DASHBOARD.FAILED' | translate)) }}
                   </span>
                 </td>
                 <td>
