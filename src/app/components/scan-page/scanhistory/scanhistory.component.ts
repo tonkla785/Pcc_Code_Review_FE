@@ -12,7 +12,7 @@ import Swal from 'sweetalert2';
 import { Repository } from '../../../interface/repository_interface';
 import { RepositoryService } from '../../../services/reposervice/repository.service';
 import { IssuesResponseDTO } from '../../../interface/issues_interface';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-scanhistory',
@@ -54,7 +54,7 @@ export class ScanhistoryComponent {
 
   constructor(private readonly router: Router, private readonly scanService: ScanService, private authService: AuthService,
     private sharedData: SharedDataService, private repoService: RepositoryService, private route: ActivatedRoute,
-    private readonly location: Location, private readonly destroyRef: DestroyRef
+    private readonly location: Location, private readonly destroyRef: DestroyRef, private readonly translate: TranslateService
   ) {
   }
 
@@ -230,13 +230,13 @@ export class ScanhistoryComponent {
 
   // Export 
   exportHistory(): void {
-
+    const t = (key: string) => this.translate.instant(key);
     if (!this.selectedScans || this.selectedScans.length === 0) {
       Swal.fire({
         icon: 'warning',
-        title: 'Please select items',
-        text: 'Please select at least 1 item to export',
-        confirmButtonText: 'OK'
+        title: t('SCAN.EXPORT_WARNING.TITLE'),
+        text: t('SCAN.EXPORT_WARNING.TEXT'),
+        confirmButtonText: t('SCAN.EXPORT_WARNING.CONFIRM')
       });
       return;
     }
@@ -342,12 +342,13 @@ export class ScanhistoryComponent {
 
 
   compareScans() {
+    const t = (key: string) => this.translate.instant(key);
     if (this.selectedScans.length < 2) {
       Swal.fire({
         icon: 'warning',
-        title: 'Not enough items selected',
-        text: 'Please select at least 2 items to compare',
-        confirmButtonText: 'OK'
+        title: t('SCAN.COMPARE_WARNING.TITLE'),
+        text: t('SCAN.COMPARE_WARNING.TEXT'),
+        confirmButtonText: t('SCAN.COMPARE_WARNING.CONFIRM')
       });
       return;
     }

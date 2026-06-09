@@ -14,7 +14,7 @@ import { WebSocketService } from '../../../services/websocket/websocket.service'
 import { ScanEvent } from '../../../interface/websocket_interface';
 import Swal from 'sweetalert2';
 import { UserSettingsDataService } from '../../../services/shared-data/user-settings-data.service';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 
 @Component({
@@ -45,7 +45,8 @@ export class RepositoriesComponent implements OnInit {
     private readonly issueService: IssueService,
     private readonly snack: MatSnackBar,
     private readonly ws: WebSocketService,
-    private readonly userSettingsData: UserSettingsDataService
+    private readonly userSettingsData: UserSettingsDataService,
+    private readonly translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -371,31 +372,32 @@ export class RepositoriesComponent implements OnInit {
   }
   onDelete(repo: Repository) {
     // กัน null / undefined แบบชัดเจน
+    const t = (key: string) => this.translate.instant(key);
     if (!repo?.projectId) {
       Swal.fire({
         icon: 'error',
-        title: 'Invalid Data',
-        text: 'Repository project ID not found',
+        title: t('REPOSITORY.DELETE_CONFIRM.INVALID_DATA_TITLE'),
+        text: t('REPOSITORY.DELETE_CONFIRM.INVALID_DATA_TEXT'),
       });
       return;
     }
 
     Swal.fire({
-      title: 'Confirm Delete Repository',
-      text: 'This action cannot be undone',
+      title: t('REPOSITORY.DELETE_CONFIRM.TITLE'),
+      text: t('REPOSITORY.DELETE_CONFIRM.TEXT'),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: t('REPOSITORY.DELETE_CONFIRM.CONFIRM'),
+      cancelButtonText: t('REPOSITORY.DELETE_CONFIRM.CANCEL'),
       reverseButtons: true
     }).then((result) => {
       if (result.isConfirmed) {
 
         // Loading while deleting
         Swal.fire({
-          title: 'Deleting...',
+          title: t('REPOSITORY.DELETE_CONFIRM.DELETING'),
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
@@ -407,8 +409,8 @@ export class RepositoriesComponent implements OnInit {
             this.sharedData.removeRepository(repo.projectId!);
             Swal.fire({
               icon: 'success',
-              title: 'Deleted Successfully',
-              text: 'Repository has been deleted',
+              title: t('REPOSITORY.DELETE_CONFIRM.SUCCESS_TITLE'),
+              text: t('REPOSITORY.DELETE_CONFIRM.SUCCESS_TEXT'),
               timer: 1800,
               showConfirmButton: false
             });
@@ -420,8 +422,8 @@ export class RepositoriesComponent implements OnInit {
           error: () => {
             Swal.fire({
               icon: 'error',
-              title: 'Delete Failed',
-              text: 'An error occurred while deleting the repository',
+              title: t('REPOSITORY.DELETE_CONFIRM.FAILED_TITLE'),
+              text: t('REPOSITORY.DELETE_CONFIRM.FAILED_TEXT'),
             });
           }
         });

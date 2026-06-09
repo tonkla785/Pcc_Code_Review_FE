@@ -154,7 +154,20 @@
     "SONAR_SERVER": "SonarQube Server",
     "PROJECT_KEY": "Project Key",
     "CLEAR": "Clear",
-    "SAVE_CHANGES": "Save Changes"
+    "SAVE_CHANGES": "Save Changes",
+    "DELETE_CONFIRM": {
+      "INVALID_DATA_TITLE": "Invalid Data",
+      "INVALID_DATA_TEXT": "Repository project ID not found",
+      "TITLE": "Confirm Delete Repository",
+      "TEXT": "This action cannot be undone",
+      "CONFIRM": "Delete",
+      "CANCEL": "Cancel",
+      "DELETING": "Deleting...",
+      "SUCCESS_TITLE": "Deleted Successfully",
+      "SUCCESS_TEXT": "Repository has been deleted",
+      "FAILED_TITLE": "Delete Failed",
+      "FAILED_TEXT": "An error occurred while deleting the repository"
+    }
   },
   "SCAN": {
     "TITLE": "Scan History",
@@ -212,7 +225,17 @@
     "SECURITY": "Security",
     "CODE_SMELLS": "Code Smells",
     "COVERAGE": "Coverage",
-    "DUPLICATIONS": "Duplications"
+    "DUPLICATIONS": "Duplications",
+    "COMPARE_WARNING": {
+      "TITLE": "Not enough items selected",
+      "TEXT": "Please select at least 2 items to compare",
+      "CONFIRM": "OK"
+    },
+    "EXPORT_WARNING": {
+      "TITLE": "Please select items",
+      "TEXT": "Please select at least 1 item to export",
+      "CONFIRM": "OK"
+    }
   },
   "ISSUE": {
     "TITLE": "Issues",
