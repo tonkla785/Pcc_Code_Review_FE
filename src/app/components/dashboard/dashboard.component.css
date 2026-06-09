@@ -467,18 +467,26 @@ td {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-main);
+  vertical-align: middle;
 }
 
 tr:last-child td {
   border: none;
 }
 
-.project-name {
+.project-name-wrapper {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.project-name-text {
   font-weight: 600;
   color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
 }
 
 .project-icon {
@@ -490,9 +498,15 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 11px;

@@ -208,11 +208,15 @@
             </thead>
             <tbody>
               <tr *ngFor="let scan of DashboardData | slice:0:5">
-                <td class="project-name">
-                  <div class="project-icon">
-                    <i class="bi bi-code-square"></i>
+                <td>
+                  <div class="project-name-wrapper">
+                    <div class="project-icon">
+                      <i class="bi bi-code-square"></i>
+                    </div>
+                    <span class="project-name-text" [title]="scan.project.name">
+                      {{ scan.project.name }}
+                    </span>
                   </div>
-                  {{ scan.project.name }}
                 </td>
                 <td>
                   <span class="status-badge" [ngClass]="scan.status.toLowerCase()">
