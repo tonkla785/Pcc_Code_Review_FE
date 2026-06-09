@@ -21,9 +21,11 @@
 
     <select class="form-select w-auto" [(ngModel)]="filterSeverity" (ngModelChange)="applyFilter()">
       <option>All Severity</option>
+      <option value="BLOCKER">BLOCKER</option>
       <option value="critical">CRITICAL</option>
       <option value="MAJOR">MAJOR</option>
       <option value="MINOR">MINOR</option>
+      <option value="INFO">INFO</option>
     </select>
 
     <select class="form-select w-auto" [(ngModel)]="filterStatus" (ngModelChange)="applyFilter()">

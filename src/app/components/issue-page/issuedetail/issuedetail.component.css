@@ -179,10 +179,22 @@
 }
 
 /* Severity Badges */
+.badge-severity.severity-blocker {
+  background: #991b1b;
+  color: #ffffff;
+  border: 1px solid #991b1b;
+}
+
 .badge-severity.severity-critical {
   background: #fff5f5;
   color: #c92a2a;
   border: 1px solid #ffc9c9;
+}
+
+.badge-severity.severity-info {
+  background: #e7f5ff;
+  color: #1971c2;
+  border: 1px solid #a5d8ff;
 }
 
 .badge-severity.severity-high {
@@ -1344,10 +1356,22 @@
 }
 
 /* Severity Badges - Dark */
+:host-context(.dark-mode) .badge-severity.severity-blocker {
+  background: rgba(153, 27, 27, 0.55);
+  color: #fecaca;
+  border-color: rgba(153, 27, 27, 0.7);
+}
+
 :host-context(.dark-mode) .badge-severity.severity-critical {
   background: rgba(201, 42, 42, 0.2);
   color: #fca5a5;
   border-color: rgba(201, 42, 42, 0.4);
+}
+
+:host-context(.dark-mode) .badge-severity.severity-info {
+  background: rgba(25, 113, 194, 0.2);
+  color: #74c0fc;
+  border-color: rgba(25, 113, 194, 0.4);
 }
 
 :host-context(.dark-mode) .badge-severity.severity-high {

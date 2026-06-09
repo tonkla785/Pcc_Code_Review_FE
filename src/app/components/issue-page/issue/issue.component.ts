@@ -443,11 +443,13 @@ export class IssueComponent {
   }
 
   severityClass(severity: string) {
-    switch (severity.toLowerCase()) {
+    switch ((severity || '').toLowerCase()) {
+      case 'blocker': return 'severity-blocker';
       case 'critical': return 'text-danger';
       case 'major': return 'text-warning';
       case 'minor': return 'text-success';
-      default: return '';
+      case 'info': return 'severity-info';
+      default: return 'text-secondary';
     }
   }
 
