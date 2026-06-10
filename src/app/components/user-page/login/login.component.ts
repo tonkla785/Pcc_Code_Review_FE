@@ -21,6 +21,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class LoginComponent implements OnInit {
   email = '';
   password = '';
+  showPassword = false;
   loading = false;
   submitted = false;
   loginFailed = false;

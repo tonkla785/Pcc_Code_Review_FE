@@ -329,10 +329,14 @@
           <!-- Old Password -->
           <div class="form-group mb-3">
             <label>{{ 'DASHBOARD.OLD_PASSWORD' | translate }}</label>
-            <input type="password" class="form-control" name="oldPassword" [(ngModel)]="passwordData.oldPassword"
-              required #oldpassRef="ngModel" [class.is-invalid]="
-                (oldpassRef.touched || submitted) && !passwordData.oldPassword
-              " />
+            <div class="pw-field">
+              <input [type]="showOldPassword ? 'text' : 'password'" class="form-control" name="oldPassword" [(ngModel)]="passwordData.oldPassword"
+                required #oldpassRef="ngModel" [class.is-invalid]="
+                  (oldpassRef.touched || submitted) && !passwordData.oldPassword
+                " />
+              <i class="pw-eye bi" [ngClass]="showOldPassword ? 'bi-eye-slash' : 'bi-eye'"
+                (mousedown)="showOldPassword = !showOldPassword"></i>
+            </div>
             <div *ngIf="oldpassRef.dirty || oldpassRef.touched || submitted">
               <small *ngIf="oldpassRef.errors?.['required']" class="text-danger">{{ 'DASHBOARD.OLD_PASSWORD_REQUIRED' | translate }}</small>
             </div>
@@ -341,11 +345,15 @@
           <!-- New Password -->
           <div class="form-group mb-3">
             <label>{{ 'DASHBOARD.NEW_PASSWORD' | translate }}</label>
-            <input type="password" class="form-control" name="newPassword" [(ngModel)]="passwordData.newPassword"
-              required minlength="8" #newpassRef="ngModel" (focus)="isNewPasswordFocused = true" [class.is-invalid]="
-                isNewPasswordFocused &&
-                (newpassRef.invalid || !newPasswordValid)
-              " />
+            <div class="pw-field">
+              <input [type]="showNewPassword ? 'text' : 'password'" class="form-control" name="newPassword" [(ngModel)]="passwordData.newPassword"
+                required minlength="8" #newpassRef="ngModel" (focus)="isNewPasswordFocused = true" [class.is-invalid]="
+                  isNewPasswordFocused &&
+                  (newpassRef.invalid || !newPasswordValid)
+                " />
+              <i class="pw-eye bi" [ngClass]="showNewPassword ? 'bi-eye-slash' : 'bi-eye'"
+                (mousedown)="showNewPassword = !showNewPassword"></i>
+            </div>
 
             <!-- Checklist -->
             <ul class="password-rules" *ngIf="isNewPasswordFocused">
@@ -404,12 +412,16 @@
           <!-- Confirm Password -->
           <div class="form-group mb-3">
             <label>{{ 'DASHBOARD.CONFIRM_PASSWORD' | translate }}</label>
-            <input type="password" class="form-control" name="confirmPassword"
-              [(ngModel)]="passwordData.confirmPassword" required #confRef="ngModel" [class.is-invalid]="
-              (confRef.touched || submitted) &&
-              (!passwordData.confirmPassword ||
-                passwordData.confirmPassword !== passwordData.newPassword)
-            " />
+            <div class="pw-field">
+              <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control" name="confirmPassword"
+                [(ngModel)]="passwordData.confirmPassword" required #confRef="ngModel" [class.is-invalid]="
+                (confRef.touched || submitted) &&
+                (!passwordData.confirmPassword ||
+                  passwordData.confirmPassword !== passwordData.newPassword)
+              " />
+              <i class="pw-eye bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"
+                (mousedown)="showConfirmPassword = !showConfirmPassword"></i>
+            </div>
 
             <div *ngIf="confRef.dirty || confRef.touched || submitted">
               <small *ngIf="confRef.errors?.['required']" class="text-danger">

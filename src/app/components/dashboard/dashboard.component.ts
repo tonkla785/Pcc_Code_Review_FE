@@ -87,6 +87,10 @@ export type ChartOptions = {
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent {
+  showOldPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;

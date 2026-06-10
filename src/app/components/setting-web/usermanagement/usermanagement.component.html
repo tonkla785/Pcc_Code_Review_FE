@@ -66,7 +66,11 @@
           </div>
           <div *ngIf="editingUser == false" class="form-group">
             <label for="name">{{ 'USER_MGT.PASSWORD' | translate }}</label>
-            <input type="password" class="form-control" [(ngModel)]="modalData.password" name="password" required />
+            <div class="pw-field">
+              <input [type]="showPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="modalData.password" name="password" required />
+              <i class="pw-eye bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"
+                (mousedown)="showPassword = !showPassword"></i>
+            </div>
             <small *ngIf="userForm.submitted && !modalData.password" class="text-danger">
               {{ 'USER_MGT.PASSWORD_REQUIRED' | translate }}
             </small>

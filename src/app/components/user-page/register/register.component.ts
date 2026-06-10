@@ -22,6 +22,8 @@ export class RegisterComponent {
   phoneNumber = '';
   password = '';
   confirmPassword = '';
+  showPassword = false;
+  showConfirmPassword = false;
   loading = false;
   submitted = false;
 

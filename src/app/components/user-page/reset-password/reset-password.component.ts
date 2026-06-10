@@ -23,6 +23,8 @@ export class ResetPasswordComponent implements OnInit {
   loading = false;
   tokenState: 'checking' | 'valid' | 'expired' | 'used' | 'invalid' = 'checking';
   form: FormGroup;
+  showPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private readonly fb: FormBuilder,

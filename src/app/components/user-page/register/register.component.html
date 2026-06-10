@@ -119,20 +119,24 @@
         <!-- Password -->
         <div class="input-group">
           <label for="password">{{ 'AUTH.PASSWORD' | translate }}</label>
-          <input
-            type="password"
-            name="password"
-            (focus)="markTouched(pwdRef)"
-            [(ngModel)]="password"
-            required
-            minlength="8"
-            [placeholder]="'REGISTER.PASSWORD_PLACEHOLDER' | translate"
-            #pwdRef="ngModel"
-            [class.is-invalid]="
-              (pwdRef.invalid && (pwdRef.touched || submitted)) ||
-              ((pwdRef.touched || submitted) && !passwordValid)
-            "
-          />
+          <div class="pw-field">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              (focus)="markTouched(pwdRef)"
+              [(ngModel)]="password"
+              required
+              minlength="8"
+              [placeholder]="'REGISTER.PASSWORD_PLACEHOLDER' | translate"
+              #pwdRef="ngModel"
+              [class.is-invalid]="
+                (pwdRef.invalid && (pwdRef.touched || submitted)) ||
+                ((pwdRef.touched || submitted) && !passwordValid)
+              "
+            />
+            <i class="pw-eye bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"
+              (mousedown)="showPassword = !showPassword"></i>
+          </div>
 
           <!-- Checklist only -->
           <ul class="password-rules" *ngIf="pwdRef.touched || submitted">
@@ -216,15 +220,19 @@
         <!-- Confirm Password -->
         <div class="input-group">
           <label for="confirmPassword">{{ 'AUTH.CONFIRM_PASSWORD' | translate }}</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            [(ngModel)]="confirmPassword"
-            required
-            minlength="8"
-            [placeholder]="'REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
-            #confirmRef="ngModel"
-          />
+          <div class="pw-field">
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              name="confirmPassword"
+              [(ngModel)]="confirmPassword"
+              required
+              minlength="8"
+              [placeholder]="'REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
+              #confirmRef="ngModel"
+            />
+            <i class="pw-eye bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"
+              (mousedown)="showConfirmPassword = !showConfirmPassword"></i>
+          </div>
           <div *ngIf="confirmRef.touched || confirmRef.dirty || submitted">
             <small *ngIf="confirmRef.errors?.['required']" class="error-message"
               >{{ 'REGISTER.CONFIRM_PASSWORD_REQUIRED' | translate }}</small

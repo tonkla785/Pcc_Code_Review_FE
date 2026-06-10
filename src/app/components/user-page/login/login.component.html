@@ -36,9 +36,13 @@
 
         <div class="input-group">
           <label for="password">{{ 'AUTH.PASSWORD' | translate }}</label>
-          <input type="password" name="password" [(ngModel)]="password" required #pwdRef="ngModel"
-            [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" title="Please enter your password"
-            [class.input-error]="(submitted && pwdRef.invalid) || loginFailed" />
+          <div class="pw-field">
+            <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required #pwdRef="ngModel"
+              [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" title="Please enter your password"
+              [class.input-error]="(submitted && pwdRef.invalid) || loginFailed" />
+            <i class="pw-eye bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"
+              (mousedown)="showPassword = !showPassword"></i>
+          </div>
           <div *ngIf="pwdRef.touched || pwdRef.dirty || submitted">
             <small *ngIf="pwdRef.errors?.['required']" class="error-message">
               {{ 'LOGIN.PASSWORD_REQUIRED' | translate }}

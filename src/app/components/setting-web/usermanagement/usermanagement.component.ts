@@ -28,6 +28,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 })
 export class UsermanagementComponent {
 
+  showPassword = false;
+
   searchText: string = '';
 
   modalOpen: boolean = false;

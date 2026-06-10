@@ -1,5 +1,45 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
+.pw-field {
+  position: relative;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+.pw-field > input {
+  width: 100%;
+  box-sizing: border-box;
+  /* leave room for the eye icon so text never sits under it */
+  padding-right: 40px !important;
+}
+.pw-eye {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 1.30rem;
+  line-height: 1;
+  z-index: 3;
+  user-select: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.pw-field:focus-within .pw-eye {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pw-eye:hover {
+  color: #0d6efd;
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 /* ===============================
    Light mode (default)
    =============================== */
