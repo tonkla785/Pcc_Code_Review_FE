@@ -33,7 +33,7 @@
         <i class="bi" [ngClass]="scanResult?.status === 'PENDING' ? 'bi-arrow-repeat spin' : (scanResult?.status === 'SUCCESS' ? 'bi-check-circle-fill' : 'bi-x-circle-fill')"></i>
       </div>
       <div class="stat-info">
-        <h3>{{ scanResult?.status === 'PENDING' ? ('LOG_VIEWER.SCANNING' | translate) : (scanResult?.status | titlecase) }}</h3>
+        <h3>{{ scanResult?.status === 'PENDING' ? ('LOG_VIEWER.SCANNING' | translate) : (scanResult?.status === 'SUCCESS' ? ('LOG_VIEWER.SUCCESS' | translate) : ('LOG_VIEWER.STATUS_FAILED' | translate)) }}</h3>
         <span>{{ 'LOG_VIEWER.STATUS' | translate }}</span>
       </div>
     </div>

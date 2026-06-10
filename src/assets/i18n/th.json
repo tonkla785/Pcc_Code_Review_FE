@@ -492,6 +492,8 @@
     "WARNING": "คำเตือน",
     "FAIL": "ไม่ผ่านเกณฑ์",
     "SCANNING": "กำลังสแกน...",
+    "SUCCESS": "ผ่าน",
+    "STATUS_FAILED": "ผิดพลาด",
     "WARNINGS_WITH_COUNT": "คำเตือน ({{count}})",
     "ERRORS_WITH_COUNT": "ข้อผิดพลาด ({{count}})",
     "COL_HASH": "#",

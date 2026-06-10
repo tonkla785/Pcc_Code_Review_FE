@@ -492,6 +492,8 @@
     "WARNING": "Warning",
     "FAIL": "Fail",
     "SCANNING": "Scanning...",
+    "SUCCESS": "Success",
+    "STATUS_FAILED": "Failed",
     "WARNINGS_WITH_COUNT": "Warnings ({{count}})",
     "ERRORS_WITH_COUNT": "Errors ({{count}})",
     "COL_HASH": "#",
