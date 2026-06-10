@@ -31,7 +31,7 @@ interface TopIssue {
   count: number;
 }
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-issue',
@@ -71,7 +71,8 @@ export class IssueComponent {
     private readonly userDataService: UserService,
     private readonly repoService: RepositoryService,
     private route: ActivatedRoute,
-    private readonly destroyRef: DestroyRef
+    private readonly destroyRef: DestroyRef,
+    private readonly translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -343,8 +344,8 @@ export class IssueComponent {
     if (ids.length === 0) {
       Swal.fire({
         icon: 'error',
-        title: 'Invalid Data',
-        text: 'Don\'t Select Issue',
+        title: this.translate.instant('ISSUE.INVALID_DATA_TITLE'),
+        text: this.translate.instant('ISSUE.INVALID_DATA_TEXT'),
       });
       this.showAssignModal = false;
       return;
@@ -392,12 +393,12 @@ export class IssueComponent {
     const dateStr = datenow.toISOString().split('T')[0].replaceAll('-', '');
     const fileType = selectedIssues.length ? 'selected' : 'all';
     const fileName = `issues_${fileType}_${dateStr}.csv`;
-    if (this.selectedIssues.length < 2) {
+    if (this.selectedIssues.length < 1) {
       Swal.fire({
         icon: 'warning',
-        title: 'Not enough items selected',
-        text: 'Please select at least 1 items to export',
-        confirmButtonText: 'OK'
+        title: this.translate.instant('ISSUE.EXPORT_WARNING_TITLE'),
+        text: this.translate.instant('ISSUE.EXPORT_WARNING_TEXT'),
+        confirmButtonText: this.translate.instant('COMMON.OK') || 'OK'
       });
       return;
     }

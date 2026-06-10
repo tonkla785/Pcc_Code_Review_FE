@@ -290,7 +290,11 @@
     "ROWS_PER_PAGE": "Rows per page",
     "PAGE_INFO": "{{start}}–{{end}} of {{total}}",
     "TOOLTIP_ASSIGN_DEV": "Assign Developer",
-    "TOOLTIP_EXPORT": "Export"
+    "TOOLTIP_EXPORT": "Export",
+    "EXPORT_WARNING_TITLE": "Not enough items selected",
+    "EXPORT_WARNING_TEXT": "Please select at least 1 items to export",
+    "INVALID_DATA_TITLE": "Invalid Data",
+    "INVALID_DATA_TEXT": "Don't Select Issue"
   },
   "REPORT": {
     "TITLE": "Generate Report",
@@ -359,7 +363,10 @@
     "ERROR": "Error",
     "SUCCESS": "Success",
     "WARNING": "Warning",
-    "INFO": "Info"
+    "INFO": "Info",
+    "SWITCH_LIGHT": "Switch to Light Mode",
+    "SWITCH_DARK": "Switch to Dark Mode",
+    "OK": "OK"
   },
   "LANGUAGE": {
     "EN": "English",
@@ -720,11 +727,11 @@
     "HIDE": "Hide",
     "SHOW": "Show",
     "GIT_TOKEN": "Git Access Token",
-    "HOW_TO_GET_GIT_TOKEN": "How to get a Git Token?",
-    "STEP_1": "GitHub → Settings",
-    "STEP_2": "Developer settings → Personal access tokens",
-    "STEP_3": "Select Fine-grained token",
-    "STEP_4": "Permissions: Read-only (Contents)",
+    "HOW_TO_GET_GIT_TOKEN": "How to get a GitLab Access Token?",
+    "STEP_1": "GitLab → Profile Icon (top right) → Preferences",
+    "STEP_2": "Select 'Access Tokens' from left sidebar",
+    "STEP_3": "Click 'Add new token' and enter name",
+    "STEP_4": "Select Scopes: 'read_repository' and click 'Create personal access token'",
     "TOOLTIP_NOTE": "No token needed for public repositories.",
     "GIT_TOKEN_REQUIRED": "Git Access Token is required.",
     "DEFAULT_ORG": "Default Organization",

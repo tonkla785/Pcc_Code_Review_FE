@@ -16,11 +16,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription, bufferTime, filter, of, EMPTY, Subject } from 'rxjs';
 import { switchMap, catchError, distinctUntilChanged, map, debounceTime } from 'rxjs/operators';
 import { UserService } from './services/userservice/user.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, MatSnackBarModule],
+  imports: [RouterOutlet, CommonModule, MatSnackBarModule, TranslatePipe],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

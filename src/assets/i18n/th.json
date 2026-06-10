@@ -290,7 +290,11 @@
     "ROWS_PER_PAGE": "แถวต่อหน้า",
     "PAGE_INFO": "{{start}}–{{end}} จาก {{total}}",
     "TOOLTIP_ASSIGN_DEV": "มอบหมายงานให้นักพัฒนา",
-    "TOOLTIP_EXPORT": "ส่งออกข้อมูล"
+    "TOOLTIP_EXPORT": "ส่งออกข้อมูล",
+    "EXPORT_WARNING_TITLE": "เลือกรายการไม่เพียงพอ",
+    "EXPORT_WARNING_TEXT": "กรุณาเลือกอย่างน้อย 1 รายการเพื่อส่งออก",
+    "INVALID_DATA_TITLE": "ข้อมูลไม่ถูกต้อง",
+    "INVALID_DATA_TEXT": "ไม่ได้เลือกรายการปัญหา"
   },
   "REPORT": {
     "TITLE": "สร้างรายงาน",
@@ -359,7 +363,10 @@
     "ERROR": "ข้อผิดพลาด",
     "SUCCESS": "สำเร็จ",
     "WARNING": "คำเตือน",
-    "INFO": "ข้อเสนอแนะ"
+    "INFO": "ข้อเสนอแนะ",
+    "SWITCH_LIGHT": "เปลี่ยนเป็นโหมดสว่าง",
+    "SWITCH_DARK": "เปลี่ยนเป็นโหมดมืด",
+    "OK": "ตกลง"
   },
   "LANGUAGE": {
     "EN": "อังกฤษ",
@@ -720,11 +727,11 @@
     "HIDE": "ซ่อน",
     "SHOW": "แสดง",
     "GIT_TOKEN": "Git Access Token",
-    "HOW_TO_GET_GIT_TOKEN": "วิธีรับ Git Token?",
-    "STEP_1": "GitHub → Settings",
-    "STEP_2": "Developer settings → Personal access tokens",
-    "STEP_3": "เลือก Fine-grained token",
-    "STEP_4": "สิทธิ์การเข้าถึง (Permissions): Read-only (Contents)",
+    "HOW_TO_GET_GIT_TOKEN": "วิธีรับ GitLab Access Token?",
+    "STEP_1": "GitLab → ไอคอนโปรไฟล์ (มุมขวาบน) → Preferences",
+    "STEP_2": "เลือกหัวข้อ 'Access Tokens' จากแถบเมนูด้านซ้าย",
+    "STEP_3": "คลิก 'Add new token' และตั้งชื่อ Token",
+    "STEP_4": "เลือกสิทธิ์ (Scopes): 'read_repository' และคลิก 'Create personal access token'",
     "TOOLTIP_NOTE": "ไม่จำเป็นต้องใช้ Token สำหรับคลังข้อมูลสาธารณะ (Public Repository)",
     "GIT_TOKEN_REQUIRED": "จำเป็นต้องระบุ Git Access Token",
     "DEFAULT_ORG": "Default Organization (องค์กรเริ่มต้น)",
