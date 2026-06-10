@@ -78,7 +78,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Theme restore
-    const savedTheme = sessionStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkMode = true;
       document.body.classList.add('dark-mode');
@@ -582,10 +582,10 @@ export class AppComponent implements OnInit {
 
     if (this.darkMode) {
       document.body.classList.add('dark-mode');
-      sessionStorage.setItem('theme', 'dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.body.classList.remove('dark-mode');
-      sessionStorage.setItem('theme', 'light');
+      localStorage.setItem('theme', 'light');
     }
   }
 }
